@@ -55,6 +55,7 @@ int main(int argc, char *argv[]){
 #include <iostream>
 #include "../../cppui/qt/application.hpp"
 #include "../../cppui/qt/window.hpp"
+#include "../../cppui/qt/label.hpp"
 
 using namespace CPPUI;
 class UI: public Application {
@@ -65,7 +66,9 @@ class UI: public Application {
 
     void content(void) {
         for(auto _: Window().tag("window1")) {
-
+            Label("label1").tag("label1");
+            Label("label2").tag("label2");
+            Label("label3");
         }
         printUI(0);
     }
@@ -74,7 +77,6 @@ class UI: public Application {
 int main(int argc, char *argv[]) {
     UI app(argc, argv);
     app.tag("app").run();
-*
 }
 ```
 
@@ -82,6 +84,12 @@ Output:
 ```
 UI (app) {
   CPPUI::Qt::Window (window1) {
+    CPPUI::Qt::Label (label1) {
+    }
+    CPPUI::Qt::Label (label2) {
+    }
+    CPPUI::Qt::Label {
+    }
   }
 }
 ```
