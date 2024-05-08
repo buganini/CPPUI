@@ -25,9 +25,23 @@ int main(int argc, char *argv[]){
 }
 ```
 
+## Pros
+* Clearner Syntax
+* Better view refresh granularity
+
+## Cons
+* Requires trailing semicolon
+
 # Range-Based For-Loop Method
 ```
 for(auto parent: ABC()){
     std::cout << "build\n";
 }
 ```
+
+## Pros
+* No MACRO
+* No trailing semicolon
+
+## Cons
+* Worse view refresh granularity
