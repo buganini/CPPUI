@@ -56,6 +56,7 @@ for(auto parent: ABC()->xx()->oo()){
     std::cout << "build\n";
 }
 ```
+* See `example/minimal/main.cpp`
 
 ## Pros
 * No MACRO
