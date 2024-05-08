@@ -1,15 +1,15 @@
 # Lambda Method
 ```
+// g++ -std=c++11  -o test test.cpp
 #include <iostream>
 
-#define ABC(...) (*(new _ABC(__VA_ARGS__))) + [](const _ABC *)
+#define ABC(...) (*(new _ABC(__VA_ARGS__))) + [](const _ABC * parent)
 
 class _ABC{
     public:
     _ABC() {
         std::cout << "_ABC\n";
     }
-
     _ABC operator+ (void (*f)(const _ABC *)) const
     {
         std::cout << "add body\n";
@@ -20,14 +20,14 @@ class _ABC{
 
 int main(int argc, char *argv[]){
     ABC() {
-        std::cout << "build\n";
+        std::cout << "build, parent=" << parent << "\n";
     };
 }
 ```
 
 # Range-Based For-Loop Method
 ```
-for(auto _: ABC()){
+for(auto parent: ABC()){
     std::cout << "build\n";
 }
 ```
