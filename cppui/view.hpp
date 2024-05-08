@@ -1,33 +1,38 @@
 #include <iostream>
 
-#include "node.hpp"
-
 #ifndef CPPUI_VIEW
 #define CPPUI_VIEW
 
+#include "view_header.hpp"
+#include "node.hpp"
+
 namespace CPPUI {
-    class View: public Node {
-        public:
-        virtual void content(void) = 0;
-        void start(void){};
+    void View::update(View * prev) {
+        enter();
+        content();
+        exit();
+    }
 
-        void update(View * prev) {
-            content();
-        }
+    void View::enter(void) {
+        std::vector<View *> * stack = getStack();
+        stack->push_back(this);
+        cppui_root->frames.push_back(this);
+    }
 
+    void View::exit(void) {
+        std::vector<View *> * stack = getStack();
+        stack->pop_back();
+        cppui_root->frames.pop_back();
+    }
 
-        void redraw(void) {
-            std::cout << "redraw\n";
-            update(nullptr);
-        }
+    void View::redraw(void) {
+        update(nullptr);
+    }
 
-        void run(void) {
-            std::cout << "run\n";
-            redraw();
-            start();
-            std::cout << "run end\n";
-        }
-    };
+    void View::run(void) {
+        redraw();
+        start();
+    }
 }
 
 #endif

@@ -9,7 +9,7 @@ namespace CPPUI {
         char **argv;
 
         public:
-        Application(int argc, char *argv[]) {
+        Application(int argc, char *argv[]): QtView() {
             this->argc = argc;
             this->argv = argv;
         }

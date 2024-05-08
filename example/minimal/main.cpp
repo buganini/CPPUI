@@ -10,14 +10,14 @@ class UI: public Application {
     }
 
     void content(void) {
-        std::cout << "application\n";
-        for(auto _: Window()) {
-            std::cout << "window\n";
+        for(auto _: Window().tag("window1")) {
+
         }
+        printUI(0);
     }
 };
 
 int main(int argc, char *argv[]) {
     UI app(argc, argv);
-    app.run();
+    app.tag("app").run();
 }
