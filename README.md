@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
 
 # Range-Based For-Loop Method
 ```c++
-for(auto parent: ABC()->xx()->oo()){
+for(auto parent: ABC().xx().oo()){
     std::cout << "build\n";
 }
 ```
