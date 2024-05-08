@@ -46,6 +46,7 @@ int main(int argc, char *argv[]){
 * Better view refresh granularity
 
 ## Cons
+* Uses macro (no namespace)
 * Requires trailing semicolon
 * No syntax sugar for method chaining?
 
