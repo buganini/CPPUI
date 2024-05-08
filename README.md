@@ -1,5 +1,5 @@
 # Lambda Method
-```
+```c++
 // g++ -std=c++11  -o test test.cpp
 #include <iostream>
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]){
 * No syntax sugar for method chaining?
 
 # Range-Based For-Loop Method
-```
+```c++
 for(auto parent: ABC()->xx()->oo()){
     std::cout << "build\n";
 }
