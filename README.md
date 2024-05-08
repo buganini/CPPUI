@@ -31,10 +31,11 @@ int main(int argc, char *argv[]){
 
 ## Cons
 * Requires trailing semicolon
+* No method chaining
 
 # Range-Based For-Loop Method
 ```
-for(auto parent: ABC()){
+for(auto parent: ABC()->xx()->oo()){
     std::cout << "build\n";
 }
 ```
@@ -42,6 +43,7 @@ for(auto parent: ABC()){
 ## Pros
 * No MACRO
 * No trailing semicolon
+* Method chaining
 
 ## Cons
 * Worse view refresh granularity
