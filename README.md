@@ -26,7 +26,7 @@ int main(int argc, char *argv[]){
 ```
 
 ## Pros
-* Clearner Syntax
+* Cleaner Syntax
 * Better view refresh granularity
 
 ## Cons
