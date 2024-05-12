@@ -16,7 +16,7 @@ class UI: public Application {
             Label("label2").tag("label2");
             Label("label3");
         }
-        printUI(0);
+        std::cout << *this << std::endl;
     }
 };
 

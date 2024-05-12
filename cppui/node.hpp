@@ -27,26 +27,6 @@ namespace CPPUI {
     void Node::addChild(int idx, View *child) {}
     void Node::removeChild(int idx, View *child) {}
 
-    void Node::printUI(int indent) {
-        for(int i=0;i<indent;i++){
-            std::cout << "  ";
-        }
-        std::cout << typeid(*this).name();
-        if(_tag){
-            std::cout << " (" << _tag << ")";
-        }
-        std::cout << " {" << std::endl;
-
-        for(Node *child: children){
-            child->printUI(indent+1);
-        }
-
-        for(int i=0;i<indent;i++){
-            std::cout << "  ";
-        }
-        std::cout << "}" << std::endl;
-    }
-
     Node::Node() {
         std::vector<View *> * stack = getStack();
         if(stack->size()==0){
@@ -61,6 +41,31 @@ namespace CPPUI {
 
     Node::~Node() {
 
+    }
+
+    void Node::writeStream(std::ostream & out, int indent) const {
+        for(int i=0;i<indent;i++){
+            out << "  ";
+        }
+        out << typeid(*this).name();
+        if(_tag){
+            out << " (" << _tag << ")";
+        }
+        out << " {" << std::endl;
+
+        for(Node *child: children){
+            child->writeStream(out, indent+1);
+        }
+
+        for(int i=0;i<indent;i++){
+            out << "  ";
+        }
+        out << "}" << std::endl;
+    }
+
+    std::ostream & operator<<(std::ostream & out, Node const & node) {
+        node.writeStream(out, 0);
+        return out;
     }
 }
 

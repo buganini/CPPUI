@@ -47,7 +47,7 @@ namespace CPPUI {
         void update(View * prev);
         void addChild(int idx, View *child);
         void removeChild(int idx, View *child);
-        virtual void printUI(int indent);
+        void writeStream(std::ostream & out, int indent) const;
     };
 }
 
