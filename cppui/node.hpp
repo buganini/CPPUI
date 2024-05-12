@@ -12,32 +12,6 @@ namespace CPPUI {
     class Node;
     class View;
 
-    NodeIterator::NodeIterator(Node *node) {
-        inContext = true;
-        this->node = node;
-    }
-
-    void NodeIterator::operator++()
-    {
-        inContext = false;
-        node->exit();
-    }
-
-    bool NodeIterator::operator!=(NodeIterator &obj) {
-        return inContext;
-    }
-
-    Node * NodeIterator::operator*(void) {
-        return node;
-    }
-
-    NodeIterator & Node::begin() {
-        iter = NodeIterator(this);
-        enter();
-        return iter;
-    }
-    NodeIterator & Node::end() { return iter; }
-
     void Node::enter(void) {
         cppui_root->frames.push_back(this);
     }

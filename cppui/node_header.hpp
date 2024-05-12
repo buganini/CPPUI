@@ -5,6 +5,7 @@
 #ifndef CPPUI_NODE_HEADER
 #define CPPUI_NODE_HEADER
 
+#include "context.hpp"
 #include "view_header.hpp"
 
 namespace CPPUI {
@@ -13,22 +14,12 @@ namespace CPPUI {
 
     typedef void (*OnClickedListener) (void);
 
-    class NodeIterator {
-        public:
-        Node * node;
-        bool inContext;
-        NodeIterator(Node *node);
-        void operator++();
-        bool operator!=(NodeIterator &obj);
-        Node * operator*(void);
-    };
-
     static inline std::vector<View *> * getStack() {
         thread_local std::vector<View *> stack;
         return &stack;
     }
 
-    class Node {
+    class Node: public Context {
         public:
 
         View * cppui_root = nullptr;
@@ -40,7 +31,6 @@ namespace CPPUI {
         const char * _tag = nullptr;
 
         void * ui;
-        NodeIterator iter = NodeIterator(nullptr);
 
         std::vector<Node *> children;
         OnClickedListener onClicked = nullptr;
@@ -48,8 +38,6 @@ namespace CPPUI {
         Node();
         ~Node();
 
-        NodeIterator & begin();
-        NodeIterator & end();
         Node & tag(const char * name) {
             _tag = name;
             return *this;
