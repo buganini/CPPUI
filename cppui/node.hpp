@@ -27,6 +27,23 @@ namespace CPPUI {
         return true;
     }
 
+    Node::Node() {
+        std::vector<View *> * stack = getStack();
+        children = new std::vector<Node *>();
+        if(stack->size()==0){
+            cppui_root = (View *)this;
+            parent = this;
+        }else{
+            cppui_root = stack->back();
+            parent = cppui_root->frames.back();
+            parent->children->push_back(this);
+        }
+    }
+
+    Node::~Node() {
+
+    }
+
     void Node::enter(void) {
         cppui_root->frames.push_back(this);
     }
@@ -74,21 +91,8 @@ namespace CPPUI {
     void Node::addChild(int idx, Node *child) {}
     void Node::removeChild(int idx, Node *child) {}
 
-    Node::Node() {
-        std::vector<View *> * stack = getStack();
-        children = new std::vector<Node *>();
-        if(stack->size()==0){
-            cppui_root = (View *)this;
-            parent = this;
-        }else{
-            cppui_root = stack->back();
-            parent = cppui_root->frames.back();
-            parent->children->push_back(this);
-        }
-    }
-
-    Node::~Node() {
-
+    void Node::click(OnClickedListener callback) {
+        onClicked = callback;
     }
 
     void Node::writeStream(std::ostream & out, int indent) const {

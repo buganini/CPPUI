@@ -11,7 +11,9 @@ namespace CPPUI {
                 this->text = text;
             }
             void update(Node * prev) {
-                if(!ui) {
+                if(prev && prev->ui) {
+                    ui = prev->ui;
+                } else {
                     ui = new QLabel();
                 }
                 ((QLabel *)ui)->setText(text);

@@ -47,14 +47,20 @@ namespace CPPUI {
         bool operator==(Node &obj);
         virtual void enter(void);
         virtual void exit(void);
+
         virtual void update(Node * prev);
         virtual void postUpdate(void);
         virtual void preSync(void);
         virtual void postSync(void);
+
         virtual void * inner(void);
         virtual void * outer(void);
+
         virtual void addChild(int idx, Node *child);
         virtual void removeChild(int idx, Node *child);
+
+        virtual void click(OnClickedListener callback);
+
         virtual void writeStream(std::ostream & out, int indent) const;
     };
 }

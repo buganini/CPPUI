@@ -3,6 +3,7 @@
 #include "../../cppui/qt/window.hpp"
 #include "../../cppui/qt/layout.hpp"
 #include "../../cppui/qt/label.hpp"
+#include "../../cppui/qt/button.hpp"
 
 using namespace CPPUI;
 class UI: public Application {
@@ -17,6 +18,9 @@ class UI: public Application {
                 Label("label1").tag("label1");
                 Label("label2").tag("label2");
                 Label("label3");
+                Button("+").click([](){
+                    std::cout << "click" << std::endl;
+                });
             }
         }
         std::cout << *this << std::endl;
