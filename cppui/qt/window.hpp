@@ -6,7 +6,7 @@ namespace CPPUI {
     namespace Qt {
         class Window: public QtNode {
             public:
-            void update(View * prev) {
+            void update(Node * prev) {
                 if(!ui) {
                     ui = new QMainWindow();
                 }

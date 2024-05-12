@@ -25,6 +25,7 @@ namespace CPPUI {
         View * cppui_root = nullptr;
         Node * parent = nullptr;
 
+        bool terminal = false;
         bool destroyed = false;
         Node * retired_by = nullptr;
         int debug = 0;
@@ -32,7 +33,7 @@ namespace CPPUI {
 
         void * ui;
 
-        std::vector<Node *> children;
+        std::vector<Node *> * children = nullptr;
         OnClickedListener onClicked = nullptr;
 
         Node();
@@ -42,12 +43,19 @@ namespace CPPUI {
             _tag = name;
             return *this;
         }
-        void enter(void);
-        void exit(void);
-        void update(View * prev);
-        void addChild(int idx, View *child);
-        void removeChild(int idx, View *child);
-        void writeStream(std::ostream & out, int indent) const;
+        virtual std::size_t typecode() const;
+        bool operator==(Node &obj);
+        virtual void enter(void);
+        virtual void exit(void);
+        virtual void update(Node * prev);
+        virtual void postUpdate(void);
+        virtual void preSync(void);
+        virtual void postSync(void);
+        virtual void * inner(void);
+        virtual void * outer(void);
+        virtual void addChild(int idx, Node *child);
+        virtual void removeChild(int idx, Node *child);
+        virtual void writeStream(std::ostream & out, int indent) const;
     };
 }
 

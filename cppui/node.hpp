@@ -1,6 +1,7 @@
 #include <thread>
 #include <vector>
 #include <iterator>
+#include <cstring>
 
 
 #ifndef CPPUI_NODE
@@ -12,6 +13,20 @@ namespace CPPUI {
     class Node;
     class View;
 
+    std::size_t Node::typecode() const {
+        return typeid(*this).hash_code();
+    }
+
+    bool Node::operator==(Node &obj) {
+        if(typecode() != obj.typecode()) {
+            return false;
+        }
+        if(_tag && obj._tag && strcmp(_tag, obj._tag)){
+            return false;
+        }
+        return true;
+    }
+
     void Node::enter(void) {
         cppui_root->frames.push_back(this);
     }
@@ -20,22 +35,55 @@ namespace CPPUI {
         cppui_root->frames.pop_back();
     }
 
-    void Node::update(View * prev) {
+
+    void Node::update(Node * prev) {
+        if(prev) {
+            prev->retired_by = this;
+        }
+    }
+
+    void Node::postUpdate(void) {
 
     }
 
-    void Node::addChild(int idx, View *child) {}
-    void Node::removeChild(int idx, View *child) {}
+    void Node::preSync(void) {
+
+    }
+
+    void Node::postSync(void) {
+
+    }
+
+    void * Node::inner(void) {
+        if(ui){
+            return ui;
+        }
+        return parent->inner();
+    }
+
+    void * Node::outer(void) {
+        if(ui) {
+            return ui;
+        }
+        if(children->size()) {
+            return children->at(0)->outer();
+        }
+        return nullptr;
+    }
+
+    void Node::addChild(int idx, Node *child) {}
+    void Node::removeChild(int idx, Node *child) {}
 
     Node::Node() {
         std::vector<View *> * stack = getStack();
+        children = new std::vector<Node *>();
         if(stack->size()==0){
             cppui_root = (View *)this;
             parent = this;
         }else{
             cppui_root = stack->back();
             parent = cppui_root->frames.back();
-            parent->children.push_back(this);
+            parent->children->push_back(this);
         }
     }
 
@@ -49,11 +97,11 @@ namespace CPPUI {
         }
         out << typeid(*this).name();
         if(_tag){
-            out << " (" << _tag << ")";
+            out << "#" << _tag;
         }
         out << " {" << std::endl;
 
-        for(Node *child: children){
+        for(Node *child: *children){
             child->writeStream(out, indent+1);
         }
 

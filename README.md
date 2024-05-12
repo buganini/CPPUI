@@ -30,11 +30,11 @@ int main(int argc, char *argv[]) {
 
 Output | c++filt -t:
 ```
-UI (app) {
-  CPPUI::Qt::Window (window1) {
-    CPPUI::Qt::Label (label1) {
+UI#app {
+  CPPUI::Qt::Window#window1 {
+    CPPUI::Qt::Label#label1 {
     }
-    CPPUI::Qt::Label (label2) {
+    CPPUI::Qt::Label#label2 {
     }
     CPPUI::Qt::Label {
     }

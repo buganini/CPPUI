@@ -15,7 +15,7 @@ namespace CPPUI {
                     ui = new QLabel();
                 }
                 ((QLabel *)ui)->setText(text);
-                this->QtNode::update(prev);
+                QtNode::update(prev);
             }
         };
     }

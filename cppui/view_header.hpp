@@ -10,7 +10,7 @@ namespace CPPUI {
     class View: public Node {
         public:
         virtual void content(void) = 0;
-        void start(void){};
+        virtual void start(void){};
 
         std::vector<Node *> frames = std::vector<Node *>();
 
@@ -19,11 +19,12 @@ namespace CPPUI {
             return *this;
         }
 
-        void update(View * prev);
-        void enter(void);
-        void exit(void);
-        void redraw(void);
-        void run(void);
+        virtual void enter(void);
+        virtual void exit(void);
+
+        virtual void update(Node * prev);
+        virtual void redraw(void);
+        virtual void run(void);
     };
 }
 
