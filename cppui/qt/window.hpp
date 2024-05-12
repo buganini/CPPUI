@@ -1,16 +1,19 @@
-#include "qtnode.hpp"
+#include "base.hpp"
 
 #include <QMainWindow>
 
 namespace CPPUI {
     namespace Qt {
-        class Window: public QtNode {
+        class Window: public Node {
             public:
             void update(Node * prev) {
-                if(!ui) {
+                if(prev && prev->ui) {
+                    ui = prev->ui;
+                } else {
                     ui = new QMainWindow();
+
                 }
-                this->QtNode::update(prev);
+                Node::update(prev);
             }
 
             void addChild(int idx, Node *child) {

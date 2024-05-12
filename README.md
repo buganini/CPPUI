@@ -14,9 +14,11 @@ class UI: public Application {
 
     void content(void) {
         for(auto _: Window().tag("window1")) {
-            Label("label1").tag("label1");
-            Label("label2").tag("label2");
-            Label("label3");
+            for(auto _: HBox()) {
+                Label("label1").tag("label1");
+                Label("label2").tag("label2");
+                Label("label3");
+            }
         }
         std::cout << *this << std::endl;
     }
@@ -32,11 +34,13 @@ Output | c++filt -t:
 ```
 UI#app {
   CPPUI::Qt::Window#window1 {
-    CPPUI::Qt::Label#label1 {
-    }
-    CPPUI::Qt::Label#label2 {
-    }
-    CPPUI::Qt::Label {
+    CPPUI::Qt::HBox {
+      CPPUI::Qt::Label#label1 {
+      }
+      CPPUI::Qt::Label#label2 {
+      }
+      CPPUI::Qt::Label {
+      }
     }
   }
 }

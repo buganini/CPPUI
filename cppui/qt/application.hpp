@@ -1,16 +1,16 @@
-#include "qtview.hpp"
+#include "base.hpp"
 
 #include <iostream>
 #include <QMainWindow>
 #include <QApplication>
 
 namespace CPPUI {
-    class Application: public QtView {
+    class Application: public View {
         int argc;
         char **argv;
 
         public:
-        Application(int argc, char *argv[]): QtView() {
+        Application(int argc, char *argv[]): View() {
             this->argc = argc;
             this->argv = argv;
         }
@@ -19,7 +19,7 @@ namespace CPPUI {
             if(!ui) {
                 ui = new QApplication(argc, argv);
             }
-            QtView::update(prev);
+            View::update(prev);
         }
 
         void addChild(int idx, Node *child) {

@@ -1,10 +1,10 @@
-#include "qtnode.hpp"
+#include "base.hpp"
 
 #include <QLabel>
 
 namespace CPPUI {
     namespace Qt {
-        class Label: public QtNode {
+        class Label: public Node {
             public:
             const char * text;
             Label(const char * text) {
@@ -15,7 +15,7 @@ namespace CPPUI {
                     ui = new QLabel();
                 }
                 ((QLabel *)ui)->setText(text);
-                QtNode::update(prev);
+                Node::update(prev);
             }
         };
     }
