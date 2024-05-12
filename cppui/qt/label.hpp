@@ -10,7 +10,7 @@ namespace CPPUI {
             Label(const char * text) {
                 this->text = text;
             }
-            void update(View * prev) {
+            void update(Node * prev) {
                 if(!ui) {
                     ui = new QLabel();
                 }

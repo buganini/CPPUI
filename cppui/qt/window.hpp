@@ -12,6 +12,15 @@ namespace CPPUI {
                 }
                 this->QtNode::update(prev);
             }
+
+            void addChild(int idx, Node *child) {
+                ((QMainWindow *)ui)->setCentralWidget((QWidget *) child->outer());
+            }
+
+            void removeChild(int idx, Node *child) {
+                ((QWidget *)child->outer())->setParent(nullptr);
+            }
+
         };
     }
     Qt::Window & Window() {

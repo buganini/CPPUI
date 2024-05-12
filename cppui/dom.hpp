@@ -112,7 +112,7 @@ namespace CPPUI {
                 break;
             }
         }
-        // trim removed trail
+        // Step 4. trim removed trail
         int nl = newDOM->size();
         while(oldDOM->size() > nl) {
             Node * oldNode = oldDOM->back();
