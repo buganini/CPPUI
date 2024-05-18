@@ -1,4 +1,5 @@
 #include <iostream>
+#include "../../cppui/state.hpp"
 #include "../../cppui/qt/application.hpp"
 #include "../../cppui/qt/window.hpp"
 #include "../../cppui/qt/layout.hpp"
@@ -12,18 +13,27 @@ class UI: public Application {
 
     }
 
+    State<int> n = State<int>(1);
+
     void content(void) {
+        std::cout << "begin " << this << std::endl;
         for(auto _: Window().tag("window1")) {
             for(auto _: HBox()) {
-                Label("label1").tag("label1");
-                Label("label2").tag("label2");
-                Label("label3");
-                Button("+").click([](){
-                    std::cout << "click" << std::endl;
+                Button("-").click([=](){
+                    std::cout << "click - " << n << std::endl;
+                    n -= 1;
+                });
+                for(int i=0;i<n;i+=1){
+                    Label(std::to_string(i));
+                }
+                Button("+").click([=](){
+                    std::cout << "click + " << n << std::endl;
+                    n += 1;
                 });
             }
         }
         std::cout << *this << std::endl;
+        std::cout << "end" << std::endl;
     }
 };
 

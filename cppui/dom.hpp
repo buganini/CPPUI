@@ -4,6 +4,8 @@
 #ifndef CPPUI_DOM
 #define CPPUI_DOM
 
+#define DEBUG_CPPUI_DOM 0
+
 #include "node_header.hpp"
 
 namespace CPPUI {
@@ -22,26 +24,32 @@ namespace CPPUI {
 
 
     void sync(Node & node, std::vector<Node *> * oldDOM, std::vector<Node *> * newDOM) {
+#if DEBUG_CPPUI_DOM > 0
         std::cout << "sync " << typeid(node).name() << std::endl;
-
+#endif
         node.preSync();
 
         std::vector<Node *> tbd;
         for (int i = 0; i < newDOM->size(); i+=1) {
             Node * newNode = newDOM->at(i);
+#if DEBUG_CPPUI_DOM > 1
+            std::cout << "@" << i << " " << typeid(*newNode).name() << std::endl;
+#endif
             while(1) {
                 // Step 1. skip common prefix
                 if(i < oldDOM->size()) {
                     Node * oldNode = oldDOM->at(i);
                     if(*oldNode == *newNode){
-                        std::cout << "matched, update " << typeid(*newNode).name() << std::endl;
+#if DEBUG_CPPUI_DOM > 1
+                        std::cout << "@" << i << " matched, update " << typeid(*newNode).name() << std::endl;
+#endif
                         newNode->update(oldNode);
 
                         if(!newNode->terminal){
                             sync(*newNode, oldNode->children, newNode->children);
                         }
+                        break;
                     }
-                    break;
                 }
 
                 bool trimmed = false;
@@ -49,7 +57,9 @@ namespace CPPUI {
                 // Step 2. trim removed nodes after common prefix
                 while(i < oldDOM->size() && indexOf(newDOM, oldDOM->at(i))==-1){
                     Node * oldNode = oldDOM->at(i);
+#if DEBUG_CPPUI_DOM > 1
                     std::cout << "TRIM " << i << " " << typeid(*oldNode).name() << std::endl;
+#endif
                     oldDOM->erase(oldDOM->begin()+i);
                     node.removeChild(i, oldNode);
                     tbd.push_back(oldNode);
@@ -65,7 +75,9 @@ namespace CPPUI {
 
                 // Step 3-1. new node
                 if(idx == -1) {
-                    std::cout << "new node " << typeid(*newNode).name() << std::endl;
+#if DEBUG_CPPUI_DOM > 1
+                    std::cout << "new node @" << i << " " << typeid(*newNode).name() << std::endl;
+#endif
                     newNode->update(nullptr);
                     if(!newNode->terminal){
                         std::vector<Node *> empty;

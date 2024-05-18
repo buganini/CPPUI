@@ -91,7 +91,7 @@ namespace CPPUI {
     void Node::addChild(int idx, Node *child) {}
     void Node::removeChild(int idx, Node *child) {}
 
-    void Node::click(OnClickedListener callback) {
+    void Node::click(std::function<void()> callback) {
         onClicked = callback;
     }
 

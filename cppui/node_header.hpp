@@ -1,3 +1,4 @@
+#include <functional>
 #include <thread>
 #include <vector>
 #include <iterator>
@@ -11,8 +12,6 @@
 namespace CPPUI {
     class Node;
     class View;
-
-    typedef void (*OnClickedListener) (void);
 
     static inline std::vector<View *> * getStack() {
         thread_local std::vector<View *> stack;
@@ -34,7 +33,7 @@ namespace CPPUI {
         void * ui;
 
         std::vector<Node *> * children = nullptr;
-        OnClickedListener onClicked = nullptr;
+        std::function<void()> onClicked = [](){};
 
         Node();
         ~Node();
@@ -59,7 +58,7 @@ namespace CPPUI {
         virtual void addChild(int idx, Node *child);
         virtual void removeChild(int idx, Node *child);
 
-        virtual void click(OnClickedListener callback);
+        virtual void click(std::function<void()> callback);
 
         virtual void writeStream(std::ostream & out, int indent) const;
     };
