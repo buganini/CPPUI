@@ -6,7 +6,7 @@
 
 namespace CPPUI {
     namespace Qt {
-        class Label: public Node {
+        class Label: public BaseWidget {
             public:
             std::string text;
             Label(const char * text) {
@@ -15,14 +15,13 @@ namespace CPPUI {
             Label(const std::string text) {
                 this->text = text;
             }
-            void update(Node * prev) {
+            void update(BaseWidget * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
                 } else {
                     ui = new QLabel();
                 }
                 ((QLabel *)ui)->setText(text.c_str());
-                Node::update(prev);
             }
         };
     }

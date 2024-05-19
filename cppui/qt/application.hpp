@@ -5,12 +5,12 @@
 #include <QApplication>
 
 namespace CPPUI {
-    class Application: public View {
+    class Application: public Qt::QtView {
         int argc;
         char **argv;
 
         public:
-        Application(int argc, char *argv[]): View() {
+        Application(int argc, char *argv[]): QtView() {
             this->argc = argc;
             this->argv = argv;
         }
@@ -19,7 +19,7 @@ namespace CPPUI {
             if(!ui) {
                 ui = new QApplication(argc, argv);
             }
-            View::update(prev);
+            QtView::update(prev);
         }
 
         void addChild(int idx, Node *child) {

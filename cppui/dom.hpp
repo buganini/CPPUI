@@ -22,6 +22,12 @@ namespace CPPUI {
         return indexOfSince(dom, 0, node);
     }
 
+    void recur_delete(Node * child, bool direct) {
+        for(Node * sc: *(child->children)) {
+            recur_delete(sc, false);
+        }
+        child->destroy(direct);
+    }
 
     void sync(Node & node, std::vector<Node *> * oldDOM, std::vector<Node *> * newDOM) {
 #if DEBUG_CPPUI_DOM > 0
@@ -140,6 +146,9 @@ namespace CPPUI {
         node.postSync();
 
         // release deleted nodes
+        for(Node *n: tbd) {
+            recur_delete(n, true);
+        }
     }
 }
 

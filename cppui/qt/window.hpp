@@ -4,27 +4,25 @@
 
 namespace CPPUI {
     namespace Qt {
-        class Window: public Node {
+        class Window: public BaseWidget {
             public:
-            void update(Node * prev) {
+            void update(BaseWidget * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
                 } else {
                     ui = new QMainWindow();
 
                 }
-                Node::update(prev);
             }
 
-            void addChild(int idx, Node *child) {
+            void addChild(int idx, BaseWidget *child) {
                 ((QMainWindow *)ui)->setCentralWidget((QWidget *) child->outer());
             }
 
-            void removeChild(int idx, Node *child) {
+            void removeChild(int idx, BaseWidget *child) {
                 ((QWidget *)child->outer())->setParent(nullptr);
             }
-
-        };
+       };
     }
     Qt::Window & Window() {
         return *(new Qt::Window());

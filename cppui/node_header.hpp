@@ -51,6 +51,7 @@ namespace CPPUI {
         virtual void postUpdate(void);
         virtual void preSync(void);
         virtual void postSync(void);
+        virtual void destroy(bool direct) = 0;
 
         virtual void * inner(void);
         virtual void * outer(void);

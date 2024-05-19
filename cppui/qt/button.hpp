@@ -4,14 +4,14 @@
 
 namespace CPPUI {
     namespace Qt {
-        class Button: public Node {
+        class Button: public BaseWidget {
             public:
             const char * text;
 
             Button(const char * text) {
                 this->text = text;
             }
-            void update(Node * prev) {
+            void update(BaseWidget * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
                     ((QPushButton *)ui)->setText(text);
@@ -22,7 +22,6 @@ namespace CPPUI {
                 QObject::connect((QPushButton *)ui, &QPushButton::clicked, [=]() {
                     onClicked();
                 });
-                Node::update(prev);
             }
         };
     }
