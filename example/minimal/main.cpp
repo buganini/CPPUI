@@ -16,17 +16,14 @@ class UI: public Application {
     State<int> n = State<int>(1);
 
     void content(void) {
-        std::cout << "begin " << this << std::endl;
         for(auto _: Window().tag("window1")) {
             for(auto _: VBox()) {
                 for(auto _: HBox()) {
                     Button("-").click([=](){
-                        std::cout << "click - " << n << std::endl;
                         n -= 1;
                     });
                     Label(std::to_string(n));
                     Button("+").click([=](){
-                        std::cout << "click + " << n << std::endl;
                         n += 1;
                     });
 
@@ -39,8 +36,9 @@ class UI: public Application {
                 }
             }
         }
+
+        // print UI hierarchy
         std::cout << *this << std::endl;
-        std::cout << "end" << std::endl;
     }
 };
 
