@@ -22,12 +22,12 @@ class UI: public Application {
                     Button("-").click([=](){
                         n -= 1;
                     });
+
                     Label(std::to_string(n));
+
                     Button("+").click([=](){
                         n += 1;
                     });
-
-
                 }
                 for(auto _: HBox()) {
                     for(int i=0;i<n;i+=1){
@@ -44,5 +44,5 @@ class UI: public Application {
 
 int main(int argc, char *argv[]) {
     UI app(argc, argv);
-    app.tag("app").run();
+    app.run();
 }
