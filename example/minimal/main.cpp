@@ -18,18 +18,25 @@ class UI: public Application {
     void content(void) {
         std::cout << "begin " << this << std::endl;
         for(auto _: Window().tag("window1")) {
-            for(auto _: HBox()) {
-                Button("-").click([=](){
-                    std::cout << "click - " << n << std::endl;
-                    n -= 1;
-                });
-                for(int i=0;i<n;i+=1){
-                    Label(std::to_string(i));
+            for(auto _: VBox()) {
+                for(auto _: HBox()) {
+                    Button("-").click([=](){
+                        std::cout << "click - " << n << std::endl;
+                        n -= 1;
+                    });
+                    Label(std::to_string(n));
+                    Button("+").click([=](){
+                        std::cout << "click + " << n << std::endl;
+                        n += 1;
+                    });
+
+
                 }
-                Button("+").click([=](){
-                    std::cout << "click + " << n << std::endl;
-                    n += 1;
-                });
+                for(auto _: HBox()) {
+                    for(int i=0;i<n;i+=1){
+                        Label(std::to_string(i));
+                    }
+                }
             }
         }
         std::cout << *this << std::endl;
