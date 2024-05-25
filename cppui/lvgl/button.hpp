@@ -9,6 +9,7 @@ namespace CPPUI {
         class Button: public Node {
             public:
             lv_obj_t * label;
+
             std::string text;
             Button(const char * text) {
                 this->text = std::string(text);
@@ -21,6 +22,7 @@ namespace CPPUI {
                 if(prev && prev->ui) {
                     ui = prev->ui;
                     label = ((Button *)prev)->label;
+                    lv_obj_remove_event_cb((lv_obj_t *)ui, event_handler);
                 } else {
                     // ui = lv_button_create((lv_obj_t *)parent->inner());
                     ui = lv_button_create(lv_screen_active());
