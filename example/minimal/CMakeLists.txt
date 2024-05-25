@@ -10,8 +10,3 @@ qt_standard_project_setup()
 qt_add_executable(minimal main.cpp)
 
 target_link_libraries(minimal PRIVATE Qt6::Widgets)
-
-set_target_properties(minimal PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)

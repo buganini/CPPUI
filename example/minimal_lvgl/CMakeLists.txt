@@ -25,11 +25,6 @@ target_include_directories(lvgl PUBLIC ${PROJECT_SOURCE_DIR} ${SDL2_INCLUDE_DIRS
 add_executable(minimal main.cpp)
 target_link_libraries(minimal lvgl lvgl::thorvg ${SDL2_LIBRARIES} m pthread)
 
-set_target_properties(minimal PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)
-
 if(LV_USE_DRAW_SDL)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
     # Need to install libsdl2-image-dev
