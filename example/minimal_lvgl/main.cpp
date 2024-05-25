@@ -44,6 +44,11 @@ class UI: public Application {
 };
 
 int main(int argc, char *argv[]) {
+    lv_init();
+    lv_sdl_window_create(800, 600);
+    lv_sdl_mouse_create();
+    lv_sdl_keyboard_create();
+
     UI app(argc, argv);
     app.run();
 }

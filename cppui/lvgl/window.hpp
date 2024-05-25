@@ -6,21 +6,11 @@
 namespace CPPUI {
     namespace LVGL {
         class Window: public Node {
-            lv_display_t *window = nullptr;
-            lv_indev_t *mouse = nullptr;
-            lv_indev_t *keyboard = nullptr;
-
             public:
             void update(Node * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
-                    window = ((Window *)prev)->window;
-                    mouse = ((Window *)prev)->mouse;
-                    keyboard = ((Window *)prev)->keyboard;
                 } else {
-                    window = lv_sdl_window_create(800, 600);
-                    mouse = lv_sdl_mouse_create();
-                    keyboard = lv_sdl_keyboard_create();
                     ui = lv_screen_active();
                 }
             }

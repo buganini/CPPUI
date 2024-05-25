@@ -16,10 +16,6 @@ namespace CPPUI {
         }
 
         void update(Node * prev) {
-            if(!ui) {
-                ui = this;
-                lv_init();
-            }
             View::update(prev);
         }
 
