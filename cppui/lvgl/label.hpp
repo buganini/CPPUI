@@ -18,8 +18,7 @@ namespace CPPUI {
                 if(prev && prev->ui) {
                     ui = prev->ui;
                 } else {
-                    // ui = lv_label_create((lv_obj_t *)parent->inner());
-                    ui = lv_label_create(lv_screen_active());
+                    ui = lv_label_create((lv_obj_t *)parent->inner());
                 }
                 lv_label_set_text((lv_obj_t *)ui, text.c_str());
             }

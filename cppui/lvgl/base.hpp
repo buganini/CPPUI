@@ -11,6 +11,7 @@ namespace CPPUI {
             public:
             void destroy(bool direct) {
                 if(direct && ui){
+                    lv_obj_delete((lv_obj_t *)ui);
                 }
             }
          };
@@ -22,8 +23,13 @@ namespace CPPUI {
             }
 
             virtual void update(Node * prev) = 0;
-            virtual void addChild(int idx, Node * child) {}
-            virtual void removeChild(int idx, Node * child) {}
+            virtual void addChild(int idx, Node * child) {
+                lv_obj_move_to_index((lv_obj_t *)child->outer(), idx);
+            }
+
+            virtual void removeChild(int idx, Node * child) {
+                lv_obj_move_to_index((lv_obj_t *)child->outer(), -1);
+            }
 
             void addChild(int idx, ::CPPUI::Node *child) {
                 addChild(idx, (Node *) child);
@@ -34,7 +40,8 @@ namespace CPPUI {
             }
 
             void destroy(bool direct) {
-                if(direct){
+                if(direct && ui){
+                    lv_obj_delete((lv_obj_t *)ui);
                 }
             }
          };

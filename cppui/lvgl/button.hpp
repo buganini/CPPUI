@@ -24,8 +24,7 @@ namespace CPPUI {
                     label = ((Button *)prev)->label;
                     lv_obj_remove_event_cb((lv_obj_t *)ui, event_handler);
                 } else {
-                    // ui = lv_button_create((lv_obj_t *)parent->inner());
-                    ui = lv_button_create(lv_screen_active());
+                    ui = lv_button_create((lv_obj_t *)parent->inner());
                     label = lv_label_create((lv_obj_t *)ui);
                 }
                 lv_obj_add_event_cb((lv_obj_t *)ui, event_handler, LV_EVENT_ALL, this);

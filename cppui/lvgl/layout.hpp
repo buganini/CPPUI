@@ -5,33 +5,34 @@
 namespace CPPUI {
     namespace LVGL {
         class HBox: public Node {
-            lv_display_t *display = nullptr;
-            lv_indev_t *mouse = nullptr;
-            lv_indev_t *keyboard = nullptr;
-
             public:
             void update(Node * prev) {
-                if(prev && ((Window *)prev)->display) {
-                    display = ((Window *)prev)->display;
-                    mouse = ((Window *)prev)->mouse;
-                    keyboard = ((Window *)prev)->keyboard;
+                if(prev && prev->ui) {
+                    ui = prev->ui;
                 } else {
-                    display = lv_sdl_window_create(800, 600);
-                    mouse = lv_sdl_mouse_create();
-                    keyboard = lv_sdl_keyboard_create();
+                    ui = lv_obj_create((lv_obj_t *)parent->inner());
+                    lv_obj_set_flex_flow((lv_obj_t *)ui, LV_FLEX_FLOW_ROW);
                 }
             }
+       };
 
-            void addChild(int idx, Node *child) {
-                // ((QMainWindow *)ui)->setCentralWidget((QWidget *) child->outer());
-            }
-
-            void removeChild(int idx, Node *child) {
-                // ((QWidget *)child->outer())->setParent(nullptr);
+        class VBox: public Node {
+            public:
+            void update(Node * prev) {
+                if(prev && prev->ui) {
+                    ui = prev->ui;
+                } else {
+                    ui = lv_obj_create((lv_obj_t *)parent->inner());
+                    lv_obj_set_flex_flow((lv_obj_t *)ui, LV_FLEX_FLOW_COLUMN);
+                }
             }
        };
+
     }
-    LVGL::Window & Window() {
-        return *(new LVGL::Window());
+    LVGL::HBox & HBox() {
+        return *(new LVGL::HBox());
+    }
+    LVGL::VBox & VBox() {
+        return *(new LVGL::VBox());
     }
 }

@@ -4,6 +4,7 @@
 #include "../../cppui/lvgl/window.hpp"
 #include "../../cppui/lvgl/label.hpp"
 #include "../../cppui/lvgl/button.hpp"
+#include "../../cppui/lvgl/layout.hpp"
 #include "unistd.h"
 
 using namespace CPPUI;
@@ -17,8 +18,8 @@ class UI: public Application {
 
     void content(void) {
         for(auto _: Window().tag("window1")) {
-            // for(auto _: VBox()) {
-            //     for(auto _: HBox()) {
+            for(auto _: VBox()) {
+                for(auto _: HBox()) {
                     Button("-").click([=](){
                         n -= 1;
                     });
@@ -28,13 +29,13 @@ class UI: public Application {
                     Button("+").click([=](){
                         n += 1;
                     });
-            //     }
-            //     for(auto _: HBox()) {
-            //         for(int i=0;i<n;i+=1){
-            //             Label(std::to_string(i));
-            //         }
-            //     }
-            // }
+                }
+                for(auto _: HBox()) {
+                    for(int i=0;i<n;i+=1){
+                        Label(std::to_string(i));
+                    }
+                }
+            }
         }
 
         // print UI hierarchy
