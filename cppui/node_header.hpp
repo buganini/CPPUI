@@ -24,6 +24,7 @@ namespace CPPUI {
         View * cppui_root = nullptr;
         Node * parent = nullptr;
 
+        int classtype = 0;
         bool terminal = false;
         bool destroyed = false;
         Node * retired_by = nullptr;
