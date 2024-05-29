@@ -8,9 +8,9 @@ namespace CPPUI {
         class Layout: public Node {
             void addChild(int idx, Node * child) {
                 if(child->classtype==2){
-                    ((wxSizer *)ui)->Add((wxSizer *)child->outer());
+                    ((wxSizer *)ui)->Insert(idx, (wxSizer *)child->outer());
                 } else {
-                    ((wxSizer *)ui)->Add((wxControl *)(child->outer()));
+                    ((wxSizer *)ui)->Insert(idx, (wxControl *)(child->outer()));
                 }
             }
             void removeChild(int idx, Node * child) {
