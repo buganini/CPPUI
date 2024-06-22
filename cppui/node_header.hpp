@@ -37,7 +37,7 @@ namespace CPPUI {
         std::function<void()> onClicked = [](){};
 
         Node();
-        ~Node();
+        virtual ~Node();
 
         Node & tag(const char * name) {
             _tag = name;

@@ -31,8 +31,20 @@ namespace CPPUI {
 
     void sync(Node & node, std::vector<Node *> * oldDOM, std::vector<Node *> * newDOM) {
 #if DEBUG_CPPUI_DOM > 0
+        std::cout << "===========" << std::endl;
         std::cout << "sync " << typeid(node).name() << std::endl;
+
+        {
+            for(Node *n: *oldDOM) {
+                std::cout << "old " << typeid(*n).name() << std::endl;
+            }
+            for(Node *n: *newDOM) {
+                std::cout << "new " << typeid(*n).name() << std::endl;
+            }
+        }
+
 #endif
+
         node.preSync();
 
         std::vector<Node *> tbd;
@@ -90,7 +102,7 @@ namespace CPPUI {
                         sync(*newNode, &empty, newNode->children);
                     }
                     node.addChild(i, newNode);
-                    oldDOM->insert(oldDOM->begin()+i, newNode);
+                    oldDOM->insert(oldDOM->begin()+i, nullptr);
 
                 }
                 // Step 3-2. existed node
@@ -135,6 +147,9 @@ namespace CPPUI {
         while(oldDOM->size() > nl) {
             Node * oldNode = oldDOM->back();
             oldDOM->pop_back();
+#if DEBUG_CPPUI_DOM > 1
+            std::cout << "trim node " << " " << typeid(*oldNode).name() << std::endl;
+#endif
             node.removeChild(oldDOM->size(), oldNode);
             tbd.push_back(oldNode);
         }
@@ -146,9 +161,19 @@ namespace CPPUI {
         node.postSync();
 
         // release deleted nodes
-        for(Node *n: tbd) {
+
+        for(Node *n: tbd) { // removed from hierarchy
             recur_delete(n, true);
+            delete n;
         }
+
+        for(Node *n: *oldDOM) { // retired by new DOM
+            delete n;
+        }
+
+#if DEBUG_CPPUI_DOM > 0
+        std::cout << "sync end" << std::endl;
+#endif
     }
 }
 
