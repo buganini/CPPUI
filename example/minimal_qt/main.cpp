@@ -16,7 +16,7 @@ class UI: public Application {
     State<int> n = State<int>(1);
 
     void content(void) {
-        for(auto _: Window().tag("window1")) {
+        for(auto _: Window().id("window1")) {
             for(auto _: VBox()) {
                 for(auto _: HBox()) {
                     Button("-").click([=](){

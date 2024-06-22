@@ -14,8 +14,8 @@ namespace CPPUI {
 
         std::vector<Node *> frames = std::vector<Node *>();
 
-        View & tag(const char * name) {
-            _tag = name;
+        View & id(const char * name) {
+            _id = name;
             return *this;
         }
 

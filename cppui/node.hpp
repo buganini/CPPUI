@@ -21,7 +21,7 @@ namespace CPPUI {
         if(typecode() != obj.typecode()) {
             return false;
         }
-        if(_tag && obj._tag && strcmp(_tag, obj._tag)){
+        if(_id && obj._id && strcmp(_id, obj._id)){
             return false;
         }
         return true;
@@ -100,8 +100,8 @@ namespace CPPUI {
             out << "  ";
         }
         out << typeid(*this).name();
-        if(_tag){
-            out << "#" << _tag;
+        if(_id){
+            out << "#" << _id;
         }
         out << " {" << std::endl;
 

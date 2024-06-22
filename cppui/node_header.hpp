@@ -29,7 +29,7 @@ namespace CPPUI {
         bool destroyed = false;
         Node * retired_by = nullptr;
         int debug = 0;
-        const char * _tag = nullptr;
+        const char * _id = nullptr;
 
         void * ui;
 
@@ -39,8 +39,8 @@ namespace CPPUI {
         Node();
         virtual ~Node();
 
-        Node & tag(const char * name) {
-            _tag = name;
+        Node & id(const char * name) {
+            _id = name;
             return *this;
         }
         virtual std::size_t typecode() const;

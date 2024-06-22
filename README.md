@@ -16,10 +16,10 @@ class UI: public Application {
     }
 
     void content(void) {
-        for(auto _: Window().tag("window1")) {
+        for(auto _: Window().id("window1")) {
             for(auto _: HBox()) {
-                Label("label1").tag("label1");
-                Label("label2").tag("label2");
+                Label("label1").id("label1");
+                Label("label2").id("label2");
                 Label("label3");
             }
         }
@@ -29,7 +29,7 @@ class UI: public Application {
 
 int main(int argc, char *argv[]) {
     UI app(argc, argv);
-    app.tag("app").run();
+    app.id("app").run();
 }
 ```
 
