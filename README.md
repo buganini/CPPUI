@@ -1,6 +1,14 @@
 # Warning!
 Pre-alpha status, not ready for use
 
+# What is CPPUI
+CPPUI is a declarative UI framework with two-way data binding.
+CPPUI doesn't do UI itself, it turns imperative UI libraries into declarative flavor with virtual DOM and aims to maintain interoperability.
+
+[Slides for SciWork 2023](https://speakerdeck.com/buganini/pui-declarative-ui-framework-for-python)
+
+[PUI: Python Version](https://github.com/buganini/PUI)
+
 # View Hierarchy Construction
 ```c++
 #include <iostream>
