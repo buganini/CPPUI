@@ -113,7 +113,7 @@ The checklist below contains remaining work only.
 
 | Area | CPPUI baseline | Remaining alignment |
 | --- | --- | --- |
-| DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Full identity contract, dispatch lifetime safety, ordering/grid coverage |
+| DOM reconciliation | Partial: scoped type/id/grid matching, keyed moves, virtual flattening, subtree removal, ordering/terminal coverage | Native interop identity and dispatch lifetime safety |
 | Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, nested failure recovery, parameterized views |
 | State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, collection changes |
 | Application | Partial: creates/borrows `QApplication`, shows/closes children, starts loop, queued quit | Icon/options |
@@ -159,9 +159,6 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
 [virtual_nodes.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py), and
 [subview_id.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/subview_id.py).
 
-- [ ] Audit `cppui/dom.hpp`, `node*.hpp`, and Qt update methods together. Matching
-  must account for the reference's view-relative identity, explicit IDs, grid
-  coordinates/spans, and native-widget identity where applicable.
 - [ ] Replace assumptions that Python-style retired-node links remain valid in
   C++. `sync()` currently deletes retired declarations; a retained pointer cannot
   safely follow `getNode()` afterward. Implement explicit internal dispatch and
@@ -174,7 +171,8 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
   or self-deleting native widgets. Ensure new event APIs cannot retain retired
   declarations indefinitely or introduce owning cycles.
 - [ ] Specify borrowed-widget cleanup and native remount after external owner
-  destruction. Clearing typed native access makes teardown safe, but a later
+  destruction, including the native-widget identity used for matching interop
+  declarations. Clearing typed native access makes teardown safe, but a later
   redraw must explicitly remount the deleted native subtree before it is reusable.
 
 Acceptance: keyed reorders reuse native objects; virtual siblings retain correct

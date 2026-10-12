@@ -1,5 +1,16 @@
 2026-10-12
 
+- Repair core reconciliation for repeated reversed layouts, out-of-order nodes
+  inside moved virtual groups, and non-movable blockers. Include placed grid
+  coordinates/spans in identity. Reclaim unplaced grid and unmounted terminal
+  declarations instead of dropping their owning vectors. Keep the mounted old
+  tree's order intact when preparing the next tree.
+  Validation: new C++11 fake-native assertions reproduce the old order mismatch
+  and cover native identity, offsets, non-movable nodes and allocation counts.
+  Qt/core sanitizer suite passes 14/14, normal/Valgrind suite 28/28, and LVGL
+  cookbook normal/Valgrind checks 2/2. Update identity docs and narrow remaining
+  identity work to native interop.
+
 - Clear Qt focus before dispatching a button callback, matching the reference's
   editor-commit ordering. Snapshot the callback before focus-out handlers run so
   their synchronous redraw cannot invalidate active dispatch. Update lifecycle

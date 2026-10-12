@@ -2,6 +2,7 @@
 #include <thread>
 #include <vector>
 #include <iterator>
+#include <tuple>
 
 
 #ifndef CPPUI_NODE
@@ -21,6 +22,11 @@ namespace CPPUI {
         if(typecode() != obj.typecode()) {
             return false;
         }
+        const bool placed = grid_row >= 0 && grid_column >= 0;
+        const bool otherPlaced = obj.grid_row >= 0 && obj.grid_column >= 0;
+        if(placed != otherPlaced) return false;
+        if(placed && std::make_tuple(grid_row, grid_column, grid_rowspan, grid_columnspan)
+           != std::make_tuple(obj.grid_row, obj.grid_column, obj.grid_rowspan, obj.grid_columnspan)) return false;
         if(has_id || obj.has_id) {
             return has_id && obj.has_id && _id == obj._id;
         }

@@ -58,7 +58,7 @@ namespace CPPUI {
         for(Node * child: children) {
             if(!child->is_virtual) {
                 dom_parent->addChild(dom_offset + childIdx, child);
-                childIdx += 1;
+                if(!child->is_outoforder) childIdx += 1;
             }
         }
     }
@@ -99,12 +99,18 @@ namespace CPPUI {
 
     inline void prepare_dom(Node * node, std::vector<Node *> * dom) {
         if(node->is_grid_layout) {
+            // Unplaced declarations never mount, but still require C++ teardown.
+            std::vector<Node *> unplaced;
+            for(auto child: *dom) {
+                if(child->grid_row < 0 || child->grid_column < 0) unplaced.push_back(child);
+            }
             dom->erase(
                 std::remove_if(dom->begin(), dom->end(), [](Node * child) {
                     return child->grid_row < 0 || child->grid_column < 0;
                 }),
                 dom->end()
             );
+            for(auto child: unplaced) recur_delete(child, true);
             std::stable_sort(dom->begin(), dom->end(), [](Node * lhs, Node * rhs) {
                 return std::make_tuple(lhs->grid_row, lhs->grid_column, lhs->grid_rowspan, lhs->grid_columnspan)
                     < std::make_tuple(rhs->grid_row, rhs->grid_column, rhs->grid_rowspan, rhs->grid_columnspan);
@@ -139,7 +145,8 @@ namespace CPPUI {
         int dom_children_num = orig_dom_children_num;
         int dom_children_curr = 0;
 
-        prepare_dom(node, oldDOM);
+        // The old DOM already records native mounting order from the last sync.
+        // Reversing it again would make our offsets disagree with the backend.
         prepare_dom(node, newDOM);
 
 #if DEBUG_CPPUI_DOM > 0
@@ -186,6 +193,16 @@ namespace CPPUI {
                                     int delta = 0;
                                     sync(newNode, newNode, 0, oldNode->children,
                                          newNode->children, depth + 1, &num, &delta);
+                                } else if(oldNode->is_terminal) {
+                                    // Terminal children are declarations only; no
+                                    // native recursion will retire them for us.
+                                    for(auto child: *oldNode->children) recur_delete(child, true);
+                                    oldNode->children->clear();
+                                } else {
+                                    std::vector<Node *> empty;
+                                    int num = 0, delta = 0;
+                                    sync(newNode, newNode, 0, oldNode->children,
+                                         &empty, depth + 1, &num, &delta);
                                 }
                             }
                             oldNode->releaseRetiredRefs();
@@ -244,7 +261,7 @@ namespace CPPUI {
                     }
                     oldDOM->insert(oldDOM->begin() + childIdx, newNode);
                 } else {
-                    if(matchedIdx == childIdx + 1) {
+                    if(matchedIdx == childIdx + 1 && oldDOM->at(childIdx)->is_movable) {
                         // Step 3-2-1: yield the next position by requeueing its blocker.
                         Node * toBeRequeued = oldDOM->at(childIdx);
                         oldDOM->erase(oldDOM->begin() + childIdx);

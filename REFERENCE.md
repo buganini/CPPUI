@@ -16,6 +16,14 @@ clears the ID. Factory return values are borrowed construction references: use
 fluent modifiers immediately, and keep application state rather than node
 references across redraws.
 
+Reconciliation compares type and explicit ID within the matched parent/view
+scope. Placed grid nodes also include row, column and both spans in identity.
+Grid declarations without both coordinates are discarded and reclaimed. Reversed
+containers preserve native order across repeated redraws; out-of-order children
+do not consume ordinary sibling offsets. Non-movable nodes are never requeued
+to make room for a neighboring move. Terminal children remain unmounted and
+are reclaimed when their declaration is replaced.
+
 Construction ranges unwind their scope on normal completion, `break`, `return`,
 and exceptions. If a top-level `content()` throws before reconciliation starts,
 the previous declaration tree remains mounted and incomplete declarations are
