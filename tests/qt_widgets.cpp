@@ -42,7 +42,7 @@ int main(int argc, char ** argv) {
     QApplication app(argc, argv);
     try {
         Root root;
-        root.redraw();
+        root.sync();
         auto label = static_cast<QLabel *>(root.children->at(1)->outer());
         require(label->textFormat() == Qt::PlainText, "Label interpreted markup as HTML");
         auto button = static_cast<QPushButton *>(root.children->front()->outer());
@@ -58,7 +58,7 @@ int main(int argc, char ** argv) {
         require(text->textInteractionFlags() == Qt::TextSelectableByMouse, "Text selection was not enabled");
         root.selectable = false;
         root.caption.assign(120, 'y');
-        root.redraw();
+        root.sync();
         require(root.children->front()->outer() == button, "temporary ID changed native identity");
         require(button->text().toStdString() == root.caption, "retained button text was not updated");
         require(root.children->at(3)->outer() == text && text->text().toStdString() == root.caption,
@@ -70,16 +70,16 @@ int main(int argc, char ** argv) {
         require(bar->maximum() == 25 && bar->value() == 12, "fractional hundredths conversion differs from PUI");
         root.maximum = 2.5;
         root.progress = 1.25;
-        root.redraw();
+        root.sync();
         require(root.children->at(2)->outer() == bar, "progress change replaced the native widget");
         require(bar->maximum() == 250 && bar->value() == 125, "progress properties were not updated");
         root.progress = std::numeric_limits<double>::infinity();
         bool rejected = false;
-        try { root.redraw(); } catch(const std::out_of_range &) { rejected = true; }
+        try { root.sync(); } catch(const std::out_of_range &) { rejected = true; }
         require(rejected && root.children->at(2)->outer() == bar, "invalid progress damaged the mounted tree");
         root.progress = 0;
         root.maximum = 0;
-        root.redraw();
+        root.sync();
         require(bar->minimum() == 0 && bar->maximum() == 0, "busy range did not match Qt semantics");
     } catch(const std::exception & error) {
         std::cerr << error.what() << std::endl;

@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     try {
         UI app(argc, argv);
         if(QtSmoke::requested(argc, argv)) {
-            app.redraw();
+            app.sync();
             for(int i = 0; i < 3; ++i) {
                 QtSmoke::require(QtSmoke::click(app, "+"), "increment button missing");
                 QtSmoke::settle();

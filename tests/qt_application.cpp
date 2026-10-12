@@ -29,7 +29,7 @@ namespace {
     };
     void queuedQuit(int argc, char ** argv, QApplication & qt) {
         Root root(argc, argv);
-        root.redraw();
+        root.sync();
         bool callbackReturned = false;
         bool quitAfterCallback = false;
         auto connection = QObject::connect(&qt, &QCoreApplication::aboutToQuit, &qt, [&]() {
@@ -47,12 +47,12 @@ namespace {
     }
     void cancelledQuit(int argc, char ** argv, QApplication & qt) {
         Root root(argc, argv);
-        root.redraw();
+        root.sync();
         bool nextTurnRan = false;
         QTimer::singleShot(0, &qt, [&]() {
             {
                 Root removed(argc, argv);
-                removed.redraw();
+                removed.sync();
                 removed.quit();
             }
             QTimer::singleShot(25, &qt, [&]() {
@@ -72,7 +72,7 @@ int main(int argc, char ** argv) {
             {
                 Root root(argc, argv);
                 root.quit(); // Safe even before lazy QApplication creation.
-                root.redraw();
+                root.sync();
                 Watchdog watchdog;
                 root.start();
                 require(!watchdog.expired, "quit queued before startup was lost");

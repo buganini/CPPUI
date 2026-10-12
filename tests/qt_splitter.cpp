@@ -62,7 +62,7 @@ int main(int argc, char ** argv) {
         int destroyed = 0;
         {
             Root root;
-            root.redraw();
+            root.sync();
             auto window = static_cast<QWidget *>(root.children->front()->outer());
             window->resize(800, 600);
             window->show();
@@ -77,13 +77,13 @@ int main(int argc, char ** argv) {
             const auto sizes = splitter->sizes();
             require(sizes[0] < sizes[1] && sizes[1] < sizes[2], "test did not establish distinct pane sizes");
             for(int repeat = 0; repeat < 5; ++repeat) {
-                root.redraw();
+                root.sync();
                 settle();
                 require(root.native() == splitter && splitter->sizes() == sizes,
                         "unchanged redraw replaced the splitter or reset user sizes");
             }
             root.panes = {"c", "group", "a", "b"};
-            root.redraw();
+            root.sync();
             settle();
             root.checkOrder();
             require(splitter->widget(0) == retained["c"] && splitter->widget(3) == retained["a"]
@@ -92,7 +92,7 @@ int main(int argc, char ** argv) {
             auto group2 = splitter->widget(2);
             root.panes = {"group", "b", "a", "c"};
             root.vertical = true;
-            root.redraw();
+            root.sync();
             settle();
             root.checkOrder();
             require(root.native() == splitter && splitter->orientation() == Qt::Vertical,
@@ -104,27 +104,27 @@ int main(int argc, char ** argv) {
             QObject::connect(group1, &QObject::destroyed, &app, [&]() { ++removed; });
             QObject::connect(group2, &QObject::destroyed, &app, [&]() { ++removed; });
             root.panes = {"a", "c"};
-            root.redraw();
+            root.sync();
             settle();
             root.checkOrder();
             require(removed == 3, "removed physical/virtual panes were not deleted exactly once");
             root.panes.clear();
-            root.redraw();
+            root.sync();
             settle();
             root.checkOrder();
             root.panes = {"a"};
             root.vertical = false;
-            root.redraw();
+            root.sync();
             settle();
             root.checkOrder();
             require(root.native() == splitter && splitter->orientation() == Qt::Horizontal,
                     "empty/repopulate lost the splitter or failed to reset its orientation");
             root.show = false;
-            root.redraw();
+            root.sync();
             settle();
             require(destroyed == 1, "splitter removal did not delete it exactly once");
             root.show = true;
-            root.redraw();
+            root.sync();
             root.checkOrder();
             QObject::connect(root.native(), &QObject::destroyed, &app, [&]() { ++destroyed; });
         }

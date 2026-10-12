@@ -28,7 +28,7 @@ namespace {
                         CPPUI::Button("click").click([this, currentVersion]() {
                             focusWasClear = QApplication::focusWidget() == nullptr;
                             called += currentVersion;
-                            if(removeOnClick) show = false;
+                            if(removeOnClick) { show = false; sync(); }
                             // Must survive destruction of the emitting declaration.
                             finished = true;
                         });
@@ -45,18 +45,18 @@ namespace {
         int externalCalls = 0;
         {
             Root root(argc, argv);
-            root.redraw();
+            root.sync();
             auto button = root.button();
             QObject::connect(button, &QPushButton::clicked, &qt, [&]() { ++externalCalls; });
             root.version = 2;
-            root.redraw();
+            root.sync();
             require(root.button() == button, "redraw replaced the native button");
             button->click();
             require(root.called == 2, "button used an old or duplicate callback");
             require(externalCalls == 1, "redraw disconnected application listeners");
 
             root.removeOnClick = true;
-            root.redraw();
+            root.sync();
             root.finished = false;
             button->click();
             require(root.called == 4 && root.finished, "self-removal invalidated active dispatch");
@@ -65,7 +65,9 @@ namespace {
             QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
             for(int i = 0; i < 30; ++i) {
                 root.show = true;
+                QCoreApplication::processEvents();
                 root.show = false;
+                QCoreApplication::processEvents();
                 QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
             }
         }
@@ -74,7 +76,7 @@ namespace {
 
         {
             Root root(argc, argv);
-            root.redraw();
+            root.sync();
             auto window = root.children->front();
             auto column = window->children->front();
             delete static_cast<QWidget *>(window->outer());
@@ -86,7 +88,7 @@ namespace {
     }
     void focusBeforeClick(int argc, char ** argv, QApplication & qt) {
         Root root(argc, argv);
-        root.redraw();
+        root.sync();
         auto window = static_cast<QWidget *>(root.children->front()->outer());
         QLineEdit editor(window);
         editor.show();
@@ -100,7 +102,7 @@ namespace {
                 if(before == &editor && after == nullptr) {
                     ++focusChanges;
                     root.version = 7;
-                    root.redraw();
+                    root.sync();
                 }
             });
         root.button()->click();
@@ -116,7 +118,7 @@ int main(int argc, char ** argv) {
         if(argc > 1 && std::string(argv[1]) == "--owned") {
             {
                 Root root(argc, argv);
-                root.redraw();
+                root.sync();
                 require(qobject_cast<QApplication *>(QCoreApplication::instance()), "application was not created");
             }
             require(!QCoreApplication::instance(), "owned QApplication leaked");

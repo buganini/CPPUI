@@ -127,7 +127,7 @@ int main(int argc, char ** argv) {
         CPPUI::State<int> first{0}, second{0};
         {
             Root root(argc, argv, first, second);
-            root.redraw();
+            root.sync();
             auto native = root.native();
             QPointer<QWidget> nativeLife = native;
             auto box = static_cast<CPPUI::Qt::BaseLayout *>(find(root, "box"));
@@ -148,17 +148,17 @@ int main(int argc, char ** argv) {
             require(root.native() == native && root.opened == 1, "truthy redraw reopened or replaced Modal");
             require(retiredPayload.expired(), "retired modal callbacks retained their captures");
             native->resize(410, 220);
-            root.redraw();
+            root.sync();
             require(native->size() == QSize(410, 220), "unchanged declared size reset the user's resize");
             root.width = 320;
-            root.redraw();
+            root.sync();
             require(native->size() == QSize(320, 180), "changed declared size did not apply");
             root.declareSize = false;
             root.declareTitle = false;
-            root.redraw();
+            root.sync();
             native->resize(420, 230);
             root.declareSize = true;
-            root.redraw();
+            root.sync();
             require(native->size() == QSize(320, 180) && native->windowTitle() == "Modal title",
                     "size redeclaration or omitted title diverged from PUI");
             native->reject();
@@ -167,7 +167,7 @@ int main(int argc, char ** argv) {
                     && root.closed == 1 && root.lastGeneration == 1,
                     "native rejection did not use the current binding/callback");
             root.useSecond = true;
-            root.redraw();
+            root.sync();
             first = 1;
             require(!native->isVisible(), "old binding remained subscribed after rebinding");
             second = 1;
@@ -183,7 +183,7 @@ int main(int argc, char ** argv) {
             require(static_cast<int>(second) == 2 && root.opened == 3 && root.native() == native,
                     "open callback could not safely redraw the modal");
             root.afterOpen = {};
-            root.afterClose = [&]() { root.include = false; root.redraw(); };
+            root.afterClose = [&]() { root.include = false; root.sync(); };
             native->accept();
             settle();
             require(!root.modal() && nativeLife.isNull() && root.closed == 3,
@@ -192,12 +192,12 @@ int main(int argc, char ** argv) {
 
             root.include = true;
             second = 0;
-            root.redraw();
+            root.sync();
             second = 1;
             settle();
             nativeLife = root.native();
             root.include = false;
-            root.redraw();
+            root.sync();
             // A queued native event cannot write a retired binding.
             static_cast<QDialog *>(nativeLife.data())->reject();
             settle();
@@ -206,14 +206,14 @@ int main(int argc, char ** argv) {
 
             root.include = true;
             root.initialMaximize = true;
-            root.redraw();
+            root.sync();
             settle();
             require(root.native()->isMaximized(), "initial maximized state was omitted");
             root.modal()->maximize(false);
             root.modal()->fullscreen(true);
             require(root.native()->isFullScreen(), "imperative fullscreen did not apply");
             root.modal()->fullscreen(false);
-            root.redraw();
+            root.sync();
             require(!root.native()->isMaximized() && !root.native()->isFullScreen(),
                     "redraw reapplied initial window flags");
 
@@ -221,11 +221,12 @@ int main(int argc, char ** argv) {
             auto previous = std::cerr.rdbuf(errors.rdbuf());
             root.fail = true;
             root.native()->reject();
+            settle();
             root.fail = false;
             std::cerr.rdbuf(previous);
             require(errors.str().find("modal builder failure") != std::string::npos && root.modal()->ui,
                     "native close let a render exception escape Qt or lost the previous tree");
-            root.redraw();
+            root.sync();
             settle();
             root.afterOpen = []() { throw std::runtime_error("open callback failure"); };
             previous = std::cerr.rdbuf(errors.rdbuf());
@@ -244,7 +245,7 @@ int main(int argc, char ** argv) {
             int callbacks = 0;
             root->afterOpen = [&]() { ++callbacks; };
             root->afterClose = [&]() { ++callbacks; };
-            root->redraw();
+            root->sync();
             QPointer<QWidget> modal = root->native();
             root.reset();
             settle();
@@ -254,10 +255,10 @@ int main(int argc, char ** argv) {
         {
             int callbacks = 0;
             NestedRoot root(argc, argv, callbacks);
-            root.redraw();
+            root.sync();
             QPointer<QWidget> native = static_cast<QWidget *>(find(root, "nested-modal")->outer());
             root.include = false;
-            root.redraw();
+            root.sync();
             settle();
             require(native.isNull() && callbacks == 0,
                     "nested view removal invoked callbacks into destroyed local State");
@@ -265,7 +266,7 @@ int main(int argc, char ** argv) {
         {
             CPPUI::State<int> status{1};
             External root(argc, argv, status);
-            root.redraw();
+            root.sync();
             auto native = static_cast<QDialog *>(find(root, "modal")->outer());
             require(native->isVisible(), "external getter did not drive modal visibility");
             native->reject();
@@ -275,7 +276,7 @@ int main(int argc, char ** argv) {
         {
             CPPUI::State<bool> status{false};
             Routing root(argc, argv, status);
-            root.redraw();
+            root.sync();
             auto widget = [&](const char * id) { return static_cast<QWidget *>(find(root, id)->outer()); };
             auto window = static_cast<QMainWindow *>(widget("window"));
             auto splitter = static_cast<QSplitter *>(widget("splitter"));

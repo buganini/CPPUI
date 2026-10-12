@@ -14,6 +14,7 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline void mount(CPPUI::Application & app) { app.redraw(); }
     inline void configureRecipes(std::vector<Recipe> & pages) {
         for(auto & page: pages) if(std::string(page.key) == "canvas") {
             page.render = canvas;

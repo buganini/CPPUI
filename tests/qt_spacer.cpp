@@ -8,7 +8,12 @@
 
 namespace {
     void require(bool value, const char * message) { if(!value) throw std::runtime_error(message); }
-    void settle() { QCoreApplication::processEvents(); QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); }
+    void settle() {
+        QCoreApplication::processEvents();
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
+        QCoreApplication::processEvents();
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
     int declarations = 0, items = 0;
     class Item: public QSpacerItem {
         public:
@@ -63,7 +68,7 @@ int main(int argc, char ** argv) {
     try {
         {
             Root root;
-            root.redraw();
+            root.sync();
             root.window()->resize(600, 400);
             root.window()->show();
             settle();
@@ -76,7 +81,7 @@ int main(int argc, char ** argv) {
             require(vertical->sizePolicy().horizontalPolicy() == QSizePolicy::Preferred
                 && vertical->sizePolicy().verticalPolicy() == QSizePolicy::Expanding, "column spacer policy differs from PUI");
             require(!find(root, "gap")->is_movable && find(root, "gap")->is_terminal, "spacer declaration flags differ from PUI");
-            for(int i = 0; i < 20; ++i) { root.redraw(); settle(); require(root.gap() == gap && declarations == 2 && items == 2, "redraw leaked/replaced spacers"); }
+            for(int i = 0; i < 20; ++i) { root.sync(); settle(); require(root.gap() == gap && declarations == 2 && items == 2, "redraw leaked/replaced spacers"); }
             root.count = 2;
             settle();
             row = static_cast<CPPUI::Qt::BaseLayout *>(find(root, "row"));
@@ -85,7 +90,7 @@ int main(int argc, char ** argv) {
                 "multiple virtual spacers did not share spare width");
             root.count = 1;
             root.reverse = true;
-            root.redraw();
+            root.sync();
             settle();
             require(root.gap() == gap && items == 2, "neighboring keyed move replaced the fixed spacer");
             root.count = 0;
@@ -94,9 +99,9 @@ int main(int argc, char ** argv) {
             root.count = 1;
             settle();
             for(int i = 0; i < 10; ++i) {
-                root.show = false; root.redraw(); settle();
+                root.show = false; root.sync(); settle();
                 require(items == 0 && declarations == 0, "parent removal leaked declarations/items");
-                root.show = true; root.redraw(); settle();
+                root.show = true; root.sync(); settle();
             }
             auto declaration = static_cast<CPPUI::Qt::Spacer *>(find(root, "gap"));
             delete root.window();

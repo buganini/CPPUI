@@ -10,12 +10,64 @@ namespace CPPUI {
     namespace Qt {
         class QtView: public View {
             QObject callbackContext;
+            bool dirty = false, updating = false, scheduled = false, setupDone = false;
 
             public:
             ~QtView() override { clearChildren(); }
 
+            virtual void setup() {}
+
+            void update(Node * previous) override {
+                if(destroyed || retired_by) return;
+                // A nested view is first built by its parent's reconciliation.
+                const bool ownUpdate = !updating;
+                if(ownUpdate) updating = true;
+                try {
+                    if(!setupDone) { setup(); setupDone = true; }
+                    View::update(previous);
+                } catch(...) {
+                    if(ownUpdate) { updating = false; dirty = false; }
+                    throw;
+                }
+                if(ownUpdate) {
+                    updating = false;
+                    if(dirty) redraw();
+                }
+            }
+
+            void redraw() override {
+                if(destroyed || retired_by) return;
+                dirty = true;
+                if(updating || scheduled) return;
+                scheduled = true;
+                QMetaObject::invokeMethod(&callbackContext, [this]() {
+                    scheduled = false;
+                    if(!dirty) return;
+                    try { sync(); }
+                    catch(const std::exception & error) { std::cerr << "CPPUI redraw: " << error.what() << '\n'; }
+                    catch(...) { std::cerr << "CPPUI redraw: unknown exception\n"; }
+                }, ::Qt::QueuedConnection);
+            }
+
+            // Immediate synchronization for startup and explicit test flushing.
+            // Exceptions propagate to the caller; queued redraws report them.
+            void sync() {
+                if(destroyed || retired_by) return;
+                if(updating) { dirty = true; return; }
+                dirty = false;
+                updating = true;
+                try { View::redraw(); }
+                catch(...) { updating = false; dirty = false; throw; }
+                updating = false;
+                if(dirty) redraw();
+            }
+
+            void run() override { sync(); start(); }
+
             void clearChildren() {
                 destroyed = true;
+                dirty = false;
+                scheduled = false;
                 QCoreApplication::removePostedEvents(&callbackContext);
                 for(Node * child: *children) recur_delete(child, true);
                 children->clear();

@@ -85,7 +85,7 @@ namespace Cookbook {
                 gallery.run();
                 return 0;
             }
-            gallery.redraw();
+            Backend::mount(gallery);
             Backend::settle();
             Backend::prepareLayoutCheck(gallery);
             auto sidebar = find(gallery, "menu-scroller")->outer();

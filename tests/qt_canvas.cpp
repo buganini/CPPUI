@@ -126,12 +126,12 @@ namespace {
                 if(redrawDuringPaint) {
                     redrawDuringPaint = false;
                     ++version;
-                    redraw();
+                    sync();
                 }
                 if(removeDuringPaint) {
                     removeDuringPaint = false;
                     show = false;
-                    redraw();
+                    sync();
                 }
                 // Drawing remains valid after the callback's declaration retires.
                 canvas.drawRect(10, 10, 30, 30, current == 1 ? 0xFF0000 : 0x0000FF);
@@ -153,7 +153,7 @@ namespace {
     void nativeLifetime(QApplication & app) {
         {
             VoidPainterRoot root;
-            root.redraw();
+            root.sync();
             auto widget = static_cast<QWidget *>(root.children->front()->outer());
             widget->resize(120, 100);
             render(widget);
@@ -161,7 +161,7 @@ namespace {
         }
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         Root root;
-        root.redraw();
+        root.sync();
         auto widget = root.native();
         widget->resize(120, 100);
         render(widget);
@@ -169,7 +169,7 @@ namespace {
             && root.density == std::max(1.0, widget->devicePixelRatioF()), "paint context lost logical dimensions/density");
         require(root.seenVersion == 1 && captures == 1, "initial painter did not own its capture");
         root.version = 2;
-        root.redraw();
+        root.sync();
         require(root.native() == widget && captures == 1, "painter replacement leaked a capture or replaced the widget");
         render(widget);
         require(root.seenVersion == 2, "native paint dispatched to a retired callback");
@@ -188,7 +188,7 @@ namespace {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         root.show = true;
         root.repeat = 2;
-        root.redraw();
+        root.sync();
         widget = root.native();
         widget->resize(120, 100);
         widget->show();
@@ -199,12 +199,12 @@ namespace {
         require(root.paints == settled, "false failed to stop repeat painting");
         widget->update();
         root.show = false;
-        root.redraw();
+        root.sync();
         app.processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         require(root.paints == settled && captures == 0, "queued paint reached a removed declaration");
         root.show = true;
-        root.redraw();
+        root.sync();
         delete root.native();
         require(!root.children->front()->outer(), "native deletion left a stale canvas observer");
     }

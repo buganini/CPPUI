@@ -48,7 +48,7 @@ int main(int argc, char ** argv) {
     try {
         {
             Root root;
-            root.redraw();
+            root.sync();
             auto widget = static_cast<QLabel *>(root.label()->ui);
             Listener listener;
             widget->installEventFilter(&listener);
@@ -58,12 +58,12 @@ int main(int argc, char ** argv) {
             auto capture = root.capture;
             root.value = 2;
             root.selectable = true;
-            root.redraw();
+            root.sync();
             require(root.label()->ui == widget && capture.expired(), "label reuse retained old callback or replaced widget");
             require(widget->textInteractionFlags() == Qt::TextSelectableByMouse, "click handler displaced selection support");
             press(widget);
             require(root.clicked == 2 && listener.calls == 2, "label reused stale callback or lost external filter");
-            root.action = [&root]() { root.value = 3; root.redraw(); };
+            root.action = [&root]() { root.value = 3; root.sync(); };
             press(widget);
             require(root.clicked == 2, "active callback changed during redraw");
             root.action = {};
@@ -72,14 +72,14 @@ int main(int argc, char ** argv) {
             root.handler = false;
             root.selectable = false;
             capture = root.capture;
-            root.redraw();
+            root.sync();
             require(capture.expired() && widget->cursor().shape() == Qt::ArrowCursor && widget->textInteractionFlags() == Qt::NoTextInteraction,
                     "omitted label properties did not reset");
             press(widget);
             require(root.clicked == 3 && listener.calls == 5, "omitted callback remained active or listener was removed");
             root.handler = true;
-            root.action = [&root]() { root.redraw(); root.show = false; root.redraw(); };
-            root.redraw();
+            root.action = [&root]() { root.sync(); root.show = false; root.sync(); };
+            root.sync();
             capture = root.capture;
             press(widget);
             require(root.children->front()->children->empty() && capture.expired(), "label self-removal retained declaration/capture");
@@ -88,7 +88,7 @@ int main(int argc, char ** argv) {
             require(root.clicked == 0, "deferred-deletion widget dispatched a removed callback");
             QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
             root.show = true;
-            root.redraw();
+            root.sync();
             widget = static_cast<QLabel *>(root.label()->ui);
             root.action = [widget]() { delete widget; };
             press(widget);

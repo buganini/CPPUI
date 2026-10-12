@@ -140,3 +140,6 @@ Interactive close also needs an application-stop contract: LVGL's SDL2/X11
 handlers can destroy the display or exit before CPPUI tears down declarations.
 The tested smoke path returns to startup for ordered cleanup; it does not validate native
 window-close handling. See the [LVGL plan](../doc/lvgl-progress.md) for that decision.
+
+Qt smoke startup uses immediate `sync()`; interaction checks process Qt events to
+settle queued redraws and lifecycle notifications. LVGL startup remains immediate.

@@ -68,8 +68,20 @@ State reads during a successful build replace that view's dependencies. Values
 that are no longer read stop triggering redraws. Assigning, incrementing, or
 decrementing any State during a view builder throws
 `StateMutationInViewBuilderError` before changing its value. Mutate state in event
-handlers or application code outside construction. Redraw remains synchronous;
-queued redraw with stderr error reporting is planned.
+handlers or application code outside construction.
+
+Qt `redraw()` requests one update on the GUI event queue; repeated requests and
+State writes coalesce. `sync()` updates that view immediately and propagates
+exceptions to its caller. Tests can use `sync()` for a particular view, or process
+Qt events to settle subscribed subviews and lifecycle notifications. A request
+made during reconciliation schedules a follow-up, never a nested update.
+`setup()` runs once before the first build and may initialize State.
+`run()` synchronizes immediately before starting the event loop.
+
+Queued render exceptions are reported to stderr. A failed declaration build
+keeps the mounted UI and the view can retry on a later request; failures after
+native reconciliation starts still need a recovery contract. Removing a view
+cancels its queued work. Core and LVGL redraws remain synchronous.
 
 ## Application
 
@@ -92,7 +104,7 @@ CPPUI::Binding<int> external([&model]() { return model.value; },
 
 The adapter owns its callable captures and borrows the referenced State/model,
 which must outlive its uses. State reads retain ordinary view dependency tracking;
-writes retain State's mutation checks and synchronous redraw. Rebinding during a
+writes retain State's mutation checks and request the subscribed views' redraws. Rebinding during a
 build replaces those dependencies. Getters/setters are snapshotted for invocation,
 so a setter may cause the declaration holding its adapter to be reclaimed.
 Exceptions propagate to the caller; conversion/validation belongs in the setter.
@@ -241,8 +253,8 @@ the transition and run on the owning view's Qt event context after reconciliatio
 so handlers can mutate State or remove the modal. Destroying that view cancels
 pending notifications and releases their captures; teardown does not invoke
 callbacks into a destroyed model. Exceptions from notifications or native-close
-binding writes are reported to stderr rather than escaping through Qt. General
-State redraw remains synchronous.
+binding writes are reported to stderr rather than escaping through Qt. Bound
+State changes request a queued redraw.
 
 `.title(text)` owns UTF-8 text; omission preserves the current title. `.size(w,h)`
 resizes only when the declared size changes, preserving a user's resize across

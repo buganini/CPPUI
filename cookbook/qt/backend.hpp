@@ -20,6 +20,7 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline void mount(CPPUI::Application & app) { app.sync(); }
     void configureRecipes(std::vector<Recipe> & pages);
     const char * const name = "Qt";
     inline void settle() {

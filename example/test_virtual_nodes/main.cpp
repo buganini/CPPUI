@@ -102,7 +102,7 @@ int main(int argc, char * argv[]) {
     try {
         App app(argc, argv);
         if(QtSmoke::requested(argc, argv)) {
-            app.redraw();
+            app.sync();
             count1 = 3;
             count3 = 2;
             QtSmoke::settle();

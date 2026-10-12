@@ -49,42 +49,47 @@ int main(int argc, char ** argv) {
         int external = 0, deleted = 0;
         {
             Root root;
-            root.redraw();
+            root.sync();
             auto object = root.widget();
             require(!object->isChecked(), "initial binding value was ignored");
             QObject::connect(object, &QCheckBox::toggled, [&external]() { ++external; });
             QObject::connect(object, &QObject::destroyed, [&deleted]() { ++deleted; });
             auto capture = root.capture;
             object->toggle();
+            QCoreApplication::processEvents();
             require(static_cast<bool>(root.first) && root.writes == 1 && external == 1, "native edit committed more than once or lost a listener");
             require(root.widget() == object && root.widget(1)->isChecked() && capture.expired(), "redraw lost reuse, mirror state or callback cleanup");
             object->clicked(true);
             require(root.clicks == 1, "checkbox click was not dispatched");
             root.first = false;
+            QCoreApplication::processEvents();
             require(!object->isChecked() && root.writes == 1, "programmatic update caused a feedback write");
             root.useSecond = true;
             root.text = "Second";
-            root.redraw();
+            root.sync();
             require(object->isChecked() && object->text().toStdString() == "Second", "rebind did not update checked state/text");
             object->toggle();
+            QCoreApplication::processEvents();
             require(!static_cast<bool>(root.second) && !static_cast<bool>(root.first) && root.writes == 2, "rebind wrote the previous model");
             root.fail = true;
             bool threw = false;
-            try { root.redraw(); } catch(const std::runtime_error &) { threw = true; }
+            try { root.sync(); } catch(const std::runtime_error &) { threw = true; }
             require(threw && root.widget() == object, "getter failure discarded mounted UI");
             root.fail = false;
-            root.redraw();
+            root.sync();
             root.action = []() { throw std::runtime_error("expected setter failure"); };
             object->toggle();
+            QCoreApplication::processEvents();
             require(root.writes == 3 && static_cast<bool>(root.second), "setter failure escaped native callback boundary");
-            root.action = [&root]() { root.show = false; root.redraw(); };
+            root.action = [&root]() { root.show = false; root.sync(); };
             capture = root.capture;
             object->toggle();
+            QCoreApplication::processEvents();
             QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
             require(root.column()->children->empty() && capture.expired() && deleted == 1, "setter self-removal leaked native/callback data");
             root.action = {};
             root.show = true;
-            for(int i = 0; i < 20; ++i) { root.redraw(); root.first = !static_cast<bool>(root.first); }
+            for(int i = 0; i < 20; ++i) { root.sync(); root.first = !static_cast<bool>(root.first); }
             auto checkbox = static_cast<CPPUI::Qt::Checkbox *>(root.column()->children->front());
             delete root.widget();
             require(!checkbox->ui, "external native deletion left a stale checkbox");

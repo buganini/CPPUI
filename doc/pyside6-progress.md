@@ -121,7 +121,7 @@ the separate deferred section records intentional omissions.
 | Area | Current basis | Remaining acceptance | Phase / reference case |
 | --- | --- | --- | --- |
 | DOM reconciliation | Scoped identity, native moves, virtual flattening and reclamation | External native deletion/remount respects identity; queued dispatch cannot reach reclaimed nodes | 1 / [virtual nodes][ref-virtual] |
-| Views | `View`, `QtView`, `SubView<T>()`, synchronous independent redraw | Bursts coalesce; removed views receive no work; changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
+| Views | `QtView` queued/coalesced redraw, immediate sync and one-time setup | Changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
 | State | Read tracking, assignment, `+=`, `-=`, listener cleanup and Binding adapters | Change subscriptions and explicit notification; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
 | Application | Owned/borrowed `QApplication`, queued quit | Apply and reset declared icon/options without changing borrowed native ownership | 2 / [gallery startup][ref-gallery] |
 | Window | `QMainWindow` and central widget | Update title/icon/size; initial flags apply only on creation; imperative state changes and keypress payloads work | 3 / [Qt regression][ref-qt] |
@@ -241,15 +241,8 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 [Qt base.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py), and
 [application.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/application.py).
 
-- [ ] Separate immediate synchronization from redraw requests. Add dirty/updating
-  guards, queue Qt redraws on the GUI thread, coalesce bursts, and ignore pending
-  work for removed views. Catch/report queued render exceptions to stderr and
-  keep the previous tree on failure before native reconciliation. Define a safe
-  way to await completion in tests.
-- [ ] Add one-time setup and parameterized subview construction. Setup that
-  mutates already-subscribed state must wait for the reentrant scheduling contract.
-  Define when
-  matching views retain local state and how changed inputs reach reused views.
+- [ ] Add parameterized subview construction after defining how changed inputs
+  reach matching views that retain local state.
 - [ ] Recover from a nested builder failure after native reconciliation has
   already started. Choose transactional prebuilding versus explicit partial-sync
   recovery; top-level declaration rollback alone cannot undo native updates.

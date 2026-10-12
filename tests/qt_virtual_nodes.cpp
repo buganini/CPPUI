@@ -111,6 +111,7 @@ namespace {
     }
 
     void checkLabels(Root & root, const QStringList & expected) {
+        QCoreApplication::processEvents();
         auto actual = labels(root);
         if(actual != expected) {
             throw std::runtime_error("unexpected native order: " + actual.join(", ").toStdString());
@@ -124,7 +125,7 @@ int main(int argc, char ** argv) {
         Model model;
         int removed = 0;
         Root root(model);
-        root.redraw();
+        root.sync();
         checkLabels(root, {"external", "left-0", "middle", "nested-0", "right-0", "tail"});
         auto column = root.layout();
         auto originalLeft = column->itemAt(1)->widget();
@@ -137,17 +138,18 @@ int main(int argc, char ** argv) {
         checkLabels(root, {"external", "left-0", "left-1", "left-2", "middle", "nested-0", "right-0", "tail"});
         require(root.layout()->itemAt(1)->widget() == originalLeft, "independent redraw remounted a label");
 
-        root.redraw();
+        root.sync();
         require(root.layout() == column, "unchanged redraw remounted the layout");
         model.nested = 2;
         checkLabels(root, {"external", "left-0", "left-1", "left-2", "middle", "nested-0", "nested-1", "right-0", "tail"});
 
         model.reversed = true;
-        root.redraw();
+        root.sync();
         checkLabels(root, {"external", "right-0", "middle", "nested-0", "nested-1", "left-0", "left-1", "left-2", "tail"});
         require(root.layout()->itemAt(5)->widget() == originalLeft, "keyed move remounted a view");
 
         model.showMiddle = false;
+        QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         checkLabels(root, {"external", "right-0", "left-0", "left-1", "left-2", "tail"});
         require(removed == 2, "removed virtual descendants were not destroyed exactly once");

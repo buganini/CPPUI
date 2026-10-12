@@ -74,7 +74,7 @@ namespace {
         int removed = 0;
         {
             Root root;
-            root.redraw();
+            root.sync();
             auto tabs = root.native();
             QObject::connect(tabs, &QObject::destroyed, [&]() { ++destroyed; });
             tabs->resize(400, 240);
@@ -87,48 +87,48 @@ namespace {
             for(int i = 0; i < tabs->count(); ++i) retained[root.pages[i].key] = tabs->widget(i);
             tabs->setCurrentIndex(1);
             for(int repeat = 0; repeat < 5; ++repeat) {
-                root.redraw();
+                root.sync();
                 settle();
                 root.checkSinglePages();
                 require(root.native() == tabs && tabs->currentWidget() == retained["b"],
                     "unchanged redraw replaced tabs or reset native selection");
             }
             root.pages[1].title = "Renamed";
-            root.redraw();
+            root.sync();
             root.checkSinglePages();
             require(tabs->currentWidget() == retained["b"], "title update changed selection");
             root.pages.insert(root.pages.begin(), {"new", "New"});
-            root.redraw();
+            root.sync();
             root.checkSinglePages();
             require(tabs->currentWidget() == retained["b"], "insertion lost the selected page");
             root.pages = {{"c", "C"}, {"a", "A"}, {"b", "B"}};
-            root.redraw();
+            root.sync();
             settle();
             root.checkSinglePages();
             require(tabs->widget(0) == retained["c"] && tabs->widget(1) == retained["a"]
                 && tabs->widget(2) == retained["b"], "keyed move recreated tab contents");
             QObject::connect(retained["b"], &QObject::destroyed, [&]() { ++removed; });
             root.pages = {{"c", "C"}, {"a", "A"}};
-            root.redraw();
+            root.sync();
             settle();
             root.checkSinglePages();
             require(removed == 1, "removed page did not release its native widget");
             root.pages.clear();
-            root.redraw();
+            root.sync();
             settle();
             root.checkSinglePages();
             require(root.native() == tabs && tabs->currentIndex() == -1, "empty tabs lost native identity");
             root.pages = {{"a", "Again"}};
             root.position = "s";
-            root.redraw();
+            root.sync();
             root.checkSinglePages();
             require(tabs->tabPosition() == QTabWidget::North, "unused PUI tabposition unexpectedly applied");
             root.show = false;
-            root.redraw();
+            root.sync();
             settle();
             require(declarations == 0 && destroyed == 1, "Tabs removal did not release declarations/native container");
             root.show = true;
-            root.redraw();
+            root.sync();
             QObject::connect(root.native(), &QObject::destroyed, [&]() { ++destroyed; });
         }
         require(declarations == 0 && destroyed == 2, "root teardown retained Tabs/Tab");
@@ -138,7 +138,7 @@ namespace {
         {
             Root root;
             root.pages = {{"multi", "Multi", VirtualPair}, {"last", "Last"}};
-            root.redraw();
+            root.sync();
             auto tabs = root.native();
             auto first = qobject_cast<QLabel *>(tabs->widget(0));
             auto second = qobject_cast<QLabel *>(tabs->widget(1));
@@ -149,13 +149,13 @@ namespace {
                 "multi-child label updates differ from pinned PUI postSync");
             for(int repeat = 0; repeat < 5; ++repeat) {
                 root.pages = {{"last", "Last"}, {"multi", "Multi", VirtualPair}};
-                root.redraw();
+                root.sync();
                 require(tabs->widget(0) == last && tabs->widget(1) == first && tabs->widget(2) == second,
                     "moving a virtual Tab/view subtree lost native order/identity");
                 require(tabs->tabText(0) == "Last" && tabs->tabText(1) == "Multi" && tabs->tabText(2) == "Multi",
                     "moved pages failed to find their ancestor Tab label");
                 root.pages = {{"multi", "Multi", VirtualPair}, {"last", "Last"}};
-                root.redraw();
+                root.sync();
                 require(tabs->widget(0) == first && tabs->widget(1) == second && tabs->widget(2) == last,
                     "reverse virtual move lost native order/identity");
                 require(declarations == 2, "virtual moves retained old Tab declarations");
@@ -163,13 +163,13 @@ namespace {
             QObject::connect(first, &QObject::destroyed, [&]() { ++removed; });
             QObject::connect(second, &QObject::destroyed, [&]() { ++removed; });
             root.pages = {{"empty", "Empty", Empty}, {"last", "Last"}};
-            root.redraw();
+            root.sync();
             settle();
             require(removed == 2 && tabs->count() == 1 && tabs->widget(0) == last,
                 "empty Tab created a page or removed virtual pages leaked");
             require(tabs->tabText(0) == "Empty", "empty-Tab label update differs from pinned PUI postSync");
             root.pages = {{"group", "Group", Grouped}};
-            root.redraw();
+            root.sync();
             settle();
             require(tabs->count() == 1 && tabs->widget(0)->findChildren<QLabel *>().size() == 2,
                 "explicit VBox failed to group multiple controls into one page");

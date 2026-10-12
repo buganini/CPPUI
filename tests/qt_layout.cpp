@@ -37,7 +37,7 @@ int main(int argc, char ** argv) {
     QApplication app(argc, argv);
     try {
         Root root;
-        root.redraw();
+        root.sync();
         auto column = root.children->front()->children->front();
         auto outer = static_cast<QWidget *>(column->outer());
         require(outer->contentsMargins() == QMargins(11, 11, 11, 11), "outer layout padding differs from PUI");
@@ -53,7 +53,7 @@ int main(int argc, char ** argv) {
         require(horizontal->frameShadow() == QFrame::Sunken && !column->children->front()->is_movable,
                 "divider appearance/movement differs from PUI");
         root.swap = true;
-        root.redraw();
+        root.sync();
         column = root.children->front()->children->front();
         require(column->children->at(1)->outer() == horizontal, "neighboring move replaced the fixed divider");
         require(column->children->back()->children->front()->children->front()->outer() == vertical,
@@ -61,12 +61,12 @@ int main(int argc, char ** argv) {
         int removed = 0;
         QObject::connect(horizontal, &QObject::destroyed, &app, [&]() { ++removed; });
         root.show = false;
-        root.redraw();
+        root.sync();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         require(removed == 1, "divider removal did not delete its native object once");
         {
             VirtualDivider unboxed;
-            unboxed.redraw();
+            unboxed.sync();
             require(static_cast<QFrame *>(unboxed.children->front()->outer())->frameShape() == QFrame::NoFrame,
                     "divider outside a box should have no frame");
         }
