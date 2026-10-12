@@ -1,5 +1,16 @@
 2026-10-12
 
+- Show an arrow cursor in the X11 cookbook by supplying the cursor image that
+  LVGL's X11 input setup requires; the driver hides the desktop cursor. Keep
+  image data alive in static storage and the native cursor on the system layer,
+  so page replacement preserves it and display teardown reclaims it. Extend
+  the existing smoke checks to verify cursor visibility across every page.
+  Give X11 a sleeping delay callback instead of LVGL's default busy-wait loop.
+  Validation: X11 cookbook normal/Valgrind checks pass 2/2 and ASan/UBSan/leak
+  check passes 1/1. The Valgrind run completes in 6.31 seconds after the delay
+  change; the initial busy-wait run hit the 120-second timeout. Rebuild the
+  workspace X11 cookbook and update its documentation and remaining plan.
+
 - Split the LVGL cookbook into lvgl_sdl2 and lvgl_x11 CMake projects with shared
   recipes, configuration and startup. Remove the headless cookbook build and
   runtime path; --smoke uses the selected native driver. Update both READMEs,

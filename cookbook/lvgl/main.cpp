@@ -3,6 +3,9 @@
 #include <iostream>
 #if LV_USE_X11
 #include <X11/Xlib.h>
+#include "cursor.hpp"
+#include <chrono>
+#include <thread>
 #endif
 
 namespace {
@@ -48,7 +51,10 @@ int main(int argc, char ** argv) {
         shutdown();
         return 1;
     }
-    lv_x11_inputs_create(display, nullptr);
+    lv_x11_inputs_create(display, Cookbook::Backend::mouseCursor());
+    lv_delay_set_cb([](uint32_t milliseconds) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    });
 #endif
     int result = Cookbook::run(argc, argv);
     // The application must have released declarations and borrowed screen content.

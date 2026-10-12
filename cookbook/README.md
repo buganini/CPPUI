@@ -76,6 +76,10 @@ Both interactive and `--smoke` runs use `DISPLAY`. On CI, an Xvfb server can
 supply that display, for example `xvfb-run -a ctest --test-dir
 build-cookbook-lvgl_x11 --output-on-failure`.
 
+The X11 driver hides the desktop cursor, so startup supplies an arrow image.
+LVGL keeps it on the display's system layer, above recipe content; page changes
+leave it intact and display teardown releases it.
+
 LVGL v9.6.0's X11 driver stops its tick thread only when the window manager
 closes the window. `x11-lifetime.cmake` builds a corrected copy that also joins
 the thread on programmatic display deletion and makes its stop flag atomic.

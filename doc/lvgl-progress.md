@@ -99,7 +99,9 @@ Reference: [LVGL SDL event loop](https://github.com/lvgl/lvgl/blob/80ca777e37a2b
 [keyboard driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_keyboard.c),
 and [X11 driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/x11/lv_x11_display.c).
 
-The X11 cookbook builds a corrected copy of the v9.6.0 display driver to stop
+The X11 cookbook supplies the driver's optional cursor image on LVGL's system
+layer, independently of recipe content, and a sleeping delay callback. It builds
+a corrected copy of the v9.6.0 display driver to stop
 and join its tick thread during programmatic deletion, with an atomic stop flag.
 Review this version-specific workaround when updating LVGL. It does not resolve
 the application-stop and external-deletion contracts below.
