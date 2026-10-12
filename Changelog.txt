@@ -1,5 +1,11 @@
 2026-10-12
 
+- Remove unconditional update/redraw console logging from View::update and
+  State::notifyListeners. Keep normal framework rendering silent and record
+  that requirement in the progress document.
+  Validation: core/Qt CTest passes 11/11 and LVGL cookbook smoke passes 1/1;
+  both cookbook smoke runs emit only their intended success line on stdout.
+
 - Restore the reference cookbook layout: scrollable Example sidebar beside an
   expanding Result pane, native Qt menus and initial maximization. Remove only
   the source-code pane; replace the simplified Previous/Next navigation and

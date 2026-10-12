@@ -58,7 +58,6 @@ namespace CPPUI {
     }
 
     inline void View::update(Node * prev) {
-        std::cout << "update " << typeid(*this).name() << std::endl;
         if(retired_by) {
             return;
         }

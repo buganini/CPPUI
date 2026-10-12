@@ -426,6 +426,9 @@ Continue independent implementation while these contracts remain undecided.
 
 ## Validation and progress updates
 
+Normal state notifications and view redraws must be silent. Keep framework
+diagnostic output opt-in so applications control their console output.
+
 After every completed change, remove its finished checklist items and stale
 notes from this document. Keep this file focused on remaining work, current
 contracts, and outstanding checks. Record the completed behavior, validation

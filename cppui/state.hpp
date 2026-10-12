@@ -37,7 +37,6 @@ namespace CPPUI {
             while(!pendingNotifications.empty()) {
                 View * view = pendingNotifications.front();
                 pendingNotifications.erase(pendingNotifications.begin());
-                std::cout << "redraw " << view << std::endl;
                 view->redraw();
             }
         }
