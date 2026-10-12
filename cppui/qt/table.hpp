@@ -3,6 +3,7 @@
 
 #include "base.hpp"
 #include "../binding.hpp"
+#include "../table_adapter.hpp"
 #include "../optional.hpp"
 #include <QAbstractTableModel>
 #include <QTableView>
@@ -32,7 +33,7 @@ namespace CPPUI { namespace Qt {
             QVariant value;
             OptionalText display;
             Optional<std::vector<std::pair<QVariant, QString>>> choices;
-            std::function<QVariant()> read;
+            std::function<QVariant()> read, displayRead;
             std::function<void(const QVariant &)> write;
             std::function<void()> clicked, doubleClicked;
             QVariant current() const { return read ? read() : value; }
@@ -87,6 +88,7 @@ namespace CPPUI { namespace Qt {
         Optional<std::vector<std::string>> columns, headings;
         int height = 0, width = 0;
         bool active = true;
+        std::shared_ptr<void> adapterOwner;
         public:
         explicit TableModel(QObject * owner): QAbstractTableModel(owner) {}
         const detail::TableCell * cell(const QModelIndex & index) const {
@@ -105,6 +107,7 @@ namespace CPPUI { namespace Qt {
             const auto entry = *found;
             try {
                 if(role == ::Qt::DisplayRole && entry.display) return QString::fromStdString(*entry.display);
+                if(role == ::Qt::DisplayRole && entry.displayRead) return entry.displayRead();
                 const auto value = entry.current();
                 if(role == ::Qt::DisplayRole && entry.choices)
                     for(const auto & choice: *entry.choices) if(choice.first == value) return choice.second;
@@ -129,8 +132,9 @@ namespace CPPUI { namespace Qt {
             return labels && section < static_cast<int>(labels->size()) ? QVariant(QString::fromStdString((*labels)[section])) : QVariant();
         }
         void reset(std::vector<std::vector<detail::TableCell>> values, Optional<std::vector<std::string>> columnLabels,
-                   Optional<std::vector<std::string>> rowLabels, Optional<int> declaredRows, Optional<int> declaredColumns) {
+                   Optional<std::vector<std::string>> rowLabels, Optional<int> declaredRows, Optional<int> declaredColumns, std::shared_ptr<void> adapter = {}) {
             beginResetModel();
+            adapterOwner = std::move(adapter);
             rows = std::move(values); columns = std::move(columnLabels); headings = std::move(rowLabels);
             height = declaredRows ? *declaredRows : std::max(static_cast<int>(rows.size()), headings ? static_cast<int>(headings->size()) : 0);
             width = columns ? static_cast<int>(columns->size()) : 0;
@@ -141,7 +145,7 @@ namespace CPPUI { namespace Qt {
         }
         void deactivate() {
             active = false;
-            beginResetModel(); rows.clear(); height = width = 0; endResetModel();
+            beginResetModel(); rows.clear(); adapterOwner.reset(); height = width = 0; endResetModel();
         }
         void dispatch(const QModelIndex & index, bool twice) {
             const auto found = cell(index);
@@ -191,11 +195,50 @@ namespace CPPUI { namespace Qt {
         bool autofit;
         Optional<std::vector<std::string>> columns, headings;
         Optional<int> height, width;
+        std::shared_ptr<void> adapterOwner;
+        std::vector<std::vector<detail::TableCell>> adapterRows;
+        std::vector<OptionalText> adapterColumns, adapterHeadings;
+        int adapterHeight = 0, adapterWidth = 0;
+        static Optional<std::vector<std::string>> headers(const std::vector<OptionalText> & source,
+                                                         const Optional<std::vector<std::string>> & fallback) {
+            auto result = fallback.valueOr({});
+            bool visible = bool(fallback);
+            result.resize(std::max(result.size(), source.size()));
+            for(std::size_t i = 0; i < source.size(); ++i) if(source[i]) { result[i] = *source[i]; visible = true; }
+            return visible ? Optional<std::vector<std::string>>(std::move(result)) : Optional<std::vector<std::string>>();
+        }
         protected:
         void clearNative() override { model = nullptr; BaseWidget::clearNative(); }
         public:
         TableModel * model = nullptr;
-        explicit Table(bool autofit = true): autofit(autofit) { is_terminal = true; }
+        explicit Table(bool autofit = true): autofit(autofit) { is_terminal = true; layout_weight = 1; }
+        template<class Adapter> explicit Table(std::shared_ptr<Adapter> source, bool autofit = true): Table(autofit) {
+            using T = typename Adapter::Value;
+            std::shared_ptr<BaseTableAdapter<T>> adapter = std::move(source);
+            if(!adapter) throw std::invalid_argument("Table adapter must not be null");
+            adapterOwner = adapter;
+            adapterHeight = adapter->rowCount(); adapterWidth = adapter->columnCount();
+            if(adapterHeight < 0 || adapterWidth < 0) throw std::invalid_argument("Table adapter dimensions must be non-negative");
+            for(int column = 0; column < adapterWidth; ++column) adapterColumns.push_back(adapter->columnHeader(column));
+            for(int row = 0; row < adapterHeight; ++row) {
+                adapterHeadings.push_back(adapter->rowHeader(row));
+                adapterRows.emplace_back();
+                for(int column = 0; column < adapterWidth; ++column) {
+                    detail::TableCell cell;
+                    cell.read = [adapter, row, column]() { return detail::TableValue<T>::encode(adapter->editData(row, column)); };
+                    cell.displayRead = [adapter, row, column]() { return detail::TableValue<T>::encode(adapter->data(row, column)); };
+                    // Read while building, so State reads inside the adapter
+                    // subscribe this view and failures leave the old UI intact.
+                    cell.read(); cell.displayRead();
+                    if(adapter->editable(row, column)) cell.write = [adapter, row, column](const QVariant & value) {
+                        adapter->setData(row, column, detail::TableValue<T>::decode(value));
+                    };
+                    cell.clicked = [adapter, row, column]() { adapter->clicked(row, column); };
+                    cell.doubleClicked = [adapter, row, column]() { adapter->dblclicked(row, column); };
+                    adapterRows.back().push_back(std::move(cell));
+                }
+            }
+        }
         Table & columnHeader(const std::vector<std::string> & labels) { columns = labels; return *this; }
         Table & rowHeader(const std::vector<std::string> & labels) { headings = labels; return *this; }
         Table & rowCount(int value) { if(value < 0) throw std::invalid_argument("Table row count must be non-negative"); height = value; return *this; }
@@ -210,7 +253,8 @@ namespace CPPUI { namespace Qt {
             }
             auto table = static_cast<QTableView *>(ui);
             std::vector<std::vector<detail::TableCell>> rows;
-            for(auto row: *children) {
+            if(adapterOwner) rows = adapterRows;
+            else for(auto row: *children) {
                 rows.emplace_back();
                 for(auto node: *row->children) {
                     if(auto entry = dynamic_cast<TableNodeBase *>(node)) {
@@ -219,8 +263,11 @@ namespace CPPUI { namespace Qt {
                     } else throw std::logic_error("Table rows require TableNode cells");
                 }
             }
-            model->reset(std::move(rows), columns, headings, height, width);
-            table->horizontalHeader()->setVisible(bool(columns)); table->verticalHeader()->setVisible(bool(headings));
+            const auto columnLabels = adapterOwner ? headers(adapterColumns, columns) : columns;
+            const auto rowLabels = adapterOwner ? headers(adapterHeadings, headings) : headings;
+            model->reset(std::move(rows), columnLabels, rowLabels, adapterOwner ? Optional<int>(adapterHeight) : height,
+                         adapterOwner ? Optional<int>(adapterWidth) : width, adapterOwner);
+            table->horizontalHeader()->setVisible(bool(columnLabels)); table->verticalHeader()->setVisible(bool(rowLabels));
             if(autofit) table->resizeColumnsToContents();
             auto ownedModel = model;
             connectSignal(QObject::connect(table, &QTableView::clicked, model, [ownedModel](const QModelIndex & index) { ownedModel->dispatch(index, false); }));
@@ -235,6 +282,9 @@ namespace CPPUI { namespace Qt {
 }}
 namespace CPPUI {
     inline Qt::Table & Table(bool autofit = true) { return *new Qt::Table(autofit); }
+    template<class Adapter> inline Qt::Table & Table(std::shared_ptr<Adapter> adapter, bool autofit = true) {
+        return *new Qt::Table(std::move(adapter), autofit);
+    }
     inline Qt::TableNode<std::string> & TableNode(const std::string & value = {}) { return *new Qt::TableNode<std::string>(value); }
     template<class T> inline Qt::TableNode<T> & TableNode(Binding<T> model) { return *new Qt::TableNode<T>(model); }
     template<class T> inline Qt::TableNode<T> & TableNode(State<T> & model) { return TableNode(Binding<T>(model)); }

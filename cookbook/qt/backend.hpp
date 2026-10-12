@@ -73,6 +73,10 @@ namespace Cookbook { namespace Backend {
         auto tree = dynamic_cast<CPPUI::Qt::Tree *>(&node);
         return tree && tree->model && static_cast<QTreeView *>(tree->ui)->isExpanded(treeIndex(*tree, path));
     }
+    inline std::string tableText(CPPUI::Node & node, int row, int column) {
+        auto table = dynamic_cast<CPPUI::Qt::Table *>(&node);
+        return table && table->model ? table->model->data(table->model->index(row, column)).toString().toStdString() : std::string();
+    }
     inline bool editTable(CPPUI::Node & node, int row, int column, const std::string & value) {
         auto table = dynamic_cast<CPPUI::Qt::Table *>(&node);
         return table && table->model && table->model->setData(table->model->index(row, column), QString::fromStdString(value));

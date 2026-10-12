@@ -6,10 +6,14 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 
 namespace Cookbook {
     struct Model {
         CPPUI::State<int> treeItems{0};
+        using Matrix = std::vector<std::vector<int>>;
+        std::shared_ptr<CPPUI::State<Matrix>> adapterTable{new CPPUI::State<Matrix>({
+            {4, 9, 2}, {1, 0, 0}, {3, 5, 0}, {3, 3, 2}, {7, 8, 9}})};
         CPPUI::State<std::string> tableA1{std::string("A1")}, tableB1{std::string("B1")}, tableDirection{std::string("CW")};
         CPPUI::State<int> tableSides{4};
         CPPUI::State<int> scrollRows{100};
@@ -38,6 +42,7 @@ namespace Cookbook {
     };
     void tree(Model &);
     void table(Model &);
+    void tableAdapter(Model &);
     void scroll(Model &);
     void combobox(Model &);
     void radiobutton(Model &);

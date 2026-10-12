@@ -198,7 +198,7 @@ Cells accept `std::string` and arithmetic values, `State<T>` or `Binding<T>`.
 Bindings make a cell editable; an unbound cell can opt into editing with
 `.set(std::function<void(const T &)>)`. An explicit setter does not override a
 binding. Qt performs native scalar conversion; arbitrary user-defined values
-and external table adapters remain deferred.
+remain deferred. External typed adapters are described below.
 
 `.display(text)` (also accepting a string binding) overrides the displayed value
 without changing the editor's raw value. `.choices(std::vector<T>)` supplies
@@ -225,6 +225,42 @@ than nested retained views or native widgets inside a table.
 
 Reference: [PUI Table](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/table.py)
 and [ragged-table cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py).
+
+### Table adapters
+
+`cppui/table_adapter.hpp` provides PUI's `BaseTableAdapter<T>` interface with
+`data`, `editData`, `setData`, `editable`, row/column counts and headers, and
+`clicked`/`dblclicked` callbacks. Pass `std::shared_ptr<YourAdapter>` to
+`Table(adapter, autofit = true)`. `T` is an arithmetic type or `std::string`;
+`editData` defaults to `data`, cells default to read-only, and headers default to
+`Col n` / `Row n`. Data, edit data, counts and headers are const methods; setters
+and callbacks can mutate the source. Qt converts edits back to `T` before
+calling `setData`. Display and editor values remain separate.
+
+Header methods return `OptionalText`: absent entries use any declaration header
+fallback, and an axis with no supplied labels is hidden. An explicitly empty
+string is a supplied blank label. Adapter counts determine the grid; declarative
+row/column count overrides and TableNode children apply only without an adapter.
+
+Tables and native callbacks retain the adapter with shared ownership. The adapter
+must own its data or explicitly borrow storage that outlives it. This does not
+change borrowed CPPUI factory returns. Callbacks copy their owning handle before
+invoking application code, so an edit/click may redraw, replace or remove its
+own table. Removal clears the model's adapter references before deferred native
+deletion; inactive models cannot dispatch edits.
+
+Each declaration reads adapter dimensions, headers, editability and cell values
+during construction, tracking State dependencies and validating before mounting.
+Native display/edit reads use the current adapter. Plain storage changes require
+an explicit view redraw; State assignment schedules it automatically when the
+adapter read that State during construction. Structural refresh resets the
+native model and invalidates old indexes. Automatic collection observation and
+arbitrary mixed/custom cell types remain separate work.
+
+The [shared table adapter recipe](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/table_adapter.py)
+is ported in `cookbook/table_adapter.cpp`: two tables share one matrix; its first
+three rows are editable and its row headers are hidden. CPPUI assigns a copied
+State matrix after editing, replacing PUI's nested mutation plus `emit()`.
 
 ## Tree
 

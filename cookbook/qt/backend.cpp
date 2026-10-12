@@ -6,6 +6,9 @@ namespace Cookbook { namespace Backend {
             if(std::string(page.key) == "tree") {
                 page.render = tree;
                 page.remaining = "";
+            } else if(std::string(page.key) == "table_adapter") {
+                page.render = tableAdapter;
+                page.remaining = "";
             } else if(std::string(page.key) == "table") {
                 page.render = table;
                 page.remaining = "";

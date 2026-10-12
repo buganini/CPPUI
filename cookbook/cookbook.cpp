@@ -137,6 +137,17 @@ namespace Cookbook {
                         require(gallery.model.treeItems == before + 1 && Backend::treeChildCount(*tree, {0, 3}) == before + 1
                             && Backend::treeExpanded(*tree, {0, 3}), "tree growth lost items or expansion");
                     }
+                    if(std::string(recipes()[i].key) == "table_adapter" && recipes()[i].render) {
+                        auto first = find(gallery, "adapter-table-first");
+                        auto second = find(gallery, "adapter-table-second");
+                        require(first && second && Backend::editTable(*first, 0, 0, "42"), "table adapter did not accept an editable cell");
+                        Backend::settle();
+                        first = find(gallery, "adapter-table-first"); second = find(gallery, "adapter-table-second");
+                        require(Backend::tableText(*first, 0, 0) == "42" && Backend::tableText(*second, 0, 0) == "42",
+                            "table adapter views did not share their edited matrix");
+                        require(!Backend::editTable(*second, 3, 0, "99") && Backend::tableText(*second, 3, 0) == "3",
+                            "table adapter accepted an edit in its readonly rows");
+                    }
                     if(std::string(recipes()[i].key) == "table" && recipes()[i].render) {
                         require(Backend::editTable(*find(gallery, "example-table"), 0, 0, "edited"), "table string cell did not commit");
                         Backend::settle();
