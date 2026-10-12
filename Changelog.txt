@@ -1,5 +1,9 @@
 2026-10-12
 
+- Add LVGL clone and v9.6.0 checkout commands to both READMEs, using /path/to/lvgl
+  consistently for the checkout and CPPUI_LVGL_SOURCE_DIR. Review command paths
+  and whitespace; the version validation task remains pending.
+
 - Set the documented LVGL target to 9.6.0 at 80ca777e37a2b176770726a02e07a6fb79ef0b39
   in both READMEs, the LVGL plan and CMake cache help. Keep prior validation
   history intact and add an explicit 9.6.0 compatibility/test task.

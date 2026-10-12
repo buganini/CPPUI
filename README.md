@@ -62,6 +62,8 @@ For LVGL, use a [9.6.0 source checkout](https://github.com/lvgl/lvgl/tree/80ca77
 Validation against this target version is pending in the [LVGL plan](doc/lvgl-progress.md):
 
 ```sh
+git clone https://github.com/lvgl/lvgl.git /path/to/lvgl
+git -C /path/to/lvgl checkout v9.6.0
 cmake -S cookbook/lvgl -B build-cookbook-lvgl \
   -DCPPUI_LVGL_SOURCE_DIR=/path/to/lvgl -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build-cookbook-lvgl
