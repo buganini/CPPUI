@@ -3,6 +3,7 @@
 
 // Same cookbook composition as Qt; native details stay in the selected backend.
 namespace Cookbook { namespace Presentation {
+    inline void Menus() {}
     struct Item {
         int weight;
         bool fixedSize = false;

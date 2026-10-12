@@ -16,6 +16,7 @@
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
 |[Image](#image)|QLabel / QPixmap|—|—|
+|[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|—|
 |[MDI](#mdi)|QMdiArea / QMdiSubWindow|—|—|
 |[TimelineView](#timelineview)|QTimer / virtual node|—|—|
 |[ImageResource](#canvas)|QImage|—|—|
@@ -105,6 +106,21 @@ building, preserving the mounted image on a failed redraw; undecodable existing
 files produce an empty Qt pixmap. Public dimension/stretch modifiers await the
 shared layout API. The cookbook uses a private 360-pixel-height adapter and the
 same screenshot as PUI's Image recipe.
+
+## Menus and toolbars
+
+Include `cppui/qt/menu.hpp` and `cppui/qt/toolbar.hpp`. `MenuBar()` contains
+`Menu(text)` and `MenuAction(text)` scopes/actions; menus can nest.
+`ToolBar()` contains `ToolBarAction(text, iconPath)` and ordinary widgets.
+Actions use `.trigger(callback)` with no arguments. The path is optional;
+omission retains a toolbar action's previous icon, following PUI.
+
+MenuBar and ToolBar are out-of-order Window children and coexist with central
+content and Modal. Native parents own menus/actions; keyed moves reuse them.
+Callback replacement disconnects only CPPUI's connection, snapshots active
+callbacks and reports trigger exceptions to stderr. Toolbar widget actions
+retain their widgets across moves and are reclaimed when the widget is removed.
+The cookbook gallery uses these public menu components.
 
 ## MDI
 

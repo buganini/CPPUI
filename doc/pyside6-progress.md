@@ -132,7 +132,6 @@ the separate deferred section records intentional omissions.
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
 | Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
-| MenuBar/Menu/MenuAction/ToolBar/ToolBarAction | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
@@ -319,18 +318,12 @@ Acceptance: port [scroll_sync.py](https://github.com/buganini/PUI/blob/009e9b9c3
 growth/shrinkage and a resize during reconciliation. Native dialog interaction,
 Modal focus and window-manager state require manual display checks.
 
-### Phase 6 — Menus, toolbars, MDI, interop, and timers (P2)
+### Phase 6 — Native interop (P2)
 
-- [ ] Add MenuBar/Menu/MenuAction and ToolBar/ToolBarAction, including nested
-  menus, widget actions, icons, current trigger callbacks, and keyed reorders.
-- [ ] Route these children through Window's native APIs without replacing its
-  central content.
 - [ ] Add equivalents of `QtInPui` and `PuiInQt`: specify borrowed native widget
   lifetime, removal/reparenting, and embedding into an existing Qt application.
 
-Acceptance: actions fire once using current data after repeated redraws; menus
-and toolbars can coexist with central content and modals; borrowed widgets
-survive declaration removal. Adapt
+Acceptance: borrowed widgets survive declaration removal. Adapt
 [pyside6_interop.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/examples/pyside6_interop.py).
 
 ### Phase 7 — Canvas and input (P2)

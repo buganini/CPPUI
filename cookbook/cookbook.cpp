@@ -13,6 +13,7 @@ namespace Cookbook {
         void content() override {
             const auto & page = recipes().at(static_cast<int>(selected));
             for(auto window: Presentation::Window().id("cookbook")) {
+                Presentation::Menus();
                 for(auto row: Presentation::HBox().id("gallery")) {
                     for(auto menu: Presentation::Sidebar().id("menu-container")) {
                         Presentation::Label("Example");

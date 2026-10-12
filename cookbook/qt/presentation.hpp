@@ -37,27 +37,24 @@ namespace Cookbook { namespace Presentation {
     class WindowNode: public CPPUI::Qt::Window {
         public:
         WindowNode() { title("CPPUI Cookbook"); maximize(); }
-        void update(CPPUI::Qt::BaseWidget * prev) override {
-            CPPUI::Qt::Window::update(prev);
-            auto window = static_cast<QMainWindow *>(ui);
-            if(!prev || !prev->ui) {
-                auto menu = window->menuBar()->addMenu("Menu");
-                auto add = [window](QMenu * menu, const char * title, const char * output) {
-                    auto action = menu->addAction(title);
-                    QObject::connect(action, &QAction::triggered, window, [output]() { std::cout << output << '\n'; });
-                };
-                add(menu, "Action", "action");
-                add(menu, "Action2", "action2");
-                auto submenu = menu->addMenu("Menu2");
-                add(submenu, "Action3", "action3");
-                add(submenu, "Action4", "action4");
-                auto menu3 = window->menuBar()->addMenu("Menu3");
-                menu3->addAction("Action5");
-                menu3->addAction("Action6");
-            }
-        }
     };
     inline WindowNode & Window() { return *new WindowNode(); }
+    inline void Menus() {
+        for(auto bar: CPPUI::MenuBar()) {
+            for(auto menu: CPPUI::Menu("Menu")) {
+                CPPUI::MenuAction("Action").trigger([]() { std::cout << "action\n"; });
+                CPPUI::MenuAction("Action2").trigger([]() { std::cout << "action2\n"; });
+                for(auto submenu: CPPUI::Menu("Menu2")) {
+                    CPPUI::MenuAction("Action3").trigger([]() { std::cout << "action3\n"; });
+                    CPPUI::MenuAction("Action4").trigger([]() { std::cout << "action4\n"; });
+                }
+            }
+            for(auto menu: CPPUI::Menu("Menu3")) {
+                CPPUI::MenuAction("Action5");
+                CPPUI::MenuAction("Action6");
+            }
+        }
+    }
 
     class ScrollNode: public CPPUI::Qt::BaseWidget, public Item {
         public:

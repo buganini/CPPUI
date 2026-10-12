@@ -2,6 +2,8 @@
 #define CPPUI_QT_WINDOW
 
 #include "base.hpp"
+#include "menu.hpp"
+#include "toolbar.hpp"
 #include "../optional.hpp"
 
 #include <QMainWindow>
@@ -56,11 +58,22 @@ namespace CPPUI {
             }
 
             void addChild(int idx, Node *child) override {
+                auto window = static_cast<QMainWindow *>(ui);
+                if(auto menu = dynamic_cast<MenuBar *>(child)) { window->setMenuBar(static_cast<QMenuBar *>(menu->ui)); return; }
+                if(auto toolbar = dynamic_cast<ToolBar *>(child)) { window->addToolBar(static_cast<QToolBar *>(toolbar->ui)); return; }
                 if(child->is_outoforder) return;
                 ((QMainWindow *)ui)->setCentralWidget((QWidget *) child->outer());
             }
 
             void removeChild(int idx, Node *child) override {
+                if(auto menu = dynamic_cast<MenuBar *>(child)) { if(menu->ui) menu->ui->setParent(nullptr); return; }
+                if(auto toolbar = dynamic_cast<ToolBar *>(child)) {
+                    if(toolbar->ui) {
+                        static_cast<QMainWindow *>(ui)->removeToolBar(static_cast<QToolBar *>(toolbar->ui));
+                        toolbar->ui->setParent(nullptr);
+                    }
+                    return;
+                }
                 if(child->is_outoforder) return;
                 if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
