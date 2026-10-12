@@ -594,8 +594,10 @@ true requests a frame on the next LVGL refresh interval. Teardown cancels the
 timer and releases captures, and the native object retains its buffer until
 deletion, including when an ancestor owns that deletion. Run callbacks on the
 UI thread without nested event loops or display/runtime teardown.
-Input/drag/drop events, shared layout/style modifiers and Shapely integration
-remain pending. The cookbook uses a private size/background adapter meanwhile.
+Input/drag/drop events and shared layout/style modifiers remain pending. The
+cookbook uses a private size/background adapter meanwhile.
+**Won't do — Shapely:** Python-only `Canvas.drawShapely` integration is excluded
+from CPPUI and its cookbook.
 
 ## Label
 

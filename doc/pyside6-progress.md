@@ -317,7 +317,7 @@ Acceptance: borrowed widgets survive declaration removal. Adapt
   modifiers, plus Qt drag-enter/drop callbacks and their acceptance behavior
   after the deferred input-event contract is addressed.
 - [ ] Ensure input callback replacement/removal cannot dispatch to a retired
-  declaration. Track Shapely integration separately below.
+  declaration.
 - [ ] Verify Canvas rendering and logical coordinates on a real HiDPI display.
 
 Acceptance: port the drop cookbook case and verify event payloads, acceptance,
@@ -366,7 +366,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Adapted data, tree identity and expansion |
-| `drawshapely.py`, `matplotlib.py` | Deferred integrations | Requires an agreed C++ bridge/dependency strategy |
+| `matplotlib.py` | Deferred integration | Requires an agreed C++ bridge/dependency strategy |
 
 ## Decisions awaiting direction
 
@@ -399,13 +399,14 @@ Continue independent implementation while these contracts remain undecided.
   Tree can use model-owned internal identity without public weak references.
   These choices must not block the declarative components.
 
-## Explicitly deferred or requiring a C++ design decision
+## Excluded, deferred or requiring a C++ design decision
 
 - Python hot reload and decorator syntax: preserve reusable declarative views;
   runtime C++ code replacement is outside this alignment plan.
-- MatplotlibCanvas and Canvas.drawShapely: keep optional Python/geometry bridges
-  deferred until their dependency and ownership strategy is selected. Native
-  Canvas must work without them. These remain documented parity gaps.
+- **Won't do — Shapely:** Canvas.drawShapely and the DrawShapely cookbook recipe
+  are Python-only integrations, excluded from CPPUI.
+- MatplotlibCanvas: keep the optional Python bridge deferred until its dependency
+  and ownership strategy is selected. Native Canvas must work without it.
 - Dynamic Qt keyword parameters: expose typed options and native interop;
   enumerate supported options rather than promising arbitrary Python attributes.
 - Existing PUI gaps, such as unused tab position, Scroll offset capture and inconsistently applied

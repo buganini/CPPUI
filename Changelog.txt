@@ -1,5 +1,6 @@
 2026-10-13
     * Qt: add declarative Table with typed bindings/choices, shared cookbook recipe and lifetime regressions
+    * Cookbook: remove Python-only DrawShapely and mark Shapely integration as won't-do
 
 2026-10-12
     * Core: make C++11 headers safe across translation units; fix reconciliation, construction rollback, reactive dependencies and node ownership
