@@ -1,4 +1,6 @@
 #include <functional>
+#include <iosfwd>
+#include <typeinfo>
 #include <thread>
 #include <vector>
 #include <iterator>
@@ -12,7 +14,8 @@ namespace CPPUI {
     class Node;
     class View;
 
-    static inline std::vector<View *> * getStack() {
+    // External inline linkage shares this thread-local stack across source files.
+    inline std::vector<View *> * getStack() {
         thread_local std::vector<View *> stack;
         return &stack;
     }

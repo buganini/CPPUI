@@ -5,8 +5,6 @@
 #ifndef CPPUI_CONTEXT_HEADER
 #define CPPUI_CONTEXT_HEADER
 
-#include "view_header.hpp"
-
 namespace CPPUI {
     class Context;
 

@@ -11,31 +11,31 @@
 namespace CPPUI {
     class Context;
 
-    ContextIterator::ContextIterator(Context *context) {
+    inline ContextIterator::ContextIterator(Context *context) {
         inContext = true;
         this->context = context;
     }
 
-    void ContextIterator::operator++()
+    inline void ContextIterator::operator++()
     {
         inContext = false;
         context->exit();
     }
 
-    bool ContextIterator::operator!=(ContextIterator &obj) {
+    inline bool ContextIterator::operator!=(ContextIterator &obj) {
         return inContext;
     }
 
-    Context * ContextIterator::operator*(void) {
+    inline Context * ContextIterator::operator*(void) {
         return context;
     }
 
-    ContextIterator & Context::begin() {
+    inline ContextIterator & Context::begin() {
         iter = ContextIterator(this);
         enter();
         return iter;
     }
-    ContextIterator & Context::end() { return iter; }
+    inline ContextIterator & Context::end() { return iter; }
 }
 
 #endif

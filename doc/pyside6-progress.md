@@ -130,7 +130,7 @@ No implementation milestone below is complete.
 | Canvas/ImageResource | Missing | Drawing, pointer events, HiDPI |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Qt models, editing, stable identity |
 | Qt interop/TimelineView | Missing | Borrowed widgets, embedding, cancellable timers |
-| Validation | Two interactive Qt examples | Assertion-based core and offscreen Qt tests |
+| Validation | CMake/CTest core harness, independent header builds, multi-file state/construction checks; two interactive Qt examples | Core lifecycle coverage and offscreen Qt tests |
 
 The six existing components are documented in [REFERENCE.md](https://github.com/buganini/CPPUI/blob/848cf9a97c45ae6ca0050ab3fc645daf15009665/REFERENCE.md).
 The [virtual-node example](https://github.com/buganini/CPPUI/blob/848cf9a97c45ae6ca0050ab3fc645daf15009665/example/test_virtual_nodes/main.cpp) ports one PUI
@@ -144,10 +144,11 @@ behavioral checks and documentation.
 
 ### Phase 0 — Contract and test harness (P0)
 
-- [ ] Establish a repeatable CMake/CTest entry point for core tests and Qt tests,
-  retaining the existing examples. Add a multiple-translation-unit build check:
-  existing headers contain non-inline definitions that need an explicit
-  header-only or compiled-library strategy.
+- [x] Establish the core CMake/CTest entry point and header-only strategy. All
+  eight core headers compile independently; multiple source files share one
+  construction stack per thread and can build nodes/subscribe to State together.
+- [ ] Extend the harness to Qt tests and multi-file Qt headers, retaining and
+  building the existing examples.
 - [ ] Turn the virtual-node example into automated checks for physical child
   order, native widget identity, independent redraw, and removal/reinsertion.
 - [ ] Specify the C++ API shapes for owned IDs/text, `Binding<T>`, event payloads,
@@ -360,6 +361,14 @@ Exercise both external adapters and declarative nodes using cookbook examples.
   improvement. Do not infer complete support from a constructor argument alone.
 
 ## Validation and progress updates
+
+Completed on 2026-10-12: core header/build increment. CMake 4.2.3 and GCC 15.2.0
+built all eight standalone core-header checks in C++11 mode. Release CTest passed
+`core.headers` (1/1), including cross-file construction/state tracking and separate
+thread stacks. CMake was extracted into `/tmp/cppui-tools`, without system package
+installation. An additional sanitizer run exposed an existing invalid downcast
+in `Node::Node()`; repair is the next lifecycle change. LeakSanitizer could not
+run under the sandbox's ptrace environment. Qt validation remains pending.
 
 After every completed change, update this document and `Changelog.txt` with the
 behavior changed and validation results, then commit that change before starting

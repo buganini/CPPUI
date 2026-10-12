@@ -9,13 +9,13 @@
 #include "dom.hpp"
 
 namespace CPPUI {
-    View::View(): Node() {
+    inline View::View(): Node() {
         is_view = true;
         is_virtual = true;
         cppui_root = this;
     }
 
-    View::~View() {
+    inline View::~View() {
         std::vector<StateBase *> subscriptions(stateSubscriptions);
         stateSubscriptions.clear();
         for(StateBase * state: subscriptions) {
@@ -23,33 +23,33 @@ namespace CPPUI {
         }
     }
 
-    void View::trackState(StateBase * state) {
+    inline void View::trackState(StateBase * state) {
         if(std::find(stateSubscriptions.begin(), stateSubscriptions.end(), state)
            == stateSubscriptions.end()) {
             stateSubscriptions.push_back(state);
         }
     }
 
-    void View::untrackState(StateBase * state) {
+    inline void View::untrackState(StateBase * state) {
         stateSubscriptions.erase(
             std::remove(stateSubscriptions.begin(), stateSubscriptions.end(), state),
             stateSubscriptions.end()
         );
     }
 
-    void View::enter(void) {
+    inline void View::enter(void) {
         std::vector<View *> * stack = getStack();
         stack->push_back(this);
         cppui_root->frames.push_back(this);
     }
 
-    void View::exit(void) {
+    inline void View::exit(void) {
         std::vector<View *> * stack = getStack();
         stack->pop_back();
         cppui_root->frames.pop_back();
     }
 
-    void View::update(Node * prev) {
+    inline void View::update(Node * prev) {
         std::cout << "update " << typeid(*this).name() << std::endl;
         if(retired_by) {
             return;
@@ -66,7 +66,7 @@ namespace CPPUI {
         exit();
     }
 
-    void View::redraw(void) {
+    inline void View::redraw(void) {
         if(retired_by || destroyed) {
             return;
         }
@@ -85,7 +85,7 @@ namespace CPPUI {
         delete lastChildren;
     }
 
-    void View::run(void) {
+    inline void View::run(void) {
         redraw();
         start();
     }

@@ -1,5 +1,14 @@
 2026-10-12
 
+- Add a toolkit-independent CMake/CTest harness and choose header-only linkage
+  for the core. Fix duplicate definitions, standalone include dependencies, and
+  construction stacks that previously differed between translation units.
+  Validation: eight independent core-header builds and Release core.headers
+  (1/1) pass with C++11, GCC 15.2.0, and CMake 4.2.3. Cross-file state reads,
+  child construction, and thread-local isolation are covered. Sanitizers expose
+  a pre-existing Node-constructor downcast for the next lifecycle increment;
+  LeakSanitizer is unavailable under sandbox ptrace. Qt tests are still pending.
+
 - Document the Qt/PySide6 alignment plan against PUI commit
   009e9b9c3fbd724f0b73c862f8213ddc4742405c, with phased acceptance checks,
   GitHub source references, and explicit C++ ownership/reclamation rules.

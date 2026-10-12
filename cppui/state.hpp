@@ -7,7 +7,7 @@
 
 #define DEBUG_CPPUI_STATE 0
 
-#include "view_header.hpp"
+#include "view.hpp"
 
 namespace CPPUI {
     class View;

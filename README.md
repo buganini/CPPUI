@@ -9,6 +9,21 @@ CPPUI doesn't do UI itself, it turns imperative UI libraries into declarative fl
 
 [PUI: Python Version](https://github.com/buganini/PUI)
 
+# Build and test the core
+
+CPPUI is header-only. Link the CMake interface target `CPPUI::cppui`, or add this
+repository to your include path. Core headers support C++11 and can be included
+from multiple source files. The core checks do not require a UI toolkit:
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+The build also checks that each core header compiles independently. Toolkit
+examples currently keep their own CMake projects under `example/`.
+
 # View Hierarchy Construction
 ```c++
 #include <iostream>

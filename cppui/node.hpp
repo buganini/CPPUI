@@ -7,17 +7,17 @@
 #ifndef CPPUI_NODE
 #define CPPUI_NODE
 
-#include "node_header.hpp"
+#include "view_header.hpp"
 
 namespace CPPUI {
     class Node;
     class View;
 
-    std::size_t Node::typecode() const {
+    inline std::size_t Node::typecode() const {
         return typeid(*this).hash_code();
     }
 
-    bool Node::operator==(Node &obj) {
+    inline bool Node::operator==(Node &obj) {
         if(typecode() != obj.typecode()) {
             return false;
         }
@@ -27,7 +27,7 @@ namespace CPPUI {
         return true;
     }
 
-    Node::Node() {
+    inline Node::Node() {
         std::vector<View *> * stack = getStack();
         children = new std::vector<Node *>();
         if(stack->size()==0){
@@ -40,26 +40,26 @@ namespace CPPUI {
         }
     }
 
-    Node::~Node() {
+    inline Node::~Node() {
         delete children;
     }
 
-    void Node::enter(void) {
+    inline void Node::enter(void) {
         cppui_root->frames.push_back(this);
     }
 
-    void Node::exit(void) {
+    inline void Node::exit(void) {
         cppui_root->frames.pop_back();
     }
 
 
-    void Node::update(Node * prev) {
+    inline void Node::update(Node * prev) {
         if(prev) {
             prev->retired_by = this;
         }
     }
 
-    void Node::releaseRetiredRefs(void) {
+    inline void Node::releaseRetiredRefs(void) {
         cppui_root = nullptr;
         parent = nullptr;
         dom_parent = nullptr;
@@ -69,26 +69,26 @@ namespace CPPUI {
         children = nullptr;
     }
 
-    void Node::postUpdate(void) {
+    inline void Node::postUpdate(void) {
 
     }
 
-    void Node::preSync(void) {
+    inline void Node::preSync(void) {
 
     }
 
-    void Node::postSync(void) {
+    inline void Node::postSync(void) {
 
     }
 
-    void * Node::inner(void) {
+    inline void * Node::inner(void) {
         if(ui){
             return ui;
         }
         return parent->inner();
     }
 
-    void * Node::outer(void) {
+    inline void * Node::outer(void) {
         if(ui) {
             return ui;
         }
@@ -98,10 +98,10 @@ namespace CPPUI {
         return nullptr;
     }
 
-    void Node::addChild(int idx, Node *child) {}
-    void Node::removeChild(int idx, Node *child) {}
+    inline void Node::addChild(int idx, Node *child) {}
+    inline void Node::removeChild(int idx, Node *child) {}
 
-    Node * Node::getNode(void) {
+    inline Node * Node::getNode(void) {
         Node * node = this;
         while(node->retired_by) {
             node = node->retired_by;
@@ -112,7 +112,7 @@ namespace CPPUI {
         return node;
     }
 
-    bool Node::findDomOffsetForNode(Node * node, int * offset) {
+    inline bool Node::findDomOffsetForNode(Node * node, int * offset) {
         if(this == node) {
             *offset = 0;
             return true;
@@ -140,11 +140,11 @@ namespace CPPUI {
         return false;
     }
 
-    void Node::click(std::function<void()> callback) {
+    inline void Node::click(std::function<void()> callback) {
         onClicked = callback;
     }
 
-    void Node::writeStream(std::ostream & out, int indent) const {
+    inline void Node::writeStream(std::ostream & out, int indent) const {
         for(int i=0;i<indent;i++){
             out << "  ";
         }
@@ -164,7 +164,7 @@ namespace CPPUI {
         out << "}" << std::endl;
     }
 
-    std::ostream & operator<<(std::ostream & out, Node const & node) {
+    inline std::ostream & operator<<(std::ostream & out, Node const & node) {
         node.writeStream(out, 0);
         return out;
     }

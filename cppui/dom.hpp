@@ -17,7 +17,7 @@ namespace CPPUI {
         explicit VDomError(const std::string & message): std::runtime_error(message) {}
     };
 
-    static inline int indexOfSince(const std::vector<Node *> * dom, int since, Node * node) {
+    inline int indexOfSince(const std::vector<Node *> * dom, int since, Node * node) {
         for(int i = since; i < static_cast<int>(dom->size()); i += 1) {
             if(*dom->at(i) == *node) {
                 return i;
@@ -26,7 +26,7 @@ namespace CPPUI {
         return -1;
     }
 
-    static inline void recur_delete(Node * child, bool direct) {
+    inline void recur_delete(Node * child, bool direct) {
         child->destroyed = true;
         for(Node * subchild: *child->children) {
             if(subchild) {
@@ -38,7 +38,7 @@ namespace CPPUI {
         delete child;
     }
 
-    static inline std::vector<Node *> dom_remove_node(Node * dom_parent, int dom_offset, Node * child) {
+    inline std::vector<Node *> dom_remove_node(Node * dom_parent, int dom_offset, Node * child) {
         std::vector<Node *> removed(1, child);
         if(child->is_virtual) {
             for(Node * subchild: *child->children) {
@@ -51,7 +51,7 @@ namespace CPPUI {
         return removed;
     }
 
-    static inline void dom_add_nodes(Node * dom_parent, int dom_offset, const std::vector<Node *> & children) {
+    inline void dom_add_nodes(Node * dom_parent, int dom_offset, const std::vector<Node *> & children) {
         int childIdx = 0;
         for(Node * child: children) {
             if(!child->is_virtual) {
@@ -61,7 +61,7 @@ namespace CPPUI {
         }
     }
 
-    static inline int count_dom_children(const std::vector<Node *> * nodes) {
+    inline int count_dom_children(const std::vector<Node *> * nodes) {
         int num = 0;
         for(Node * child: *nodes) {
             if(child->is_virtual) {
@@ -73,7 +73,7 @@ namespace CPPUI {
         return num;
     }
 
-    static inline int count_ordered_nodes(const std::vector<Node *> & nodes) {
+    inline int count_ordered_nodes(const std::vector<Node *> & nodes) {
         int num = 0;
         for(Node * node: nodes) {
             if(!node->is_virtual && !node->is_outoforder) {
@@ -83,7 +83,7 @@ namespace CPPUI {
         return num;
     }
 
-    static inline void prepare_dom(Node * node, std::vector<Node *> * dom) {
+    inline void prepare_dom(Node * node, std::vector<Node *> * dom) {
         if(node->is_grid_layout) {
             dom->erase(
                 std::remove_if(dom->begin(), dom->end(), [](Node * child) {
