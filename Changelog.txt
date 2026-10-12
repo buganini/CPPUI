@@ -1,5 +1,15 @@
 2026-10-12
 
+- Validate the LVGL SDL cookbook build and add --smoke --sdl with normal and
+  Valgrind CTest coverage using SDL's dummy video/software-renderer drivers.
+  Use SDL.h from the imported target's include directory. Release input devices
+  and displays before quitting SDL to avoid LVGL 9.3's freed-texture access in
+  lv_deinit; the new Valgrind scenario reproduced that failure before the fix.
+  Update build/test instructions and retain only real-display checks in the plan.
+  Validation: LVGL 9.3.0 / SDL 2.32.10 SDL build passes 4/4 normal/Valgrind checks;
+  fully instrumented C/C++ ASan/UBSan/leak checks pass 2/2. The SDL-disabled
+  configuration also builds and passes its normal/Valgrind checks (2/2).
+
 - Add Qt Splitter(vertical = false) with native reuse, orientation updates and
   ordered physical/virtual panes. Port its shared cookbook recipe with the
   reference's nested splitters and gray panels. Update component/cookbook docs

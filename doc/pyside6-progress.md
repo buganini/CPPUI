@@ -344,8 +344,8 @@ Do not duplicate recipes or silently present unsupported behavior as a full port
 
 - [ ] Port each recipe alongside its components, preserving the state changes
   and interactions. The table below tracks only outstanding recipe work.
-- [ ] Verify the interactive SDL build and real-display layout/input on both
-  backends; headless recipe tests do not establish visual or focus parity.
+- [ ] Verify real-display layout/input on both backends; Qt offscreen and SDL
+  dummy-driver recipe tests do not establish physical input or focus parity.
 
 Preserve the reference gallery's Example sidebar, scrolling page list, Result
 pane, Qt menus, and recipe layout. The source-code pane is intentionally omitted

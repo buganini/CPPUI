@@ -27,6 +27,16 @@ set_target_properties(cppui_cookbook_lvgl PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 
 if(BUILD_TESTING)
+    if(CPPUI_LVGL_SDL)
+        cppui_add_test(cookbook.lvgl_sdl cppui_cookbook_lvgl --smoke --sdl)
+        set_property(TEST cookbook.lvgl_sdl APPEND PROPERTY ENVIRONMENT
+            "SDL_VIDEODRIVER=dummy" "SDL_AUDIODRIVER=dummy" "SDL_RENDER_DRIVER=software")
+        if(CPPUI_VALGRIND_TESTS)
+            set_property(TEST valgrind.cookbook.lvgl_sdl APPEND PROPERTY ENVIRONMENT
+                "SDL_VIDEODRIVER=dummy" "SDL_AUDIODRIVER=dummy" "SDL_RENDER_DRIVER=software")
+        endif()
+    endif()
+
     foreach(header application base button label layout window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"

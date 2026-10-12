@@ -47,11 +47,17 @@ ctest --test-dir build-cookbook-lvgl --output-on-failure
 
 This builds a headless software display for smoke testing. Add
 `-DCPPUI_LVGL_SDL=ON` with SDL2 development files installed for an interactive
-window, then run `cppui_cookbook_lvgl` without arguments. The smoke test stays
-headless even in an SDL build. The configuration uses libc allocation so memory
+window, then run `cppui_cookbook_lvgl` without arguments. Ordinary `--smoke` stays
+headless. SDL builds additionally register `cookbook.lvgl_sdl`, which runs
+`--smoke --sdl` with SDL's dummy video and software-renderer drivers. This checks
+the SDL display, input-device creation, recipes and cleanup without a desktop;
+use the same flags without driver overrides to view the smoke run in a window.
+The configuration uses libc allocation so memory
 checkers can observe individual LVGL allocations. Application teardown preserves
 the display-owned active screen and releases its CPPUI content before `lv_deinit`.
-The example assumes CPPUI owns the content of that screen.
+The example assumes CPPUI owns the content of that screen. In SDL builds, startup
+owns the input devices and display; teardown releases those before quitting SDL
+and deinitializing LVGL, avoiding LVGL 9.3's texture cleanup after SDL shutdown.
 
 ## Tests and memory checks
 

@@ -6,4 +6,6 @@
 #define LV_USE_LOG 0
 #define LV_FONT_MONTSERRAT_28 1
 #define LV_USE_SDL CPPUI_LVGL_SDL
+// SDL2::SDL2 supplies the directory containing SDL.h, including custom prefixes.
+#define LV_SDL_INCLUDE_PATH <SDL.h>
 #endif

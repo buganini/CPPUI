@@ -76,9 +76,12 @@ installed, enable an interactive window:
 cmake -S cookbook/lvgl -B build-cookbook-lvgl -DCPPUI_LVGL_SDL=ON
 cmake --build build-cookbook-lvgl
 ./build-cookbook-lvgl/cppui_cookbook_lvgl
+ctest --test-dir build-cookbook-lvgl --output-on-failure
 ```
 
-The second configure command reuses the SDK path from the first. Both projects
+The second configure command reuses the SDK path from the first. SDL builds also
+test the SDL renderer with the dummy video driver (`--smoke --sdl`), including
+device teardown, without needing a desktop display. Both projects
 accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. See the
 [cookbook documentation](cookbook/README.md) for capabilities and validation limits.
 
