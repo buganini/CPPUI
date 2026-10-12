@@ -4,6 +4,7 @@
 #include "base.hpp"
 #include <QApplication>
 #include <QEvent>
+#include <QIcon>
 #include <memory>
 #include <stdexcept>
 
@@ -11,12 +12,14 @@ namespace CPPUI {
     class Application: public Qt::QtView {
         int argc;
         char ** argv;
+        std::string iconPath;
         std::unique_ptr<QApplication> ownedApplication;
         QApplication * application = nullptr;
         std::unique_ptr<QObject> quitContext{new QObject()};
 
         public:
-        Application(int argc, char * argv[]): argc(argc), argv(argv) {}
+        Application(int argc, char * argv[], const std::string & icon = {})
+            : argc(argc), argv(argv), iconPath(icon) {}
 
         ~Application() override {
             // QObject destruction removes queued calls before native teardown.
@@ -38,6 +41,9 @@ namespace CPPUI {
                     ownedApplication.reset(new QApplication(argc, argv));
                     application = ownedApplication.get();
                 }
+                // PUI applies the icon only at initialization. An omitted icon
+                // leaves a borrowed application's existing default unchanged.
+                if(!iconPath.empty()) application->setWindowIcon(QIcon(QString::fromStdString(iconPath)));
             }
             QtView::update(prev);
         }

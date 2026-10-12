@@ -123,7 +123,7 @@ the separate deferred section records intentional omissions.
 | DOM reconciliation | Scoped identity, native moves, virtual flattening and reclamation | External native deletion/remount respects identity; queued dispatch cannot reach reclaimed nodes | 1 / [virtual nodes][ref-virtual] |
 | Views | `QtView` queued/coalesced redraw, immediate sync and one-time setup | Changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
 | State | Read tracking, assignment, `+=`, `-=`, listener cleanup and Binding adapters | Change subscriptions and explicit notification; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
-| Application | Owned/borrowed `QApplication`, queued quit | Apply and reset declared icon/options without changing borrowed native ownership | 2 / [gallery startup][ref-gallery] |
+| Application | Owned/borrowed `QApplication`, initial icon, queued quit | Add typed application options under the shared options contract | 2 / [gallery startup][ref-gallery] |
 | Window | `QMainWindow`, title/icon/size and initial/imperative state flags | Keypress payloads follow the deferred event contract; verify window-manager behavior on a display | 3 / [Qt regression][ref-qt] |
 | HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
 | Label/Button | Owned text, selectable labels and current click callbacks | Styles reset on reuse; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
@@ -253,7 +253,7 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 - [ ] Define observable list/map updates and element bindings corresponding to
   PUI's collection state. State explicitly how nested changes notify views;
   mutable container access must not silently bypass notification.
-- [ ] Add application icon/options after the common options API is chosen.
+- [ ] Add application options after the common options API is chosen.
 
 Acceptance: port the scenarios in [tests/batched_state_mutation.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/batched_state_mutation.py),
 [tests/redraw_semaphore.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/redraw_semaphore.py), and

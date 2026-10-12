@@ -11,9 +11,7 @@
 using namespace CPPUI;
 class UI: public Application {
     public:
-    UI(int argc, char *argv[]): Application(argc, argv) {
-
-    }
+    using Application::Application;
 
     State<int> n{1};
     State<bool> showLabels{true};

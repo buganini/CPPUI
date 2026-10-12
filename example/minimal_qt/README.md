@@ -14,3 +14,7 @@ label updates and exercise an empty range without starting the interactive loop.
 CTest selects Qt's offscreen platform. Add `-DCPPUI_VALGRIND_TESTS=ON` in a
 non-sanitized build to check the same run with Memcheck. The root Qt build also
 registers this example's smoke and optional memory tests.
+
+`UI` inherits the Application constructors. To set an initial default window
+icon, construct it with `UI app(argc, argv, "icon.png")`. The optional path is
+copied; redraws preserve later native icon changes.

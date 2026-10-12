@@ -94,6 +94,14 @@ cancels its queued work. Core and LVGL redraws remain synchronous.
 
 ## Application
 
+Qt `Application(argc, argv, iconPath)` optionally copies an icon path and sets
+the application-wide default window icon once, during its first synchronization,
+following PUI. Omitting the path (or passing an empty string) preserves a borrowed
+QApplication's icon. An explicit path also applies to a borrowed QApplication;
+it is an application-wide setting and is not restored on CPPUI teardown. Later
+redraws leave native icon changes alone. General application options remain
+subject to the shared options API.
+
 Qt `Application::quit()` queues event-loop exit so the current handler can return
 first. It can be called before `run()`; application destruction cancels any
 pending quit. Quitting a borrowed QApplication exits its shared event loop but

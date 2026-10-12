@@ -2,6 +2,8 @@
 #include "cppui/qt/window.hpp"
 #include "cppui/qt/label.hpp"
 #include <QTimer>
+#include <QImage>
+#include <QTemporaryDir>
 #include <stdexcept>
 
 namespace {
@@ -64,15 +66,39 @@ namespace {
         root.start();
         require(!watchdog.expired && nextTurnRan, "a destroyed application's queued quit affected the surviving application");
     }
+    void initialIcon(int argc, char ** argv, QApplication & qt, const std::string & path) {
+        QPixmap blue(16, 16); blue.fill(::Qt::blue);
+        qt.setWindowIcon(QIcon(blue));
+        const auto original = qt.windowIcon().cacheKey();
+        {
+            Root omitted(argc, argv); omitted.sync();
+            require(qt.windowIcon().cacheKey() == original, "omitted icon replaced the borrowed application's icon");
+        }
+        {
+            Root configured(argc, argv, std::string(path)); configured.sync();
+            require(qt.windowIcon().pixmap(16, 16).toImage().pixelColor(8, 8) == QColor(::Qt::red), "explicit application icon was not loaded");
+            qt.setWindowIcon(QIcon(blue));
+            const auto replacement = qt.windowIcon().cacheKey();
+            configured.sync();
+            require(qt.windowIcon().cacheKey() == replacement, "redraw reapplied an initial-only application icon");
+        }
+        require(QCoreApplication::instance() == &qt && !qt.windowIcon().isNull(), "icon application changed borrowed native ownership");
+    }
 }
 
 int main(int argc, char ** argv) {
     try {
+        QTemporaryDir directory;
+        require(directory.isValid(), "could not create icon fixture directory");
+        const auto iconPath = directory.filePath("icon.png");
+        QImage icon(16, 16, QImage::Format_ARGB32); icon.fill(::Qt::red);
+        require(icon.save(iconPath), "could not save application icon fixture");
         if(argc > 1 && std::string(argv[1]) == "--owned") {
             {
-                Root root(argc, argv);
+                Root root(argc, argv, iconPath.toStdString());
                 root.quit(); // Safe even before lazy QApplication creation.
                 root.sync();
+                require(QApplication::windowIcon().pixmap(16, 16).toImage().pixelColor(8, 8) == QColor(::Qt::red), "owned application's icon was not initialized");
                 Watchdog watchdog;
                 root.start();
                 require(!watchdog.expired, "quit queued before startup was lost");
@@ -80,6 +106,7 @@ int main(int argc, char ** argv) {
             require(!QCoreApplication::instance(), "owned QApplication leaked after quit");
         } else {
             QApplication qt(argc, argv);
+            initialIcon(argc, argv, qt, iconPath.toStdString());
             queuedQuit(argc, argv, qt);
             cancelledQuit(argc, argv, qt);
             require(QCoreApplication::instance() == &qt, "quit destroyed the borrowed QApplication");
