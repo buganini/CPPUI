@@ -85,32 +85,9 @@ namespace Cookbook { namespace Presentation {
     };
     inline ScrollNode & Scroll() { return *new ScrollNode(); }
 
-    class LinkLabel: public QLabel {
-        public:
-        std::function<void()> callback;
-        void mouseReleaseEvent(QMouseEvent * event) override {
-            if(event->button() == ::Qt::LeftButton) {
-                auto invoke = callback;
-                if(invoke) invoke();
-                return;
-            }
-            QLabel::mouseReleaseEvent(event);
-        }
-    };
     class PageLinkNode: public CPPUI::Qt::Label {
         public:
         explicit PageLinkNode(const std::string & text): Label(text) {}
-        void update(CPPUI::Qt::BaseWidget * prev) override {
-            ui = prev && prev->ui ? prev->ui : new LinkLabel();
-            auto label = static_cast<LinkLabel *>(ui);
-            label->setText(QString::fromStdString(text));
-            label->setTextFormat(::Qt::PlainText);
-            label->callback = onClicked;
-        }
-        void destroy(bool direct) override {
-            if(ui) static_cast<LinkLabel *>(ui)->callback = {};
-            CPPUI::Qt::Label::destroy(direct);
-        }
     };
     inline PageLinkNode & PageLink(const std::string & text) { return *new PageLinkNode(text); }
 

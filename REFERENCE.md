@@ -369,10 +369,13 @@ remain pending. The cookbook uses a private size/background adapter meanwhile.
 
 ## Label
 
-LVGL `Label(text).click(callback)` dispatches a no-argument click callback.
+Qt and LVGL `Label(text).click(callback)` dispatch a no-argument callback.
+Qt uses mouse press, as PUI does, and commits the focused editor first.
 Redraw replaces or clears the handler and preserves unrelated native listeners.
 The callback may redraw or remove its own declaration. Label owns its literal
-text; interactive selection and typed input events remain pending on LVGL.
+text. Qt supports mouse selection and resets omitted selection/cursor/handler
+properties; interactive selection remains pending on LVGL. Typed input events
+remain deferred on both backends.
 
 ## Text
 

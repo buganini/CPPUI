@@ -108,6 +108,10 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_modal PRIVATE CPPUI::qt)
     cppui_add_test(qt.modal cppui_qt_modal)
 
+    add_executable(cppui_qt_label qt_label.cpp)
+    target_link_libraries(cppui_qt_label PRIVATE CPPUI::qt)
+    cppui_add_test(qt.label cppui_qt_label)
+
     add_executable(cppui_qt_checkbox qt_checkbox.cpp)
     target_link_libraries(cppui_qt_checkbox PRIVATE CPPUI::qt)
     cppui_add_test(qt.checkbox cppui_qt_checkbox)

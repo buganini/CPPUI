@@ -27,7 +27,8 @@ prerequisites. The [Qt plan](../doc/pyside6-progress.md) and
 The backend `presentation.hpp` files provide private
 cookbook layout/appearance adapters until those public APIs are decided; these
 helpers do not imply general Scroll, menu, style, or layout API support in CPPUI.
-LVGL page links and dividers use public Label/Divider; Spacer uses public
+Qt and LVGL page links use public clickable Label. LVGL dividers use public
+Divider; Spacer uses public
 `CPPUI::Spacer()`. The gallery smoke test
 checks its horizontal and vertical expansion in the HBox/VBox recipes.
 

@@ -73,7 +73,7 @@ namespace Cookbook { namespace Backend {
         for(auto parent = label->parentWidget(); parent; parent = parent->parentWidget()) {
             if(auto scroll = qobject_cast<QScrollArea *>(parent)) scroll->ensureWidgetVisible(label);
         }
-        QMouseEvent event(QEvent::MouseButtonRelease, QPointF(2, 2), QPointF(2, 2),
+        QMouseEvent event(QEvent::MouseButtonPress, QPointF(2, 2), QPointF(2, 2),
                           ::Qt::LeftButton, ::Qt::NoButton, ::Qt::NoModifier);
         QCoreApplication::sendEvent(label, &event);
         return true;
