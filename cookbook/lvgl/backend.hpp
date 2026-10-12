@@ -8,6 +8,7 @@
 #include "cppui/lvgl/canvas.hpp"
 #include "cppui/lvgl/divider.hpp"
 #include "cppui/lvgl/tab.hpp"
+#include "cppui/lvgl/checkbox.hpp"
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>
@@ -19,6 +20,9 @@ namespace Cookbook { namespace Backend {
             page.remaining = "";
         } else if(std::string(page.key) == "tab") {
             page.render = tab;
+            page.remaining = "";
+        } else if(std::string(page.key) == "checkbox") {
+            page.render = checkbox;
             page.remaining = "";
         }
     }
@@ -57,6 +61,12 @@ namespace Cookbook { namespace Backend {
         auto label = lv_obj_get_child(button, 0);
         return lv_tabview_get_tab_active(object) == static_cast<uint32_t>(index)
             && label && text == lv_label_get_text(label) && lv_obj_is_visible(page);
+    }
+    inline bool toggleCheckbox(CPPUI::Node & node) {
+        auto checkbox = dynamic_cast<CPPUI::LVGL::Checkbox *>(&node);
+        if(!checkbox || !checkbox->ui) return false;
+        lv_obj_send_event(static_cast<lv_obj_t *>(checkbox->ui), LV_EVENT_RELEASED, nullptr);
+        return true;
     }
     inline void answerPrompt(const std::string &, bool) {}
     inline bool modalVisible(CPPUI::Node &) { return false; }

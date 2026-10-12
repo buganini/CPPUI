@@ -17,12 +17,9 @@ namespace CPPUI {
         class Tabs: public Node {
             // A selected page temporarily removed for a keyed move. Observe its
             // child, so actual removal cannot leave a dangling selection bookmark.
-            lv_obj_t * movingSelection = nullptr;
-            static void selectionDeleted(lv_event_t * event) {
-                static_cast<Tabs *>(lv_event_get_user_data(event))->movingSelection = nullptr;
-            }
+            Observer * movingSelection = nullptr;
             void forgetSelection() {
-                if(movingSelection) lv_obj_remove_event_cb_with_user_data(movingSelection, selectionDeleted, this);
+                if(movingSelection) movingSelection->bookmark = nullptr;
                 movingSelection = nullptr;
             }
             lv_obj_t * selected() const {
@@ -83,8 +80,8 @@ namespace CPPUI {
                 lv_obj_set_size(content, lv_pct(100), lv_pct(100));
                 lv_obj_move_to_index(page, idx);
                 lv_obj_move_to_index(button, idx);
-                if(movingSelection == content) {
-                    active = movingSelection;
+                if(movingSelection && movingSelection->object == content) {
+                    active = movingSelection->object;
                     forgetSelection();
                 }
                 restoreSelection(active, index);
@@ -101,8 +98,8 @@ namespace CPPUI {
                     auto content = static_cast<lv_obj_t *>(child->outer());
                     if(active == content) {
                         forgetSelection();
-                        movingSelection = content;
-                        lv_obj_add_event_cb(content, selectionDeleted, LV_EVENT_DELETE, this);
+                        movingSelection = child->observed.get();
+                        if(movingSelection) movingSelection->bookmark = &movingSelection;
                     }
                     // Core reconciliation decides whether this is a move or a
                     // removal. Keep the child alive until it makes that decision.

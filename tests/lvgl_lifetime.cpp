@@ -107,7 +107,7 @@ namespace {
             root.fail = false;
             root.redraw();
             require(oldCapture.expired(), "recovery retained previous callback");
-            root.action = [&root]() { root.show = false; root.redraw(); };
+            root.action = [&root]() { root.redraw(); root.show = false; root.redraw(); };
             oldCapture = root.capture;
             lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
             require(!root.button() && oldCapture.expired() && deletes == 1,

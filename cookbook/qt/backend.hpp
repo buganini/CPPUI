@@ -46,6 +46,7 @@ namespace Cookbook { namespace Backend {
         widget->setCurrentIndex(index);
         return widget->currentIndex() == index && widget->currentWidget()->isVisible();
     }
+    inline bool toggleCheckbox(CPPUI::Node &) { return false; }
     inline void answerPrompt(const std::string & text, bool accepted) {
         QTimer::singleShot(0, qApp, [text, accepted]() {
             if(auto dialog = qobject_cast<QInputDialog *>(QApplication::activeModalWidget())) {

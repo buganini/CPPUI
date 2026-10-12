@@ -2,6 +2,7 @@
 
 #include <lvgl.h>
 #include <cstdio>
+#include <memory>
 
 #ifndef CPPUI_LVGL_BASE
 #define CPPUI_LVGL_BASE
@@ -22,41 +23,69 @@ namespace CPPUI {
          };
 
         class Node: public ::CPPUI::Node {
-            lv_obj_t * observed = nullptr;
+            friend class Tabs;
+            struct Observer {
+                lv_obj_t * object;
+                Node * owner;
+                Observer ** bookmark = nullptr;
+                void invalidate() {
+                    object = nullptr;
+                    owner = nullptr;
+                    if(bookmark) { *bookmark = nullptr; bookmark = nullptr; }
+                }
+                Observer(lv_obj_t * object, Node * owner): object(object), owner(owner) {}
+            };
+            std::unique_ptr<Observer> observed;
             static void event(lv_event_t * event) {
-                auto node = static_cast<Node *>(lv_event_get_user_data(event));
+                auto observer = static_cast<Observer *>(lv_event_get_user_data(event));
+                auto node = observer->owner;
                 if(lv_event_get_code(event) == LV_EVENT_DELETE) {
                     node->ui = nullptr;
-                    node->observed = nullptr;
-                } else if(lv_event_get_code(event) == LV_EVENT_CLICKED) {
-                    try {
-                        // User code may synchronously replace or delete this declaration.
-                        auto invoke = node->onClicked;
-                        if(invoke) invoke();
-                    } catch(const std::exception & error) {
-                        std::fprintf(stderr, "CPPUI LVGL click failed: %s\n", error.what());
+                    observer->invalidate();
+                } else {
+                    try { node->nativeEvent(event); }
+                    catch(const std::exception & error) {
+                        std::fprintf(stderr, "CPPUI LVGL event failed: %s\n", error.what());
                     } catch(...) {
-                        std::fprintf(stderr, "CPPUI LVGL click failed: unknown exception\n");
+                        std::fprintf(stderr, "CPPUI LVGL event failed: unknown exception\n");
                     }
                 }
+                // User code may have deleted both the declaration and observer.
             }
             void unobserve() {
-                if(observed) lv_obj_remove_event_cb_with_user_data(observed, event, this);
-                observed = nullptr;
+                if(observed && observed->object)
+                    lv_obj_remove_event_cb_with_user_data(observed->object, event, observed.get());
+                if(observed) observed->invalidate();
+                observed.reset();
             }
             protected:
             bool clickable = false;
+            virtual void nativeEvent(lv_event_t * event) {
+                if(clickable && lv_event_get_code(event) == LV_EVENT_CLICKED) {
+                    auto invoke = onClicked;
+                    if(invoke) invoke();
+                }
+            }
             public:
             ~Node() override { unobserve(); }
-            void update(::CPPUI::Node * prev) override {
-                update((Node *) prev);
-                if(prev) static_cast<Node *>(prev)->unobserve();
-                observed = static_cast<lv_obj_t *>(ui);
-                if(observed) {
-                    lv_obj_add_event_cb(observed, event, clickable ? LV_EVENT_ALL : LV_EVENT_DELETE, this);
-                    if(clickable) lv_obj_set_clickable(observed, true);
+            void update(::CPPUI::Node * previous) override {
+                auto prev = static_cast<Node *>(previous);
+                update(prev);
+                auto object = static_cast<lv_obj_t *>(ui);
+                if(prev && prev->observed && prev->observed->object == object) {
+                    // Keep the native event list unchanged during a callback that
+                    // redraws and then removes itself (LVGL retains its storage).
+                    observed = std::move(prev->observed);
+                    observed->owner = this;
+                } else {
+                    if(prev) prev->unobserve();
+                    if(object) {
+                        observed.reset(new Observer(object, this));
+                        lv_obj_add_event_cb(object, event, LV_EVENT_ALL, observed.get());
+                    }
                 }
-                ::CPPUI::Node::update(prev);
+                if(object && clickable) lv_obj_set_clickable(object, true);
+                ::CPPUI::Node::update(previous);
             }
 
             virtual void update(Node * prev) = 0;

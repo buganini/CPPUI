@@ -28,13 +28,14 @@ namespace {
     class Root: public CPPUI::LVGL::View {
         public:
         bool show = true;
+        std::function<void()> action;
         std::string position = "n";
         std::vector<Page> pages{{"a", "A"}, {"b", "B"}, {"c", "C"}};
         void content() override {
             for(auto window: CPPUI::Window()) if(show) for(auto tabs: CPPUI::Tabs(position)) {
                 for(const auto & page: pages) for(auto tab: (new TrackedTab(page.title))->id(page.key)) {
                     switch(page.kind) {
-                        case Single: CPPUI::Label(page.key); break;
+                        case Single: CPPUI::Label(page.key).click([this]() { auto invoke = action; if(invoke) invoke(); }); break;
                         case VirtualPair: CPPUI::SubView<Pair>(); break;
                         case Empty: break;
                         case Grouped:
@@ -117,6 +118,22 @@ namespace {
         }
         require(declarations == 0 && lv_obj_get_child_count(lv_screen_active()) == 0, "root teardown leaked tabs");
     }
+    void callbackMovesPage() {
+        Root root;
+        root.redraw();
+        lv_tabview_set_active(root.native(), 1, LV_ANIM_OFF);
+        auto child = root.selected();
+        root.action = [&root, child]() {
+            root.pages = {{"b", "B"}, {"c", "C"}, {"a", "A"}};
+            root.redraw();
+            require(root.selected() == child, "callback move lost native selection");
+            root.show = false;
+            root.redraw();
+        };
+        lv_obj_send_event(child, LV_EVENT_CLICKED, nullptr);
+        require(declarations == 0 && lv_obj_get_child_count(lv_screen_active()) == 0,
+                "callback move followed by removal leaked tabs");
+    }
     void virtualPages() {
         int removed = 0;
         {
@@ -193,7 +210,7 @@ int main() {
     lv_init();
     lv_display_create(800, 600);
     int result = 0;
-    try { ordinaryTabs(); virtualPages(); independentView(); }
+    try { ordinaryTabs(); virtualPages(); independentView(); callbackMovesPage(); }
     catch(const std::exception & error) { std::cerr << error.what() << '\n'; result = 1; }
     lv_deinit();
     return result;

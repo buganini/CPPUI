@@ -125,6 +125,26 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "checkbox" && recipes()[i].render) {
+                        for(const auto & id: {"checkbox-1", "checkbox-3", "checkbox-6"}) {
+                            auto checkbox = find(gallery, id);
+                            require(checkbox && Backend::toggleCheckbox(*checkbox), "checkbox recipe is missing a control");
+                            Backend::settle();
+                        }
+                        require(!static_cast<bool>(gallery.model.checkboxOne)
+                            && static_cast<std::vector<std::string>>(gallery.model.checkboxList) == std::vector<std::string>{"value 3"}
+                            && static_cast<std::map<std::string, bool>>(gallery.model.checkboxMap) == std::map<std::string, bool>{{"value 6", true}},
+                            "checkbox boolean/list/map changes did not update models");
+                        require(hasText(gallery, "Model value 1: False"), "bound checkbox did not redraw labels");
+                        for(const auto & id: {"checkbox-1", "checkbox-3", "checkbox-6"}) {
+                            require(Backend::toggleCheckbox(*find(gallery, id)), "checkbox toggle failed after redraw");
+                            Backend::settle();
+                        }
+                        require(static_cast<bool>(gallery.model.checkboxOne)
+                            && static_cast<std::vector<std::string>>(gallery.model.checkboxList).empty()
+                            && static_cast<std::map<std::string, bool>>(gallery.model.checkboxMap).empty(),
+                            "checkbox collection removal did not clear membership");
+                    }
                     if(std::string(recipes()[i].key) == "dialog" && recipes()[i].render) {
                         Backend::answerPrompt("", true);
                         require(click(gallery, "Prompt"), "dialog recipe is missing Prompt");

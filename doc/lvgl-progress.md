@@ -24,7 +24,7 @@ and current contracts; summarize completed changes briefly in `Changelog.txt`.
 ## Current basis and remaining acceptance
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Spacer, Divider, plain Text, Tabs/Tab and basic Canvas drawing. The shared cookbook
+Button, Checkbox, Spacer, Divider, plain Text, Tabs/Tab and basic Canvas drawing. The shared cookbook
 additionally has private presentation helpers for weights, styles and scrolling. Those helpers do not establish public component support.
 
 | Area | Current basis | Remaining acceptance / phase |
@@ -36,7 +36,7 @@ additionally has private presentation helpers for weights, styles and scrolling.
 | Label/Button | Owned text and current button/label callbacks | Input payloads and style reset follow common contracts (3) |
 | Spacer/Divider/Grid/Stack | Public expanding Spacer and flex-axis Divider | Define fixed spacing and shared placement/style API, then add Grid/Stack and verify spans/overlap (3) |
 | ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
-| Bound controls | Missing | Text edits and boolean/value selections commit once, rebind correctly and avoid feedback loops (4) |
+| Bound controls | Boolean Checkbox with Binding/State; cookbook membership adapters | Text edit/commit and typed value selection contracts remain (4) |
 | Scroll/Tabs/Tab/Splitter | Public Tabs/Tab; cookbook-only scrolling | Define scroll offsets and splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
@@ -125,9 +125,11 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   not silently stand in for formatted text.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
-- [ ] Using the shared `Binding<T>`/State adapters, add TextField, Checkbox,
+- [ ] Using the shared `Binding<T>`/State adapters, add TextField,
   RadioButton and ComboBox/item equivalents. Preserve in-progress edits, distinct
-  labels/values, empty selections and current callbacks through redraw.
+  labels/values, empty selections and current callbacks through redraw. Keep
+  automatic collection observation and value-based Checkbox overloads tied to
+  the shared collection contract; explicit boolean membership adapters work now.
 
 Acceptance: port [progressbar.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/progressbar.py),
 [text.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/text.py),
@@ -189,6 +191,16 @@ remain deferred with the Qt plan.
 - **Screen ownership:** active-screen content is currently exclusive. Choose
   scoped content roots, screen switching, multiple displays and external-delete
   remount behavior before broadening Window or interop.
+- **Editor commits:** [PUI TextField](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/textfield.py)
+  preserves an editing draft and writes `edit_model` during native updates as well
+  as typing. Its Qt backend queues redraws. LVGL currently redraws synchronously;
+  choose its scheduling/focus-group contract before publishing an editor that
+  can reenter reconciliation on an edit-model write. Shared text conversion and
+  input/change payloads also remain unresolved.
+- **Progress range:** PUI/Qt use integer hundredths and treat maximum zero as a
+  busy indicator. LVGL's [bar](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/widgets/bar/lv_bar.c)
+  exposes bounded integer ranges rather than that busy mode. Choose busy and
+  invalid/out-of-range behavior before claiming the same ProgressBar API.
 - **Capability differences:** decide progress busy/range behavior, rich text and
   selection, font/image resources, custom splitters/trees, and desktop features
   independently. Unsupported must remain visible; pixel-identical desktop

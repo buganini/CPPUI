@@ -10,6 +10,7 @@
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
+|[Checkbox](#checkbox)|—|checkbox|—|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
@@ -57,8 +58,8 @@ not yet supported.
 
 LVGL views, including standalone views, release their owned declarations. Native
 objects remain parent-owned; deletion clears the primary observer and secondary
-handles such as Button's label. Reuse and teardown detach only CPPUI's own event
-callbacks. Active click callbacks are copied before invocation; exceptions are
+handles such as Button's label. Native event contexts transfer on reuse without replacing listeners during
+active dispatch; teardown detaches only CPPUI's own event callbacks. Active click callbacks are copied before invocation; exceptions are
 reported to stderr at the native event boundary. External native deletion is
 safe for teardown, but does not establish automatic subtree remount support.
 Window borrows the display-owned screen and only clears its content.
@@ -99,6 +100,21 @@ External storage does not automatically notify views: redraw explicitly, or read
 reactive State in the getter. Change subscriptions, explicit notification and
 text conversion helpers remain pending; this adapter does not change State's
 copy/move semantics.
+
+## Checkbox
+
+Include `cppui/lvgl/checkbox.hpp` and use `Checkbox(text, Binding<bool>)` or pass
+`State<bool>&` directly. Model reads during construction subscribe the view;
+programmatic updates reuse the native control without writing the model back.
+User changes write once through the current adapter, and `.click(callback)` runs
+after the checked value changes. Rebinding replaces the old dependency and
+setter. Callback captures are released on redraw/removal; setter exceptions are
+reported to stderr at the native boundary.
+
+List/map membership can be expressed as `Binding<bool>` getters/setters. The
+shared Checkbox recipe matches PUI by adding/removing list values or dictionary
+keys, assigning a modified copy to State to notify observers. Automatic nested
+collection observation and a third value argument remain pending.
 
 ## ProgressBar
 

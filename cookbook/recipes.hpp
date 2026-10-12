@@ -5,9 +5,13 @@
 #include "cppui/optional.hpp"
 #include <string>
 #include <vector>
+#include <map>
 
 namespace Cookbook {
     struct Model {
+        CPPUI::State<bool> checkboxOne{true}, checkboxTwo{true};
+        CPPUI::State<std::vector<std::string>> checkboxList{std::vector<std::string>()};
+        CPPUI::State<std::map<std::string, bool>> checkboxMap{std::map<std::string, bool>()};
         CPPUI::State<int> progress{50};
         CPPUI::State<int> rotation{15};
         CPPUI::State<std::string> buttonValue{std::string("A")};
@@ -24,6 +28,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void checkbox(Model &);
     void progressbar(Model &);
     void text(Model &);
     void splitter(Model &);

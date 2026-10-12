@@ -7,6 +7,7 @@
 #include "../../cppui/lvgl/layout.hpp"
 #include "../../cppui/lvgl/divider.hpp"
 #include "../../cppui/lvgl/text.hpp"
+#include "../../cppui/lvgl/checkbox.hpp"
 #include "unistd.h"
 
 using namespace CPPUI;
@@ -17,6 +18,7 @@ class UI: public Application {
     }
 
     State<int> n{1};
+    State<bool> showLabels{true};
 
     void content(void) {
         for(auto _: Window().id("window1")) {
@@ -32,7 +34,8 @@ class UI: public Application {
                         n += 1;
                     });
                 }
-                for(auto _: HBox()) {
+                Checkbox("Show labels", showLabels);
+                if(showLabels) for(auto _: HBox()) {
                     for(int i=0;i<n;i+=1){
                         Label(std::to_string(i));
                     }

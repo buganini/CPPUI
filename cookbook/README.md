@@ -10,7 +10,8 @@ Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b
 
 Button, Label, HBox, VBox, Canvas and Tab share their recipe implementations across both backends.
 Qt also enables shared ProgressBar, Text, Splitter, Modal and Dialog recipes through
-its source manifest.
+its source manifest. LVGL also enables the shared Checkbox recipe; its boolean,
+list and dictionary examples use Binding adapters and explicit State assignment.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources and input callbacks remain pending. See the [Canvas reference](../REFERENCE.md#canvas)
@@ -125,6 +126,9 @@ same cases. The cookbook smoke test also checks Canvas size and rendered pixels.
 reuse, virtual views, repeated removal, native deletion and parent/application
 teardown, with an optional Valgrind variant.
 
+`lvgl.checkbox` checks binding writes, mirrored controls, dependency rebinding,
+feedback suppression, exceptions, callback removal and native cleanup; the
+cookbook checks boolean and collection membership interactions.
 `lvgl.tab` covers virtual pages, explicit grouping, empty tabs, keyed moves,
 selection, label updates, independent subviews and native/declaration teardown.
 The cookbook smoke test switches both shared Tab pages.
