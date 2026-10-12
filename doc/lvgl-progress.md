@@ -19,8 +19,7 @@ Coordinate shared-core work and public binding/layout/event contracts with the
 [Qt alignment plan](pyside6-progress.md). Do not create competing backend-specific
 public APIs to work around an unresolved common contract. Record blockers below
 and continue independent tasks. Keep this document limited to remaining work
-and current contracts; completed behavior and verification belong in
-`Changelog.txt`.
+and current contracts; summarize completed changes briefly in `Changelog.txt`.
 
 ## Current basis and remaining acceptance
 
@@ -258,6 +257,7 @@ accesses or definite/indirect/possible leaks are acceptable; reachable library
 globals are reported separately. Do not hide framework leaks with suppressions.
 
 After each completed change, update component/build docs, examples and tests;
-remove its finished tasks from this plan; record validation in `Changelog.txt`;
-then commit before the next change. Update the Qt plan only for shared contracts
+remove its finished tasks from this plan; add a concise component-prefixed
+change summary to `Changelog.txt`; then commit before the next change. Keep
+detailed validation commands/results in tests, documentation or commit messages. Update the Qt plan only for shared contracts
 or shared-core gaps, keeping LVGL-specific remaining work here.
