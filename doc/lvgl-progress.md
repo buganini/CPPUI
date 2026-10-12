@@ -226,7 +226,7 @@ Headless C++11 build and tests:
 
 ```sh
 cmake -S cookbook/lvgl -B build-cookbook-lvgl \
-  -DCPPUI_LVGL_SOURCE_DIR=/path/to/lvgl -DCMAKE_BUILD_TYPE=RelWithDebInfo
+  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build-cookbook-lvgl
 ctest --test-dir build-cookbook-lvgl --output-on-failure
 ```

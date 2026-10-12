@@ -1,5 +1,9 @@
 2026-10-12
 
+- Use lvgl-9.6.0 as the checkout directory and CMake source path in both
+  READMEs and the LVGL plan. Check that clone, checkout and configure commands
+  consistently use the requested directory name.
+
 - Add LVGL clone and v9.6.0 checkout commands to both READMEs, using /path/to/lvgl
   consistently for the checkout and CPPUI_LVGL_SOURCE_DIR. Review command paths
   and whitespace; the version validation task remains pending.
