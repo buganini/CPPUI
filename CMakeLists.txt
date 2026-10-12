@@ -21,5 +21,6 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    include(cmake/CPPUItesting.cmake)
     add_subdirectory(tests)
 endif()

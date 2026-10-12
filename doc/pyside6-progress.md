@@ -433,7 +433,7 @@ objects/signals/models, and sanitizer runs for lifetime changes. Keep real-displ
 checks for focus, dialogs, native window states, and HiDPI. Shared-core changes
 also need existing wx/LVGL build checks when their dependencies are available.
 For reclamation changes, include AddressSanitizer/UndefinedBehaviorSanitizer and
-LeakSanitizer where supported, plus deterministic destruction/allocation checks
+LeakSanitizer where supported, Valgrind Memcheck, plus deterministic destruction/allocation checks
 for callback cycles, retired nodes, state/view destruction order, and shutdown.
 
 Build the Qt examples and automated suite with CMake 3.24+ and Qt 6 development
@@ -450,7 +450,10 @@ offscreen platform automatically. The local temporary toolchain is under
 `/tmp/cppui-tools/root/usr`; use that prefix for `CMAKE_PREFIX_PATH`, its
 `lib/x86_64-linux-gnu` for `LD_LIBRARY_PATH`, and its
 `lib/x86_64-linux-gnu/qt6/plugins` for `QT_PLUGIN_PATH`. LeakSanitizer execution
-requires an environment without ptrace tracing.
+requires an environment without ptrace tracing. Enable `CPPUI_VALGRIND_TESTS`
+in a separate non-sanitized build to run the regressions with Memcheck; use
+`ctest -L valgrind --output-on-failure`. All new regression and cookbook smoke
+targets must register through `cppui_add_test` so they receive leak checks too.
 
 Remove a task only after its acceptance checks pass. Keep CPPUI's README/REFERENCE, shared cookbook,
 examples, and tests current, and retain outstanding manual checks or intentional

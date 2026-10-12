@@ -7,7 +7,7 @@ set_target_properties(cppui_core_headers PROPERTIES
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
 )
-add_test(NAME core.headers COMMAND cppui_core_headers)
+cppui_add_test(core.headers cppui_core_headers)
 
 add_executable(cppui_core_lifetime core_lifetime.cpp)
 target_link_libraries(cppui_core_lifetime PRIVATE CPPUI::cppui)
@@ -16,13 +16,13 @@ set_target_properties(cppui_core_lifetime PROPERTIES
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS NO
 )
-add_test(NAME core.lifetime COMMAND cppui_core_lifetime)
+cppui_add_test(core.lifetime cppui_core_lifetime)
 
 add_executable(cppui_core_scopes core_scopes.cpp)
 target_link_libraries(cppui_core_scopes PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_scopes PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
-add_test(NAME core.scopes COMMAND cppui_core_scopes)
+cppui_add_test(core.scopes cppui_core_scopes)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
@@ -41,17 +41,11 @@ endforeach()
 if(CPPUI_BUILD_QT)
     add_executable(cppui_qt_virtual_nodes qt_virtual_nodes.cpp qt_support.cpp)
     target_link_libraries(cppui_qt_virtual_nodes PRIVATE CPPUI::qt)
-    add_test(NAME qt.virtual_nodes COMMAND cppui_qt_virtual_nodes)
-    set_tests_properties(qt.virtual_nodes PROPERTIES
-        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
-        TIMEOUT 20
-    )
+    cppui_add_test(qt.virtual_nodes cppui_qt_virtual_nodes)
 
     add_executable(cppui_qt_widgets qt_widgets.cpp)
     target_link_libraries(cppui_qt_widgets PRIVATE CPPUI::qt)
-    add_test(NAME qt.widgets COMMAND cppui_qt_widgets)
-    set_tests_properties(qt.widgets PROPERTIES
-        ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 20)
+    cppui_add_test(qt.widgets cppui_qt_widgets)
 
     foreach(header application base button label layout window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")

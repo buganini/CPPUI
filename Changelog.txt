@@ -1,5 +1,13 @@
 2026-10-12
 
+- Add optional CPPUI_VALGRIND_TESTS and a shared cppui_add_test helper so every
+  regression and future cookbook smoke target also gets a Memcheck run. Fail on
+  memory errors and definite, indirect or possible leaks; report reachable
+  allocations. Document a separate non-sanitized build and extra tool options.
+  Validation: Valgrind 3.26.0, GCC 15.2.0 and Qt 6.10.2 on Linux/offscreen;
+  RelWithDebInfo CTest passes 10/10 (five normal and five Valgrind tests), with
+  no project suppression file. Tool/debuginfo packages were extracted in /tmp.
+
 - Use movable RAII construction iterators so break, return, continue and thrown
   exceptions restore construction scopes. Release incomplete declarations and
   preserve the old tree when a top-level builder fails; remove a failed derived

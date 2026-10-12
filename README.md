@@ -37,6 +37,23 @@ requirements. CTest sets the offscreen platform for the Qt test automatically.
 The interactive examples are `cppui_minimal_qt` and `cppui_virtual_nodes` in the
 build directory. Their original CMake projects under `example/` remain usable.
 
+# Memory checks
+
+With Valgrind installed, use a separate build without sanitizer flags:
+
+```sh
+cmake -S . -B build-valgrind -DCPPUI_BUILD_QT=ON \
+  -DCPPUI_VALGRIND_TESTS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-valgrind
+ctest --test-dir build-valgrind -L valgrind --output-on-failure
+```
+
+Every automated regression also runs under Memcheck when enabled. Invalid memory
+accesses and definite, indirect, or possible leaks fail the test. Reachable
+process-global allocations are reported but do not fail it. Qt tests use the
+offscreen platform. No project suppression file is applied. To pass additional
+platform-specific arguments, use `CPPUI_VALGRIND_OPTIONS` (a CMake list).
+
 # View Hierarchy Construction
 ```c++
 #include <iostream>
