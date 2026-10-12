@@ -14,6 +14,7 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline bool atScrollEnd(CPPUI::Node &) { return false; }
     inline bool selectCombo(CPPUI::Node &, int) { return false; }
     inline bool selectRadio(CPPUI::Node &) { return false; }
     inline bool editTextField(CPPUI::Node &, const std::string &, bool) { return false; }

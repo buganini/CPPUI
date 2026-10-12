@@ -9,7 +9,7 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
 Button, Label, HBox, VBox, Canvas, Checkbox and Tab share their recipe implementations across both backends.
-Qt also enables shared Grid, Stack, RadioButton, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
+Qt also enables shared Grid, Stack, Scroll, RadioButton, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment on both backends. Qt also has a
 partial TextField recipe with separate string model/draft bindings; dynamic
@@ -28,7 +28,9 @@ prerequisites. The [Qt plan](../doc/pyside6-progress.md) and
 [LVGL plan](../doc/lvgl-progress.md) track remaining components and public APIs.
 The backend `presentation.hpp` files provide private
 cookbook layout/appearance adapters until those public APIs are decided; these
-helpers do not imply general Scroll, style, or fluent layout-option support in CPPUI.
+helpers do not imply general style or fluent layout-option support in CPPUI.
+Qt scrolling uses public Scroll, including the gallery sidebar; LVGL scrolling
+remains a cookbook helper until its axis-policy mapping is chosen.
 The Qt gallery menus now use public MenuBar/Menu/MenuAction components.
 Qt and LVGL page links use public clickable Label. LVGL dividers use public
 Divider; spacer adapters use public `CPPUI::Spacer()` on both backends. The gallery smoke test

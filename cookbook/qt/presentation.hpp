@@ -56,23 +56,11 @@ namespace Cookbook { namespace Presentation {
         }
     }
 
-    class ScrollNode: public CPPUI::Qt::BaseWidget, public Item {
+    class ScrollNode: public CPPUI::Qt::Scroll, public Item {
         public:
         ScrollNode(): Item(1) {}
-        void update(CPPUI::Qt::BaseWidget * prev) override {
-            if(prev && prev->ui) ui = prev->ui;
-            else {
-                auto scroll = new QScrollArea();
-                scroll->setWidgetResizable(true);
-                scroll->setHorizontalScrollBarPolicy(::Qt::ScrollBarAlwaysOff);
-                ui = scroll;
-            }
-        }
-        void addChild(int, CPPUI::Node * child) override {
-            static_cast<QScrollArea *>(ui)->setWidget(static_cast<QWidget *>(child->outer()));
-        }
-        void removeChild(int, CPPUI::Node *) override { static_cast<QScrollArea *>(ui)->takeWidget(); }
         void postSync() override {
+            CPPUI::Qt::Scroll::postSync();
             auto scroll = static_cast<QScrollArea *>(ui);
             if(scroll->widget()) {
                 scroll->widget()->layout()->setSizeConstraint(QLayout::SetMinAndMaxSize);

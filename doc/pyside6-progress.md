@@ -131,7 +131,6 @@ the separate deferred section records intentional omissions.
 | TextField/Checkbox | String TextField model/draft bindings; boolean Checkbox and membership adapters | Define conversion helpers and observable collections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Index/string bindings, distinct labels/values, editable text and dynamic items | Define raw non-string value adapters and deferred event payloads | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
-| Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
@@ -305,16 +304,12 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
 
 ### Phase 5 — Containers and window interactions (P1)
 
-- [ ] Add Scroll with axis policies, safe single-content replacement, retained
-  user position, start/end offsets, and `END`. Preserve the reference distinction
-  between positive zero and negative-zero end anchoring in the C++ API.
 - [ ] Verify native desktop file dialogs and window-manager interaction on a
   real display, including Modal focus/flags; offscreen widget-dialog tests do
   not establish platform parity.
 
-Acceptance: port [scroll_sync.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/scroll_sync.py); test content
-growth/shrinkage and a resize during reconciliation. Native dialog interaction,
-Modal focus and window-manager state require manual display checks.
+Acceptance: native dialog interaction, Modal focus and window-manager state
+require manual display checks.
 
 ### Phase 6 — Native interop (P2)
 
@@ -379,7 +374,6 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
 | --- | --- | --- |
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, binding change callbacks and text conversion/events |
-| `scroll.py` | 5 | Scroll offsets and retained native state |
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |
@@ -411,8 +405,7 @@ Continue independent implementation while these contracts remain undecided.
   when a parent deletes the QObject, and application teardown is safe. Remounting
   after external deletion and borrowing interop widgets need an agreed ownership
   contract; do not claim arbitrary external native mutation is supported.
-- **Specialized APIs:** scroll end anchoring (including negative zero),
-  table/tree value and identity types, and external widget
+- **Specialized APIs:** table/tree value and identity types and external widget
   ownership need their own C++ contracts before the corresponding phase. Their
   context and acceptance cases are recorded in phases 5–8 above.
 
@@ -425,7 +418,7 @@ Continue independent implementation while these contracts remain undecided.
   Canvas must work without them. These remain documented parity gaps.
 - Dynamic Qt keyword parameters: expose typed options and native interop;
   enumerate supported options rather than promising arbitrary Python attributes.
-- Existing PUI gaps, such as unused tab position and inconsistently applied
+- Existing PUI gaps, such as unused tab position, Scroll offset capture and inconsistently applied
   layout/style options: document observed behavior and any intentional CPPUI
   improvement. Tab position and empty/multi-child label behavior are described
   in the [component reference](../REFERENCE.md#tabs). Do not infer complete

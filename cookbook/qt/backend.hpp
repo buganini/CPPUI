@@ -19,6 +19,7 @@
 #include "cppui/qt/textfield.hpp"
 #include "cppui/qt/radiobutton.hpp"
 #include "cppui/qt/combobox.hpp"
+#include "cppui/qt/scroll.hpp"
 #include "cppui/qt/timeline.hpp"
 #include <QTimer>
 #include "../recipes.hpp"
@@ -34,6 +35,12 @@ namespace Cookbook { namespace Backend {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    inline bool atScrollEnd(CPPUI::Node & node) {
+        auto scroll = dynamic_cast<CPPUI::Qt::Scroll *>(&node);
+        if(!scroll || !scroll->ui) return false;
+        auto bar = static_cast<QScrollArea *>(scroll->ui)->verticalScrollBar();
+        return bar->maximum() > 0 && bar->value() == bar->maximum();
     }
     inline bool selectCombo(CPPUI::Node & node, int index) {
         auto combo = dynamic_cast<CPPUI::Qt::ComboBox *>(&node);

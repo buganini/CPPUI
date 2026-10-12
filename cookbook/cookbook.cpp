@@ -126,6 +126,14 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "scroll" && recipes()[i].render) {
+                        require(Backend::atScrollEnd(*find(gallery, "scroller")), "scroll recipe did not start at the end");
+                        require(click(gallery, "+"), "scroll recipe is missing +");
+                        Backend::settle();
+                        require(Backend::atScrollEnd(*find(gallery, "scroller")), "scroll recipe lost end anchoring after growth");
+                        require(click(gallery, "-"), "scroll recipe is missing -");
+                        Backend::settle();
+                    }
                     if(std::string(recipes()[i].key) == "combobox" && recipes()[i].render) {
                         require(Backend::selectCombo(*find(gallery, "combo-readonly"), 1), "readonly combo missing");
                         Backend::settle(); require(hasText(gallery, "Text: Value 2"), "combo label/value binding failed");

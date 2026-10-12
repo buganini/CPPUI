@@ -8,6 +8,7 @@
 |[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|—|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|—|
 |[Divider](#divider)|QFrame|flex-axis separator|—|
+|[Scroll](#scroll)|QScrollArea|—|—|
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
@@ -201,6 +202,34 @@ and setter failures report to stderr; a throwing setter leaves the draft visible
 Adapters own validation/conversion policy; generic numeric conversion and change
 subscriptions remain undecided. The shared recipe currently demonstrates string
 models and is marked partial for PUI's dynamic numeric conversion/event payloads.
+
+## Scroll
+
+Include `cppui/qt/scroll.hpp`. `Scroll(vertical, horizontal)` takes
+`Optional<bool>` policies: absent means as-needed, true always-on, false off.
+Defaults are vertical as-needed and horizontal off. Policies are applied only
+when the native widget is created, following PUI. Scroll displays its first
+physical child, with a layout used to group content. Additional children stay
+hidden and native-parent-owned; content replacement detaches surviving widgets
+before QScrollArea can delete them. Like PUI's add/remove contract, removing the
+first child does not automatically promote an unchanged ignored sibling. Use one
+layout child and change its contents, or give replacement content a new identity.
+
+`.scrollX(position)` / `.scrollY(position)` use finite doubles: positive zero
+means start anchoring, and negative zero (`CPPUI::ScrollEnd`, also
+`Qt::Scroll::END`) means end anchoring. Range changes restore the saved distance
+from that edge. As in the pinned reference, pre-sync captures the current native
+position, and a reused Scroll retains its previous anchor/offset rather than
+reapplying newly declared offsets. Therefore these methods set anchor/offset
+metadata, not an unconditional immediate jump; pre-sync can overwrite their
+numeric offset before child layout, including on initial construction.
+
+User movement within ten pixels of an edge switches anchoring; if both edges
+are that close, the current anchor is kept. Resize handling reads the mounted
+native child, never a retired/new declaration. Axes declared disabled in the
+current declaration fit the child's size hint, even though scrollbar visibility
+policies are initial-only. All observers belong to the native scroll widget and
+end with it.
 
 ## ComboBox
 

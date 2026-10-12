@@ -37,7 +37,7 @@ additionally has private presentation helpers for weights, styles and scrolling.
 | Spacer/Divider/Grid/Stack | Public expanding Spacer and flex-axis Divider | Define fixed spacing and shared placement/style API, then add Grid/Stack and verify spans/overlap (3) |
 | ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
 | Bound controls | Boolean Checkbox with Binding/State; cookbook membership adapters | Text edit/commit and typed value selection contracts remain (4) |
-| Scroll/Tabs/Tab/Splitter | Public Tabs/Tab; cookbook-only scrolling | Define scroll offsets and splitter capability (5) |
+| Scroll/Tabs/Tab/Splitter | Public Tabs/Tab; cookbook-only scrolling | Map independent axis policies/anchoring and decide splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
 | Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
@@ -139,8 +139,9 @@ native reuse, valid model retention after invalid input, and resource reclamatio
 
 ### Phase 5 — Containers and window interactions
 
-- [ ] Add public Scroll after the shared start/end anchor contract is settled;
-  preserve position through resize, growth, shrinkage and content replacement.
+- [ ] Add public Scroll after mapping PUI's independent axis policies onto
+  LVGL's single scrollbar visibility mode; use the shared signed-zero end anchor
+  and preserve position through resize, growth, shrinkage and content replacement.
 - [ ] Decide a custom resizable-pane implementation versus unsupported Splitter.
   Do not duplicate the shared splitter recipe to hide capability differences.
 - [ ] Agree modal overlays, dialogs, menus/toolbars and Window capabilities
@@ -178,6 +179,12 @@ cases where the agreed LVGL capability supports them. Matplotlib/Shapely bridges
 remain deferred with the Qt plan.
 
 ## Decisions awaiting direction
+
+- **Scroll policy mapping:** Qt now follows PUI's Optional<bool> axis policies,
+  signed-zero end anchor and pre-sync position capture. LVGL has one scrollbar
+  visibility mode for an object; choose how independently forced/off/as-needed
+  axes map before claiming the same Scroll contract. The offset representation
+  itself no longer needs a shared C++ decision.
 
 - **Shared contracts:** use the shared Binding/State adapters and follow the Qt plan's
   default reset for omitted properties, stderr render errors, Optional dialog

@@ -1,6 +1,6 @@
 2026-10-12
     * Core: make C++11 headers safe across translation units; fix reconciliation, construction rollback, reactive dependencies and node ownership
-    * Qt: port bound controls, layouts, text/images, tabs, canvas, modal/dialogs, MDI, menus/toolbars and timers with Binding<T>/Optional<T>
+    * Qt: port bound controls, layouts/scrolling, text/images, tabs, canvas, modal/dialogs, MDI, menus/toolbars and timers with Binding<T>/Optional<T>
     * Qt: add explicit native lifetime tracking, Window properties/state and editor commit before callbacks and queued application quit/redraw with one-time view setup
     * LVGL: add Canvas drawing, Spacer, Divider, clickable Label, wrapping Text, bound Checkbox and virtual Tabs/Tab; reclaim standalone views and safely handle native deletion and callback replacement
     * Cookbook: share recipe sources across Qt and LVGL, preserve PUI's layout and support separate LVGL 9.6 SDL2/X11 builds
