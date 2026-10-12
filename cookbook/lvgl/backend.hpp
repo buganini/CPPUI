@@ -14,6 +14,7 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline bool selectRadio(CPPUI::Node &) { return false; }
     inline bool editTextField(CPPUI::Node &, const std::string &, bool) { return false; }
     inline void mount(CPPUI::Application & app) { app.redraw(); }
     inline void configureRecipes(std::vector<Recipe> & pages) {

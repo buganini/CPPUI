@@ -126,6 +126,12 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "radiobutton" && recipes()[i].render) {
+                        require(Backend::selectRadio(*find(gallery, "radio-a")), "radio A missing");
+                        Backend::settle(); require(hasText(gallery, "Model value: a"), "radio A did not commit");
+                        require(Backend::selectRadio(*find(gallery, "radio-b")), "radio B missing");
+                        Backend::settle(); require(hasText(gallery, "Model value: b"), "radio B did not commit");
+                    }
                     if(std::string(recipes()[i].key) == "textfield" && recipes()[i].render) {
                         require(click(gallery, "Clear"), "textfield recipe is missing Clear");
                         Backend::settle();

@@ -17,6 +17,7 @@
 #include "cppui/qt/mdi.hpp"
 #include "cppui/qt/image.hpp"
 #include "cppui/qt/textfield.hpp"
+#include "cppui/qt/radiobutton.hpp"
 #include "cppui/qt/timeline.hpp"
 #include <QTimer>
 #include "../recipes.hpp"
@@ -32,6 +33,12 @@ namespace Cookbook { namespace Backend {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    inline bool selectRadio(CPPUI::Node & node) {
+        auto widget = dynamic_cast<CPPUI::Qt::BaseWidget *>(&node);
+        auto radio = widget ? qobject_cast<QRadioButton *>(widget->ui) : nullptr;
+        if(!radio) return false;
+        radio->click(); return true;
     }
     inline bool editTextField(CPPUI::Node & node, const std::string & text, bool commit) {
         auto editor = dynamic_cast<CPPUI::Qt::TextField *>(&node);

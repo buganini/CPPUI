@@ -9,7 +9,7 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
 Button, Label, HBox, VBox, Canvas, Checkbox and Tab share their recipe implementations across both backends.
-Qt also enables shared Grid, Stack, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
+Qt also enables shared Grid, Stack, RadioButton, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment on both backends. Qt also has a
 partial TextField recipe with separate string model/draft bindings; dynamic

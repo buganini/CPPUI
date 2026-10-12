@@ -12,6 +12,7 @@
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
 |[TextField](#textfield)|QLineEdit|—|—|
+|[RadioButton](#radiobutton)|QRadioButton|—|—|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|—|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
@@ -199,6 +200,20 @@ and setter failures report to stderr; a throwing setter leaves the draft visible
 Adapters own validation/conversion policy; generic numeric conversion and change
 subscriptions remain undecided. The shared recipe currently demonstrates string
 models and is marked partial for PUI's dynamic numeric conversion/event payloads.
+
+## RadioButton
+
+Include `cppui/qt/radiobutton.hpp` for `RadioButton(text, value, model)`, accepting
+`Binding<T>` or `State<T>&`. Values are copied and must support equality.
+Construction reads the model for dependency tracking; native clicks commit the
+current value before the current `.click()` callback. Programmatic updates do
+not write the model. Native ownership and callback replacement follow Checkbox.
+
+PUI uses Qt's automatic exclusivity among radio buttons sharing a physical
+parent. Separate layouts form separate groups. This also preserves a reference
+quirk: setting the model to an unmatched value after selection can leave the
+last radio checked, because Qt refuses to uncheck its only selected button.
+An initially unmatched model has no selected radio.
 
 ## Checkbox
 

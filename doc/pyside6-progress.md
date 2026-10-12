@@ -128,7 +128,7 @@ the separate deferred section records intentional omissions.
 | HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
 | Label/Button | Owned text, selectable labels and current click callbacks | Styles reset on reuse; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
 | Grid/Stack/Spacer | Native Grid spans, StackAll overlap and box Spacer | Define shared fluent placement and layout/style options | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
-| TextField/Checkbox/RadioButton | String TextField model/draft bindings; boolean Checkbox and membership adapters | Define conversion helpers, observable collections and typed RadioButton selections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
+| TextField/Checkbox | String TextField model/draft bindings; boolean Checkbox and membership adapters | Define conversion helpers and observable collections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
 | Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
@@ -292,9 +292,8 @@ and child order. Port the window-state and size-policy cases from
 
 - [ ] Extend TextField beyond string bindings after shared conversion helpers
   are chosen; typed input/change event objects remain explicitly deferred.
-- [ ] Add RadioButton value selection, including rebinding and current click
-  callbacks. Decide automatic collection observation and value-based Checkbox
-  overloads; explicit boolean membership Binding adapters are supported.
+- [ ] Decide automatic collection observation and value-based Checkbox overloads;
+  explicit boolean membership Binding adapters are supported.
 - [ ] Add ComboBox/ComboBoxItem with editable text, index/text models, distinct
   labels/values, empty contents, invalid selection, and dynamic item updates.
 - [ ] Apply shared dimension/stretch modifiers to Image once the common layout
@@ -380,7 +379,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
 | --- | --- | --- |
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, binding change callbacks and text conversion/events |
-| `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
+| `combobox.py` | 2, 4 | Selection binding and dynamic items |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
