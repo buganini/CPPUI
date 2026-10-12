@@ -1,4 +1,5 @@
 2026-10-13
+    * wx: add scrolling/end anchors, notebook pages, menus, Optional dialogs and timers with native lifetime/memory regressions
     * wx: add Grid/Divider, plain/HTML text, progress and bound checkbox/radio/text/combo controls with native regression coverage
     * wx: restore native ownership, queued redraw/quit, styled layouts/Spacer and selectable labels; add C++11/native lifetime and memory checks
     * Qt: port typed Table/Tree adapters with explicit data ownership, shared cookbook recipes and lifetime regressions

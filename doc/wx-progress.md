@@ -28,17 +28,14 @@ and Matplotlib are Python-only and will not be ported.
 
 ## Implementation sequence
 
-3. **Containers and application interactions.** Port Scroll offsets/end anchors,
-   virtual Tabs/Tab, menus, window icon/state and standard dialogs. Use established
-   CPPUI signatures; document unsupported capabilities rather than faking them.
-4. **Timers and graphics.** Port Timeline, image resources/Image and Canvas
+1. **Graphics.** Port image resources/Image and Canvas
    primitives, text and image drawing. Verify replacement/removal and queued paint
    safety. Leave pointer/key/drop payloads to the shared deferred event contract.
-5. **Data views.** Port declarative and typed-adapter Table/Tree via wx Grid and
+2. **Data views.** Port declarative and typed-adapter Table/Tree via wx Grid and
    DataViewCtrl, following PUI's current implementations and the shared adapters.
    Validate edits, choice labels, model refresh, keyed selection/expansion and
    source ownership. Arbitrary mixed/custom values remain a shared API gap.
-6. **Shared cookbook and validation.** Add `cookbook/wx` startup/manifest/build
+3. **Shared cookbook and validation.** Add `cookbook/wx` startup/manifest/build
    files, enable each implemented shared recipe, preserve the sidebar/result
    layout, and add build instructions. Expand native regression/smoke coverage,
    sanitizers and Valgrind after each component. Check real-display interaction

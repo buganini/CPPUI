@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_WINDOW
 #define CPPUI_WX_WINDOW
 #include "base.hpp"
+#include "menu.hpp"
 namespace CPPUI { namespace Wx {
     class Window: public SingleChild {
         OptionalText caption, iconPath;
@@ -12,6 +13,14 @@ namespace CPPUI { namespace Wx {
         Window & size(int w, int h) { dimensions = wxSize(w, h); return *this; }
         Window & maximize(bool value = true) { if(ui) static_cast<wxFrame *>(ui)->Maximize(value); else initialMaximized = value; return *this; }
         Window & fullscreen(bool value = true) { if(ui) static_cast<wxFrame *>(ui)->ShowFullScreen(value); else initialFullscreen = value; return *this; }
+        void addChild(int index, ::CPPUI::Node * child) override {
+            if(auto bar=dynamic_cast<MenuBar *>(child)){static_cast<wxFrame *>(ui)->SetMenuBar(bar->ui);return;}
+            SingleChild::addChild(index,child);
+        }
+        void removeChild(int index, ::CPPUI::Node * child) override {
+            if(dynamic_cast<MenuBar *>(child)){if(ui)static_cast<wxFrame *>(ui)->SetMenuBar(nullptr);return;}
+            SingleChild::removeChild(index,child);
+        }
         void updateWidget(Widget * previous) override {
             auto prev = static_cast<Window *>(previous);
             if(prev) { ui = prev->ui; panel = prev->panel; }

@@ -8,7 +8,7 @@
 |[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|wxGridBagSizer / —|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
-|[Scroll](#scroll)|QScrollArea|scrollable object (basic)|—|
+|[Scroll](#scroll)|QScrollArea|scrollable object (basic)|wxScrolledWindow|
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText / read-only wxTextCtrl|
 |[Button](#button)|QPushButton|button|wxButton|
@@ -20,15 +20,15 @@
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / unsupported|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
 |[Image](#image)|QLabel / QPixmap|—|—|
-|[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|—|
+|[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)|
 |[MDI](#mdi)|QMdiArea / QMdiSubWindow|—|—|
-|[TimelineView](#timelineview)|QTimer / virtual node|—|—|
+|[TimelineView](#timelineview)|QTimer / virtual node|—|wxTimer / virtual node|
 |[ImageResource](#canvas)|QImage|—|—|
-|[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|—|
+|[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|wxNotebook / wxPanel|
 |[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|—|
 |[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|—|
 |[Modal](#modal)|QDialog|—|—|
-|[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|—|
+|[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|wxFileDialog / wxMessageDialog / wxTextEntryDialog|
 
 Node IDs and Qt button text copy their string arguments, including temporary
 `std::string` values. An empty explicit ID is distinct from no ID; `id(nullptr)`
@@ -179,7 +179,8 @@ nearest compiled Montserrat bitmap font, approximating points at 96 dpi; it
 cannot produce arbitrary exact sizes. `fontFamily` accepts empty/default or
 `"Montserrat"`; other families throw. Font data remains owned by the configured
 LVGL runtime. Runtime font loading and display-density mapping remain pending.
-The wx backend currently stores these modifiers without applying them.
+wx applies layout sizing, padding/weight and font/color modifiers, resetting
+omitted values to native defaults. `.qt()` is specific to the Qt backend.
 
 ## Application
 
@@ -868,3 +869,12 @@ one, matching PUI/wx rather than promising a busy indicator.
 Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
 HTML subset; its selection behavior is native. Markdown explicitly throws because
 PUI/wx also marks it unsupported; a renderer/dependency decision is still needed.
+
+wx Scroll retains manual offsets and end-relative anchors when content changes.
+Tabs uses wxNotebook with a physical wxPanel per Tab, following PUI/wx; each
+page accepts one widget or layout. Keyed reordering retains the selected page.
+Menus support nested menus, separators and replaceable callbacks. TimelineView
+uses a native wxTimer and stops it on removal. Standard dialogs use the shared
+Optional results; accepted empty text is distinct from cancellation. Prompt and
+paths convert explicitly through UTF-8. Scripted tests cover these interactions,
+including modal acceptance/cancellation and callbacks that remove themselves.

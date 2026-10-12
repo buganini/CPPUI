@@ -36,13 +36,13 @@ public:
         native->input = [object, edit, draft, input]() mutable {
             if(!object->window) return;
             edit->editing = true;
-            const auto text = static_cast<wxTextCtrl *>(object->window)->GetValue().ToStdString();
+            const auto text = static_cast<wxTextCtrl *>(object->window)->GetValue().ToStdString(wxConvUTF8);
             if(draft) draft->set(text); if(input) input();
         };
         native->finish = [object, edit, binding, draft, change]() mutable {
             if(!object->window || !edit->editing || edit->committing) return;
             edit->editing = false; edit->committing = true;
-            const auto text = static_cast<wxTextCtrl *>(object->window)->GetValue().ToStdString();
+            const auto text = static_cast<wxTextCtrl *>(object->window)->GetValue().ToStdString(wxConvUTF8);
             try {
                 binding.set(text); if(draft) draft->set(text);
                 auto committed = binding.get();

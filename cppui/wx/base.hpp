@@ -80,7 +80,11 @@ namespace CPPUI { namespace Wx {
         wxSizer * sizer = nullptr;
         wxFont font;
         wxColour foreground, background;
-        std::function<void()> command, input, finish;
+        std::function<void()> command, input, finish, resize;
+        void sized(wxSizeEvent & event) {
+            auto keep=shared_from_this();auto callback=resize;event.Skip();
+            if(callback)try{callback();}catch(...){reportException("resize");}
+        }
         void typed(wxCommandEvent &) {
             auto keep = shared_from_this(); auto callback = input;
             if(callback) try { callback(); } catch(...) { reportException("input"); }
@@ -159,7 +163,7 @@ namespace CPPUI { namespace Wx {
     };
     inline void Native::destroyed(wxWindowDestroyEvent & event) {
         if(event.GetEventObject() == owner) {
-            window = owner = nullptr; sizer = nullptr; command = {}; input = {}; finish = {};
+            window = owner = nullptr; sizer = nullptr; command = {}; input = {}; finish = {}; resize = {};
             if(node) node->invalidateNative();
         }
         event.Skip();
@@ -202,7 +206,7 @@ namespace CPPUI { namespace Wx {
         void releaseRetiredRefs() override { ui = nullptr; Node::releaseRetiredRefs(); }
         void destroy(bool) override {
             if(!native) return;
-            native->node = nullptr; native->command = {}; native->input = {}; native->finish = {};
+            native->node = nullptr; native->command = {}; native->input = {}; native->finish = {}; native->resize = {};
             auto object = native;
             ui = nullptr;
             // Controls can be removed by their own command handler. Defer native

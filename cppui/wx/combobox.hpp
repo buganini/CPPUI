@@ -55,7 +55,7 @@ public:
         if(editable) native->input = [state, object, index, text, callback]() mutable {
             if(state->applying || !object->window) return;
             auto combo = static_cast<wxComboBox *>(object->window);
-            auto value = combo->GetValue().ToStdString(); int i = combo->GetSelection();
+            auto value = combo->GetValue().ToStdString(wxConvUTF8); int i = combo->GetSelection();
             if(i >= 0 && i < static_cast<int>(state->items.size()) && value == state->items[i].text) return;
             state->key.reset(); state->text = value;
             if(index) index->set(-1); if(text) text->set(value); if(callback) callback();
