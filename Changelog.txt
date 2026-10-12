@@ -1,5 +1,12 @@
 2026-10-12
 
+- Expand the alignment plan to port the cookbook as shared C++ recipes, selected
+  by separate Qt/LVGL CMake projects and backend startup code. Inventory every
+  reference recipe and its prerequisites. Record unresolved binding, option,
+  event, retained-view input, and specialized API contracts; continue independent
+  tasks while those decisions await direction.
+  Validation: reference recipe inventory and documentation diff checked.
+
 - Add optional CPPUI::qt and CPPUI_BUILD_QT targets for both Qt examples and an
   offscreen virtual-node regression. Make Qt headers repeat-includable and their
   factory functions safe to link from multiple source files.

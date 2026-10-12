@@ -16,7 +16,8 @@ the reference backend; implementation remains C++. Preserve the existing
 declarative construction style and C++11 compatibility for the shared core. The
 Qt backend follows Qt 6's imported-target compiler requirements. Shared-core
 changes must account for the existing wx and LVGL implementations; expanding
-those backends is outside scope.
+those backends is outside scope except for the shared cookbook build and
+compatibility fixes needed to run its existing components.
 
 Use reference implementation and regression tests together to establish each
 contract. Where documentation, implementation, and tests disagree, record the
@@ -138,6 +139,10 @@ The [virtual-node example](https://github.com/buganini/CPPUI/blob/848cf9a97c45ae
 scenario but runs an interactive event loop and contains no assertions.
 
 ## Implementation sequence
+
+Work through the available tasks below. When a public API or lifecycle decision
+is unresolved, record its context under design decisions and continue with an
+independent task; do not choose that contract implicitly.
 
 Complete phases 0–3 before adding most widgets. Phases 4–8 build on those
 contracts; implement each component as a separate reviewable change with its
@@ -336,6 +341,65 @@ Acceptance: port [table_ragged.py](https://github.com/buganini/PUI/blob/009e9b9c
 [tree_sync.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/tree_sync.py), including immediate choice commit,
 unknown-value placeholders, inert missing cells, and expansion after redraw.
 Exercise both external adapters and declarative nodes using cookbook examples.
+
+## Shared C++ cookbook
+
+Port the [PUI cookbook](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook)
+as shared C++ recipe sources. Qt is CPPUI's native backend corresponding to the
+PySide6 reference; Python and C++ cannot share the same recipe source directly.
+Use separate Qt and LVGL `CMakeLists.txt` files to select backend headers,
+capabilities, startup, and toolkit dependencies. Keep toolkit includes and
+conditional compilation out of the recipes. Each executable links one backend.
+Do not duplicate recipes or silently present unsupported behavior as a full port.
+
+- [ ] Add the shared recipe registry and backend-specific build/entry points.
+  Build Qt and LVGL from the same recipe files; list unsupported pages explicitly.
+  Add a noninteractive smoke mode that builds every supported recipe.
+- [ ] Port each recipe alongside its components, preserving the state changes
+  and interactions. The table below tracks only outstanding recipe work.
+- [ ] Port the gallery navigation, source/result presentation, and menu examples
+  once their Label events, Scroll, Html, and action dependencies are available.
+  Python source inspection/highlighting needs a C++ equivalent; do not add a
+  runtime Python dependency just for the source pane.
+
+| Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
+| --- | --- | --- |
+| `button.py`, `label.py` | 1, 3 | A/B state updates, literal label text, styles, spacer |
+| `hbox.py`, `vbox.py`, `grid.py`, `stack.py` | 3 | Ordering, weights, spacer/divider, grid placement, overlap |
+| `binding.py`, `textfield.py` | 2, 4 | External get/set, changed callback, edit/commit and conversion |
+| `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
+| `progressbar.py`, `text.py`, `image.py` | 3, 4 | Reactive progress, three text formats, sized image asset |
+| `scroll.py`, `tab.py`, `splitter.py` | 5 | Scroll offsets, tab switching, resize and retained native state |
+| `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
+| `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
+| `canvas.py`, `drop.py` | 7 | Drawing, event payloads and accepted/rejected drops |
+| `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |
+| `drawshapely.py`, `matplotlib.py` | Deferred integrations | Requires an agreed C++ bridge/dependency strategy |
+
+## Decisions awaiting direction
+
+Continue independent implementation while these contracts remain undecided.
+
+- **Bindings:** `State<T>` already tracks reads and notifies subscribed views.
+  The missing public contract is a writable control model: borrowing `State<T>`
+  directly versus a reusable `Binding<T>` adapter with getter/setter conversion.
+  Choose conversion failure reporting, subscription ownership, and State
+  copy/move semantics together. This blocks bound editors, collection controls,
+  and the binding/textfield cookbook pages; ordinary state-driven labels/buttons
+  do not require that choice.
+- **Common options and events:** choose the C++ spelling and omitted/reset-value
+  representation for layout/style/Qt options and event payloads. Preserve the
+  existing no-argument click overload. Styles, weighted layouts, grid, native
+  input events, and their complete cookbook pages depend on this API. Owned
+  strings, lifecycle repairs, and existing plain component examples can proceed.
+- **Parameterized retained views:** reconciliation retains matching View objects
+  and discards their replacement declarations. Constructor forwarding alone
+  cannot deliver changed inputs to the retained view. Decide an explicit input
+  update contract before claiming parameterized-view parity.
+- **Specialized APIs:** scroll end anchoring (including negative zero), dialog
+  cancellation/results, table/tree value and identity types, and external widget
+  ownership need their own C++ contracts before the corresponding phase. Their
+  context and acceptance cases are recorded in phases 5–8 above.
 
 ## Explicitly deferred or requiring a C++ design decision
 
