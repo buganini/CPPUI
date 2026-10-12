@@ -1,5 +1,9 @@
 2026-10-12
 
+- Use a shallow clone of the v9.6.0 tag into lvgl-9.6.0 in both READMEs,
+  replacing the full clone and separate checkout. Check command consistency
+  and whitespace; runtime validation remains a separate task.
+
 - Use lvgl-9.6.0 as the checkout directory and CMake source path in both
   READMEs and the LVGL plan. Check that clone, checkout and configure commands
   consistently use the requested directory name.

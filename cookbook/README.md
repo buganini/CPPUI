@@ -41,8 +41,7 @@ Validation against this target version is pending in the [LVGL plan](../doc/lvgl
 Dependencies are supplied explicitly; the build does not fetch them.
 
 ```sh
-git clone https://github.com/lvgl/lvgl.git lvgl-9.6.0
-git -C lvgl-9.6.0 checkout v9.6.0
+git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0
 cmake -S cookbook/lvgl -B build-cookbook-lvgl \
   -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build-cookbook-lvgl
