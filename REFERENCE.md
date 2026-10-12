@@ -18,12 +18,12 @@
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
 |[ProgressBar](#progressbar)|QProgressBar|—|wxGauge|
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / unsupported|
-|[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
-|[Image](#image)|QLabel / QPixmap|—|—|
+|[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|wxPanel / wxGraphicsContext|
+|[Image](#image)|QLabel / QPixmap|—|wxStaticBitmap / wxImage|
 |[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)|
 |[MDI](#mdi)|QMdiArea / QMdiSubWindow|—|—|
 |[TimelineView](#timelineview)|QTimer / virtual node|—|wxTimer / virtual node|
-|[ImageResource](#canvas)|QImage|—|—|
+|[ImageResource](#canvas)|QImage|—|wxImage|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|wxNotebook / wxPanel|
 |[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|—|
 |[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|—|
@@ -878,3 +878,11 @@ uses a native wxTimer and stops it on removal. Standard dialogs use the shared
 Optional results; accepted empty text is distinct from cancellation. Prompt and
 paths convert explicitly through UTF-8. Scripted tests cover these interactions,
 including modal acceptance/cancellation and callbacks that remove themselves.
+
+wx Canvas provides the shared primitive, text, image, opacity and repeating-paint
+API through wxGraphicsContext. Paint callback replacement/removal invalidates
+repeat requests; exceptions are reported at the native event boundary. Coordinates
+use native logical pixels and `pixel_density` reports content scale. ImageResource
+supports loading, bounded cropping and aspect-preserving scaling; invalid sources
+produce a null resource. Image widgets cache source path/mtime and scale to declared
+dimensions. Native pixel checks and paint self-removal pass sanitizers and Valgrind.
