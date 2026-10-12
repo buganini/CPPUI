@@ -17,7 +17,7 @@ namespace Cookbook {
                 canvas.drawCubicBezier({10, 80}, {25, 20}, {75, 80}, {90, 20}, 0x00FFFF, 2);
                 canvas.drawRect(10, 10, 20, 20, 0xCCCCCC, 0xFF00FF, 2);
                 return false;
-            });
+            }).id("example-canvas");
             Presentation::Spacer();
         }
     }

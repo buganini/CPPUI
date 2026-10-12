@@ -5,6 +5,7 @@
 namespace Cookbook { namespace Presentation {
     struct Item {
         int weight;
+        bool fixedSize = false;
         explicit Item(int weight = 0): weight(weight) {}
         virtual ~Item() = default;
     };
@@ -34,6 +35,7 @@ namespace Cookbook { namespace Presentation {
                 auto item = dynamic_cast<Item *>(child);
                 int grow = item ? item->weight : 0;
                 lv_obj_set_flex_grow(object, grow);
+                if(item && item->fixedSize) continue;
                 if(horizontal) lv_obj_set_height(object, dynamic_cast<BoxNode *>(child) ? lv_pct(100) : LV_SIZE_CONTENT);
                 else lv_obj_set_width(object, lv_pct(100));
             }
@@ -157,5 +159,20 @@ namespace Cookbook { namespace Presentation {
         }
     };
     inline StyledButtonNode & StyledButton() { return *new StyledButtonNode(); }
+
+    class CanvasNode: public CPPUI::LVGL::Canvas, public Item {
+        public:
+        explicit CanvasNode(Painter painter): CPPUI::LVGL::Canvas(std::move(painter)) { fixedSize = true; }
+        void update(CPPUI::LVGL::Node * prev) override {
+            CPPUI::LVGL::Canvas::update(prev);
+            auto object = static_cast<lv_obj_t *>(ui);
+            lv_obj_set_size(object, 100, 100);
+            lv_obj_set_style_bg_color(object, lv_color_hex(0x555555), 0);
+            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, 0);
+        }
+    };
+    inline CanvasNode & Canvas(CPPUI::LVGL::Canvas::Painter painter) {
+        return *new CanvasNode(std::move(painter));
+    }
 }}
 #endif

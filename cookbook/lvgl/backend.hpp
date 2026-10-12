@@ -5,20 +5,30 @@
 #include "cppui/lvgl/layout.hpp"
 #include "cppui/lvgl/label.hpp"
 #include "cppui/lvgl/button.hpp"
+#include "cppui/lvgl/canvas.hpp"
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
-    inline void configureRecipes(std::vector<Recipe> &) {}
+    inline void configureRecipes(std::vector<Recipe> & pages) {
+        for(auto & page: pages) if(std::string(page.key) == "canvas") {
+            page.render = canvas;
+            page.remaining = "";
+        }
+    }
 #if CPPUI_LVGL_SDL2
     const char * const name = "LVGL SDL2";
 #else
     const char * const name = "LVGL X11";
 #endif
     inline void settle() {
-        // Let the selected native driver supply time and process its events.
-        lv_delay_ms(20);
+        // Finish layout before waiting so size/style changes cannot postpone the frame.
+        lv_obj_update_layout(lv_screen_active());
+        const auto start = lv_tick_get();
+        // X11 ticks in 5 ms increments; elapsed wall time can exceed LVGL time.
+        lv_delay_ms(LV_DEF_REFR_PERIOD + 1);
+        while(lv_tick_elaps(start) <= LV_DEF_REFR_PERIOD) lv_delay_ms(1);
         lv_timer_handler();
     }
     inline bool clickButton(CPPUI::Node & node, const std::string & text) {
@@ -78,6 +88,18 @@ namespace Cookbook { namespace Backend {
             throw std::runtime_error("cookbook page list must scroll and include every recipe");
         }
         if(find(root, "code")) throw std::runtime_error("source code pane must be omitted");
+        if(auto canvas = find(root, "example-canvas")) {
+            auto object = static_cast<lv_obj_t *>(canvas->outer());
+            auto buffer = lv_canvas_get_draw_buf(object);
+            if(lv_obj_get_width(object) != 100 || lv_obj_get_height(object) != 100
+               || !buffer || buffer->header.w != 100 || buffer->header.h != 100) {
+                throw std::runtime_error("canvas recipe must paint at its fixed 100x100 size");
+            }
+            const auto pixel = lv_canvas_get_px(object, 15, 15);
+            if(pixel.alpha != 255 || pixel.red != 0xcc || pixel.green != 0xcc || pixel.blue != 0xcc) {
+                throw std::runtime_error("canvas recipe did not paint its rectangle");
+            }
+        }
     }
 }}
 #endif

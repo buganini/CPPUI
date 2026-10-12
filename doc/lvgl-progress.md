@@ -24,9 +24,9 @@ and current contracts; completed behavior and verification belong in
 
 ## Current basis and remaining acceptance
 
-Public LVGL headers currently cover Application, Window, HBox/VBox, Label and
-Button. The shared cookbook additionally has private presentation helpers for
-spacing, weights, styles, scrolling, dividers and page links. Those helpers do
+Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
+Button and basic Canvas drawing. The shared cookbook additionally has private
+presentation helpers for spacing, weights, styles, scrolling, dividers and page links. Those helpers do
 not establish public component support.
 
 | Area | Current basis | Remaining acceptance / phase |
@@ -41,7 +41,7 @@ not establish public component support.
 | Bound controls | Missing | Text edits and boolean/value selections commit once, rebind correctly and avoid feedback loops (4) |
 | Scroll/Tabs/Tab/Splitter | Cookbook-only scrolling; other public components missing | Preserve offsets/selection across content changes; apply PUI's virtual Tab mapping and decide splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
-| Timeline/Canvas/resources | Missing | Cancel timers and paint work on removal; use current callbacks; handle resource ownership, coordinates and input correctly (6) |
+| Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
 | Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
 | Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand native dispatch/virtual/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (1–6) |
 
@@ -181,10 +181,14 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
 
 - [ ] Add cancellable TimelineView timers after scheduling and retained-view
   input contracts are agreed; no redraw after removal/shutdown.
-- [ ] Map the Qt CanvasPainter/ImageResource drawing API onto LVGL, with explicit
-  native resource ownership and capability gaps. Test transforms, source
-  regions, density and queued paint during removal. Pointer events remain tied
-  to the explicitly deferred shared input contract.
+- [ ] Add LVGL ImageResource/loadImage/drawImage after agreeing source ownership,
+  decoder availability and file access; test crop/scale, source regions, opacity,
+  replacement and missing images.
+- [ ] Define Canvas font loading and display-density scaling. Basic text scales
+  the object's bitmap font to a pixel line height; Qt uses font points. Verify
+  device rendering/antialiasing expectations before promising equivalent output.
+  Pointer events remain tied to the explicitly deferred shared input contract;
+  public size/background modifiers follow the shared layout/style contract.
 - [ ] Define Table/Tree/adapters against the shared value/identity contracts;
   investigate custom tree behavior separately from LVGL's table widget.
 - [ ] Define native-object/display embedding and external owner deletion before

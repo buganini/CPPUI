@@ -11,7 +11,8 @@
 |[Button](#button)|QPushButton|button|wxButton|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|—|—|
-|[Canvas / ImageResource](#canvas)|QWidget / QPainter / QImage|—|—|
+|[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
+|[ImageResource](#canvas)|QImage|—|—|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|—|—|
 |[Modal](#modal)|QDialog|—|—|
 |[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|—|
@@ -233,7 +234,8 @@ page/title pairs. The cookbook follows that convention.
 
 ## Canvas
 
-Include `cppui/qt/canvas.hpp`. A painter receives a `CanvasPainter&` valid for
+Include `cppui/qt/canvas.hpp` or `cppui/lvgl/canvas.hpp` for the selected backend.
+A painter receives a `CanvasPainter&` valid for
 that invocation. It supplies drawing operations and the current logical `width`,
 `height`, and `pixel_density`; it is separate from the borrowed node declaration.
 
@@ -251,8 +253,8 @@ and capture its value in the painter so the surrounding view tracks the read.
 Redraw reuses the native widget and replaces its painter. Active callbacks are
 copied before invocation, and queued painting becomes inert on removal.
 
-Drawing includes `drawText`, `drawLine`, `drawPolyline`, `drawCubicBezier`,
-`drawPolygon`, `drawRect`, `drawEllipse` and `drawImage`. Coordinates are logical
+Both backends include `drawText`, `drawLine`, `drawPolyline`, `drawCubicBezier`,
+`drawPolygon`, `drawRect` and `drawEllipse`; Qt also has `drawImage`. Coordinates are logical
 pixels; each operation restores painter state. Colors accept `0xRRGGBB`, color
 names or strings such as `"#ff0000"`. Use `{}` for an absent color: shape fill and
 stroke are disabled when absent; text keeps the current pen. Rectangles take
@@ -264,7 +266,24 @@ anchor = Anchor::LEFT_TOP)` uses canvas dimensions for negative w/h and keeps
 the native font for negative size. `Anchor` has the reference's nine positions;
 it selects the text rotation pivot while x/y is the unrotated text origin.
 
-`ImageResource::load(path)` owns its image data. `crop(x, y, width, height)` and
+The LVGL 9.6 backend uses an owned ARGB8888 buffer at native pixel resolution
+(`pixel_density == 1`). Native size changes replace the buffer and request a
+frame; the initial size is 100x100 until a parent/layout overrides it. Its
+software renderer approximates curves and ellipses with line segments and uses
+even/odd polygon fills, including concave and self-intersecting polygons.
+Pixel-identical Qt antialiasing and stroke joins are not guaranteed.
+
+LVGL text uses the object's native bitmap font, scaled to `size` pixels of line
+height (Qt uses font points); negative size preserves the native font. Text
+rotation and all nine anchors are supported. Colors accept RGB integers,
+`#RGB`, `#RRGGBB`, `#AARRGGBB`, the 16 basic HTML color names, `grey`, `magenta`,
+`cyan`, `orange`, and `transparent`, case-insensitively. Other names throw
+`std::invalid_argument`; use RGB values for portable colors outside that set.
+Font loading, LVGL ImageResource/drawImage, and display-density scaling remain
+pending. Basic drawing needs LVGL Canvas and its software drawing support,
+without ThorVG or another vector graphics dependency.
+
+On Qt, `ImageResource::load(path)` owns its image data. `crop(x, y, width, height)` and
 `scale(width, height, keepAspectRatio = true, quality = 0)` return new values;
 zero quality means fast scaling, other values smooth. Missing files produce an
 empty resource (`isNull()`); drawing it does nothing. Image resources can also
@@ -274,9 +293,17 @@ src_width = -1, src_height = -1, opacity = 1)` infers negative dimensions from
 the source region. The resource exposes `width()` and `height()`.
 
 Paint contexts must not escape their callback. As with native Qt paint handlers,
-callbacks must not throw through Qt, run nested event loops, or synchronously
+Qt callbacks must not throw through Qt, run nested event loops, or synchronously
 destroy the painting widget or its ancestors. Framework redraw/removal may run
 during the callback; normal deferred native deletion occurs after it returns.
+LVGL records each callback's drawing commands before native rendering. Redraw
+or removal during the callback discards that obsolete frame safely. Exceptions
+are caught at the LVGL timer boundary and reported to stderr; a throwing user
+callback leaves the previous frame intact. False/void pauses the paint timer;
+true requests a frame on the next LVGL refresh interval. Teardown cancels the
+timer and releases captures, and the native object retains its buffer until
+deletion, including when an ancestor owns that deletion. Run callbacks on the
+UI thread without nested event loops or display/runtime teardown.
 Input/drag/drop events, shared layout/style modifiers and Shapely integration
 remain pending. The cookbook uses a private size/background adapter meanwhile.
 

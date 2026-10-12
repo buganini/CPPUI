@@ -8,9 +8,13 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Button, Label, HBox, and VBox share their implementations across both backends.
-Qt also enables shared ProgressBar, Text, Splitter, Canvas, Tab, Modal and Dialog recipes through
+Button, Label, HBox, VBox, and Canvas share their recipe implementations across both backends.
+Qt also enables shared ProgressBar, Text, Splitter, Tab, Modal and Dialog recipes through
 its source manifest.
+The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
+Its basic painter uses LVGL software drawing and scaled bitmap text; image
+resources and input callbacks remain pending. See the [Canvas reference](../REFERENCE.md#canvas)
+for font/color differences and callback ownership.
 The gallery preserves the reference's scrollable **Example** sidebar and expanding
 **Result** pane. Qt also keeps the nested example menus and initially maximized
 window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
@@ -110,6 +114,10 @@ All three CMake projects support
 scenarios with Memcheck. Use a separate build for ASan/UBSan and Valgrind.
 Both LVGL projects also test declaration retirement, native reuse, removal, and
 application teardown through `lvgl.lifetime` and its optional Valgrind variant.
+`lvgl.canvas` verifies rendered primitives, clipping, text rotation/size/anchors,
+resize, repeat painting, callback replacement, exceptions, self-removal, native
+deletion, parent deletion and capture cleanup. Its Valgrind variant checks the
+same cases. The cookbook smoke test also checks Canvas size and rendered pixels.
 
 Interactive SDL2/X11 input and real-display layout/focus checks remain outstanding.
 Interactive close also needs an application-stop contract: LVGL's SDL2/X11

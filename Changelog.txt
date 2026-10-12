@@ -1,5 +1,25 @@
 2026-10-12
 
+- Add LVGL Canvas basic drawing: lines, polylines, cubic Beziers, even/odd
+  polygons, rectangles, ellipses and bitmap text with size, rotation and anchors.
+  Reuse owned native-resolution ARGB buffers, repaint on resize, and adapt void
+  or bool callbacks to one-shot/repeated frames. Record commands before drawing
+  so callback redraw/removal can discard obsolete work; report callback errors
+  to stderr and preserve the previous frame. Cancel timers, release captures
+  and retain buffers through native parent deletion without retaining nodes.
+  Enable the shared Canvas cookbook page in SDL2/X11, preserving its fixed gray
+  drawing area and rotation button. Document color/font differences and remaining
+  image, density and input work; remove completed items from the LVGL plan.
+  Validation: SDL2 and X11 normal/Valgrind suites pass 6/6 each; their
+  ASan/UBSan/leak suites pass 3/3 each. Cover primitive pixels, clipping, concave/
+  crossing polygons, text transforms, native resize, repeat/stop, callback
+  replacement, callback redraw/removal, external native deletion and parent/
+  application teardown. C++11 and independent Canvas header builds pass.
+  Inspect the primitive render and shared cookbook layout; cookbook smoke
+  checks rendered Canvas pixels and its fixed dimensions, waiting on LVGL's
+  clock so X11 tick granularity cannot skip the frame. The shared Qt cookbook
+  sanitizer smoke test also passes; rebuild the workspace X11 executable.
+
 - Add Qt Modal with Binding<T>/State adapters, bound visibility and typed
   off-values, native-close synchronization, retained title/size and initial/
   imperative window flags. Keep modals outside ordinary container slots and

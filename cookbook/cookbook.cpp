@@ -116,6 +116,7 @@ namespace Cookbook {
                         require(static_cast<int>(gallery.model.rotation) == previousAngle + 15
                             && hasText(gallery, "Rotate: " + std::to_string(previousAngle + 15)),
                             "canvas rotation did not update");
+                        Backend::checkLayout(gallery);
                     }
                     if(std::string(recipes()[i].key) == "tab" && recipes()[i].render) {
                         auto tabs = find(gallery, "example-tabs");
