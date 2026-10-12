@@ -1,6 +1,7 @@
 #include "backend.hpp"
 #include "recipes.hpp"
 #include <iostream>
+#include <cstdlib>
 #include <stdexcept>
 
 namespace Cookbook {
@@ -95,6 +96,7 @@ namespace Cookbook {
             // Revisit pages to exercise replacement and retired callback cleanup.
             for(int cycle = 0; cycle < 3; ++cycle) {
                 for(std::size_t i = 0; i < recipes().size(); ++i) {
+                    if(std::getenv("CPPUI_COOKBOOK_TRACE")) std::cerr << "Checking " << recipes()[i].key << " (cycle " << cycle + 1 << ")\n";
                     auto link = find(gallery, std::string("page:") + recipes()[i].key);
                     require(link && Backend::selectPage(*link), "sidebar page link is missing");
                     Backend::settle();

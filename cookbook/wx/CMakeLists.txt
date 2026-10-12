@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.24)
+project(CPPUICookbookWx LANGUAGES CXX)
+find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base html)
+include(${wxWidgets_USE_FILE})
+include(../common.cmake)
+cppui_add_cookbook(cppui_cookbook_wx wx)
+target_link_libraries(cppui_cookbook_wx PRIVATE ${wxWidgets_LIBRARIES})

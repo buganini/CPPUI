@@ -52,15 +52,16 @@ wx applications can link `CPPUI::wx`. On Linux, install `libwxgtk3.2-dev`;
 on macOS, `brew install wxwidgets`. Native wx tests need an X/Wayland display
 (or `xvfb-run` on Linux); they are not headless widgets. Add
 `-DCPPUI_VALGRIND_TESTS=ON` in a non-sanitized build for memory checks. Linux wx
-checks suppress only font/theme/image-loader/TLS allocations reproduced by the plain native
-`wx.native_baseline` test; declaration and wx object allocations remain checked.
+checks suppress only toolkit font/theme/image-loader/TLS and standalone-radio
+metadata allocations reproduced by the plain native `wx.native_baseline` test;
+declaration and wx object allocations remain checked.
 Remaining work is tracked in the [wx plan](doc/wx-progress.md).
 
 # Shared cookbook
 
-The cookbook builds the same C++ recipe and gallery sources with separate Qt
+The cookbook builds the same C++ recipe and gallery sources with separate Qt, wxWidgets
 and LVGL CMake projects. It keeps PUI's scrollable Example sidebar and Result
-pane, plus the Qt menus; only the source-code pane is omitted. `--list` reports
+pane, plus the Qt/wx menus; only the source-code pane is omitted. `--list` reports
 available recipes and prerequisites for pages that are not ported yet.
 
 With Qt 6 development packages installed:
@@ -74,6 +75,20 @@ ctest --test-dir build-cookbook-qt --output-on-failure
 
 The root `CPPUI_BUILD_QT=ON` build also includes `cppui_cookbook_qt`. Qt smoke tests
 use the offscreen platform automatically.
+
+With wxWidgets 3.2 development packages installed (`libwxgtk3.2-dev` on
+Debian/Ubuntu, or `brew install wxwidgets` on macOS):
+
+```sh
+cmake -S cookbook/wx -B build-cookbook-wx -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-wx
+./build-cookbook-wx/cppui_cookbook_wx
+ctest --test-dir build-cookbook-wx --output-on-failure
+```
+
+The root `CPPUI_BUILD_WX=ON` build also includes `cppui_cookbook_wx`.
+Interactive and smoke runs require a display; on Linux CI, use
+`xvfb-run -a ctest --test-dir build-cookbook-wx --output-on-failure`.
 
 For LVGL, first obtain the [v9.6.0 sources](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39):
 
@@ -104,7 +119,7 @@ ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
 
 Both LVGL executables use their selected driver for interactive runs and
 `--smoke`. CTest runs SDL2 with its dummy video/software-renderer drivers;
-X11 tests use `DISPLAY` (a desktop X server or Xvfb). All three cookbook projects
+X11 tests use `DISPLAY` (a desktop X server or Xvfb). All four cookbook projects
 accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. The X11 build applies
 a display-thread cleanup fix to a build copy of the v9.6.0 driver. See the
 [cookbook documentation](cookbook/README.md) for capabilities and validation limits.

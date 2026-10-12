@@ -1,11 +1,6 @@
 2026-10-13
-    * Tests: isolate wxRB_SINGLE GTK weak-notification reports in the plain native baseline
-    * wx: port declarative and typed-adapter Table/Tree with native editors, keyed state and ownership regressions
-    * Cookbook: remove the copied PUI license file; retain the image source attribution
-    * wx: add image resources/widgets and Canvas drawing with pixel, callback lifetime and memory checks
-    * wx: add scrolling/end anchors, notebook pages, menus, Optional dialogs and timers with native lifetime/memory regressions
-    * wx: add Grid/Divider, plain/HTML text, progress and bound checkbox/radio/text/combo controls with native regression coverage
-    * wx: restore native ownership, queued redraw/quit, styled layouts/Spacer and selectable labels; add C++11/native lifetime and memory checks
+    * wx: port native runtime/ownership, layouts, controls, scrolling, tabs, menus, dialogs, timers, Canvas/images and typed Table/Tree adapters
+    * Cookbook/Tests: add shared wx gallery and build instructions, native/sanitizer/Valgrind coverage; remove the copied PUI license file
     * Qt: port typed Table/Tree adapters with explicit data ownership, shared cookbook recipes and lifetime regressions
     * Core/Qt/LVGL: port PUI layout/style/qt modifiers and redraw resets; replace cookbook Presentation wrappers with public APIs
     * Qt: add declarative Table with typed bindings/choices and Tree with retained selection/expansion, shared recipes and lifetime regressions

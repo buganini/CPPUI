@@ -5,7 +5,7 @@
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
-|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|wxGridBagSizer / —|
+|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|wxGridBagSizer / overlay wxSizer|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
 |[Scroll](#scroll)|QScrollArea|scrollable object (basic)|wxScrolledWindow|
@@ -873,7 +873,7 @@ PUI/wx also marks it unsupported; a renderer/dependency decision is still needed
 wx Scroll retains manual offsets and end-relative anchors when content changes.
 Tabs uses wxNotebook with a physical wxPanel per Tab, following PUI/wx; each
 page accepts one widget or layout. Keyed reordering retains the selected page.
-Menus support nested menus, separators and replaceable callbacks. TimelineView
+Menus support nested menus and replaceable callbacks. TimelineView
 uses a native wxTimer and stops it on removal. Standard dialogs use the shared
 Optional results; accepted empty text is distinct from cancellation. Prompt and
 paths convert explicitly through UTF-8. Scripted tests cover these interactions,
@@ -896,3 +896,7 @@ Adapter reads happen during construction so failed getters preserve the previous
 native UI. Callback snapshots allow synchronous removal; models release adapter
 ownership on teardown. Native edits, retained state and adapter lifetimes pass
 sanitizers and Valgrind on wxGTK.
+
+wx Stack overlays padded children at the same size and raises later children
+above earlier ones. It uses native controls and their native background/hit-test
+behavior; it does not rasterize the child hierarchy.

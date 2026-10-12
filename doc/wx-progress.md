@@ -26,14 +26,6 @@ and layout options, and preserve explicit zero. Dialog cancellation uses shared
 Optional results. Portable input payloads remain explicitly deferred. Shapely
 and Matplotlib are Python-only and will not be ported.
 
-## Implementation sequence
-
-1. **Shared cookbook and validation.** Add `cookbook/wx` startup/manifest/build
-   files, enable each implemented shared recipe, preserve the sidebar/result
-   layout, and add build instructions. Expand native regression/smoke coverage,
-   sanitizers and Valgrind after each component. Check real-display interaction
-   and platform-specific behavior separately from scripted native events.
-
 ## Validation environment
 
 Native runtime/reconciliation tests run against wxGTK 3.2.9, including owned and
@@ -63,9 +55,25 @@ separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 - **Markdown:** PUI/wx marks it unsupported; choose a Markdown renderer/dependency
   before enabling the complete shared Text cookbook page. Plain Text and Html
   already have native APIs.
-- PUI/wx has no Stack, Splitter, Modal, MDI or toolbar implementation. Inspect
-  wxWidgets capabilities and existing CPPUI contracts when reaching these;
-  record specific unresolved behavior here instead of assuming all are blocked.
+- **Splitter:** PUI/wx has no implementation. The shared API accepts arbitrary
+  panes; [wxSplitterWindow](https://github.com/wxWidgets/wxWidgets/blob/v3.2.9/include/wx/generic/splitter.h)
+  owns two. Choose nested splitters versus a custom multipane sash container,
+  including how existing sash positions survive keyed insertion/reordering.
+- **Modal:** the shared API opens application-modal content without blocking
+  reconciliation. wxGTK's [ShowWindowModal fallback](https://github.com/wxWidgets/wxWidgets/blob/v3.2.9/src/common/dlgcmn.cpp#L450)
+  calls blocking ShowModal. Choose a modeless dialog plus an application-wide
+  modal coordinator, including nested dialogs and windows belonging to a borrowed
+  host runtime, before promising the Qt contract. Standard blocking dialogs are
+  already separate APIs.
+- **MDI:** wxMDIChildFrame requires a wxMDIParentFrame; CPPUI Window currently owns
+  wxFrame and MdiArea is an ordinary child in the shared API. Choose whether the
+  Window factory selects an MDI native class or the area uses a custom embedded
+  subwindow implementation. PUI/wx supplies no mapping to follow.
+- **Toolbars:** wxFrame has one managed toolbar slot and native toolbar controls
+  require wxControl, while the shared Qt API allows multiple bars and arbitrary
+  widgets/layout content. Choose a wxAUI dependency versus a custom toolbar host
+  before defining equivalent docking, content ownership and ordering. PUI/wx
+  has no toolbar contract; menus are independent and supported.
 - Only Linux/GTK is available for immediate native verification. Windows/macOS,
   physical input, window-manager behavior and mixed-density displays require
   their corresponding environments; do not label them tested from compilation.

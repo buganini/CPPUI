@@ -1,17 +1,17 @@
 # Shared C++ cookbook
 
-The main cookbook UI in `cookbook.cpp` and the recipes are shared by Qt and LVGL. Each backend
+The main cookbook UI in `cookbook.cpp` and the recipes are shared by Qt, wxWidgets and LVGL. Each backend
 has its own include selection, startup, and native smoke-test helpers. Separate
-`qt`, `lvgl_sdl2`, and `lvgl_x11` CMake projects select the toolkit and window
+`qt`, `wx`, `lvgl_sdl2`, and `lvgl_x11` CMake projects select the toolkit and window
 driver. Recipe code has no backend conditionals. Each executable links exactly
 one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Button, Label, HBox, VBox, Canvas, Checkbox and Tab share their recipe implementations across both backends.
+Button, Label, HBox, VBox, Canvas, Checkbox and Tab share their recipe implementations across all three backends.
 Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, RadioButton, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
-Binding adapters and explicit State assignment on both backends. Qt also has a
+Binding adapters and explicit State assignment across backends. Qt also has a
 partial TextField recipe with separate string model/draft bindings; dynamic
 numeric conversion and typed input/change payloads remain pending.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
@@ -19,7 +19,7 @@ Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources and input callbacks remain pending. See the [Canvas reference](../REFERENCE.md#canvas)
 for font/color differences and callback ownership.
 The gallery preserves the reference's scrollable **Example** sidebar and expanding
-**Result** pane. Qt also keeps the nested example menus and initially maximized
+**Result** pane. Qt and wx also keep the nested example menus and initially maximized
 window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
 divider, and styled examples follow the reference on the available pages.
 
@@ -27,11 +27,11 @@ Unsupported pages show “Not Supported for this backend”; `--list` gives thei
 prerequisites. The Python-only DrawShapely and Matplotlib recipes are excluded
 (won't-do).
 The [Qt plan](../doc/pyside6-progress.md) and
-[LVGL plan](../doc/lvgl-progress.md) track remaining components and public APIs.
+[LVGL plan](../doc/lvgl-progress.md) and [wx plan](../doc/wx-progress.md) track remaining components and public APIs.
 Recipes use public CPPUI components and PUI's `.layout(...)` / `.style(...)`
 modifiers for sizes, padding, weights, colors and fonts. There is no separate
 cookbook component namespace. Backend helpers handle startup, optional menus
-and native test access. Qt and LVGL sidebars use public Scroll; LVGL's basic
+and native test access. Qt, wx and LVGL sidebars use public Scroll; LVGL's basic
 Scroll does not yet implement the complete axis/offset contract of the Scroll
 recipe. See the [modifier reference](../REFERENCE.md#pui-modifiers) for the typed
 `.qt(...)` options and LVGL's compiled-font approximation.
@@ -49,6 +49,32 @@ ctest --test-dir build-cookbook-qt --output-on-failure
 
 The repository's root `CPPUI_BUILD_QT=ON` build also includes this executable and
 its smoke test. CTest selects Qt's offscreen platform automatically.
+
+## wxWidgets
+
+Requires wxWidgets 3.2 development files including core, base and HTML libraries.
+Install `libwxgtk3.2-dev` on Debian/Ubuntu or `brew install wxwidgets` on macOS.
+Run these commands from the repository root:
+
+```sh
+cmake -S cookbook/wx -B build-cookbook-wx -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-wx
+./build-cookbook-wx/cppui_cookbook_wx
+ctest --test-dir build-cookbook-wx --output-on-failure
+```
+
+The root `CPPUI_BUILD_WX=ON` build includes the same executable and smoke test.
+Native wx controls require a display. Linux CI can use
+`xvfb-run -a ctest --test-dir build-cookbook-wx --output-on-failure`.
+`--list` reports the enabled recipes; `--smoke` navigates and tests them.
+Add `-DCPPUI_VALGRIND_TESTS=ON` to a non-sanitized build for memory checks.
+The wx gallery memory test allows 300 seconds for three full navigation cycles.
+
+wx shares the controls, Grid, Stack, Scroll, Canvas, Image, Tab, Timeline, Dialog,
+Table/Tree and adapter recipes. The Text page needs a Markdown renderer;
+plain/HTML APIs are available separately. MDI, nonblocking Modal and multipane
+Splitter need native integration decisions. See the [wx plan](../doc/wx-progress.md).
+Reference: [PUI/wx at 2e4f0eb](https://github.com/buganini/PUI/tree/2e4f0eb82996e271bb3f4bc1f7511ea8b4c966bd/PUI/wx).
 
 ## LVGL
 
@@ -114,8 +140,9 @@ used) and deinitializing LVGL.
 
 ## Tests and memory checks
 
+`CPPUI_COOKBOOK_TRACE=1` prints per-page smoke progress for diagnostics.
 `--smoke` clicks every sidebar page three times, checks the two-column geometry,
-scrollable list, Qt menus, native label contents, bound controls, text editing,
+scrollable list, Qt/wx menus, native label contents, bound controls, text editing,
 scroll anchoring, and A/B, progress and Canvas rotation buttons where supported.
 The Table page checks string edits, integer choices and separate value/label mappings.
 Table(Adapter) checks an edit shared between two tables and rejection in read-only

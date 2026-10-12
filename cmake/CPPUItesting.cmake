@@ -18,6 +18,11 @@ function(cppui_add_test name target)
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
         TIMEOUT 20)
     if(CPPUI_VALGRIND_TESTS)
+        set(memory_timeout 120)
+        if(name STREQUAL "cookbook.wx")
+            # Three complete native gallery cycles are slow under Memcheck.
+            set(memory_timeout 300)
+        endif()
         add_test(NAME "valgrind.${name}"
             COMMAND "${CPPUI_VALGRIND_EXECUTABLE}"
                 --tool=memcheck
@@ -35,6 +40,6 @@ function(cppui_add_test name target)
             # reports; use its interpreted path in memory checks (Valgrind FAQ 5.4).
             ENVIRONMENT_MODIFICATION "QT_ENABLE_REGEXP_JIT=set:0"
             LABELS valgrind
-            TIMEOUT 120)
+            TIMEOUT ${memory_timeout})
     endif()
 endfunction()
