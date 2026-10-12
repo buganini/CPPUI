@@ -10,6 +10,9 @@ example/*/minimal
 /build-valgrind/
 /build-cookbook-qt/
 /build-cookbook-lvgl/
+/build-cookbook-lvgl_sdl2/
+/build-cookbook-lvgl_x11/
+/lvgl-9.6.0/
 /cookbook/*/build/
 /cookbook/*/build-*/
 /example/*/build/

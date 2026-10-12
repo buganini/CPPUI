@@ -1,15 +1,16 @@
 #include "backend.hpp"
 #include "../recipes.hpp"
-#include <cstdint>
 #include <iostream>
+#if LV_USE_X11
+#include <X11/Xlib.h>
+#endif
 
 namespace {
     void shutdown() {
-#if LV_USE_SDL
-        // LVGL 9.3 deinit quits SDL before releasing its display's texture.
-        // Dispose native handles while SDL is live, then release both runtimes.
+        // Dispose native handles while their driver runtime is still live.
         while(auto input = lv_indev_get_next(nullptr)) lv_indev_delete(input);
         while(auto display = lv_display_get_next(nullptr)) lv_display_delete(display);
+#if LV_USE_SDL
         lv_sdl_quit();
 #endif
         lv_deinit();
@@ -17,30 +18,21 @@ namespace {
 }
 
 int main(int argc, char ** argv) {
-    bool smoke = false;
-    bool sdl = false;
     for(int i = 1; i < argc; ++i) {
         if(std::string(argv[i]) == "--list") return Cookbook::run(argc, argv);
-        if(std::string(argv[i]) == "--smoke") smoke = true;
-        if(std::string(argv[i]) == "--sdl") sdl = true;
     }
-#if !LV_USE_SDL
-    if(!smoke || sdl) {
-        std::cerr << "Use --smoke, or build with CPPUI_LVGL_SDL=ON for an interactive window.\n";
+#if LV_USE_X11
+    // LVGL v9.6.0 assumes XOpenDisplay succeeds inside its X11 driver.
+    auto connection = XOpenDisplay(nullptr);
+    if(!connection) {
+        std::cerr << "Cannot open the X11 display; set DISPLAY to an available X server\n";
         return 1;
     }
+    XCloseDisplay(connection);
 #endif
     lv_init();
-    if(smoke && !sdl) {
-        auto display = lv_display_create(800, 600);
-        static std::uint32_t buffer[800 * 60];
-        lv_display_set_buffers(display, buffer, nullptr, sizeof(buffer), LV_DISPLAY_RENDER_MODE_PARTIAL);
-        lv_display_set_flush_cb(display, [](lv_display_t * display, const lv_area_t *, std::uint8_t *) {
-            lv_display_flush_ready(display);
-        });
-    }
 #if LV_USE_SDL
-    else {
+    {
         auto display = lv_sdl_window_create(800, 600);
         if(!display || !lv_sdl_window_get_renderer(display)
            || !lv_sdl_mouse_create() || !lv_sdl_keyboard_create()) {
@@ -49,6 +41,14 @@ int main(int argc, char ** argv) {
             return 1;
         }
     }
+#elif LV_USE_X11
+    auto display = lv_x11_window_create("CPPUI Cookbook", 800, 600);
+    if(!display) {
+        std::cerr << "Failed to initialize the X11 display\n";
+        shutdown();
+        return 1;
+    }
+    lv_x11_inputs_create(display, nullptr);
 #endif
     int result = Cookbook::run(argc, argv);
     // The application must have released declarations and borrowed screen content.

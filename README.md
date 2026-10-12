@@ -58,32 +58,38 @@ ctest --test-dir build-cookbook-qt --output-on-failure
 The root `CPPUI_BUILD_QT=ON` build also includes `cppui_cookbook_qt`. Qt smoke tests
 use the offscreen platform automatically.
 
-For LVGL, use a [9.6.0 source checkout](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39).
-Validation against this target version is pending in the [LVGL plan](doc/lvgl-progress.md):
+For LVGL, first obtain the [v9.6.0 sources](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39):
 
 ```sh
 git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0
-cmake -S cookbook/lvgl -B build-cookbook-lvgl \
-  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl
-ctest --test-dir build-cookbook-lvgl --output-on-failure
-./build-cookbook-lvgl/cppui_cookbook_lvgl --smoke
 ```
 
-The default LVGL build uses a headless display. With SDL2 development packages
-installed, enable an interactive window:
+With SDL2 development packages installed, build and run the SDL2 cookbook:
 
 ```sh
-cmake -S cookbook/lvgl -B build-cookbook-lvgl -DCPPUI_LVGL_SDL=ON
-cmake --build build-cookbook-lvgl
-./build-cookbook-lvgl/cppui_cookbook_lvgl
-ctest --test-dir build-cookbook-lvgl --output-on-failure
+cmake -S cookbook/lvgl_sdl2 -B build-cookbook-lvgl_sdl2 \
+  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-lvgl_sdl2
+./build-cookbook-lvgl_sdl2/cppui_cookbook_lvgl_sdl2
+ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
 ```
 
-The second configure command reuses the SDK path from the first. SDL builds also
-test the SDL renderer with the dummy video driver (`--smoke --sdl`), including
-device teardown, without needing a desktop display. Both projects
-accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. See the
+With X11 development packages installed and an X display available, build and
+run the X11 cookbook:
+
+```sh
+cmake -S cookbook/lvgl_x11 -B build-cookbook-lvgl_x11 \
+  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-lvgl_x11
+./build-cookbook-lvgl_x11/cppui_cookbook_lvgl_x11
+ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
+```
+
+Both LVGL executables use their selected driver for interactive runs and
+`--smoke`. CTest runs SDL2 with its dummy video/software-renderer drivers;
+X11 tests use `DISPLAY` (a desktop X server or Xvfb). All three cookbook projects
+accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. The X11 build applies
+a display-thread cleanup fix to a build copy of the v9.6.0 driver. See the
 [cookbook documentation](cookbook/README.md) for capabilities and validation limits.
 Remaining implementation work is tracked in the [Qt plan](doc/pyside6-progress.md)
 and [LVGL plan](doc/lvgl-progress.md).

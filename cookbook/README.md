@@ -1,8 +1,9 @@
 # Shared C++ cookbook
 
 The main cookbook UI in `cookbook.cpp` and the recipes are shared by Qt and LVGL. Each backend
-has its own `CMakeLists.txt`, include selection, startup, and native smoke-test
-helpers. Recipe code has no backend conditionals. Each executable links exactly
+has its own include selection, startup, and native smoke-test helpers. Separate
+`qt`, `lvgl_sdl2`, and `lvgl_x11` CMake projects select the toolkit and window
+driver. Recipe code has no backend conditionals. Each executable links exactly
 one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
@@ -37,30 +38,60 @@ its smoke test. CTest selects Qt's offscreen platform automatically.
 ## LVGL
 
 Use an [LVGL 9.6.0 source checkout](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39).
-Validation against this target version is pending in the [LVGL plan](../doc/lvgl-progress.md).
 Dependencies are supplied explicitly; the build does not fetch them.
 
 ```sh
 git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0
-cmake -S cookbook/lvgl -B build-cookbook-lvgl \
-  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl
-ctest --test-dir build-cookbook-lvgl --output-on-failure
 ```
 
-This builds a headless software display for smoke testing. Add
-`-DCPPUI_LVGL_SDL=ON` with SDL2 development files installed for an interactive
-window, then run `cppui_cookbook_lvgl` without arguments. Ordinary `--smoke` stays
-headless. SDL builds additionally register `cookbook.lvgl_sdl`, which runs
-`--smoke --sdl` with SDL's dummy video and software-renderer drivers. This checks
-the SDL display, input-device creation, recipes and cleanup without a desktop;
-use the same flags without driver overrides to view the smoke run in a window.
-The configuration uses libc allocation so memory
-checkers can observe individual LVGL allocations. Application teardown preserves
+### SDL2
+
+Install SDL2 development packages, then run:
+
+```sh
+cmake -S cookbook/lvgl_sdl2 -B build-cookbook-lvgl_sdl2 \
+  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-lvgl_sdl2
+./build-cookbook-lvgl_sdl2/cppui_cookbook_lvgl_sdl2
+ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
+```
+
+CTest uses SDL's dummy video and software-renderer drivers. To watch the same
+smoke scenario in a window, run `cppui_cookbook_lvgl_sdl2 --smoke` from its build
+directory without those driver overrides.
+
+### X11
+
+Install X11 development packages and use an available X display:
+
+```sh
+cmake -S cookbook/lvgl_x11 -B build-cookbook-lvgl_x11 \
+  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-lvgl_x11
+./build-cookbook-lvgl_x11/cppui_cookbook_lvgl_x11
+ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
+```
+
+Both interactive and `--smoke` runs use `DISPLAY`. On CI, an Xvfb server can
+supply that display, for example `xvfb-run -a ctest --test-dir
+build-cookbook-lvgl_x11 --output-on-failure`.
+
+LVGL v9.6.0's X11 driver stops its tick thread only when the window manager
+closes the window. `x11-lifetime.cmake` builds a corrected copy that also joins
+the thread on programmatic display deletion and makes its stop flag atomic.
+The supplied LVGL checkout is unchanged; updating LVGL requires reviewing this
+version-specific fix.
+
+### Shared startup and cleanup
+
+`cookbook/lvgl/` holds the common LVGL implementation. Both executables always
+create their selected native display and input devices. The configuration uses
+libc allocation so memory checkers can observe individual LVGL allocations.
+Application teardown preserves
 the display-owned active screen and releases its CPPUI content before `lv_deinit`.
-The example assumes CPPUI owns the content of that screen. In SDL builds, startup
-owns the input devices and display; teardown releases those before quitting SDL
-and deinitializing LVGL, keeping SDL alive while display textures are released.
+The example assumes CPPUI owns the content of that screen. Startup owns the
+input devices and display; teardown releases those before quitting SDL (when
+used) and deinitializing LVGL.
 
 ## Tests and memory checks
 
@@ -69,14 +100,14 @@ scrollable list, Qt menus, native label contents, and A/B, progress and Canvas
 rotation buttons. It switches the Tab recipe's pages and accepts/cancels the
 Dialog recipe's prompt (including accepted empty text), then tears down the
 application. Sidebar native identity survives page changes.
-Both CMake projects support
+All three CMake projects support
 `-DCPPUI_VALGRIND_TESTS=ON`; `ctest -L valgrind --output-on-failure` runs the same
 scenarios with Memcheck. Use a separate build for ASan/UBSan and Valgrind.
-The LVGL project also tests declaration retirement, native reuse, removal, and
+Both LVGL projects also test declaration retirement, native reuse, removal, and
 application teardown through `lvgl.lifetime` and its optional Valgrind variant.
 
-Interactive SDL input and real-display layout/focus checks remain outstanding.
-Interactive close also needs an application-stop contract: LVGL's SDL handler
-can destroy the display or exit before CPPUI tears down declarations. The tested
-smoke path returns to startup for ordered cleanup; it does not validate native
+Interactive SDL2/X11 input and real-display layout/focus checks remain outstanding.
+Interactive close also needs an application-stop contract: LVGL's SDL2/X11
+handlers can destroy the display or exit before CPPUI tears down declarations.
+The tested smoke path returns to startup for ordered cleanup; it does not validate native
 window-close handling. See the [LVGL plan](../doc/lvgl-progress.md) for that decision.

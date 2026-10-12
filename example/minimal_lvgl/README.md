@@ -12,6 +12,6 @@ cmake .
 make
 ```
 
-For the shared C++ cookbook and headless/Valgrind tests against LVGL 9, see
+For the shared SDL2/X11 cookbook and Valgrind tests against LVGL 9, see
 [the cookbook build](../../cookbook/README.md). That build uses an explicit SDK
-path and was validated with LVGL 9.3.0; it does not require an in-tree clone.
+path for LVGL v9.6.0; it does not require an in-tree clone.

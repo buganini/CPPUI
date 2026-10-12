@@ -8,7 +8,7 @@ Plan prepared on 2026-10-12 against:
 - [PUI at 009e9b9c3fbd724f0b73c862f8213ddc4742405c](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c),
   for shared reactive behavior and [cookbook examples](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 - [LVGL 9.6.0 at 80ca777e37a2b176770726a02e07a6fb79ef0b39](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39),
-  for native objects, events, widgets, displays, and SDL integration.
+  for native objects, events, widgets, displays, and SDL2/X11 integration.
 
 The pinned PUI tree has no LVGL backend. This is a plan for CPPUI's existing
 `cppui/lvgl/` implementation, not a claim of direct Python/LVGL parity. Preserve
@@ -33,7 +33,7 @@ not establish public component support.
 | --- | --- | --- |
 | Core integration | Shared state/reconciliation, common retirement updates | Nested virtual views retain native order and state; direct view destruction and failed builds reclaim declarations (1) |
 | Native lifetime | Application owns declarations; Window borrows the active screen | Deletion notifications invalidate observers; active callbacks, parent deletion and screen replacement cannot access retired nodes (1) |
-| Application and SDL | Timer loop; headless and SDL startup/smoke teardown | Define stop/event ownership, then close gracefully before native display destruction; support host-driven pumping without POSIX-only assumptions (2) |
+| Application and native drivers | Timer loop; separate SDL2/X11 cookbook startup and smoke teardown | Define stop/event ownership, then close gracefully before native display destruction; support host-driven pumping without POSIX-only assumptions (2) |
 | HBox/VBox | Basic flex flow and child sizing | Common padding/dimensions/weights reset correctly, including zero; nested and virtual geometry remains stable (3) |
 | Label/Button | Owned text and current button callbacks | Public label clicks, event payloads and style reset follow common contracts; repeated callbacks/removal release captures (1, 3) |
 | Spacer/Divider/Grid/Stack | Cookbook-only spacer/divider; no public components | Define shared placement/style API, then verify orientation, spans, overlap, geometry and native reuse (3) |
@@ -43,7 +43,7 @@ not establish public component support.
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Missing | Cancel timers and paint work on removal; use current callbacks; handle resource ownership, coordinates and input correctly (6) |
 | Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
-| Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand native dispatch/virtual/input cases, real SDL interaction, multiple resolutions and target-device validation (1–6) |
+| Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand native dispatch/virtual/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (1–6) |
 
 ## Ownership contract
 
@@ -71,11 +71,6 @@ not establish public component support.
 
 ## Implementation sequence
 
-- [ ] Validate the current backend against LVGL 9.6.0: update source/header and
-  configuration integration as needed, then rerun headless/SDL lifecycle,
-  sanitizer and Valgrind checks. Earlier results in Changelog.txt used 9.3.0;
-  they do not establish 9.6.0 compatibility.
-
 ### Phase 1 — Existing backend lifetime and reconciliation
 
 Reference: [PUI virtual-node cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py),
@@ -98,10 +93,16 @@ Acceptance: stable native identity/order, current dispatch and exact declaration
 reclamation under allocation counts, ASan/UBSan/leak checks and Valgrind. Keep
 nested partial-sync recovery tied to the shared-core decision.
 
-### Phase 2 — Runtime, SDL and input
+### Phase 2 — Runtime, SDL2/X11 and input
 
 Reference: [LVGL SDL event loop](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_window.c),
-[keyboard driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_keyboard.c).
+[keyboard driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_keyboard.c),
+and [X11 driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/x11/lv_x11_display.c).
+
+The X11 cookbook builds a corrected copy of the v9.6.0 display driver to stop
+and join its tick thread during programmatic deletion, with an atomic stop flag.
+Review this version-specific workaround when updating LVGL. It does not resolve
+the application-stop and external-deletion contracts below.
 
 - [ ] After choosing the stop/host-loop contract, replace the unbounded POSIX
   sleep loop with an application loop that can stop and allow ordered teardown.
@@ -109,7 +110,7 @@ Reference: [LVGL SDL event loop](https://github.com/lvgl/lvgl/blob/80ca777e37a2b
 - [ ] Intercept/route native close before LVGL deletes the borrowed display or
   deinitializes itself. Test pending work, repeated quit and teardown from an
   active callback; verify the host's runtime survives borrowed use.
-- [ ] Specify focus-group and keyboard/encoder ownership. Exercise SDL pointer,
+- [ ] Specify focus-group and keyboard/encoder ownership. Exercise SDL2/X11 pointer,
   wheel and keyboard input through the native driver, including scrolling to
   clipped sidebar pages and focus after page changes.
 - [ ] Verify real-display rendering/input at multiple sizes and on an embedded
@@ -203,7 +204,7 @@ remain deferred with the Qt plan.
   recovery stay coordinated there. Inspect reference code/tests before raising
   any further decision; do not block independent work on those gaps.
 - **Runtime ownership and stop:** the existing Application loops forever while
-  LVGL's SDL driver may destroy displays and call `exit`. Choose host-owned versus
+  LVGL's SDL2/X11 drivers may destroy displays or call `exit`. Choose host-owned versus
   backend-owned pumping and native-event interception before implementing quit.
   Native resources must outlive declarations in both modes.
 - **Screen ownership:** active-screen content is currently exclusive. Choose
@@ -216,28 +217,33 @@ remain deferred with the Qt plan.
 
 ## Shared cookbook and verification
 
-Keep `cookbook/cookbook.cpp` and recipe sources shared. Select LVGL sources,
-headers and dependencies in `cookbook/lvgl/`; keep native APIs and conditional
+Keep `cookbook/cookbook.cpp` and recipe sources shared. Select SDL2 or X11 in
+`cookbook/lvgl_sdl2/` or `cookbook/lvgl_x11/`, with shared LVGL sources, headers
+and build logic in `cookbook/lvgl/`; keep native APIs and conditional
 compilation out of recipe files. Preserve the Example sidebar, scrolling list,
 Result pane and recipe layouts. Only the reference's source-code pane is omitted;
 any toolkit capability limitation must remain explicit in `--list` and docs.
 
-Headless C++11 build and tests:
+SDL2 C++11 build and tests (requires SDL2 development packages):
 
 ```sh
-cmake -S cookbook/lvgl -B build-cookbook-lvgl \
+cmake -S cookbook/lvgl_sdl2 -B build-cookbook-lvgl_sdl2 \
   -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl
-ctest --test-dir build-cookbook-lvgl --output-on-failure
+cmake --build build-cookbook-lvgl_sdl2
+ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
 ```
 
-Enable `CPPUI_LVGL_SDL=ON` with SDL2 development files to add SDL driver tests;
-run the executable without arguments for the interactive window. CTest uses
-dummy video/software rendering for `cookbook.lvgl_sdl`. Keep interactive close,
-physical input/focus and embedded-device checks pending until explicitly tested.
+For X11, substitute `lvgl_x11` for `lvgl_sdl2` in both source/build paths; install
+X11 development packages and provide `DISPLAY`. See the [cookbook instructions](../cookbook/README.md)
+for full commands and the shallow v9.6.0 checkout. Both executables use their
+selected native driver for `--smoke` and interactive runs. CTest uses dummy
+video/software rendering for `cookbook.lvgl_sdl2`; `cookbook.lvgl_x11` uses an
+X server, optionally Xvfb. Keep interactive close, physical input/focus and
+embedded-device checks pending until explicitly tested.
 
 Enable `CPPUI_VALGRIND_TESTS=ON` in a non-sanitized build and run
-`ctest --test-dir build-cookbook-lvgl -L valgrind --output-on-failure`. New cases
+`ctest --test-dir build-cookbook-lvgl_sdl2 -L valgrind --output-on-failure` (or use
+the X11 build directory). New cases
 must use `cppui_add_test` so memory checks cover them. Run ASan/UBSan/leak checks
 in a separate build with both the LVGL C library and CPPUI C++ code instrumented.
 Keep per-allocation libc tracking in the host test configuration. No invalid

@@ -11,9 +11,14 @@
 
 namespace Cookbook { namespace Backend {
     inline void configureRecipes(std::vector<Recipe> &) {}
-    const char * const name = "LVGL";
+#if CPPUI_LVGL_SDL2
+    const char * const name = "LVGL SDL2";
+#else
+    const char * const name = "LVGL X11";
+#endif
     inline void settle() {
-        lv_tick_inc(20);
+        // Let the selected native driver supply time and process its events.
+        lv_delay_ms(20);
         lv_timer_handler();
     }
     inline bool clickButton(CPPUI::Node & node, const std::string & text) {

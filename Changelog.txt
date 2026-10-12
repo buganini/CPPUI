@@ -1,5 +1,19 @@
 2026-10-12
 
+- Split the LVGL cookbook into lvgl_sdl2 and lvgl_x11 CMake projects with shared
+  recipes, configuration and startup. Remove the headless cookbook build and
+  runtime path; --smoke uses the selected native driver. Update both READMEs,
+  the minimal example's cookbook link and the remaining LVGL plan for v9.6.0.
+  Build a corrected copy of the upstream v9.6.0 X11 driver so programmatic
+  display deletion joins its tick thread before freeing driver data; make the
+  stop flag atomic. Leave the SDK checkout unchanged. Report an unavailable
+  X display before entering LVGL's unchecked XOpenDisplay path.
+  Validation: SDL2 dummy-driver and X11 desktop-display cookbook/lifetime
+  normal plus Valgrind suites each pass 4/4; ASan/UBSan/leak suites each pass
+  2/2 with both LVGL C and CPPUI C++ instrumented. Independent headers compile
+  and C++11 targets build against LVGL v9.6.0. Missing DISPLAY fails cleanly.
+  Interactive close/input and target-device validation remain in the plan.
+
 - Add Qt file/directory dialogs, Information/Warning/Critical, Confirm and Prompt,
   following PUI's defaults and filter/default-path behavior. Add C++11 Optional<T>
   and OptionalText values so cancellation differs from accepted empty text;
