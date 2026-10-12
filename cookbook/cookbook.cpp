@@ -126,6 +126,16 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "tree" && recipes()[i].render) {
+                        const int before = gallery.model.treeItems;
+                        auto tree = find(gallery, "example-tree");
+                        require(tree && Backend::treeChildCount(*tree, {0, 3}) == before
+                            && Backend::treeExpanded(*tree, {0}) && Backend::treeExpanded(*tree, {0, 0}), "tree hierarchy or initial expansion was lost");
+                        require(click(gallery, "Add item"), "tree recipe is missing Add item");
+                        Backend::settle(); tree = find(gallery, "example-tree");
+                        require(gallery.model.treeItems == before + 1 && Backend::treeChildCount(*tree, {0, 3}) == before + 1
+                            && Backend::treeExpanded(*tree, {0, 3}), "tree growth lost items or expansion");
+                    }
                     if(std::string(recipes()[i].key) == "table" && recipes()[i].render) {
                         require(Backend::editTable(*find(gallery, "example-table"), 0, 0, "edited"), "table string cell did not commit");
                         Backend::settle();

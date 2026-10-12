@@ -14,6 +14,8 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline int treeChildCount(CPPUI::Node &, const std::vector<int> &) { return -1; }
+    inline bool treeExpanded(CPPUI::Node &, const std::vector<int> &) { return false; }
     inline bool editTable(CPPUI::Node &, int, int, const std::string &) { return false; }
     inline bool atScrollEnd(CPPUI::Node &) { return false; }
     inline bool selectCombo(CPPUI::Node &, int) { return false; }

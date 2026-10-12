@@ -3,7 +3,10 @@
 namespace Cookbook { namespace Backend {
     void configureRecipes(std::vector<Recipe> & pages) {
         for(auto & page: pages) {
-            if(std::string(page.key) == "table") {
+            if(std::string(page.key) == "tree") {
+                page.render = tree;
+                page.remaining = "";
+            } else if(std::string(page.key) == "table") {
                 page.render = table;
                 page.remaining = "";
             } else if(std::string(page.key) == "progressbar") {

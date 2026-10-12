@@ -26,6 +26,7 @@
 |[ImageResource](#canvas)|QImage|—|—|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|—|
 |[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|—|
+|[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|—|
 |[Modal](#modal)|QDialog|—|—|
 |[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|—|
 
@@ -144,6 +145,37 @@ than nested retained views or native widgets inside a table.
 
 Reference: [PUI Table](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/table.py)
 and [ragged-table cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py).
+
+## Tree
+
+Include `cppui/qt/tree.hpp`. `Tree()` contains nested `TreeNode(text)` scopes;
+labels accept `std::string`, `State<std::string>` or `Binding<std::string>`.
+The native view has one read-only column and a hidden header. Virtual views can
+group nodes without adding an item to the native hierarchy.
+
+Tree supports `.expandAll()`, `.collapseAll()` and `.expandable(bool)`. During
+construction these apply after the children synchronize; on a mounted current
+declaration they act immediately. Omitting these operations preserves native
+expansion and expandability, following PUI. TreeNode's `.click()`, `.dblclick()`,
+`.expand()` and `.collapse()` take no-argument callbacks, replaced on redraw.
+
+The Qt-owned model retains internal item records across matched declarations.
+Qt indexes refer to those records, never to retired declarations. Reordering
+keyed nodes within their matched parent scope preserves persistent indexes,
+selection and expansion; removal invalidates their indexes. Moving between
+different parent scopes creates new items under the normal reconciliation rules.
+Model layout notifications publish a snapshot after reconciliation, with
+persistent-index remapping. Independently redrawn subviews queue that refresh
+on the GUI event loop; process events before querying their updated model.
+
+Removal disables callbacks and releases item records and captures; native parent
+deletion clears declaration observers. Callback exceptions are reported to stderr,
+and callbacks may redraw or remove the tree. Factory returns remain borrowed
+construction references. External adapters, arbitrary value types and drag/drop
+payloads remain deferred.
+
+Reference: [PUI Tree](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tree.py)
+and [tree synchronization cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/tree_sync.py).
 
 ## Image
 

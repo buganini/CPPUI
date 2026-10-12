@@ -13,6 +13,7 @@
 #include "cppui/qt/canvas.hpp"
 #include "cppui/qt/tab.hpp"
 #include "cppui/qt/table.hpp"
+#include "cppui/qt/tree.hpp"
 #include "cppui/qt/dialog.hpp"
 #include "cppui/qt/modal.hpp"
 #include "cppui/qt/mdi.hpp"
@@ -36,6 +37,24 @@ namespace Cookbook { namespace Backend {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    inline QModelIndex treeIndex(CPPUI::Qt::Tree & tree, const std::vector<int> & path) {
+        QModelIndex index;
+        for(int row: path) {
+            index = tree.model->index(row, 0, index);
+            if(!index.isValid()) return {};
+        }
+        return index;
+    }
+    inline int treeChildCount(CPPUI::Node & node, const std::vector<int> & path) {
+        auto tree = dynamic_cast<CPPUI::Qt::Tree *>(&node);
+        if(!tree || !tree->model) return -1;
+        const auto index = treeIndex(*tree, path);
+        return index.isValid() ? tree->model->rowCount(index) : -1;
+    }
+    inline bool treeExpanded(CPPUI::Node & node, const std::vector<int> & path) {
+        auto tree = dynamic_cast<CPPUI::Qt::Tree *>(&node);
+        return tree && tree->model && static_cast<QTreeView *>(tree->ui)->isExpanded(treeIndex(*tree, path));
     }
     inline bool editTable(CPPUI::Node & node, int row, int column, const std::string & value) {
         auto table = dynamic_cast<CPPUI::Qt::Table *>(&node);

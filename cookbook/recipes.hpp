@@ -9,6 +9,7 @@
 
 namespace Cookbook {
     struct Model {
+        CPPUI::State<int> treeItems{0};
         CPPUI::State<std::string> tableA1{std::string("A1")}, tableB1{std::string("B1")}, tableDirection{std::string("CW")};
         CPPUI::State<int> tableSides{4};
         CPPUI::State<int> scrollRows{100};
@@ -35,6 +36,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void tree(Model &);
     void table(Model &);
     void scroll(Model &);
     void combobox(Model &);

@@ -23,8 +23,8 @@ ctest --test-dir build --output-on-failure
 
 The build also checks that each core header compiles independently.
 
-With Qt 6 development packages available, enable the Qt target, both existing
-examples, and automated offscreen regressions:
+With Qt 6 Widgets and Test development packages available, enable the Qt target,
+both existing examples, and automated offscreen regressions:
 
 ```sh
 cmake -S . -B build-qt -DCPPUI_BUILD_QT=ON -DCMAKE_BUILD_TYPE=Release
