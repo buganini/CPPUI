@@ -26,7 +26,7 @@ namespace CPPUI {
             virtual void update(BaseWidget * prev) = 0;
 
             void destroy(bool direct) {
-                if(direct){
+                if(direct && ui){
                     ((QWidget *)ui)->deleteLater();
                 }
             }
@@ -59,7 +59,7 @@ namespace CPPUI {
             }
 
             void destroy(bool direct) {
-                if(direct){
+                if(direct && ui){
                     ((QWidget *)ui)->deleteLater();
                 }
             }

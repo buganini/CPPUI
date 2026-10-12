@@ -1,5 +1,14 @@
 2026-10-12
 
+- Use movable RAII construction iterators so break, return, continue and thrown
+  exceptions restore construction scopes. Release incomplete declarations and
+  preserve the old tree when a top-level builder fails; remove a failed derived
+  constructor from its parent's declarations. Allow unmounted Qt cleanup safely.
+  Validation: C++11 standalone headers, Qt headers/examples and CTest 5/5 pass
+  with ASan, UBSan and leak detection (GCC 15.2.0 / Qt 6.10.2). Tests count live
+  declarations, throw from builders/constructors, and redraw successfully after
+  failure. Nested failures during native sync remain a documented design task.
+
 - Own node IDs and Qt button text, including temporary std::string arguments.
   Preserve the distinction between absent and empty IDs and support clearing
   with id(nullptr). Document borrowed construction-reference lifetime.

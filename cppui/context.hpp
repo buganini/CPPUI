@@ -12,17 +12,29 @@ namespace CPPUI {
     class Context;
 
     inline ContextIterator::ContextIterator(Context *context) {
-        inContext = true;
+        inContext = context != nullptr;
         this->context = context;
+        if(context) context->enter();
+    }
+
+    inline ContextIterator::ContextIterator(ContextIterator && other) noexcept
+        : context(other.context), inContext(other.inContext) {
+        other.inContext = false;
+    }
+
+    inline ContextIterator::~ContextIterator() {
+        if(inContext) context->exit();
     }
 
     inline void ContextIterator::operator++()
     {
-        inContext = false;
-        context->exit();
+        if(inContext) {
+            inContext = false;
+            context->exit();
+        }
     }
 
-    inline bool ContextIterator::operator!=(ContextIterator &obj) {
+    inline bool ContextIterator::operator!=(const ContextIterator &obj) const {
         return inContext;
     }
 
@@ -30,12 +42,10 @@ namespace CPPUI {
         return context;
     }
 
-    inline ContextIterator & Context::begin() {
-        iter = ContextIterator(this);
-        enter();
-        return iter;
+    inline ContextIterator Context::begin() {
+        return ContextIterator(this);
     }
-    inline ContextIterator & Context::end() { return iter; }
+    inline ContextIterator Context::end() { return ContextIterator(); }
 }
 
 #endif

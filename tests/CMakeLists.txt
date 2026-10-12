@@ -18,6 +18,12 @@ set_target_properties(cppui_core_lifetime PROPERTIES
 )
 add_test(NAME core.lifetime COMMAND cppui_core_lifetime)
 
+add_executable(cppui_core_scopes core_scopes.cpp)
+target_link_libraries(cppui_core_scopes PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_scopes PROPERTIES
+    CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+add_test(NAME core.scopes COMMAND cppui_core_scopes)
+
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
 foreach(header context_header context node_header node view_header view state dom)

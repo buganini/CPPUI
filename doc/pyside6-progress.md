@@ -116,7 +116,7 @@ The checklist below contains remaining work only.
 | Area | CPPUI baseline | Remaining alignment |
 | --- | --- | --- |
 | DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Full identity contract, dispatch lifetime safety, ordering/grid coverage |
-| Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, safe builder scopes, parameterized views |
+| Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, nested failure recovery, parameterized views |
 | State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, mutation guards, collection changes |
 | Application | Partial: creates `QApplication`, shows/closes children, starts loop | Safe application ownership, icon/options, queued quit |
 | Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
@@ -205,9 +205,9 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
   work for removed views. Define a safe way to await completion in tests.
 - [ ] Add one-time setup and parameterized subview construction. Define when
   matching views retain local state and how changed inputs reach reused views.
-- [ ] Make construction scopes exception-safe and safe across `break`/`return`.
-  The current range iterator calls `exit()` only on increment. Restore both
-  stacks and dispose of incomplete declarations after builder failure.
+- [ ] Recover from a nested builder failure after native reconciliation has
+  already started. Choose transactional prebuilding versus explicit partial-sync
+  recovery; top-level declaration rollback alone cannot undo native updates.
 - [ ] Introduce typed readable/writable bindings, conversion/validation for text
   editors, change subscriptions, external getter/setter binding, and explicit
   notification. Specify subscription ownership and `State` copy/move behavior.
@@ -395,6 +395,11 @@ Continue independent implementation while these contracts remain undecided.
   and discards their replacement declarations. Constructor forwarding alone
   cannot deliver changed inputs to the retained view. Decide an explicit input
   update contract before claiming parameterized-view parity.
+- **Nested reconciliation failures:** range scopes and a failing top-level
+  `content()` can unwind before mounting. A new nested View is currently built
+  during `sync()`, after earlier siblings may have changed. Atomic rollback needs
+  prebuilding/matching work or a defined partial-sync recovery protocol; skip
+  that extension until its failure contract is chosen.
 - **Specialized APIs:** scroll end anchoring (including negative zero), dialog
   cancellation/results, table/tree value and identity types, and external widget
   ownership need their own C++ contracts before the corresponding phase. Their
@@ -447,7 +452,7 @@ offscreen platform automatically. The local temporary toolchain is under
 `lib/x86_64-linux-gnu/qt6/plugins` for `QT_PLUGIN_PATH`. LeakSanitizer execution
 requires an environment without ptrace tracing.
 
-Remove a task only after its acceptance checks pass. Keep CPPUI's README/REFERENCE
-and relevant examples current, and retain outstanding manual checks or intentional
+Remove a task only after its acceptance checks pass. Keep CPPUI's README/REFERENCE, shared cookbook,
+examples, and tests current, and retain outstanding manual checks or intentional
 departures from PUI here. Core/widget parity requires all remaining phases to
 pass, with optional integrations still listed as explicit gaps.

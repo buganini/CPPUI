@@ -12,18 +12,20 @@ namespace CPPUI {
         public:
         Context * context;
         bool inContext;
-        ContextIterator(Context *context);
+        explicit ContextIterator(Context *context = nullptr);
+        ContextIterator(const ContextIterator &) = delete;
+        ContextIterator & operator=(const ContextIterator &) = delete;
+        ContextIterator(ContextIterator && other) noexcept;
+        ~ContextIterator();
         void operator++();
-        bool operator!=(ContextIterator &obj);
+        bool operator!=(const ContextIterator &obj) const;
         Context * operator*(void);
     };
 
     class Context {
         public:
-        ContextIterator iter = ContextIterator(nullptr);
-
-        ContextIterator & begin();
-        ContextIterator & end();
+        ContextIterator begin();
+        ContextIterator end();
         virtual void enter(void) = 0;
         virtual void exit(void) = 0;
     };

@@ -57,13 +57,21 @@ namespace CPPUI {
         if(destroyed){
             return;
         }
-        if(prev) {
-            prev->retired_by = this;
+        const auto originalSize = children->size();
+        try {
+            auto scope = begin();
+            content();
+        } catch(...) {
+            // content() only constructs declarations; native mounting follows
+            // later in sync(). Restore the declaration list on builder failure.
+            while(children->size() > originalSize) {
+                Node * child = children->back();
+                children->pop_back();
+                recur_delete(child, true);
+            }
+            throw;
         }
-
-        enter();
-        content();
-        exit();
+        if(prev) prev->retired_by = this;
     }
 
     inline void View::redraw(void) {
@@ -77,7 +85,13 @@ namespace CPPUI {
 
         std::vector<Node *> * lastChildren = children;
         children = new std::vector<Node *>();
-        update(nullptr);
+        try {
+            update(nullptr);
+        } catch(...) {
+            delete children;
+            children = lastChildren;
+            throw;
+        }
 
         int num = 0;
         int delta = 0;

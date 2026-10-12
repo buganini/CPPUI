@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <thread>
 #include <vector>
 #include <iterator>
@@ -41,6 +42,12 @@ namespace CPPUI {
     }
 
     inline Node::~Node() {
+        // A derived constructor can throw after Node registered itself with
+        // its parent. Do not leave a pointer to that failed allocation behind.
+        if(!destroyed && parent && parent != this && parent->children) {
+            auto & siblings = *parent->children;
+            siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+        }
         delete children;
     }
 

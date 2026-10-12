@@ -13,3 +13,8 @@ Node IDs and Qt button text copy their string arguments, including temporary
 clears the ID. Factory return values are borrowed construction references: use
 fluent modifiers immediately, and keep application state rather than node
 references across redraws.
+
+Construction ranges unwind their scope on normal completion, `break`, `return`,
+and exceptions. If a top-level `content()` throws before reconciliation starts,
+the previous declaration tree remains mounted and incomplete declarations are
+released. Recovery from failures during native reconciliation is still pending.
