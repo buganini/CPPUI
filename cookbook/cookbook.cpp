@@ -124,6 +124,16 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "dialog" && recipes()[i].render) {
+                        Backend::answerPrompt("", true);
+                        require(click(gallery, "Prompt"), "dialog recipe is missing Prompt");
+                        Backend::settle();
+                        require(hasText(gallery, "Prompt: \"\""), "accepted empty prompt was lost");
+                        Backend::answerPrompt("ignored", false);
+                        require(click(gallery, "Prompt"), "dialog recipe is missing Prompt after redraw");
+                        Backend::settle();
+                        require(hasText(gallery, "Prompt: None"), "cancelled prompt remained a value");
+                    }
                     if(std::string(recipes()[i].key) == "progressbar" && recipes()[i].render) {
                         require(click(gallery, "-5"), "progress recipe is missing -5");
                         Backend::settle();

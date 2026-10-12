@@ -132,7 +132,7 @@ the separate deferred section records intentional omissions.
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
 | Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
-| Modal/imperative dialogs | Missing | Native close updates bound visibility; reopen/removal are safe; results distinguish accepted values from cancellation | 5 / [Modal][ref-modal], [Dialog][ref-dialog] |
+| Modal | Missing | Native close updates bound visibility; reopen/removal and callbacks are safe | 5 / [Modal][ref-modal] |
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars/MDI coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
@@ -163,7 +163,6 @@ the separate deferred section records intentional omissions.
 [ref-image]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py
 [ref-scroll]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/scroll.py
 [ref-modal]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/modal.py
-[ref-dialog]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/dialog.py
 [ref-mdi]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/mdi.py
 [ref-canvas]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py
 [ref-drop]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/drop.py
@@ -194,8 +193,6 @@ phases 0–3 does not block independent components in later phases.
 - Catch queued render exceptions inside the GUI callback and report them to
   stderr. Preserve the previous UI when the failure precedes native
   reconciliation; recovery after partial native updates is separate work.
-- Dialog value results use a C++11-compatible `Optional<T>`, with `OptionalText`
-  as the text alias. Cancellation has no value; accepted empty text has a value.
 - Portable input event objects are explicitly deferred. Existing no-argument
   callbacks remain usable.
 
@@ -325,10 +322,8 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
   between positive zero and negative-zero end anchoring in the C++ API.
 - [ ] Add Modal with bound status/off-value, open/close callbacks, native-close
   synchronization, and Window's initial/imperative state contract.
-- [ ] Add OpenDirectory, OpenFile, OpenFiles, SaveFile, Information, Warning,
-  Critical, Confirm, and Prompt. Implement `Optional<T>`/`OptionalText` results
-  that preserve accepted empty values versus cancellation. Normalize the
-  reference's inconsistent empty directory string on cancellation to no value.
+- [ ] Verify native desktop file dialogs and window-manager interaction on a
+  real display; offscreen widget-dialog tests do not establish platform parity.
 
 Acceptance: port [scroll_sync.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/scroll_sync.py); test content
 growth/shrinkage and a resize during reconciliation. Exercise modal
@@ -411,7 +406,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `image.py` | 3, 4 | Sized image asset |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
-| `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
+| `modal.py` | 5 | Bound visibility and open/close callbacks |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |

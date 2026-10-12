@@ -11,6 +11,8 @@
 #include "cppui/qt/splitter.hpp"
 #include "cppui/qt/canvas.hpp"
 #include "cppui/qt/tab.hpp"
+#include "cppui/qt/dialog.hpp"
+#include <QTimer>
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>
@@ -42,6 +44,14 @@ namespace Cookbook { namespace Backend {
         if(index < 0 || index >= widget->count() || widget->tabText(index).toStdString() != label) return false;
         widget->setCurrentIndex(index);
         return widget->currentIndex() == index && widget->currentWidget()->isVisible();
+    }
+    inline void answerPrompt(const std::string & text, bool accepted) {
+        QTimer::singleShot(0, qApp, [text, accepted]() {
+            if(auto dialog = qobject_cast<QInputDialog *>(QApplication::activeModalWidget())) {
+                dialog->setTextValue(QString::fromStdString(text));
+                accepted ? dialog->accept() : dialog->reject();
+            }
+        });
     }
     inline bool selectPage(CPPUI::Node & node) {
         auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);

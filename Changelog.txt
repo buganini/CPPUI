@@ -1,5 +1,19 @@
 2026-10-12
 
+- Add Qt file/directory dialogs, Information/Warning/Critical, Confirm and Prompt,
+  following PUI's defaults and filter/default-path behavior. Add C++11 Optional<T>
+  and OptionalText values so cancellation differs from accepted empty text;
+  normalize directory cancellation to no value. Port the shared Dialog recipe,
+  test its empty/cancel prompt flow, document results and remove completed plan
+  items. Desktop-native dialog validation remains pending.
+  Validation: Optional/dialog/cookbook ASan/UBSan/leak checks pass 3/3 and normal/
+  Valgrind checks 6/6. Exercise real Qt widget dialogs for file selection, multiple
+  selection, filters, save-default precedence, directory selection, cancellation,
+  UTF-8 prompts, message icons/buttons and native cleanup. Independent headers
+  compile; Optional is tested as C++11. The existing LVGL 9.3.0 shared cookbook
+  normal/Valgrind checks pass 2/2; 9.6.0 validation remains separate. Inspect the
+  Qt Dialog recipe's offscreen rendering.
+
 - Use a shallow clone of the v9.6.0 tag into lvgl-9.6.0 in both READMEs,
   replacing the full clone and separate checkout. Check command consistency
   and whitespace; runtime validation remains a separate task.

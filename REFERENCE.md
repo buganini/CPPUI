@@ -13,6 +13,7 @@
 |[Text / Html / MarkDown](#text)|QLabel|—|—|
 |[Canvas / ImageResource](#canvas)|QWidget / QPainter / QImage|—|—|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|—|—|
+|[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|—|
 
 Node IDs and Qt button text copy their string arguments, including temporary
 `std::string` values. An empty explicit ID is distinct from no ID; `id(nullptr)`
@@ -89,6 +90,46 @@ Include `cppui/qt/divider.hpp` and use `Divider()`. Its sunken QFrame is horizon
 inside a VBox, vertical inside an HBox (including through virtual views), and
 frameless otherwise. Dividers are terminal and non-movable; removal releases the
 native frame using the normal deferred-deletion lifecycle.
+
+## Dialogs
+
+Include `cppui/qt/dialog.hpp`. These functions run a modal Qt dialog and return
+after it closes, following [PUI's dialog wrappers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/dialog.py):
+
+| Function | Arguments in order (defaults) | Result |
+| --- | --- | --- |
+| `OpenDirectory` | title (`"Open Directory"`), directory (`""`) | `OptionalText` |
+| `OpenFile` | title (`"Open File"`), directory (`""`), types (`""`) | `OptionalText` |
+| `OpenFiles` | title (`"Open Files"`), directory (`""`), types (`""`) | `Optional<std::vector<std::string>>` |
+| `SaveFile` | default value (absent), title (`"Save File"`), directory (`""`), types (`""`) | `OptionalText` |
+| `Information`, `Warning`, `Critical` | message (function name), title (function name + `" Dialog"`) | `void` |
+| `Confirm` | message (`"Confirm"`), title (`"Confirm Dialog"`) | `bool` (true only for Yes) |
+| `Prompt` | prompt (`"Input"`), title (`"Input Dialog"`), default value (`""`) | `OptionalText` |
+
+File filters accept `|` separators, for example `"Text files (*.txt)|All files (*)"`.
+SaveFile uses its default value as the initial path when directory is empty;
+it accepts an OptionalText or string. Strings and results use UTF-8.
+
+`Optional<T>` is a C++11 value type in `cppui/optional.hpp`; `OptionalText` aliases
+`Optional<std::string>`. Default construction means no value. Test it with
+`if(result)` or `hasValue()`, then use `value()`, `*result`, or `result->...`.
+Empty access throws `std::logic_error`. `valueOr(fallback)` supplies a default;
+`reset()` releases the value. Copies own independent values; moves transfer them.
+
+```cpp
+auto result = CPPUI::Prompt("Name", "Edit name");
+if(result) {
+    // Accepted, including an empty string. Cancellation has no value.
+    name = *result;
+}
+```
+
+All cancelled file/directory dialogs return no value. This intentionally
+normalizes PUI's empty-string directory cancellation to the agreed Optional
+contract. Message dialogs own and release their native dialog before returning.
+Call dialog helpers on the GUI thread from event handlers, outside builders.
+Native desktop dialog integration still needs real-display validation; automated
+tests exercise Qt's widget dialogs, including their nested event loops.
 
 ## Tabs
 
