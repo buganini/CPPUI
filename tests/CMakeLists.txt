@@ -108,6 +108,10 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_modal PRIVATE CPPUI::qt)
     cppui_add_test(qt.modal cppui_qt_modal)
 
+    add_executable(cppui_qt_spacer qt_spacer.cpp)
+    target_link_libraries(cppui_qt_spacer PRIVATE CPPUI::qt)
+    cppui_add_test(qt.spacer cppui_qt_spacer)
+
     add_executable(cppui_qt_label qt_label.cpp)
     target_link_libraries(cppui_qt_label PRIVATE CPPUI::qt)
     cppui_add_test(qt.label cppui_qt_label)
@@ -116,7 +120,7 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_checkbox PRIVATE CPPUI::qt)
     cppui_add_test(qt.checkbox cppui_qt_checkbox)
 
-    foreach(header application base button canvas checkbox dialog divider image_resource label layout modal progressbar splitter tab text window)
+    foreach(header application base button canvas checkbox dialog divider image_resource label layout modal progressbar spacer splitter tab text window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")

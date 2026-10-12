@@ -23,7 +23,10 @@ namespace Cookbook { namespace Presentation {
             for(auto child: *this->children) {
                 if(child->is_outoforder) continue;
                 auto item = dynamic_cast<Item *>(child);
-                this->layout->setStretchFactor(static_cast<QWidget *>(child->outer()), item ? item->weight : 0);
+                if(auto spacer = dynamic_cast<CPPUI::Qt::Spacer *>(child)) {
+                    for(int i = 0; i < this->layout->count(); ++i)
+                        if(this->layout->itemAt(i) == spacer->ui) this->layout->setStretch(i, item ? item->weight : 0);
+                } else this->layout->setStretchFactor(static_cast<QWidget *>(child->outer()), item ? item->weight : 0);
             }
         }
     };
@@ -91,13 +94,9 @@ namespace Cookbook { namespace Presentation {
     };
     inline PageLinkNode & PageLink(const std::string & text) { return *new PageLinkNode(text); }
 
-    class SpacerNode: public CPPUI::Qt::BaseWidget, public Item {
+    class SpacerNode: public CPPUI::Qt::Spacer, public Item {
         public:
         SpacerNode(): Item(1) {}
-        void update(CPPUI::Qt::BaseWidget * prev) override {
-            ui = prev && prev->ui ? prev->ui : new QWidget();
-            ui->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        }
     };
     inline SpacerNode & Spacer() { return *new SpacerNode(); }
     inline CPPUI::Qt::Divider & Divider() { return CPPUI::Divider(); }

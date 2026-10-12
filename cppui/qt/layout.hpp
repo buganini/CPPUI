@@ -2,6 +2,7 @@
 #define CPPUI_QT_LAYOUT
 
 #include "base.hpp"
+#include "spacer.hpp"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>

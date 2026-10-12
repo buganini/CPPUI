@@ -127,7 +127,7 @@ the separate deferred section records intentional omissions.
 | Window | `QMainWindow` and central widget | Update title/icon/size; initial flags apply only on creation; imperative state changes and keypress payloads work | 3 / [Qt regression][ref-qt] |
 | HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
 | Label/Button | Owned text, selectable labels and current click callbacks | Styles reset on reuse; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
-| Grid/Stack/Spacer | Core flags only | Grid spans mount correctly; Stack preserves overlap order; spacers resize and release their native items once | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
+| Grid/Stack/Spacer | Public box Spacer; core grid/reverse-order flags | Define shared placement options, then port Grid spans and Stack overlap | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
 | TextField/Checkbox/RadioButton | Boolean Checkbox with Binding/State and membership adapters | Preserve unfinished edits; validate commit; define observable collection and typed value selections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
@@ -287,8 +287,7 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
 - [ ] Align configurable HBox/VBox padding, stretch updates, and size hints.
   Recompute properties from current declarations and reset omitted properties
   to their defaults.
-- [ ] Add `Grid`, `Stack`, and `Spacer`, including grid spans,
-  overlapping Stack order, and `QSpacerItem` ownership/non-movability.
+- [ ] Add `Grid` and `Stack`, including grid spans and overlapping Stack order.
 - [ ] Extend Window with title, icon, size, keypress, initial-only maximize and
   fullscreen flags, and imperative methods to change those states.
 - [ ] Add common event payloads and fluent modifiers needed by later widgets.

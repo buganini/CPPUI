@@ -5,7 +5,7 @@
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
-|[Spacer](#spacer)|—|transparent flex item|—|
+|[Spacer](#spacer)|QSpacerItem|transparent flex item|—|
 |[Divider](#divider)|QFrame|flex-axis separator|—|
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
@@ -135,8 +135,8 @@ still await the common layout API.
 
 ## Spacer
 
-For LVGL, include `cppui/lvgl/spacer.hpp` or `cppui/lvgl/layout.hpp` and use
-`CPPUI::Spacer()` inside an HBox or VBox:
+Include `cppui/qt/spacer.hpp` or `cppui/lvgl/spacer.hpp` (also included by each
+backend's `layout.hpp`) and use `CPPUI::Spacer()` inside an HBox or VBox:
 
 ```cpp
 for(auto row: CPPUI::HBox()) {
@@ -147,14 +147,17 @@ for(auto row: CPPUI::HBox()) {
 ```
 
 The invisible, non-interactive item fills the space remaining along its physical
-parent's flex axis. Multiple spacers share it equally. The parent must have
+parent's layout axis. Multiple spacers share it equally. The parent must have
 available space; a container sized only to its content supplies no extra space.
 Resize and retained redraw recompute the gap. Like
 [PUI's Spacer](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/layout.py),
 the declaration is terminal and non-movable; matching positions reuse their
 native objects. Native deletion clears its observer, and declaration teardown
-detaches that observer before a parent deletes its children. Public Qt Spacer,
-fixed-size spacing, and custom weights remain pending with the layout API.
+detaches that observer before a parent deletes its children. Qt uses QSpacerItem
+with Expanding policy on the box axis and Preferred on the other axis. Its
+layout owns mounted items; direct removal deletes detached items, and layout
+destruction invalidates the declaration's observer. Fixed-size spacing and
+custom weights remain pending with the layout API.
 
 ## Divider
 

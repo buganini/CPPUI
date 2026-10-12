@@ -91,6 +91,32 @@ namespace CPPUI {
             }
         };
 
+        class Spacer: public Node {
+            QMetaObject::Connection nativeDestroyed;
+            QBoxLayout * owner = nullptr;
+            void release() {
+                QObject::disconnect(nativeDestroyed);
+                nativeDestroyed = {};
+                owner = nullptr;
+                ui = nullptr;
+            }
+            public:
+            QSpacerItem * ui = nullptr;
+            Spacer() { is_terminal = true; is_movable = false; }
+            ~Spacer() override { QObject::disconnect(nativeDestroyed); }
+            void update(Node * previous) override;
+            void * outer() override { return ui; }
+            void releaseRetiredRefs() override { release(); Node::releaseRetiredRefs(); }
+            void destroy(bool direct) override {
+                if(direct && ui) {
+                    if(owner) owner->removeItem(ui);
+                    delete ui;
+                }
+                // Indirect teardown leaves the item to its native layout owner.
+                release();
+            }
+        };
+
         class BaseLayout: public BaseWidget {
             protected:
             void clearNative() override {
@@ -112,13 +138,29 @@ namespace CPPUI {
             void * inner() override { return layout; }
             void addChild(int idx, Node * child) override {
                 if(child->is_outoforder) return;
-                layout->insertWidget(idx, static_cast<QWidget *>(child->outer()));
+                if(auto spacer = dynamic_cast<Spacer *>(child)) layout->insertSpacerItem(idx, spacer->ui);
+                else layout->insertWidget(idx, static_cast<QWidget *>(child->outer()));
             }
             void removeChild(int, Node * child) override {
                 if(child->is_outoforder) return;
-                if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
+                if(auto spacer = dynamic_cast<Spacer *>(child)) { if(spacer->ui) layout->removeItem(spacer->ui); }
+                else if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
         };
+        inline void Spacer::update(Node * previous) {
+            auto box = dynamic_cast<BaseLayout *>(dom_parent);
+            if(!box || !box->layout) throw std::logic_error("Qt Spacer requires an HBox or VBox parent");
+            auto prev = static_cast<Spacer *>(previous);
+            ui = prev && prev->ui ? prev->ui : new QSpacerItem(0, 0);
+            owner = box->layout;
+            const auto direction = owner->direction();
+            const bool horizontal = direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft;
+            ui->changeSize(0, 0, horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred,
+                           horizontal ? QSizePolicy::Preferred : QSizePolicy::Expanding);
+            owner->invalidate();
+            nativeDestroyed = QObject::connect(owner, &QObject::destroyed, [this]() { ui = nullptr; owner = nullptr; });
+            Node::update(previous);
+        }
     }
 }
 #endif
