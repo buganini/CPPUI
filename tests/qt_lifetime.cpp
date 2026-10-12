@@ -5,6 +5,7 @@
 #include "cppui/qt/window.hpp"
 #include "cppui/state.hpp"
 #include <stdexcept>
+#include <QLineEdit>
 
 namespace {
     void require(bool value, const char * message) {
@@ -17,6 +18,7 @@ namespace {
         int called = 0;
         bool removeOnClick = false;
         bool finished = false;
+        bool focusWasClear = false;
         using Application::Application;
         void content() override {
             for(auto window: CPPUI::Window()) {
@@ -24,6 +26,7 @@ namespace {
                     if(show) {
                         const int currentVersion = version;
                         CPPUI::Button("click").click([this, currentVersion]() {
+                            focusWasClear = QApplication::focusWidget() == nullptr;
                             called += currentVersion;
                             if(removeOnClick) show = false;
                             // Must survive destruction of the emitting declaration.
@@ -81,6 +84,32 @@ namespace {
             }
         }
     }
+    void focusBeforeClick(int argc, char ** argv, QApplication & qt) {
+        Root root(argc, argv);
+        root.redraw();
+        auto window = static_cast<QWidget *>(root.children->front()->outer());
+        QLineEdit editor(window);
+        editor.show();
+        window->activateWindow();
+        editor.setFocus();
+        qt.processEvents();
+        require(QApplication::focusWidget() == &editor, "test editor did not receive focus");
+        int focusChanges = 0;
+        auto connection = QObject::connect(&qt, &QApplication::focusChanged, &qt,
+            [&](QWidget * before, QWidget * after) {
+                if(before == &editor && after == nullptr) {
+                    ++focusChanges;
+                    root.version = 7;
+                    root.redraw();
+                }
+            });
+        root.button()->click();
+        QObject::disconnect(connection);
+        require(focusChanges == 1 && root.focusWasClear, "button callback ran before focus was cleared");
+        require(root.called == 1 && root.finished, "focus-out redraw invalidated the active button callback");
+        root.button()->click();
+        require(root.called == 8, "next click did not use the callback installed by focus-out redraw");
+    }
 }
 int main(int argc, char ** argv) {
     try {
@@ -94,6 +123,7 @@ int main(int argc, char ** argv) {
         } else {
             QApplication qt(argc, argv);
             borrowedApplication(argc, argv, qt);
+            focusBeforeClick(argc, argv, qt);
         }
     } catch(const std::exception & error) {
         std::cerr << error.what() << std::endl;

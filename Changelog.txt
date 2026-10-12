@@ -1,5 +1,13 @@
 2026-10-12
 
+- Clear Qt focus before dispatching a button callback, matching the reference's
+  editor-commit ordering. Snapshot the callback before focus-out handlers run so
+  their synchronous redraw cannot invalidate active dispatch. Update lifecycle
+  documentation and remove completed focus behavior from the plan.
+  Validation: focus-out-triggered redraw keeps the active callback valid and
+  installs the next callback correctly. Qt lifetime/cookbook sanitizer checks
+  pass 2/2; normal and Valgrind checks pass 4/4.
+
 - Add queued Qt Application::quit() with an application-owned dispatch context.
   Quit requests wait for the active handler to return, work before lazy startup,
   and are cancelled on destruction without affecting another application's loop.

@@ -4,6 +4,7 @@
 #include "base.hpp"
 
 #include <QPushButton>
+#include <QApplication>
 
 namespace CPPUI {
     namespace Qt {
@@ -25,6 +26,8 @@ namespace CPPUI {
                 connectSignal(QObject::connect(static_cast<QPushButton *>(ui),
                     &QPushButton::clicked, ui, [callback]() {
                         auto invoke = callback;
+                        // Focus-out handlers may synchronously rebuild this button.
+                        if(auto focused = QApplication::focusWidget()) focused->clearFocus();
                         invoke();
                     }));
             }

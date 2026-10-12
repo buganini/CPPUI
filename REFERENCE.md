@@ -27,8 +27,10 @@ releases declarations and its native roots before destroying an owned Qt
 application. Virtual Qt views do not own a native widget. Qt widgets/layouts use
 typed raw native observers, clear them on parent-driven deletion, and disconnect
 only their own signal connections. Redraw retains other application listeners.
-A button invocation copies its callback before calling user code so synchronous
-redraw/removal cannot destroy the callable while it is executing. External native
+A button invocation copies its callback and clears the focused widget before
+calling user code, matching PUI's focus/commit ordering. Focus-out handlers may
+synchronously redraw; the active callback remains valid and the next click uses
+the updated callback. External native
 subtree deletion is safe for teardown; automatic remount after that deletion is
 not yet supported.
 

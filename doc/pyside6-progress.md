@@ -238,8 +238,8 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
   overlapping Stack order, and `QSpacerItem` ownership/non-movability.
 - [ ] Extend Window with title, icon, size, keypress, initial-only maximize and
   fullscreen flags, and imperative methods to change those states.
-- [ ] Extend Label with clicks and align Button's reference focus behavior.
-  Add common event payloads and fluent modifiers needed by later widgets.
+- [ ] Extend Label with clicks, and add common event payloads and fluent
+  modifiers needed by later widgets.
 
 Acceptance: port HBox/VBox/Grid/Stack cookbook scenarios; change weights to zero,
 dimensions, styles, and grid spans on a retained tree. Verify native geometry
