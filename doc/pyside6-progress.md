@@ -135,7 +135,7 @@ the separate deferred section records intentional omissions.
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars/MDI coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
-| Qt interop/TimelineView | Missing | Borrowed widgets survive removal according to their ownership contract; timers stop on removal/shutdown | 6 / [embedding example][ref-interop], [Widget][ref-widget], [Timeline][ref-timeline] |
+| Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
 | Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 0–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
 
 [ref-virtual]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py
@@ -328,13 +328,10 @@ Modal focus and window-manager state require manual display checks.
   central content. Implement MdiArea/MdiSubWindow and safe child removal.
 - [ ] Add equivalents of `QtInPui` and `PuiInQt`: specify borrowed native widget
   lifetime, removal/reparenting, and embedding into an existing Qt application.
-- [ ] Add TimelineView with a cancellable Qt timer, stable current-node lookup,
-  interval semantics, and no redraw after removal or shutdown.
 
 Acceptance: actions fire once using current data after repeated redraws; menus
 and toolbars can coexist with central content and modals; borrowed widgets
-survive declaration removal. Port the lifecycle case in
-[timeline_regression.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/timeline_regression.py) and adapt
+survive declaration removal. Adapt
 [pyside6_interop.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/examples/pyside6_interop.py).
 
 ### Phase 7 — Canvas and input (P2)
@@ -396,7 +393,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `image.py` | 3, 4 | Sized image asset |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
-| `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
+| `mdi.py`, `widget.py` | 6 | MDI children, borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |
 | `drawshapely.py`, `matplotlib.py` | Deferred integrations | Requires an agreed C++ bridge/dependency strategy |

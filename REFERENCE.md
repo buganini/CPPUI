@@ -91,6 +91,17 @@ pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
 
+## TimelineView
+
+Include `cppui/qt/timeline.hpp`. `TimelineView(ttlSeconds)` is a virtual scope:
+its children occupy their normal parent slots, and a Qt timer requests a queued
+redraw of the owning view. Reconciliation transfers the timer to the current
+declaration; removal or root teardown cancels it. Following the pinned PUI
+implementation, the interval is fixed when mounted, even if a later declaration
+passes a different value; use a new identity to restart it. Intervals are finite,
+nonnegative seconds rounded up to Qt milliseconds; zero runs when the event loop
+is idle. The timer and view remain on the GUI thread.
+
 ## Window
 
 Qt `Window().title(text).icon(path).size(width, height)` updates a retained native

@@ -154,8 +154,9 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
 
 ### Phase 6 — Timers, drawing, data widgets and embedding
 
-- [ ] Add cancellable TimelineView timers after scheduling and retained-view
-  input contracts are agreed; no redraw after removal/shutdown.
+- [ ] Add cancellable TimelineView timers after LVGL scheduling is agreed;
+  no redraw after removal/shutdown. PUI TimelineView is a virtual Node wrapper,
+  not a retained View, so changed subview-input contracts do not block it.
 - [ ] Add LVGL ImageResource/loadImage/drawImage after agreeing source ownership,
   decoder availability and file access; test crop/scale, source regions, opacity,
   replacement and missing images.
