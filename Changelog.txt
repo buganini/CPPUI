@@ -1,4 +1,5 @@
 2026-10-13
+    * wx: port declarative and typed-adapter Table/Tree with native editors, keyed state and ownership regressions
     * Cookbook: remove the copied PUI license file; retain the image source attribution
     * wx: add image resources/widgets and Canvas drawing with pixel, callback lifetime and memory checks
     * wx: add scrolling/end anchors, notebook pages, menus, Optional dialogs and timers with native lifetime/memory regressions

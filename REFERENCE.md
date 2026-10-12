@@ -25,8 +25,8 @@
 |[TimelineView](#timelineview)|QTimer / virtual node|—|wxTimer / virtual node|
 |[ImageResource](#canvas)|QImage|—|wxImage|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|wxNotebook / wxPanel|
-|[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|—|
-|[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|—|
+|[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|wxGrid / wxGridTableBase|
+|[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|wxDataViewCtrl / wxDataViewModel|
 |[Modal](#modal)|QDialog|—|—|
 |[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|wxFileDialog / wxMessageDialog / wxTextEntryDialog|
 
@@ -886,3 +886,13 @@ use native logical pixels and `pixel_density` reports content scale. ImageResour
 supports loading, bounded cropping and aspect-preserving scaling; invalid sources
 produce a null resource. Image widgets cache source path/mtime and scale to declared
 dimensions. Native pixel checks and paint self-removal pass sanitizers and Valgrind.
+
+wx Table and Tree accept the shared declarative nodes and typed adapter handles.
+Table separates raw edit values from display text and choice labels, validates
+scalar conversions and cancels editors when their model generation changes.
+Tree uses model-owned records for native item IDs, retains keyed selection and
+expansion across redraw/reorder, and suppresses callbacks during restoration.
+Adapter reads happen during construction so failed getters preserve the previous
+native UI. Callback snapshots allow synchronous removal; models release adapter
+ownership on teardown. Native edits, retained state and adapter lifetimes pass
+sanitizers and Valgrind on wxGTK.

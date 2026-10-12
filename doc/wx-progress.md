@@ -28,11 +28,7 @@ and Matplotlib are Python-only and will not be ported.
 
 ## Implementation sequence
 
-1. **Data views.** Port declarative and typed-adapter Table/Tree via wx Grid and
-   DataViewCtrl, following PUI's current implementations and the shared adapters.
-   Validate edits, choice labels, model refresh, keyed selection/expansion and
-   source ownership. Arbitrary mixed/custom values remain a shared API gap.
-2. **Shared cookbook and validation.** Add `cookbook/wx` startup/manifest/build
+1. **Shared cookbook and validation.** Add `cookbook/wx` startup/manifest/build
    files, enable each implemented shared recipe, preserve the sidebar/result
    layout, and add build instructions. Expand native regression/smoke coverage,
    sanitizers and Valgrind after each component. Check real-display interaction
