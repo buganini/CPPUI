@@ -18,6 +18,7 @@
 #include "cppui/qt/image.hpp"
 #include "cppui/qt/textfield.hpp"
 #include "cppui/qt/radiobutton.hpp"
+#include "cppui/qt/combobox.hpp"
 #include "cppui/qt/timeline.hpp"
 #include <QTimer>
 #include "../recipes.hpp"
@@ -33,6 +34,11 @@ namespace Cookbook { namespace Backend {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    inline bool selectCombo(CPPUI::Node & node, int index) {
+        auto combo = dynamic_cast<CPPUI::Qt::ComboBox *>(&node);
+        if(!combo || !combo->ui) return false;
+        static_cast<QComboBox *>(combo->ui)->setCurrentIndex(index); return true;
     }
     inline bool selectRadio(CPPUI::Node & node) {
         auto widget = dynamic_cast<CPPUI::Qt::BaseWidget *>(&node);

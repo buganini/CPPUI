@@ -108,6 +108,10 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_modal PRIVATE CPPUI::qt)
     cppui_add_test(qt.modal cppui_qt_modal)
 
+    add_executable(cppui_qt_combobox qt_combobox.cpp)
+    target_link_libraries(cppui_qt_combobox PRIVATE CPPUI::qt)
+    cppui_add_test(qt.combobox cppui_qt_combobox)
+
     add_executable(cppui_qt_radiobutton qt_radiobutton.cpp)
     target_link_libraries(cppui_qt_radiobutton PRIVATE CPPUI::qt)
     cppui_add_test(qt.radiobutton cppui_qt_radiobutton)
@@ -156,7 +160,7 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_checkbox PRIVATE CPPUI::qt)
     cppui_add_test(qt.checkbox cppui_qt_checkbox)
 
-    foreach(header application base button canvas checkbox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton spacer splitter stack tab text textfield timeline toolbar window)
+    foreach(header application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton spacer splitter stack tab text textfield timeline toolbar window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")

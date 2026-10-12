@@ -9,6 +9,8 @@
 
 namespace Cookbook {
     struct Model {
+        CPPUI::State<int> comboIndex{-1};
+        CPPUI::State<std::string> comboText{std::string()};
         CPPUI::State<std::string> radioValue{std::string()};
         CPPUI::State<std::string> fieldText{std::string("1.23")}, fieldEditing{std::string()};
         CPPUI::State<bool> checkboxOne{true}, checkboxTwo{true};
@@ -30,6 +32,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void combobox(Model &);
     void radiobutton(Model &);
     void textfield(Model &);
     void grid(Model &);

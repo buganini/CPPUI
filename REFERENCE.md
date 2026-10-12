@@ -12,6 +12,7 @@
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
 |[TextField](#textfield)|QLineEdit|—|—|
+|[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|—|
 |[RadioButton](#radiobutton)|QRadioButton|—|—|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|—|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
@@ -200,6 +201,26 @@ and setter failures report to stderr; a throwing setter leaves the draft visible
 Adapters own validation/conversion policy; generic numeric conversion and change
 subscriptions remain undecided. The shared recipe currently demonstrates string
 models and is marked partial for PUI's dynamic numeric conversion/event payloads.
+
+## ComboBox
+
+Include `cppui/qt/combobox.hpp`. `ComboBox(editable, model)` accepts an integer
+index binding or a string value binding; `ComboBox(editable, index, text)` accepts
+both. State values adapt automatically. Its children are
+`ComboBoxItem(label, value)`; value defaults to label and may explicitly be empty.
+Labels and values are owned strings, with labels used as default node IDs.
+Use explicit IDs to distinguish duplicate labels or retain a renamed item.
+
+Index binding takes precedence for displayed selection. Negative/out-of-range
+indices produce no selection; an index-change callback for -1 writes empty text,
+never the last item's value. A text-only binding matches stored values. Editable
+text writes its string binding. `.change(callback)` has no arguments; an editable
+selection can emit both Qt index and text changes, as in PUI.
+
+Unchanged declarations preserve user edits; changing/reordering items refreshes
+labels/data and reapplies bound selection without feedback writes. Native
+callbacks read owned item values and snapshot bindings before user code. Raw
+non-string values and typed event payloads remain deferred.
 
 ## RadioButton
 

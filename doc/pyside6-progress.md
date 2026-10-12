@@ -129,7 +129,7 @@ the separate deferred section records intentional omissions.
 | Label/Button | Owned text, selectable labels and current click callbacks | Styles reset on reuse; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
 | Grid/Stack/Spacer | Native Grid spans, StackAll overlap and box Spacer | Define shared fluent placement and layout/style options | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
 | TextField/Checkbox | String TextField model/draft bindings; boolean Checkbox and membership adapters | Define conversion helpers and observable collections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
-| ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
+| ComboBox/ComboBoxItem | Index/string bindings, distinct labels/values, editable text and dynamic items | Define raw non-string value adapters and deferred event payloads | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
 | Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
@@ -294,8 +294,8 @@ and child order. Port the window-state and size-policy cases from
   are chosen; typed input/change event objects remain explicitly deferred.
 - [ ] Decide automatic collection observation and value-based Checkbox overloads;
   explicit boolean membership Binding adapters are supported.
-- [ ] Add ComboBox/ComboBoxItem with editable text, index/text models, distinct
-  labels/values, empty contents, invalid selection, and dynamic item updates.
+- [ ] Extend ComboBox beyond string item values after choosing raw value adapters;
+  typed change-event payloads remain deferred.
 - [ ] Apply shared dimension/stretch modifiers to Image once the common layout
   API is chosen; natural-size image loading and the sized cookbook recipe exist.
 
@@ -379,7 +379,6 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
 | --- | --- | --- |
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, binding change callbacks and text conversion/events |
-| `combobox.py` | 2, 4 | Selection binding and dynamic items |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
