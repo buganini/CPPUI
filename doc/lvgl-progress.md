@@ -175,9 +175,9 @@ Acceptance: use the reference [timeline regression](https://github.com/buganini/
 [Canvas](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py),
 [ragged table](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py)
 and [tree sync](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/tree_sync.py)
-cases where the agreed LVGL capability supports them. Matplotlib remains deferred
-with the Qt plan. **Won't do — Shapely:** the Python-only Canvas.drawShapely
-integration and DrawShapely recipe are excluded from CPPUI.
+cases where the agreed LVGL capability supports them. **Won't do — Shapely and
+Matplotlib:** the Python-only Canvas.drawShapely and MatplotlibCanvas integrations
+and their cookbook recipes are excluded from CPPUI.
 
 ## Decisions awaiting direction
 

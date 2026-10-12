@@ -628,8 +628,8 @@ deletion, including when an ancestor owns that deletion. Run callbacks on the
 UI thread without nested event loops or display/runtime teardown.
 Input/drag/drop events and shared layout/style modifiers remain pending. The
 cookbook uses a private size/background adapter meanwhile.
-**Won't do — Shapely:** Python-only `Canvas.drawShapely` integration is excluded
-from CPPUI and its cookbook.
+**Won't do — Shapely and Matplotlib:** Python-only `Canvas.drawShapely` and
+`MatplotlibCanvas` integrations are excluded from CPPUI and its cookbook.
 
 ## Label
 

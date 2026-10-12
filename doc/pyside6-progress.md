@@ -362,7 +362,6 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table_adapter.py`, `tree_adapter.py` | 8 | External data adapters and ownership |
-| `matplotlib.py` | Deferred integration | Requires an agreed C++ bridge/dependency strategy |
 
 ## Decisions awaiting direction
 
@@ -398,10 +397,8 @@ Continue independent implementation while these contracts remain undecided.
 
 - Python hot reload and decorator syntax: preserve reusable declarative views;
   runtime C++ code replacement is outside this alignment plan.
-- **Won't do — Shapely:** Canvas.drawShapely and the DrawShapely cookbook recipe
-  are Python-only integrations, excluded from CPPUI.
-- MatplotlibCanvas: keep the optional Python bridge deferred until its dependency
-  and ownership strategy is selected. Native Canvas must work without it.
+- **Won't do — Shapely and Matplotlib:** Canvas.drawShapely, MatplotlibCanvas
+  and their cookbook recipes are Python-only integrations, excluded from CPPUI.
 - Dynamic Qt keyword parameters: expose typed options and native interop;
   enumerate supported options rather than promising arbitrary Python attributes.
 - Existing PUI gaps, such as unused tab position, Scroll offset capture and inconsistently applied

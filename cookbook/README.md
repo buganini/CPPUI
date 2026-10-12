@@ -24,7 +24,8 @@ window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
 divider, and styled examples follow the reference on the available pages.
 
 Unsupported pages show “Not Supported for this backend”; `--list` gives their
-prerequisites. The Python-only DrawShapely recipe is excluded (won't-do).
+prerequisites. The Python-only DrawShapely and Matplotlib recipes are excluded
+(won't-do).
 The [Qt plan](../doc/pyside6-progress.md) and
 [LVGL plan](../doc/lvgl-progress.md) track remaining components and public APIs.
 The backend `presentation.hpp` files provide private

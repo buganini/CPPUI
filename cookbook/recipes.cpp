@@ -68,7 +68,6 @@ namespace Cookbook {
             {"textfield", "TextField", nullptr, "Binding and text conversion"},
             {"scroll", "Scroll", nullptr, "Scroll and offset API"},
             {"canvas", "Canvas", nullptr, "Painter and input APIs"},
-            {"matplotlib", "Matplotlib", nullptr, "Deferred Python integration"},
             {"image", "Image", nullptr, "Image and size options"},
             {"tab", "Tab", nullptr, "Tabs and Tab"},
             {"table", "Table", nullptr, "Table data/identity API"},
