@@ -39,11 +39,45 @@ build directory. Their original CMake projects under `example/` remain usable.
 
 # Shared cookbook
 
-[The cookbook](cookbook/README.md) builds the same C++ recipe and gallery sources
-with separate Qt and LVGL CMake projects. The Qt executable is also included in
-`CPPUI_BUILD_QT=ON`. Run it with `--list` to see available and pending pages, or
-`--smoke` for automated navigation and interaction checks. Initial pages are
-partial ports, with missing details shown explicitly.
+The cookbook builds the same C++ recipe and gallery sources with separate Qt
+and LVGL CMake projects. Initial pages are partial ports; the gallery and
+`--list` show missing details explicitly.
+
+With Qt 6 development packages installed:
+
+```sh
+cmake -S cookbook/qt -B build-cookbook-qt -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-qt
+./build-cookbook-qt/cppui_cookbook_qt
+ctest --test-dir build-cookbook-qt --output-on-failure
+```
+
+The root `CPPUI_BUILD_QT=ON` build also includes `cppui_cookbook_qt`. Qt smoke tests
+use the offscreen platform automatically.
+
+For LVGL, provide an LVGL 9 source checkout (tested with
+[LVGL 9.3.0](https://github.com/lvgl/lvgl/tree/c033a98afddd65aaafeebea625382a94020fe4a7)):
+
+```sh
+cmake -S cookbook/lvgl -B build-cookbook-lvgl \
+  -DCPPUI_LVGL_SOURCE_DIR=/path/to/lvgl -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-cookbook-lvgl
+ctest --test-dir build-cookbook-lvgl --output-on-failure
+./build-cookbook-lvgl/cppui_cookbook_lvgl --smoke
+```
+
+The default LVGL build uses a headless display. With SDL2 development packages
+installed, enable an interactive window:
+
+```sh
+cmake -S cookbook/lvgl -B build-cookbook-lvgl -DCPPUI_LVGL_SDL=ON
+cmake --build build-cookbook-lvgl
+./build-cookbook-lvgl/cppui_cookbook_lvgl
+```
+
+The second configure command reuses the SDK path from the first. Both projects
+accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. See the
+[cookbook documentation](cookbook/README.md) for capabilities and validation limits.
 
 # Memory checks
 
