@@ -335,7 +335,8 @@ Exercise both external adapters and declarative nodes using cookbook examples.
 Port the [PUI cookbook](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook)
 as shared C++ recipe sources. Qt is CPPUI's native backend corresponding to the
 PySide6 reference; Python and C++ cannot share the same recipe source directly.
-Use separate Qt and LVGL `CMakeLists.txt` files (build commands in `README.md`)
+Keep the shared main UI in `cookbook/cookbook.cpp`. Use separate Qt and LVGL
+`CMakeLists.txt` files (build commands in `README.md`)
 to select backend headers,
 capabilities, startup, and toolkit dependencies. Keep toolkit includes and
 conditional compilation out of the recipes. Each executable links one backend.

@@ -1,5 +1,9 @@
 2026-10-12
 
+- Rename the shared cookbook entry source from gallery.cpp to cookbook.cpp and
+  update its common CMake manifest and documentation.
+  Validation: Qt and LVGL cookbook rebuilds and smoke tests pass (1/1 each).
+
 - Match Qt box defaults with zero native layout margins and 11-pixel padding
   only outside another physical box. Add public Qt Divider() with reference
   orientation, sunken frame, terminal and non-movable behavior. The shared

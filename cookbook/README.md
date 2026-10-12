@@ -1,6 +1,6 @@
 # Shared C++ cookbook
 
-The recipes and gallery in this directory are shared by Qt and LVGL. Each backend
+The main cookbook UI in `cookbook.cpp` and the recipes are shared by Qt and LVGL. Each backend
 has its own `CMakeLists.txt`, include selection, startup, and native smoke-test
 helpers. Recipe code has no backend conditionals. Each executable links exactly
 one toolkit. Qt corresponds to the Python reference's PySide6 backend.
