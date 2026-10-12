@@ -19,10 +19,12 @@ namespace CPPUI {
             }
 
             void addChild(int idx, Node *child) override {
+                if(child->is_outoforder) return;
                 ((QMainWindow *)ui)->setCentralWidget((QWidget *) child->outer());
             }
 
             void removeChild(int idx, Node *child) override {
+                if(child->is_outoforder) return;
                 if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
        };

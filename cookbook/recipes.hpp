@@ -11,6 +11,7 @@ namespace Cookbook {
         CPPUI::State<int> progress{50};
         CPPUI::State<int> rotation{15};
         CPPUI::State<std::string> buttonValue{std::string("A")};
+        CPPUI::State<bool> modalOpen{false};
         CPPUI::State<CPPUI::OptionalText> directory{CPPUI::OptionalText()};
         CPPUI::State<CPPUI::OptionalText> file{CPPUI::OptionalText()};
         CPPUI::State<CPPUI::Optional<std::vector<std::string>>> files{CPPUI::Optional<std::vector<std::string>>()};
@@ -29,6 +30,7 @@ namespace Cookbook {
     void canvas(Model &);
     void tab(Model &);
     void dialog(Model &);
+    void modal(Model &);
     const std::vector<Recipe> & recipes();
     CPPUI::Node * find(CPPUI::Node & node, const std::string & id);
     int run(int argc, char ** argv);

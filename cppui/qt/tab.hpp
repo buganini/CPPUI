@@ -27,6 +27,7 @@ namespace CPPUI {
                 ui = prev && prev->ui ? prev->ui : new QTabWidget();
             }
             void addChild(int idx, Node * child) override {
+                if(child->is_outoforder) return;
                 Node * parent = child->parent;
                 while(parent && parent != this) {
                     if(auto tab = dynamic_cast<Tab *>(parent)) {
@@ -39,7 +40,8 @@ namespace CPPUI {
                 }
                 throw std::logic_error("Tabs pages must have an ancestor Tab");
             }
-            void removeChild(int idx, Node *) override {
+            void removeChild(int idx, Node * child) override {
+                if(child->is_outoforder) return;
                 static_cast<QTabWidget *>(ui)->removeTab(idx);
             }
             void postSync() override {

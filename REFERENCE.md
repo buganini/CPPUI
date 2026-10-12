@@ -13,6 +13,7 @@
 |[Text / Html / MarkDown](#text)|QLabel|—|—|
 |[Canvas / ImageResource](#canvas)|QWidget / QPainter / QImage|—|—|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|—|—|
+|[Modal](#modal)|QDialog|—|—|
 |[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|—|
 
 Node IDs and Qt button text copy their string arguments, including temporary
@@ -66,6 +67,28 @@ first. It can be called before `run()`; application destruction cancels any
 pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
+
+## Binding
+
+`cppui/binding.hpp` provides a copyable C++11 `Binding<T>` with `get()` and
+`set(value)`. Construct it from a `State<T>&`, or supply a getter and setter:
+
+```cpp
+CPPUI::Binding<int> binding(counter);
+CPPUI::Binding<int> external([&model]() { return model.value; },
+                            [&model](const int & value) { model.value = value; });
+```
+
+The adapter owns its callable captures and borrows the referenced State/model,
+which must outlive its uses. State reads retain ordinary view dependency tracking;
+writes retain State's mutation checks and synchronous redraw. Rebinding during a
+build replaces those dependencies. Getters/setters are snapshotted for invocation,
+so a setter may cause the declaration holding its adapter to be reclaimed.
+Exceptions propagate to the caller; conversion/validation belongs in the setter.
+External storage does not automatically notify views: redraw explicitly, or read
+reactive State in the getter. Change subscriptions, explicit notification and
+text conversion helpers remain pending; this adapter does not change State's
+copy/move semantics.
 
 ## ProgressBar
 
@@ -130,6 +153,48 @@ contract. Message dialogs own and release their native dialog before returning.
 Call dialog helpers on the GUI thread from event handlers, outside builders.
 Native desktop dialog integration still needs real-display validation; automated
 tests exercise Qt's widget dialogs, including their nested event loops.
+
+## Modal
+
+Include `cppui/qt/modal.hpp` and declare it inside an Application or QtView.
+`Modal(status, offValue = T{})` accepts a `State<T>&`
+or `Binding<T>`, with a value convertible to bool. True shows a modal QDialog;
+false hides it. Choose an off-value that converts to false. For example:
+
+```cpp
+for(auto window: CPPUI::Modal(modalOpen).title("Modal Window").size(400, 240)
+        .open([]() { /* opened */ }).close([]() { /* closed */ })) {
+    CPPUI::Button("Close Modal").click([&]() { modalOpen = false; });
+}
+```
+
+Following [PUI's Modal](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/modal.py),
+the declaration is physical and out of order: it does not consume a box,
+splitter, tab-page, or Window central-content slot. Its zero-margin VBox groups
+ordinary children. The nearest physical Qt parent owns the native dialog;
+top-level dialogs are application roots. Redraw retains the dialog and replaces
+its binding and callbacks. Native close, Escape/reject, and accept write the
+current off-value; hiding through the binding does not perform another write.
+Removing the declaration hides and detaches it without writing the borrowed
+model during teardown.
+
+`.open(callback)` and `.close(callback)` notify once per visibility transition,
+including close on declaration removal. Notifications snapshot the callback at
+the transition and run on the owning view's Qt event context after reconciliation,
+so handlers can mutate State or remove the modal. Destroying that view cancels
+pending notifications and releases their captures; teardown does not invoke
+callbacks into a destroyed model. Exceptions from notifications or native-close
+binding writes are reported to stderr rather than escaping through Qt. General
+State redraw remains synchronous.
+
+`.title(text)` owns UTF-8 text; omission preserves the current title. `.size(w,h)`
+resizes only when the declared size changes, preserving a user's resize across
+unchanged redraws. Omitting and later restoring the size declares it anew.
+`.maximize(bool = true)` and `.fullscreen(bool = true)` set initial flags during
+construction and change flags immediately on a currently mounted declaration.
+Initial flags are not reapplied on redraw. Keep state, not borrowed node
+references, between redraws. Window-manager behavior still needs real-display
+validation beyond the automated offscreen tests.
 
 ## Tabs
 

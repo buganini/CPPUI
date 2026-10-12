@@ -134,6 +134,18 @@ namespace Cookbook {
                         Backend::settle();
                         require(hasText(gallery, "Prompt: None"), "cancelled prompt remained a value");
                     }
+                    if(std::string(recipes()[i].key) == "modal" && recipes()[i].render) {
+                        require(click(gallery, "Open Modal"), "modal recipe is missing Open Modal");
+                        Backend::settle();
+                        auto modal = find(gallery, "example-modal");
+                        require(modal && Backend::modalVisible(*modal) && hasText(gallery, "State: True"),
+                            "modal recipe did not open and synchronize its state");
+                        require(click(gallery, "Close Modal"), "modal recipe is missing Close Modal");
+                        Backend::settle();
+                        modal = find(gallery, "example-modal");
+                        require(modal && !Backend::modalVisible(*modal) && hasText(gallery, "State: False"),
+                            "modal recipe did not close and synchronize its state");
+                    }
                     if(std::string(recipes()[i].key) == "progressbar" && recipes()[i].render) {
                         require(click(gallery, "-5"), "progress recipe is missing -5");
                         Backend::settle();

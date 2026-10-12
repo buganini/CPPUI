@@ -33,6 +33,7 @@ namespace Cookbook { namespace Backend {
     }
     inline bool selectTab(CPPUI::Node &, int, const std::string &) { return false; }
     inline void answerPrompt(const std::string &, bool) {}
+    inline bool modalVisible(CPPUI::Node &) { return false; }
     inline bool selectPage(CPPUI::Node & node) {
         auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);
         if(!link) return false;

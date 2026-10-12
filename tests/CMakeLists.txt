@@ -41,9 +41,14 @@ target_link_libraries(cppui_core_optional PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_optional PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 cppui_add_test(core.optional cppui_core_optional)
 
+add_executable(cppui_core_binding core_binding.cpp)
+target_link_libraries(cppui_core_binding PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_binding PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.binding cppui_core_binding)
+
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional)
+foreach(header context_header context node_header node view_header view state dom optional binding)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -99,7 +104,11 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_dialog PRIVATE CPPUI::qt)
     cppui_add_test(qt.dialog cppui_qt_dialog)
 
-    foreach(header application base button canvas dialog divider image_resource label layout progressbar splitter tab text window)
+    add_executable(cppui_qt_modal qt_modal.cpp)
+    target_link_libraries(cppui_qt_modal PRIVATE CPPUI::qt)
+    cppui_add_test(qt.modal cppui_qt_modal)
+
+    foreach(header application base button canvas dialog divider image_resource label layout modal progressbar splitter tab text window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")

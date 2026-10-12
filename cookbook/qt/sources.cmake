@@ -3,6 +3,7 @@ target_sources(${target} PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/backend.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../canvas.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../dialog.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../modal.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../progressbar.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../splitter.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tab.cpp"

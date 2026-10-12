@@ -21,6 +21,9 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "dialog") {
                 page.render = dialog;
                 page.remaining = "";
+            } else if(std::string(page.key) == "modal") {
+                page.render = modal;
+                page.remaining = "";
             }
         }
     }

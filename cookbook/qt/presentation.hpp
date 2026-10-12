@@ -21,6 +21,7 @@ namespace Cookbook { namespace Presentation {
         explicit Box(int weight): Item(weight) {}
         void postSync() override {
             for(auto child: *this->children) {
+                if(child->is_outoforder) continue;
                 auto item = dynamic_cast<Item *>(child);
                 this->layout->setStretchFactor(static_cast<QWidget *>(child->outer()), item ? item->weight : 0);
             }

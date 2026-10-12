@@ -148,7 +148,7 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   page; a plain label must not silently stand in for formatted text.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
-- [ ] Using the agreed `Binding<T>`/State adapters, add TextField, Checkbox,
+- [ ] Using the shared `Binding<T>`/State adapters, add TextField, Checkbox,
   RadioButton and ComboBox/item equivalents. Preserve in-progress edits, distinct
   labels/values, empty selections and current callbacks through redraw.
 
@@ -199,7 +199,7 @@ remain deferred with the Qt plan.
 
 ## Decisions awaiting direction
 
-- **Shared contracts:** follow the Qt plan's accepted Binding/State adapters,
+- **Shared contracts:** use the shared Binding/State adapters and follow the Qt plan's
   default reset for omitted properties, stderr render errors, Optional dialog
   results and PUI virtual Tab mapping. Input payloads are explicitly deferred;
   remaining subscription/value types, retained-view inputs and nested-sync

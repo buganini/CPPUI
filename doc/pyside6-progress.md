@@ -122,7 +122,7 @@ the separate deferred section records intentional omissions.
 | --- | --- | --- | --- |
 | DOM reconciliation | Scoped identity, native moves, virtual flattening and reclamation | External native deletion/remount respects identity; queued dispatch cannot reach reclaimed nodes | 1 / [virtual nodes][ref-virtual] |
 | Views | `View`, `QtView`, `SubView<T>()`, synchronous independent redraw | Bursts coalesce; removed views receive no work; changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
-| State | Read tracking, assignment, `+=`, `-=`, listener cleanup | Writable bindings commit once; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
+| State | Read tracking, assignment, `+=`, `-=`, listener cleanup and Binding adapters | Change subscriptions and explicit notification; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
 | Application | Owned/borrowed `QApplication`, queued quit | Apply and reset declared icon/options without changing borrowed native ownership | 2 / [gallery startup][ref-gallery] |
 | Window | `QMainWindow` and central widget | Update title/icon/size; initial flags apply only on creation; imperative state changes and keypress payloads work | 3 / [Qt regression][ref-qt] |
 | HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
@@ -132,7 +132,6 @@ the separate deferred section records intentional omissions.
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
 | Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
-| Modal | Missing | Native close updates bound visibility; reopen/removal and callbacks are safe | 5 / [Modal][ref-modal] |
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars/MDI coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
@@ -162,7 +161,6 @@ the separate deferred section records intentional omissions.
 [ref-combo]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/combobox.py
 [ref-image]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py
 [ref-scroll]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/scroll.py
-[ref-modal]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/modal.py
 [ref-mdi]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/mdi.py
 [ref-canvas]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py
 [ref-drop]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/drop.py
@@ -186,8 +184,10 @@ phases 0–3 does not block independent components in later phases.
 
 ### Agreed contracts for remaining work
 
-- Bound controls use reusable `Binding<T>` adapters, with `State<T>` accepted
-  through an adapter. Follow PUI's binding behavior where it transfers to C++.
+- Bound controls use `Binding<T>` adapters, with `State<T>` accepted through an
+  adapter. Adapters own callables and borrow the referenced model; external
+  getter/setter storage needs explicit redraw unless the getter reads State.
+  Follow PUI's binding behavior where it transfers to C++.
 - Removing a previously specified layout/style property restores its default
   on redraw. An explicit zero remains distinct from an omitted property.
 - Catch queued render exceptions inside the GUI callback and report them to
@@ -198,9 +198,9 @@ phases 0–3 does not block independent components in later phases.
 
 ### Phase 0 — Contract and test harness (P0)
 
-- [ ] Implement the agreed binding adapter and settle concrete layout/style
-  option types against reference behavior. Keep event-aware overloads deferred
-  without blocking components that use existing callbacks.
+- [ ] Settle concrete layout/style option types against reference behavior.
+  Keep event-aware overloads deferred without blocking components that use
+  existing callbacks.
 
 Acceptance: the remaining public API choices are documented and each planned
 component has a reference example and a concrete acceptance case.
@@ -253,9 +253,9 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 - [ ] Recover from a nested builder failure after native reconciliation has
   already started. Choose transactional prebuilding versus explicit partial-sync
   recovery; top-level declaration rollback alone cannot undo native updates.
-- [ ] Introduce reusable `Binding<T>` and `State<T>` adapters, conversion/validation for text
-  editors, change subscriptions, external getter/setter binding, and explicit
-  notification. Specify subscription ownership and `State` copy/move behavior.
+- [ ] Extend `Binding<T>` with conversion/validation helpers for text editors,
+  change subscriptions and explicit notification of external getter/setter
+  storage. Specify subscription ownership and `State` copy/move behavior.
 - [ ] Implement scoped batched mutation and suppress unchanged-value
   notifications where consistent with the reference. Choose comparison behavior
   for State values without equality and exception delivery when a batch flushes.
@@ -320,15 +320,13 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
 - [ ] Add Scroll with axis policies, safe single-content replacement, retained
   user position, start/end offsets, and `END`. Preserve the reference distinction
   between positive zero and negative-zero end anchoring in the C++ API.
-- [ ] Add Modal with bound status/off-value, open/close callbacks, native-close
-  synchronization, and Window's initial/imperative state contract.
 - [ ] Verify native desktop file dialogs and window-manager interaction on a
-  real display; offscreen widget-dialog tests do not establish platform parity.
+  real display, including Modal focus/flags; offscreen widget-dialog tests do
+  not establish platform parity.
 
 Acceptance: port [scroll_sync.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/scroll_sync.py); test content
-growth/shrinkage and a resize during reconciliation. Exercise modal
-close/reopen/removal, dialog filters/defaults, and cancellation. Native
-dialog interaction and window-manager state also require manual display checks.
+growth/shrinkage and a resize during reconciliation. Native dialog interaction,
+Modal focus and window-manager state require manual display checks.
 
 ### Phase 6 — Menus, toolbars, MDI, interop, and timers (P2)
 
@@ -402,11 +400,10 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
 | --- | --- | --- |
 | `grid.py`, `stack.py` | 3 | Grid placement, overlap |
-| `binding.py`, `textfield.py` | 2, 4 | External get/set, changed callback, edit/commit and conversion |
+| `binding.py`, `textfield.py` | 2, 4 | External-change notification, changed callback, edit/commit and conversion |
 | `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `image.py` | 3, 4 | Sized image asset |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
-| `modal.py` | 5 | Bound visibility and open/close callbacks |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |
@@ -416,10 +413,10 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 
 Continue independent implementation while these contracts remain undecided.
 
-- **Binding ownership:** implement the accepted adapter design against PUI's
-  conversion/change/getter/setter behavior. Document C++ subscription lifetimes
-  and State copy/move semantics; ask only if tracing the reference and existing
-  C++ ownership rules leaves a public choice unresolved.
+- **Binding ownership:** extend the adapter for PUI's conversion/change/emit
+  behavior. Document C++ subscription lifetimes and State copy/move semantics;
+  ask only if tracing the reference and existing C++ ownership rules leaves a
+  public choice unresolved.
 - **Batch completion:** queued redraw errors use stderr as agreed. A future
   batch-scope exit still needs defined exception behavior during stack unwinding.
 - **Common options:** choose concrete C++ layout/style/Qt option types against

@@ -4,21 +4,36 @@
 #include "../view.hpp"
 #include <QWidget>
 #include <QBoxLayout>
+#include <QCoreApplication>
 
 namespace CPPUI {
     namespace Qt {
         class QtView: public View {
+            QObject callbackContext;
+
             public:
             ~QtView() override { clearChildren(); }
 
             void clearChildren() {
                 destroyed = true;
+                QCoreApplication::removePostedEvents(&callbackContext);
                 for(Node * child: *children) recur_delete(child, true);
                 children->clear();
             }
 
             // Virtual views own declarations, never a QWidget or QApplication.
             void destroy(bool) override {}
+
+            // Lifecycle notifications run after reconciliation. Their context
+            // belongs to the view, so removing that view cancels pending work.
+            void queueCallback(std::function<void()> callback) {
+                if(destroyed || !callback) return;
+                QMetaObject::invokeMethod(&callbackContext, [callback]() {
+                    try { callback(); }
+                    catch(const std::exception & error) { std::cerr << "CPPUI callback: " << error.what() << '\n'; }
+                    catch(...) { std::cerr << "CPPUI callback: unknown exception\n"; }
+                }, ::Qt::QueuedConnection);
+            }
         };
 
         class BaseWidget: public Node {
@@ -96,9 +111,11 @@ namespace CPPUI {
 
             void * inner() override { return layout; }
             void addChild(int idx, Node * child) override {
+                if(child->is_outoforder) return;
                 layout->insertWidget(idx, static_cast<QWidget *>(child->outer()));
             }
             void removeChild(int, Node * child) override {
+                if(child->is_outoforder) return;
                 if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
         };

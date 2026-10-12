@@ -17,9 +17,11 @@ namespace CPPUI {
                 static_cast<QSplitter *>(ui)->setOrientation(vertical ? ::Qt::Vertical : ::Qt::Horizontal);
             }
             void addChild(int idx, Node * child) override {
+                if(child->is_outoforder) return;
                 static_cast<QSplitter *>(ui)->insertWidget(idx, static_cast<QWidget *>(child->outer()));
             }
             void removeChild(int, Node * child) override {
+                if(child->is_outoforder) return;
                 if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
         };

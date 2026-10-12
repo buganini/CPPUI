@@ -9,7 +9,7 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
 Button, Label, HBox, and VBox share their implementations across both backends.
-Qt also enables shared ProgressBar, Text, Splitter, Canvas, Tab, and Dialog recipes through
+Qt also enables shared ProgressBar, Text, Splitter, Canvas, Tab, Modal and Dialog recipes through
 its source manifest.
 The gallery preserves the reference's scrollable **Example** sidebar and expanding
 **Result** pane. Qt also keeps the nested example menus and initially maximized
@@ -102,7 +102,8 @@ used) and deinitializing LVGL.
 `--smoke` clicks every sidebar page three times, checks the two-column geometry,
 scrollable list, Qt menus, native label contents, and A/B, progress and Canvas
 rotation buttons. It switches the Tab recipe's pages and accepts/cancels the
-Dialog recipe's prompt (including accepted empty text), then tears down the
+Dialog recipe's prompt (including accepted empty text), opens/closes the Modal
+recipe through its bound buttons, then tears down the
 application. Sidebar native identity survives page changes.
 All three CMake projects support
 `-DCPPUI_VALGRIND_TESTS=ON`; `ctest -L valgrind --output-on-failure` runs the same

@@ -1,5 +1,23 @@
 2026-10-12
 
+- Add Qt Modal with Binding<T>/State adapters, bound visibility and typed
+  off-values, native-close synchronization, retained title/size and initial/
+  imperative window flags. Keep modals outside ordinary container slots and
+  give each dialog an explicit native owner. Queue open/close notifications
+  on the owning Qt view after reconciliation; cancel them on view destruction,
+  snapshot active dispatch and report callback/native-close errors to stderr.
+  Do not write borrowed models during declaration teardown. Port the shared
+  Modal cookbook recipe, preserve its layout/interactions, document binding and
+  lifecycle contracts, and remove completed Qt plan items. Binding change subscriptions,
+  general queued redraw, and desktop focus/window-manager validation remain.
+  Validation: full core/Qt ASan/UBSan/leak suite passes 23/23; Binding/Modal/
+  cookbook normal plus Valgrind checks pass 6/6. Cover native close/reopen,
+  rebinding, custom off-values, unchanged size/flags, callback replacement,
+  callback redraw/self-removal, capture reclamation, parent/native deletion,
+  nested-view teardown and exception boundaries. Core Binding compiles as
+  C++11 and headers compile independently. LVGL v9.6.0 SDL2 shared cookbook
+  normal/Valgrind checks pass 2/2. Inspect the Qt Modal recipe and dialog renders.
+
 - Show an arrow cursor in the X11 cookbook by supplying the cursor image that
   LVGL's X11 input setup requires; the driver hides the desktop cursor. Keep
   image data alive in static storage and the native cursor on the system layer,

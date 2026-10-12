@@ -43,9 +43,11 @@ namespace CPPUI {
         }
 
         void addChild(int, Node * child) override {
+            if(child->is_outoforder) return;
             if(auto widget = static_cast<QWidget *>(child->outer())) widget->show();
         }
         void removeChild(int, Node * child) override {
+            if(child->is_outoforder) return;
             if(auto widget = static_cast<QWidget *>(child->outer())) widget->close();
         }
         void start() override { application->exec(); }

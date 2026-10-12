@@ -12,6 +12,7 @@
 #include "cppui/qt/canvas.hpp"
 #include "cppui/qt/tab.hpp"
 #include "cppui/qt/dialog.hpp"
+#include "cppui/qt/modal.hpp"
 #include <QTimer>
 #include "../recipes.hpp"
 #include "presentation.hpp"
@@ -52,6 +53,11 @@ namespace Cookbook { namespace Backend {
                 accepted ? dialog->accept() : dialog->reject();
             }
         });
+    }
+    inline bool modalVisible(CPPUI::Node & node) {
+        auto modal = dynamic_cast<CPPUI::Qt::Modal *>(&node);
+        return modal && modal->ui && modal->ui->isVisible()
+            && static_cast<QDialog *>(modal->ui)->isModal();
     }
     inline bool selectPage(CPPUI::Node & node) {
         auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);
