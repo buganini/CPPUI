@@ -24,6 +24,10 @@ namespace CPPUI {
     }
 
     inline void View::trackState(StateBase * state) {
+        if(std::find(statesReadDuringBuild.begin(), statesReadDuringBuild.end(), state)
+           == statesReadDuringBuild.end()) {
+            statesReadDuringBuild.push_back(state);
+        }
         if(std::find(stateSubscriptions.begin(), stateSubscriptions.end(), state)
            == stateSubscriptions.end()) {
             stateSubscriptions.push_back(state);
@@ -31,6 +35,10 @@ namespace CPPUI {
     }
 
     inline void View::untrackState(StateBase * state) {
+        statesReadDuringBuild.erase(
+            std::remove(statesReadDuringBuild.begin(), statesReadDuringBuild.end(), state),
+            statesReadDuringBuild.end()
+        );
         stateSubscriptions.erase(
             std::remove(stateSubscriptions.begin(), stateSubscriptions.end(), state),
             stateSubscriptions.end()
@@ -58,6 +66,7 @@ namespace CPPUI {
             return;
         }
         const auto originalSize = children->size();
+        statesReadDuringBuild.clear();
         try {
             auto scope = begin();
             content();
@@ -70,6 +79,16 @@ namespace CPPUI {
                 recur_delete(child, true);
             }
             throw;
+        }
+        // Only the successful build replaces dependencies. A failed build keeps
+        // the previous subscriptions so the mounted tree can still be updated.
+        const auto subscriptions = stateSubscriptions;
+        for(auto state: subscriptions) {
+            if(std::find(statesReadDuringBuild.begin(), statesReadDuringBuild.end(), state)
+               == statesReadDuringBuild.end()) {
+                state->removeListener(this);
+                untrackState(state);
+            }
         }
         if(prev) prev->retired_by = this;
     }

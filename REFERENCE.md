@@ -29,3 +29,10 @@ A button invocation copies its callback before calling user code so synchronous
 redraw/removal cannot destroy the callable while it is executing. External native
 subtree deletion is safe for teardown; automatic remount after that deletion is
 not yet supported.
+
+State reads during a successful build replace that view's dependencies. Values
+that are no longer read stop triggering redraws. Assigning, incrementing, or
+decrementing any State during a view builder throws
+`StateMutationInViewBuilderError` before changing its value. Mutate state in event
+handlers or application code outside construction. Redraw remains synchronous
+until the queued completion/error contract is chosen.

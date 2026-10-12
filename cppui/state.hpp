@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <stdexcept>
 
 #ifndef CPPUI_STATE_HEADER
 #define CPPUI_STATE_HEADER
@@ -12,22 +13,30 @@
 namespace CPPUI {
     class View;
 
+    class StateMutationInViewBuilderError: public std::logic_error {
+        public:
+        StateMutationInViewBuilderError()
+            : std::logic_error("State cannot be mutated while building a view") {}
+    };
+
     template <typename T>
     class State: public Context, public StateBase {
         T value;
         std::vector<View *> listeners;
         std::vector<View *> pendingNotifications;
 
+        static void checkMutation() {
+            if(!getStack()->empty()) throw StateMutationInViewBuilderError();
+        }
+
         inline void notifyListeners() {
 #if DEBUG_CPPUI_STATE > 0
             std::cout << "noitify " << listeners.size() << std::endl;
 #endif
             pendingNotifications = listeners;
-            listeners.clear();
             while(!pendingNotifications.empty()) {
                 View * view = pendingNotifications.front();
                 pendingNotifications.erase(pendingNotifications.begin());
-                view->untrackState(this);
                 std::cout << "redraw " << view << std::endl;
                 view->redraw();
             }
@@ -65,29 +74,32 @@ namespace CPPUI {
                 return value;
             }
             View * view = stack->back();
+            view->trackState(this);
             for(View *v: listeners){
                 if(v==view){
                     return value;
                 }
             }
             listeners.push_back(view);
-            view->trackState(this);
             return value;
         }
 
         State<T> & operator=(const T & rhs) {
+            checkMutation();
             value = rhs;
             notifyListeners();
             return *this;
         }
 
         State<T> & operator+=(const T& rhs) {
+            checkMutation();
             value += rhs;
             notifyListeners();
             return *this;
         }
 
         State<T> & operator-=(const T& rhs) {
+            checkMutation();
             value -= rhs;
             notifyListeners();
             return *this;

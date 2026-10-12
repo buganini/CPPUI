@@ -117,7 +117,7 @@ The checklist below contains remaining work only.
 | --- | --- | --- |
 | DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Full identity contract, dispatch lifetime safety, ordering/grid coverage |
 | Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, nested failure recovery, parameterized views |
-| State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, mutation guards, collection changes |
+| State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, collection changes |
 | Application | Partial: creates `QApplication`, shows/closes children, starts loop | Icon/options, queued quit |
 | Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
 | HBox/VBox | Partial: insertion/removal and native reuse | Padding, dimensions, weights, Qt policies, correct native mounting |
@@ -202,7 +202,9 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 - [ ] Separate immediate synchronization from redraw requests. Add dirty/updating
   guards, queue Qt redraws on the GUI thread, coalesce bursts, and ignore pending
   work for removed views. Define a safe way to await completion in tests.
-- [ ] Add one-time setup and parameterized subview construction. Define when
+- [ ] Add one-time setup and parameterized subview construction. Setup that
+  mutates already-subscribed state must wait for the reentrant scheduling contract.
+  Define when
   matching views retain local state and how changed inputs reach reused views.
 - [ ] Recover from a nested builder failure after native reconciliation has
   already started. Choose transactional prebuilding versus explicit partial-sync
@@ -210,9 +212,9 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 - [ ] Introduce typed readable/writable bindings, conversion/validation for text
   editors, change subscriptions, external getter/setter binding, and explicit
   notification. Specify subscription ownership and `State` copy/move behavior.
-- [ ] Implement scoped batched mutation and reject mutation during view building.
-  Suppress unchanged-value notifications where consistent with the reference;
-  refresh dependencies and detach destroyed subscribers safely.
+- [ ] Implement scoped batched mutation and suppress unchanged-value
+  notifications where consistent with the reference. Choose comparison behavior
+  for State values without equality and exception delivery when a batch flushes.
 - [ ] Define observable list/map updates and element bindings corresponding to
   PUI's collection state. State explicitly how nested changes notify views;
   mutable container access must not silently bypass notification.
@@ -220,7 +222,7 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
   creation/reuse and the thread boundary for state updates.
 
 Acceptance: port the scenarios in [tests/batched_state_mutation.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/batched_state_mutation.py),
-[tests/set_state_in_view_builder.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/set_state_in_view_builder.py), [tests/redraw_semaphore.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/redraw_semaphore.py), and
+[tests/redraw_semaphore.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/redraw_semaphore.py), and
 [tests/nested_view.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/nested_view.py) into assertions. A redraw burst settles to the latest
 state; a removed subscriber receives no work; invalid text leaves the model
 valid; builder failure leaves the next render usable.
@@ -384,6 +386,12 @@ Continue independent implementation while these contracts remain undecided.
   copy/move semantics together. This blocks bound editors, collection controls,
   and the binding/textfield cookbook pages; ordinary state-driven labels/buttons
   do not require that choice.
+- **Queued redraw completion/errors:** queued Qt work has no synchronous caller
+  to receive a builder exception. Choose an application error callback, stored
+  exception/completion handle, or another explicit reporting contract before
+  introducing asynchronous redraw. Batch-scope exit also needs defined exception
+  behavior during stack unwinding. Continue immediate redraw for now; callback
+  snapshots protect the current no-argument button handlers from self-removal.
 - **Common options and events:** choose the C++ spelling and omitted/reset-value
   representation for layout/style/Qt options and event payloads. Preserve the
   existing no-argument click overload. Styles, weighted layouts, grid, native

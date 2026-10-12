@@ -1,5 +1,17 @@
 2026-10-12
 
+- Reject State assignment, += and -= during view construction before changing
+  the model. Refresh dependencies after successful builds so obsolete conditional
+  reads stop receiving updates. Preserve subscriptions after failed builds and
+  failed notifications so later state changes can recover the view.
+  Record queued-redraw error/completion handling, batching exception behavior,
+  and reentrant setup as unresolved decisions rather than choosing an implicit API.
+  Validation: C++11 core/standalone headers, Qt examples and cookbook builds pass;
+  Qt/core sanitizer tests 9/9 and Valgrind tests 9/9 pass. The LVGL shared cookbook
+  passes ASan/UBSan/leak checks and normal/Valgrind runs (1/1 and 2/2). Tests cover
+  conditional dependency changes, unchanged reads, failure recovery, and all
+  mutation operators. Clean completed checks from the progress plan.
+
 - Add one shared C++ cookbook/gallery with separate Qt and LVGL CMake projects,
   backend startup/native test helpers, and no backend conditionals in recipes.
   Port the basic Button/Label/HBox/VBox interactions; explicitly show remaining
