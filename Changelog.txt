@@ -1,0 +1,9 @@
+2026-10-12
+
+- Document the Qt/PySide6 alignment plan against PUI commit
+  009e9b9c3fbd724f0b73c862f8213ddc4742405c, with phased acceptance checks,
+  GitHub source references, and explicit C++ ownership/reclamation rules.
+  Keep borrowed construction references and defer public weak node wrappers.
+  Prefer typed internal native pointers with explicit lifecycle management.
+  Validation: reference paths checked against the pinned Git objects; Markdown
+  links and whitespace checked. No runtime implementation change in this entry.
