@@ -19,7 +19,7 @@ namespace CPPUI { namespace Qt {
     class ToolBar: public BaseWidget {
         public:
         ToolBar() { is_outoforder = true; }
-        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new QToolBar(); }
+        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new Widget<QToolBar>(); }
         void addChild(int index, Node * child) override {
             if(child->is_outoforder) return;
             auto toolbar = static_cast<QToolBar *>(ui);

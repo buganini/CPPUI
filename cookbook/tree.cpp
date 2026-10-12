@@ -3,12 +3,12 @@
 
 namespace Cookbook {
     void tree(Model & model) {
-        for(auto column: Presentation::VBox(1)) {
-            for(auto row: Presentation::HBox()) {
+        for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+            for(auto row: CPPUI::HBox()) {
                 CPPUI::Button("Add item").click([&model]() { model.treeItems += 1; });
-                Presentation::Spacer();
+                CPPUI::Spacer();
             }
-            for(auto row: Presentation::HBox(1)) {
+            for(auto row: CPPUI::HBox().layout({}, {}, 1)) {
                 for(auto tree: CPPUI::Tree().expandAll().id("example-tree")) {
                     for(auto root: CPPUI::TreeNode("Root")) {
                         for(auto branch: CPPUI::TreeNode("Sub 1")) {

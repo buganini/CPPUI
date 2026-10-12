@@ -204,7 +204,7 @@ namespace CPPUI { namespace Qt {
             auto prev = static_cast<Table *>(previous);
             if(prev && prev->ui) { ui = prev->ui; model = prev->model; }
             else {
-                auto table = new QTableView(); ui = table;
+                auto table = new Widget<QTableView>(); ui = table;
                 model = new TableModel(table); table->setModel(model);
                 table->setItemDelegate(new TableDelegate(table));
             }

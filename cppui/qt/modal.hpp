@@ -8,14 +8,14 @@
 #include <QVBoxLayout>
 
 namespace CPPUI { namespace Qt {
-    class ModalWidget: public QDialog {
+    class ModalWidget: public Widget<QDialog> {
         bool openState = false;
         public:
         Optional<QSize> declaredSize;
         std::function<void(bool)> changed;
         std::function<void()> writeOff;
 
-        explicit ModalWidget(QWidget * parent): QDialog(parent) { setModal(true); }
+        explicit ModalWidget(QWidget * parent): Widget<QDialog>(parent) { setModal(true); }
 
         void setOpen(bool value) {
             if(openState == value) return;
@@ -43,14 +43,14 @@ namespace CPPUI { namespace Qt {
         OptionalText caption;
         Optional<QSize> dimensions;
         Optional<bool> initialMaximized, initialFullscreen;
-        QVBoxLayout * layout = nullptr;
+        QVBoxLayout * qtlayout = nullptr;
 
         static void windowFlag(QWidget * widget, ::Qt::WindowState flag, bool value) {
             widget->setWindowState(value ? widget->windowState() | flag : widget->windowState() & ~flag);
         }
         protected:
         void clearNative() override {
-            layout = nullptr;
+            qtlayout = nullptr;
             BaseWidget::clearNative();
         }
 
@@ -87,11 +87,11 @@ namespace CPPUI { namespace Qt {
             if(creating) {
                 auto owner = dynamic_cast<BaseWidget *>(dom_parent);
                 ui = new ModalWidget(owner ? owner->ui : nullptr);
-                layout = new QVBoxLayout(ui);
-                layout->setContentsMargins(0, 0, 0, 0);
+                qtlayout = new QVBoxLayout(ui);
+                qtlayout->setContentsMargins(0, 0, 0, 0);
             } else {
                 ui = previous->ui;
-                layout = static_cast<Modal *>(previous)->layout;
+                qtlayout = static_cast<Modal *>(previous)->qtlayout;
             }
             auto dialog = static_cast<ModalWidget *>(ui);
             auto root = dynamic_cast<QtView *>(cppui_root);
@@ -112,9 +112,9 @@ namespace CPPUI { namespace Qt {
             }
             dialog->setOpen(visible);
         }
-        void * inner() override { return layout; }
+        void * inner() override { return qtlayout; }
         void addChild(int index, Node * child) override {
-            if(!child->is_outoforder) layout->insertWidget(index, static_cast<QWidget *>(child->outer()));
+            if(!child->is_outoforder) qtlayout->insertWidget(index, static_cast<QWidget *>(child->outer()));
         }
         void removeChild(int, Node * child) override {
             if(!child->is_outoforder) {

@@ -10,6 +10,7 @@
 #define CPPUI_NODE_HEADER
 
 #include "context.hpp"
+#include "modifiers.hpp"
 
 namespace CPPUI {
     class Node;
@@ -56,6 +57,35 @@ namespace CPPUI {
 
         Node();
         virtual ~Node();
+
+        Optional<int> layout_width, layout_height, layout_weight;
+        Optional<Insets> layout_padding, layout_margin;
+        Optional<int> style_color, style_bgcolor, style_fontsize, style_fontweight;
+        OptionalText style_fontfamily;
+
+        Node & layout(Optional<int> width = {}, Optional<int> height = {}, Optional<int> weight = {},
+                      Optional<Insets> padding = {}, Optional<Insets> margin = {}) {
+            if((width && *width < 0) || (height && *height < 0) || (weight && *weight < 0))
+                throw std::invalid_argument("Layout dimensions and weight must be non-negative");
+            if(width) layout_width = width;
+            if(height) layout_height = height;
+            if(weight) layout_weight = weight;
+            if(padding) layout_padding = padding;
+            if(margin) layout_margin = margin;
+            return *this;
+        }
+        Node & style(Optional<int> color = {}, Optional<int> bgColor = {}, Optional<int> fontSize = {},
+                     Optional<int> fontWeight = {}, OptionalText fontFamily = {}) {
+            if(fontSize && *fontSize < 0) throw std::invalid_argument("Font size must be non-negative");
+            if(color) style_color = color;
+            if(bgColor) style_bgcolor = bgColor;
+            if(fontSize) style_fontsize = fontSize;
+            if(fontWeight) style_fontweight = fontWeight;
+            if(fontFamily) style_fontfamily = fontFamily;
+            return *this;
+        }
+        // Non-Qt nodes accept backend options without applying them, like PUI.
+        virtual Node & qt(const QtOptions &) { return *this; }
 
         Node & id(const char * name) {
             has_id = name != nullptr;

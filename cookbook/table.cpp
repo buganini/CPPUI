@@ -9,11 +9,11 @@ namespace Cookbook {
         }
     }
     void table(Model & model) {
-        for(auto column: Presentation::VBox(1)) {
-            Presentation::Label("A1: " + static_cast<std::string>(model.tableA1));
-            Presentation::Label("B1: " + static_cast<std::string>(model.tableB1));
-            Presentation::Label("Sides: " + std::to_string(static_cast<int>(model.tableSides)));
-            Presentation::Label("Direction: " + static_cast<std::string>(model.tableDirection));
+        for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+            CPPUI::Label("A1: " + static_cast<std::string>(model.tableA1));
+            CPPUI::Label("B1: " + static_cast<std::string>(model.tableB1));
+            CPPUI::Label("Sides: " + std::to_string(static_cast<int>(model.tableSides)));
+            CPPUI::Label("Direction: " + static_cast<std::string>(model.tableDirection));
             for(auto table: CPPUI::Table().columnHeader({"Col 1", "Col 2", "Col 3", "Choice"})
                     .rowHeader({"Row 1", "Row 2", "Row 3"}).id("example-table")) {
                 for(auto row: CPPUI::TableNode()) {

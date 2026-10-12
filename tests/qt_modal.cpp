@@ -131,7 +131,7 @@ int main(int argc, char ** argv) {
             auto native = root.native();
             QPointer<QWidget> nativeLife = native;
             auto box = static_cast<CPPUI::Qt::BaseLayout *>(find(root, "box"));
-            require(native->isModal() && !native->isVisible() && box->layout->count() == 2,
+            require(native->isModal() && !native->isVisible() && box->qtlayout->count() == 2,
                     "closed Modal consumed a box slot or became visible");
             require(native->parentWidget() == box->ui && native->layout()->count() == 1,
                     "Modal has no native owner or lost its content");

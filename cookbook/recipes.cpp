@@ -6,46 +6,46 @@ using namespace CPPUI;
 namespace Cookbook {
     namespace {
         void button(Model & model) {
-            for(auto column: Presentation::VBox(1)) {
-                for(auto row: Presentation::HBox()) {
-                    Presentation::Label(static_cast<std::string>(model.buttonValue));
+            for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+                for(auto row: CPPUI::HBox()) {
+                    CPPUI::Label(static_cast<std::string>(model.buttonValue));
                     Button("A").click([&model]() { model.buttonValue = std::string("A"); });
                     Button("B").click([&model]() { model.buttonValue = std::string("B"); });
-                    Presentation::StyledButton();
-                    Presentation::Spacer();
+                    CPPUI::Button("Styled").style(0xff0000, {}, 20);
+                    CPPUI::Spacer();
                 }
-                Presentation::Spacer();
+                CPPUI::Spacer();
             }
         }
         void label(Model &) {
-            for(auto column: Presentation::VBox(1)) {
-                Presentation::Label("Hello World");
-                Presentation::StyledLabel();
-                Presentation::Label("No <b>HTML</b>");
-                Presentation::Spacer();
+            for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+                CPPUI::Label("Hello World");
+                CPPUI::Label("Big Yellow").style(0xffff00, 0xff0000, 20);
+                CPPUI::Label("No <b>HTML</b>");
+                CPPUI::Spacer();
             }
         }
         void hbox(Model &) {
-            for(auto column: Presentation::VBox()) {
-                for(auto row: Presentation::HBox().id("spacer-row")) {
-                    Presentation::Label("Column 1");
-                    Presentation::Spacer().id("row-gap");
-                    Presentation::Label("Column 2").id("row-end");
+            for(auto column: CPPUI::VBox()) {
+                for(auto row: CPPUI::HBox().id("spacer-row")) {
+                    CPPUI::Label("Column 1");
+                    CPPUI::Spacer().id("row-gap");
+                    CPPUI::Label("Column 2").id("row-end");
                 }
-                for(auto row: Presentation::HBox()) {
-                    Presentation::Label("Column 1");
-                    Presentation::Label("Column 2", 1);
-                    Presentation::Label("Column 3");
+                for(auto row: CPPUI::HBox()) {
+                    CPPUI::Label("Column 1");
+                    CPPUI::Label("Column 2").layout({}, {}, 1);
+                    CPPUI::Label("Column 3");
                 }
             }
-            Presentation::Spacer();
+            CPPUI::Spacer();
         }
         void vbox(Model &) {
-            for(auto column: Presentation::VBox(1).id("spacer-column")) {
-                Presentation::Label("Row 1");
-                Presentation::Divider();
-                Presentation::Label("Row 2");
-                Presentation::Spacer().id("column-gap");
+            for(auto column: CPPUI::VBox().layout({}, {}, 1).id("spacer-column")) {
+                CPPUI::Label("Row 1");
+                CPPUI::Divider();
+                CPPUI::Label("Row 2");
+                CPPUI::Spacer().id("column-gap");
             }
         }
     }

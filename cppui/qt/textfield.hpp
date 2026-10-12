@@ -9,7 +9,7 @@
 #include <QSignalBlocker>
 
 namespace CPPUI { namespace Qt {
-    class TextFieldWidget: public QLineEdit {
+    class TextFieldWidget: public Widget<QLineEdit> {
         public:
         bool editing = false, committing = false;
         OptionalText modelValue;

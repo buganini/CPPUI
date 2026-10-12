@@ -8,7 +8,7 @@
 |[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|—|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|—|
 |[Divider](#divider)|QFrame|flex-axis separator|—|
-|[Scroll](#scroll)|QScrollArea|—|—|
+|[Scroll](#scroll)|QScrollArea|scrollable object (basic)|—|
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
@@ -94,6 +94,79 @@ keeps the mounted UI and the view can retry on a later request; failures after
 native reconciliation starts still need a recovery contract. Removing a view
 cancels its queued work. Core and LVGL redraws remain synchronous.
 
+## PUI modifiers
+
+Nodes expose PUI's `.layout(...)`, `.style(...)` and `.qt(...)` APIs. These are
+ports of [PUI's node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/node.py)
+and [Qt parameter application](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py).
+C++ arguments follow the Python keyword order; `{}` omits an argument:
+
+```cpp
+.layout(width = {}, height = {}, weight = {}, padding = {}, margin = {})
+.style(color = {}, bgColor = {}, fontSize = {}, fontWeight = {}, fontFamily = {})
+.qt(const CPPUI::QtOptions & options)
+```
+
+Dimensions, weight, colors and font size/weight use `Optional<int>`; padding and
+margin use `Optional<Insets>`, and font family uses `OptionalText`. Strings and
+option maps are copied. Repeated calls merge supplied values on that declaration.
+A fresh declaration without a formerly supplied property restores the native
+default during redraw. Zero is an explicit value, including black (`0x000000`),
+zero size, zero weight and `Insets(0)`. Dimensions/weights/font sizes reject
+negative values. Modifiers return the borrowed `Node&` for immediate chaining.
+
+```cpp
+for(auto column: CPPUI::VBox().layout({}, {}, 1, CPPUI::Insets(12))) {
+    CPPUI::Label("Heading").style(0x336699, {}, 20);
+    CPPUI::Label("Body").layout(200, 40).style({}, {}, {}, {}, std::string("Sans"));
+}
+```
+
+`Insets` accepts one value (all sides), two (vertical, horizontal), three
+(top, horizontal, bottom), or four (top, right, bottom, left). Pass an explicit
+`Insets(...)`; C++ cannot implicitly convert an integer through both Insets and
+Optional. Use `std::string(...)` for a font-family literal for the same reason.
+**Reference limitations:** `margin` and `fontWeight` are stored but not applied
+by the pinned PUI Qt implementation. CPPUI keeps that behavior on both backends.
+Virtual/model-only nodes have no native size or appearance to modify.
+
+Qt dimensions override preferred `sizeHint()`, not minimum/maximum dimensions;
+a parent can allocate a different actual size. Explicit dimensions select the
+Preferred size policy unless `.qt(...)` overrides it. Padding sets widget
+contents margins; weight sets a physical HBox/VBox child's stretch, including
+through a virtual view. Colors are RGB integers and font sizes are points.
+
+Include `cppui/qt/options.hpp` (also included by Qt widget headers) for the
+supported native options, with names matching PUI's keyword keys:
+
+```cpp
+CPPUI::QtOptions options;
+options.HorizontalPolicy = QSizePolicy::Fixed;
+options.VerticalPolicy = QSizePolicy::Preferred;
+options.SizeConstraint = QLayout::SetMinimumSize;
+options.StyleSheet = CPPUI::QtStyleSheet{{"background-color", "#eeeeee"}};
+CPPUI::VBox().layout(200).qt(options);
+```
+
+`StyleSheet` is an optional map of CSS properties and overrides generic `.style()`
+properties. Like PUI, a later `.qt(...)` call replaces a supplied StyleSheet map
+as a whole; omission keeps it and an explicit `QtStyleSheet{}` clears it. Other
+supplied Qt option fields merge individually. `SizeConstraint` applies to the
+widget's native QLayout; requesting it on a widget without a layout throws. `Style` accepts a borrowed `QStyle*` for
+widgets; it must outlive them. Omitting Qt options on a replacement declaration
+restores defaults. Native layout pointers are named `qtlayout` to leave
+`.layout(...)` available. Non-Qt nodes accept `.qt(...)` as a no-op; QtOptions
+itself requires Qt headers.
+
+LVGL dimensions set object sizes in pixels, weight sets flex grow, padding sets
+the four native padding properties, and colors set text/background colors.
+Omission restores prior local styles or theme defaults. `fontSize` selects the
+nearest compiled Montserrat bitmap font, approximating points at 96 dpi; it
+cannot produce arbitrary exact sizes. `fontFamily` accepts empty/default or
+`"Montserrat"`; other families throw. Font data remains owned by the configured
+LVGL runtime. Runtime font loading and display-density mapping remain pending.
+The wx backend currently stores these modifiers without applying them.
+
 ## Application
 
 Qt `Application(argc, argv, iconPath)` optionally copies an icon path and sets
@@ -101,8 +174,15 @@ the application-wide default window icon once, during its first synchronization,
 following PUI. Omitting the path (or passing an empty string) preserves a borrowed
 QApplication's icon. An explicit path also applies to a borrowed QApplication;
 it is an application-wide setting and is not restored on CPPUI teardown. Later
-redraws leave native icon changes alone. General application options remain
-subject to the shared options API.
+redraws leave native icon changes alone.
+
+`.style(...)` and `.qt(...)` also support application-wide font/colors,
+`StyleSheet` and `Style`. QApplication takes ownership of an explicitly supplied
+`QStyle*`, unlike widget-level Style; do not delete it or share its ownership.
+These global settings also affect a borrowed QApplication and remain after the
+CPPUI Application is destroyed. Widget-only size policies and SizeConstraint
+are rejected. Omitting application styling initially preserves a borrowed
+application's existing stylesheet.
 
 Qt `Application::quit()` queues event-loop exit so the current handler can return
 first. It can be called before `run()`; application destruction cancels any
@@ -184,9 +264,11 @@ path and pixmap, reuses the native label, and reloads when the path or file
 modification time changes. It uses the image's natural size. Click replacement,
 removal and native lifetime follow Label. A missing path throws during declaration
 building, preserving the mounted image on a failed redraw; undecodable existing
-files produce an empty Qt pixmap. Public dimension/stretch modifiers await the
-shared layout API. The cookbook uses a private 360-pixel-height adapter and the
-same screenshot as PUI's Image recipe.
+files produce an empty Qt pixmap. `.layout(width, height)` scales the source
+pixmap with its aspect ratio preserved; with one dimension, the other is inferred.
+The original pixels remain cached so changing or omitting dimensions rescales
+from the source. Positive weight enables native scaled contents. The cookbook
+uses `.layout({}, 360)` and the same screenshot as PUI's Image recipe.
 
 ## Menus and toolbars
 
@@ -308,6 +390,16 @@ current declaration fit the child's size hint, even though scrollbar visibility
 policies are initial-only. All observers belong to the native scroll widget and
 end with it.
 
+For basic LVGL scrolling, include `cppui/lvgl/scroll.hpp`. `Scroll(vertical = {},
+horizontal = false)` contains ordinary native children and supports fixed viewport
+sizes through `.layout(...)`; a disabled axis fits unspecified child dimensions
+to the viewport. False disables an axis, true forces its scrollbar, and `{}`
+allows automatic visibility. LVGL has one scrollbar mode for both axes, so
+forcing one axis while leaving the other automatic throws instead of silently
+changing the policy. Independent mixed modes, `.scrollX()`/`.scrollY()` and signed
+end anchoring remain unimplemented. This public component serves the gallery
+sidebar; the full Scroll recipe is still Qt-only.
+
 ## ComboBox
 
 Include `cppui/qt/combobox.hpp`. `ComboBox(editable, model)` accepts an integer
@@ -369,10 +461,13 @@ subscribes the surrounding view; this component does not require a writable bind
 
 ## Box layouts
 
-Qt boxes use 11 pixels of outer padding when their physical parent is not another
-box layout, and zero padding when nested in a box. Native QBoxLayout margins are
-zero to avoid adding a second layer of spacing. Configurable padding and weights
-still await the common layout API.
+Qt and LVGL boxes use 11 pixels of outer padding when their physical parent is
+not another layout, and zero padding when nested. Native QBoxLayout margins are
+zero to avoid adding a second layer of spacing. Use `.layout(...)` to override
+padding/dimensions and set each child's weight. Redraw updates stretch and resets
+omitted properties, including children rebuilt by independent virtual views.
+LVGL boxes use a six-pixel gap and stretch children across the other axis unless
+that dimension is explicit; dividers retain their one-pixel thickness.
 
 ## Grid and Stack
 
@@ -415,8 +510,9 @@ native objects. Native deletion clears its observer, and declaration teardown
 detaches that observer before a parent deletes its children. Qt uses QSpacerItem
 with Expanding policy on the box axis and Preferred on the other axis. Its
 layout owns mounted items; direct removal deletes detached items, and layout
-destruction invalidates the declaration's observer. Fixed-size spacing and
-custom weights remain pending with the layout API.
+destruction invalidates the declaration's observer. `.layout({}, {}, weight)`
+changes the default weight of one. Fixed-size spacing remains unimplemented
+for Qt's non-widget spacer, as in the pinned PUI reference.
 
 ## Divider
 
@@ -626,8 +722,9 @@ true requests a frame on the next LVGL refresh interval. Teardown cancels the
 timer and releases captures, and the native object retains its buffer until
 deletion, including when an ancestor owns that deletion. Run callbacks on the
 UI thread without nested event loops or display/runtime teardown.
-Input/drag/drop events and shared layout/style modifiers remain pending. The
-cookbook uses a private size/background adapter meanwhile.
+Use `.layout(width, height).style({}, backgroundColor)` for the canvas size and
+background; the shared cookbook uses `.layout(100, 100).style({}, 0x555555)`.
+Input/drag/drop events remain pending.
 **Won't do — Shapely and Matplotlib:** Python-only `Canvas.drawShapely` and
 `MatplotlibCanvas` integrations are excluded from CPPUI and its cookbook.
 

@@ -5,15 +5,15 @@ namespace Cookbook {
     void splitter(Model &) {
         for(auto vertical: CPPUI::Splitter(true)) {
             for(auto horizontal: CPPUI::Splitter()) {
-                for(auto column: Presentation::VBox()) {
-                    Presentation::Label("item 1");
-                    Presentation::Label("item 2");
-                    Presentation::Label("item 3");
-                    Presentation::Label("item 4");
+                for(auto column: CPPUI::VBox()) {
+                    CPPUI::Label("item 1");
+                    CPPUI::Label("item 2");
+                    CPPUI::Label("item 3");
+                    CPPUI::Label("item 4");
                 }
-                Presentation::GrayLabel("pane");
+                CPPUI::Label("pane").style({}, 0x808080);
             }
-            Presentation::GrayText("blah blah");
+            CPPUI::Text("blah blah").style({}, 0x808080);
         }
     }
 }

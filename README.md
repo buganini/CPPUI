@@ -114,6 +114,11 @@ JIT diagnostics without function names, as recommended by the
 default JIT setting. No project suppression file is applied. To pass additional
 platform-specific arguments, use `CPPUI_VALGRIND_OPTIONS` (a CMake list).
 
+PUI's `.layout(...)`, `.style(...)` and `.qt(...)` modifiers are available on
+CPPUI nodes. For example, `Label("Title").layout(200, 40).style(0x336699, {}, 20)`
+sets a preferred Qt size and text style. See the [modifier reference](REFERENCE.md#pui-modifiers)
+for argument order, typed Qt options, redraw resets and LVGL mappings.
+
 # View Hierarchy Construction
 ```c++
 #include <iostream>

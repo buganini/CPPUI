@@ -26,7 +26,13 @@ namespace CPPUI {
 
             void addChild(int idx, Node * child) {
                 Node::addChild(idx, child);
-                lv_obj_set_size((lv_obj_t *)child->outer(), lv_pct(100), lv_pct(100));
+                layoutChild(child);
+            }
+
+            void layoutChild(Node * child) override {
+                if(!child->ui) return;
+                if(!child->layout_width) lv_obj_set_width(static_cast<lv_obj_t *>(child->outer()), lv_pct(100));
+                if(!child->layout_height) lv_obj_set_height(static_cast<lv_obj_t *>(child->outer()), lv_pct(100));
             }
 
             void removeChild(int idx, Node * child) {

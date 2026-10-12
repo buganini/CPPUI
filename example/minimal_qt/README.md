@@ -18,3 +18,6 @@ registers this example's smoke and optional memory tests.
 `UI` inherits the Application constructors. To set an initial default window
 icon, construct it with `UI app(argc, argv, "icon.png")`. The optional path is
 copied; redraws preserve later native icon changes.
+
+It also shows PUI's `.layout(...)`, `.style(...)` and typed `.qt(...)` modifiers for
+padding, a preferred label width, colors/fonts and a fixed horizontal size policy.

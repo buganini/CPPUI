@@ -24,20 +24,20 @@ and current contracts; summarize completed changes briefly in `Changelog.txt`.
 ## Current basis and remaining acceptance
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Checkbox, Spacer, Divider, plain Text, Tabs/Tab and basic Canvas drawing. The shared cookbook
-additionally has private presentation helpers for weights, styles and scrolling. Those helpers do not establish public component support.
+Button, Checkbox, Spacer, Divider, plain Text, basic Scroll, Tabs/Tab and Canvas
+drawing. Shared recipes use the public PUI layout/style modifiers; see the
+[component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
 
 | Area | Current basis | Remaining acceptance / phase |
 | --- | --- | --- |
 | Core integration | Shared reconciliation, nested virtual views, standalone view cleanup and top-level builder recovery | Nested partial-sync failure recovery needs a shared contract |
 | Native lifetime | Views own declarations; primary/secondary native observers clear on deletion; callbacks detach on retirement | Define external remount and shared-screen ownership before broadening interop (2, 6) |
 | Application and native drivers | Timer loop; separate SDL2/X11 cookbook startup and smoke teardown | Define stop/event ownership, then close gracefully before native display destruction; support host-driven pumping without POSIX-only assumptions (2) |
-| HBox/VBox | Basic flex flow and child sizing | Common padding/dimensions/weights reset correctly, including zero; nested and virtual geometry remains stable (3) |
-| Label/Button | Owned text and current button/label callbacks | Input payloads and style reset follow common contracts (3) |
-| Spacer/Divider/Grid/Stack | Public expanding Spacer and flex-axis Divider | Define fixed spacing and shared placement/style API, then add Grid/Stack and verify spans/overlap (3) |
+| Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
+| Grid/Stack | Missing | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
 | ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
 | Bound controls | Boolean Checkbox with Binding/State; cookbook membership adapters | Text edit/commit and typed value selection contracts remain (4) |
-| Scroll/Tabs/Tab/Splitter | Public Tabs/Tab; cookbook-only scrolling | Map independent axis policies/anchoring and decide splitter capability (5) |
+| Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
 | Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
@@ -106,15 +106,11 @@ Reference: shared [HBox](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b
 [Label](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/label.py)
 and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/button.py) cases.
 
-- [ ] Apply the agreed common layout/style options to LVGL, with explicit
-  omitted/reset behavior, font-resource ownership and supported units.
-- [ ] Add public Grid and Stack; verify nested padding, grid spans and
-  overlapping child order. Add fixed-size spacing and configurable weights
-  after the shared layout options are defined.
-- [ ] Add agreed input payloads and restore style/layout properties when
-  modifiers are removed.
-- [ ] Migrate cookbook presentation helpers onto these public components once
-  parity is verified, preserving the gallery and recipe geometry.
+- [ ] Add public Grid and Stack after native track sizing is agreed; verify
+  nested padding, grid spans and overlapping child order.
+- [ ] Add input payloads after the deferred common event contract is addressed.
+- [ ] Verify layout/style geometry at multiple display sizes and densities;
+  define runtime font resources beyond the current compiled-font approximation.
 
 ### Phase 4 — Text, progress, images and bound controls
 
@@ -139,9 +135,10 @@ native reuse, valid model retention after invalid input, and resource reclamatio
 
 ### Phase 5 — Containers and window interactions
 
-- [ ] Add public Scroll after mapping PUI's independent axis policies onto
-  LVGL's single scrollbar visibility mode; use the shared signed-zero end anchor
-  and preserve position through resize, growth, shrinkage and content replacement.
+- [ ] Extend basic Scroll with `.scrollX()`/`.scrollY()`, the shared signed-zero
+  end anchor and position retention through resize, growth, shrinkage and content
+  replacement. Resolve mixed forced/automatic axis policies before supporting
+  that combination; it currently throws explicitly.
 - [ ] Decide a custom resizable-pane implementation versus unsupported Splitter.
   Do not duplicate the shared splitter recipe to hide capability differences.
 - [ ] Agree modal overlays, dialogs, menus/toolbars and Window capabilities
@@ -164,8 +161,7 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
 - [ ] Define Canvas font loading and display-density scaling. Basic text scales
   the object's bitmap font to a pixel line height; Qt uses font points. Verify
   device rendering/antialiasing expectations before promising equivalent output.
-  Pointer events remain tied to the explicitly deferred shared input contract;
-  public size/background modifiers follow the shared layout/style contract.
+  Pointer events remain tied to the explicitly deferred shared input contract.
 - [ ] Define Table/Tree/adapters against the shared value/identity contracts;
   investigate custom tree behavior separately from LVGL's table widget.
 - [ ] Define native-object/display embedding and external owner deletion before
@@ -183,9 +179,9 @@ and their cookbook recipes are excluded from CPPUI.
 
 - **Scroll policy mapping:** Qt now follows PUI's Optional<bool> axis policies,
   signed-zero end anchor and pre-sync position capture. LVGL has one scrollbar
-  visibility mode for an object; choose how independently forced/off/as-needed
-  axes map before claiming the same Scroll contract. The offset representation
-  itself no longer needs a shared C++ decision.
+  visibility mode for an object. Basic public Scroll rejects a forced axis paired
+  with an automatic axis; choose a mapping or custom scrollbar implementation for
+  that mixed case. The offset representation needs no further shared decision.
 - **Grid sizing:** existing node coordinates/spans can drive placement. LVGL
   additionally requires explicit row/column track arrays; choose content-sized
   versus fractional tracks and their interaction with the shared size/weight

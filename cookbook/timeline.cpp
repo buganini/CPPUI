@@ -10,8 +10,8 @@ namespace Cookbook {
             const auto now = std::time(nullptr);
             std::ostringstream value;
             value << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S");
-            Presentation::Label(value.str());
+            CPPUI::Label(value.str());
         }
-        Presentation::Spacer();
+        CPPUI::Spacer();
     }
 }

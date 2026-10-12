@@ -7,25 +7,25 @@
 namespace CPPUI { namespace Qt {
     class Stack: public LayoutWidget {
         protected:
-        void clearNative() override { layout = nullptr; BaseWidget::clearNative(); }
+        void clearNative() override { qtlayout = nullptr; BaseWidget::clearNative(); }
         public:
-        QStackedLayout * layout = nullptr;
+        QStackedLayout * qtlayout = nullptr;
         Stack() { is_reversed_order = true; }
         void update(BaseWidget * previous) override {
             auto prev = static_cast<Stack *>(previous);
-            if(prev && prev->ui) { ui = prev->ui; layout = prev->layout; }
+            if(prev && prev->ui) { ui = prev->ui; qtlayout = prev->qtlayout; }
             else {
-                ui = new QWidget(); layout = new QStackedLayout(ui);
-                layout->setStackingMode(QStackedLayout::StackAll);
+                ui = new Widget<QWidget>(); qtlayout = new QStackedLayout(ui);
+                qtlayout->setStackingMode(QStackedLayout::StackAll);
             }
-            layout->setContentsMargins(0, 0, 0, 0);
+            qtlayout->setContentsMargins(0, 0, 0, 0);
             applyPadding();
         }
-        void * inner() override { return layout; }
+        void * inner() override { return qtlayout; }
         void addChild(int index, Node * child) override {
             if(child->is_outoforder) return;
             auto widget = dynamic_cast<BaseWidget *>(child);
-            if(widget && widget->ui) layout->insertWidget(index, widget->ui);
+            if(widget && widget->ui) qtlayout->insertWidget(index, widget->ui);
         }
         void removeChild(int, Node * child) override {
             if(child->is_outoforder) return;

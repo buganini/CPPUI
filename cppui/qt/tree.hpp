@@ -168,7 +168,7 @@ namespace CPPUI { namespace Qt {
             auto prev = static_cast<Tree *>(previous);
             if(prev && prev->ui) { ui = prev->ui; model = prev->model; }
             else {
-                auto tree = new QTreeView(); ui = tree;
+                auto tree = new Widget<QTreeView>(); ui = tree;
                 model = new TreeModel(tree); tree->setModel(model); tree->setHeaderHidden(true);
             }
             model->owner = this; model->requestSync();

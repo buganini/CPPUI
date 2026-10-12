@@ -19,7 +19,7 @@ namespace CPPUI {
                 : text(text), selectable(selectable) {}
 
             void update(BaseWidget * prev) override {
-                ui = prev && prev->ui ? prev->ui : new QLabel();
+                ui = prev && prev->ui ? prev->ui : new Widget<QLabel>();
                 auto label = static_cast<QLabel *>(ui);
                 label->setTextFormat(format);
                 label->setText(QString::fromStdString(text));

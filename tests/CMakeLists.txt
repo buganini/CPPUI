@@ -48,7 +48,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional binding scroll)
+foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -78,6 +78,10 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_application PRIVATE CPPUI::qt)
     cppui_add_test(qt.application_quit cppui_qt_application)
     cppui_add_test(qt.application_quit_owned cppui_qt_application --owned)
+
+    add_executable(cppui_qt_modifiers qt_modifiers.cpp)
+    target_link_libraries(cppui_qt_modifiers PRIVATE CPPUI::qt)
+    cppui_add_test(qt.modifiers cppui_qt_modifiers)
 
     add_executable(cppui_qt_layout qt_layout.cpp)
     target_link_libraries(cppui_qt_layout PRIVATE CPPUI::qt)
@@ -173,7 +177,7 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_checkbox PRIVATE CPPUI::qt)
     cppui_add_test(qt.checkbox cppui_qt_checkbox)
 
-    foreach(header application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline toolbar tree window)
+    foreach(header options application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline toolbar tree window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")

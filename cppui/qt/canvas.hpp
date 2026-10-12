@@ -149,7 +149,7 @@ namespace CPPUI {
     };
 
     namespace Qt {
-        class CanvasWidget: public QWidget {
+        class CanvasWidget: public Widget<QWidget> {
             public:
             using Painter = std::function<bool(CanvasPainter &)>;
             private:

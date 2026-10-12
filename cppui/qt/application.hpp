@@ -16,10 +16,20 @@ namespace CPPUI {
         std::unique_ptr<QApplication> ownedApplication;
         QApplication * application = nullptr;
         std::unique_ptr<QObject> quitContext{new QObject()};
+        QtOptions qtParams;
+        QStyle * appliedStyle = nullptr;
+        QString appliedSheet;
+        bool sheetApplied = false;
 
         public:
         Application(int argc, char * argv[], const std::string & icon = {})
             : argc(argc), argv(argv), iconPath(icon) {}
+
+        Node & qt(const QtOptions & options) override {
+            if(options.HorizontalPolicy || options.VerticalPolicy || options.SizeConstraint)
+                throw std::invalid_argument("Application qt() accepts Style and StyleSheet, not widget layout options");
+            qtParams.merge(options); return *this;
+        }
 
         ~Application() override {
             // QObject destruction removes queued calls before native teardown.
@@ -46,6 +56,14 @@ namespace CPPUI {
                 if(!iconPath.empty()) application->setWindowIcon(QIcon(QString::fromStdString(iconPath)));
             }
             QtView::update(prev);
+            if(qtParams.Style && *qtParams.Style && *qtParams.Style != appliedStyle) {
+                appliedStyle = *qtParams.Style;
+                application->setStyle(appliedStyle);
+            }
+            const auto sheet = Qt::styleSheet(*this, qtParams);
+            if(sheet != appliedSheet || (qtParams.StyleSheet && !sheetApplied)) {
+                application->setStyleSheet(sheet); appliedSheet = sheet; sheetApplied = true;
+            }
         }
 
         void addChild(int, Node * child) override {

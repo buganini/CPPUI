@@ -2,9 +2,11 @@
 #define CPPUI_QT_BASE
 
 #include "../view.hpp"
+#include "options.hpp"
 #include <QWidget>
 #include <QBoxLayout>
 #include <QCoreApplication>
+#include <QColor>
 
 namespace CPPUI {
     namespace Qt {
@@ -88,9 +90,60 @@ namespace CPPUI {
             }
         };
 
+        inline QString styleSheet(const Node & node, const QtOptions & options) {
+            std::map<std::string, std::string> styles;
+            if(node.style_fontsize) styles["font"] = std::to_string(*node.style_fontsize) + "pt";
+            if(node.style_fontfamily) styles["font-family"] = *node.style_fontfamily;
+            if(node.style_color) styles["color"] = QColor(*node.style_color).name().toStdString();
+            if(node.style_bgcolor) styles["background-color"] = QColor(*node.style_bgcolor).name().toStdString();
+            if(options.StyleSheet) for(const auto & entry: *options.StyleSheet) styles[entry.first] = entry.second;
+            QString sheet;
+            for(const auto & entry: styles) sheet += QString::fromStdString(entry.first + ":" + entry.second + ";");
+            return sheet;
+        }
+
         class BaseWidget: public Node {
             QMetaObject::Connection nativeDestroyed;
             std::vector<QMetaObject::Connection> connections;
+            QtOptions qtParams;
+            QSizePolicy defaultPolicy;
+            QMargins defaultMargins;
+            QLayout::SizeConstraint defaultConstraint = QLayout::SetDefaultConstraint;
+
+            void restoreOptions() {
+                if(!ui) return;
+                if(layout_width || layout_height || qtParams.HorizontalPolicy || qtParams.VerticalPolicy)
+                    ui->setSizePolicy(defaultPolicy);
+                if(layout_padding) ui->setContentsMargins(defaultMargins);
+                if(qtParams.Style) ui->setStyle(nullptr);
+                if(qtParams.SizeConstraint && ui->layout()) ui->layout()->setSizeConstraint(defaultConstraint);
+                if(auto hints = dynamic_cast<SizeHints *>(ui)) { hints->widthHint.reset(); hints->heightHint.reset(); }
+                ui->setStyleSheet({});
+            }
+            void applyOptions() {
+                defaultPolicy = ui->sizePolicy(); defaultMargins = ui->contentsMargins();
+                if(ui->layout()) defaultConstraint = ui->layout()->sizeConstraint();
+                if(auto hints = dynamic_cast<SizeHints *>(ui)) {
+                    hints->widthHint = layout_width; hints->heightHint = layout_height;
+                }
+                auto policy = defaultPolicy;
+                if(layout_width) policy.setHorizontalPolicy(QSizePolicy::Preferred);
+                if(layout_height) policy.setVerticalPolicy(QSizePolicy::Preferred);
+                if(qtParams.HorizontalPolicy) policy.setHorizontalPolicy(*qtParams.HorizontalPolicy);
+                if(qtParams.VerticalPolicy) policy.setVerticalPolicy(*qtParams.VerticalPolicy);
+                ui->setSizePolicy(policy);
+                if(layout_padding) {
+                    const auto & p = *layout_padding;
+                    ui->setContentsMargins(p.left, p.top, p.right, p.bottom);
+                }
+                if(qtParams.Style) ui->setStyle(*qtParams.Style);
+                if(qtParams.SizeConstraint) {
+                    if(!ui->layout()) throw std::logic_error("qt(SizeConstraint) requires a layout widget");
+                    ui->layout()->setSizeConstraint(*qtParams.SizeConstraint);
+                }
+                ui->setStyleSheet(styleSheet(*this, qtParams));
+                ui->updateGeometry();
+            }
 
             protected:
             void connectSignal(const QMetaObject::Connection & connection) {
@@ -113,12 +166,15 @@ namespace CPPUI {
             QWidget * ui = nullptr;
 
             ~BaseWidget() override { releaseNativeAccess(); }
+            Node & qt(const QtOptions & options) override { qtParams.merge(options); return *this; }
+            void postUpdate() override;
 
             void update(Node * previous) override {
                 auto prev = static_cast<BaseWidget *>(previous);
-                if(prev) prev->disconnectSignals();
+                if(prev) { prev->disconnectSignals(); prev->restoreOptions(); }
                 update(prev);
                 if(ui) {
+                    applyOptions();
                     nativeDestroyed = QObject::connect(ui, &QObject::destroyed, [this]() {
                         clearNative();
                     });
@@ -157,6 +213,7 @@ namespace CPPUI {
             Spacer() { is_terminal = true; is_movable = false; }
             ~Spacer() override { QObject::disconnect(nativeDestroyed); }
             void update(Node * previous) override;
+            void postUpdate() override;
             void * outer() override { return ui; }
             void releaseRetiredRefs() override { release(); Node::releaseRetiredRefs(); }
             void destroy(bool direct) override {
@@ -180,38 +237,51 @@ namespace CPPUI {
         class BaseLayout: public LayoutWidget {
             protected:
             void clearNative() override {
-                layout = nullptr;
+                qtlayout = nullptr;
                 BaseWidget::clearNative();
             }
 
             public:
-            QBoxLayout * layout = nullptr;
+            QBoxLayout * qtlayout = nullptr;
 
             void update(BaseWidget * prev) override {
                 update(static_cast<BaseLayout *>(prev));
-                layout->setContentsMargins(0, 0, 0, 0);
+                qtlayout->setContentsMargins(0, 0, 0, 0);
                 applyPadding();
             }
             virtual void update(BaseLayout * prev) = 0;
 
-            void * inner() override { return layout; }
+            void * inner() override { return qtlayout; }
             void addChild(int idx, Node * child) override {
                 if(child->is_outoforder) return;
-                if(auto spacer = dynamic_cast<Spacer *>(child)) layout->insertSpacerItem(idx, spacer->ui);
-                else layout->insertWidget(idx, static_cast<QWidget *>(child->outer()));
+                if(auto spacer = dynamic_cast<Spacer *>(child)) qtlayout->insertSpacerItem(idx, spacer->ui);
+                else qtlayout->insertWidget(idx, static_cast<QWidget *>(child->outer()));
             }
             void removeChild(int, Node * child) override {
                 if(child->is_outoforder) return;
-                if(auto spacer = dynamic_cast<Spacer *>(child)) { if(spacer->ui) layout->removeItem(spacer->ui); }
+                if(auto spacer = dynamic_cast<Spacer *>(child)) { if(spacer->ui) qtlayout->removeItem(spacer->ui); }
                 else if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
         };
+        inline void updateStretch(Node * node) {
+            auto box = dynamic_cast<BaseLayout *>(node->dom_parent);
+            if(!box || !box->qtlayout || node->is_outoforder) return;
+            const int weight = node->layout_weight.valueOr(dynamic_cast<Spacer *>(node) ? 1 : 0);
+            for(int i = 0; i < box->qtlayout->count(); ++i) {
+                auto item = box->qtlayout->itemAt(i);
+                if((dynamic_cast<Spacer *>(node) && item == node->outer()) || (item->widget() && item->widget() == node->outer())) {
+                    box->qtlayout->setStretch(i, weight); break;
+                }
+            }
+        }
+        inline void BaseWidget::postUpdate() { updateStretch(this); Node::postUpdate(); }
+        inline void Spacer::postUpdate() { updateStretch(this); Node::postUpdate(); }
         inline void Spacer::update(Node * previous) {
             auto box = dynamic_cast<BaseLayout *>(dom_parent);
             if(!dynamic_cast<LayoutWidget *>(dom_parent)) throw std::logic_error("Qt Spacer requires a layout parent");
             auto prev = static_cast<Spacer *>(previous);
             ui = prev && prev->ui ? prev->ui : new QSpacerItem(0, 0);
-            owner = box ? box->layout : nullptr;
+            owner = box ? box->qtlayout : nullptr;
             const auto direction = owner ? owner->direction() : QBoxLayout::LeftToRight;
             const bool horizontal = direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft;
             ui->changeSize(0, 0, !owner || horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred,

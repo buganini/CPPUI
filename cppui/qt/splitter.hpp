@@ -13,7 +13,7 @@ namespace CPPUI {
             explicit Splitter(bool vertical = false): vertical(vertical) {}
 
             void update(BaseWidget * prev) override {
-                ui = prev && prev->ui ? prev->ui : new QSplitter();
+                ui = prev && prev->ui ? prev->ui : new Widget<QSplitter>();
                 static_cast<QSplitter *>(ui)->setOrientation(vertical ? ::Qt::Vertical : ::Qt::Horizontal);
             }
             void addChild(int idx, Node * child) override {

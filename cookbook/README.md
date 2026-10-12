@@ -28,15 +28,15 @@ prerequisites. The Python-only DrawShapely and Matplotlib recipes are excluded
 (won't-do).
 The [Qt plan](../doc/pyside6-progress.md) and
 [LVGL plan](../doc/lvgl-progress.md) track remaining components and public APIs.
-The backend `presentation.hpp` files provide private
-cookbook layout/appearance adapters until those public APIs are decided; these
-helpers do not imply general style or fluent layout-option support in CPPUI.
-Qt scrolling uses public Scroll, including the gallery sidebar; LVGL scrolling
-remains a cookbook helper until its axis-policy mapping is chosen.
-The Qt gallery menus now use public MenuBar/Menu/MenuAction components.
-Qt and LVGL page links use public clickable Label. LVGL dividers use public
-Divider; spacer adapters use public `CPPUI::Spacer()` on both backends. The gallery smoke test
-checks its horizontal and vertical expansion in the HBox/VBox recipes.
+Recipes use public CPPUI components and PUI's `.layout(...)` / `.style(...)`
+modifiers for sizes, padding, weights, colors and fonts. There is no separate
+cookbook component namespace. Backend helpers handle startup, optional menus
+and native test access. Qt and LVGL sidebars use public Scroll; LVGL's basic
+Scroll does not yet implement the complete axis/offset contract of the Scroll
+recipe. See the [modifier reference](../REFERENCE.md#pui-modifiers) for the typed
+`.qt(...)` options and LVGL's compiled-font approximation.
+The gallery smoke test checks horizontal and vertical Spacer expansion and the
+Canvas drawing area in addition to page navigation.
 
 ## Qt
 
@@ -132,6 +132,10 @@ application teardown through `lvgl.lifetime` and its optional Valgrind variant.
 resize, repeat painting, callback replacement, exceptions, self-removal, native
 deletion, parent deletion and capture cleanup. Its Valgrind variant checks the
 same cases. The cookbook smoke test also checks Canvas size and rendered pixels.
+`lvgl.modifiers` checks explicit/omitted/zero dimensions, padding, weights,
+colors, compiled font selection, scrolling and cleanup. The root Qt build's
+`qt.modifiers` also covers size policies, layout constraints, stylesheet
+precedence, image rescaling and independently redrawn weighted children.
 `lvgl.spacer` covers public HBox/VBox expansion, equal sharing, resize, native
 reuse, virtual views, repeated removal, native deletion and parent/application
 teardown, with an optional Valgrind variant.

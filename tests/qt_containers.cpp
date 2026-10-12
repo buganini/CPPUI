@@ -68,8 +68,8 @@ int main(int argc, char ** argv) {
             Root root(argc, argv); root.sync(); settle();
             auto grid = static_cast<CPPUI::Qt::Grid *>(find(root, "grid"));
             auto stack = static_cast<CPPUI::Qt::Stack *>(find(root, "stack"));
-            auto nativeGrid = grid->layout;
-            auto nativeStack = stack->layout;
+            auto nativeGrid = grid->qtlayout;
+            auto nativeStack = stack->qtlayout;
             auto span = root.widget("span"), top = root.widget("top"), bottom = root.widget("bottom");
             int row, column, rows, columns;
             nativeGrid->getItemPosition(nativeGrid->indexOf(span), &row, &column, &rows, &columns);
@@ -96,7 +96,7 @@ int main(int argc, char ** argv) {
                 root.show = true; root.sync(); settle();
             }
             grid = static_cast<CPPUI::Qt::Grid *>(find(root, "grid"));
-            delete grid->ui; require(!grid->ui && !grid->layout, "external grid deletion retained native access");
+            delete grid->ui; require(!grid->ui && !grid->qtlayout, "external grid deletion retained native access");
         }
         settle();
         require(spacers == 0 && qt.topLevelWidgets().isEmpty(), "container teardown retained native resources");

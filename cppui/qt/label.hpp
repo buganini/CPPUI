@@ -12,7 +12,7 @@
 
 namespace CPPUI {
     namespace Qt {
-        class ClickableLabel: public QLabel {
+        class ClickableLabel: public Widget<QLabel> {
             public:
             std::function<void()> callback;
             void mousePressEvent(QMouseEvent * event) override {

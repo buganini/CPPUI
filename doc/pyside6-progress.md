@@ -114,9 +114,9 @@ explicit teardown leaves neither stale accesses nor retained declarations.
 “Partial” means code exists, not that parity or runtime correctness is verified.
 The checklist below contains remaining work only.
 
-The remaining implementation tasks depend on the contracts recorded below.
-Display checks and wx runtime validation are separate outstanding verification;
-they are not blocked on API choices.
+Remaining tasks and unresolved contracts are listed below. Display checks and
+wx runtime validation are separate outstanding verification; they are not
+blocked on API choices.
 
 Each row maps remaining work to its implementation phase and a pinned reference
 case. Acceptance involving undecided APIs applies after that contract is chosen;
@@ -127,18 +127,15 @@ the separate deferred section records intentional omissions.
 | DOM reconciliation | Scoped identity, native moves, virtual flattening and reclamation | Define native remount and interop identity after external deletion | 1 / [virtual nodes][ref-virtual] |
 | Views | `QtView` queued/coalesced redraw, immediate sync and one-time setup | Changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
 | State | Read tracking, assignment, `+=`, `-=`, listener cleanup and Binding adapters | Change subscriptions and explicit notification; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
-| Application | Owned/borrowed `QApplication`, initial icon, queued quit | Add typed application options under the shared options contract | 2 / [gallery startup][ref-gallery] |
 | Window | `QMainWindow`, title/icon/size and initial/imperative state flags | Keypress payloads follow the deferred event contract; verify window-manager behavior on a display | 3 / [Qt regression][ref-qt] |
-| HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
-| Label/Button | Owned text, selectable labels and current click callbacks | Styles reset on reuse; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
-| Grid/Stack/Spacer | Native Grid spans, StackAll overlap and box Spacer | Define shared fluent placement and layout/style options | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
+| Label/Button | Owned text, selectable labels, styles and current click callbacks | Event payloads follow the deferred contract | 3 / [Label][ref-label], [Button][ref-button] |
+| Grid/Stack | Native Grid spans and StackAll overlap | Add shared fluent grid placement | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
 | TextField/Checkbox | String TextField model/draft bindings; boolean Checkbox and membership adapters | Define conversion helpers and observable collections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Index/string bindings, distinct labels/values, editable text and dynamic items | Define raw non-string value adapters and deferred event payloads | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
-| Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/Tree adapters | Declarative scalar Table cells and string Tree nodes with internal model-owned identity | Define external adapter values/ownership and Tree drag/drop payloads | 8 / [Table adapter][ref-table-adapter], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
-| Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 0–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
+| Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 1–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
 
 [ref-virtual]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py
 [ref-nested]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/nested_view.py
@@ -191,15 +188,6 @@ phases 0–3 does not block independent components in later phases.
 - Portable input event objects are explicitly deferred. Existing no-argument
   callbacks remain usable.
 
-### Phase 0 — Public option contracts (P0)
-
-- [ ] Settle concrete layout/style option types against reference behavior.
-  Keep event-aware overloads deferred without blocking components that use
-  existing callbacks.
-
-Acceptance: the remaining public API choices are documented and each planned
-component has a reference example and a concrete acceptance case.
-
 ### Phase 1 — Node identity, ownership, and reconciliation (P0)
 
 Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/node.py), [dom.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/dom.py),
@@ -242,7 +230,6 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 - [ ] Define observable list/map updates and element bindings corresponding to
   PUI's collection state. State explicitly how nested changes notify views;
   mutable container access must not silently bypass notification.
-- [ ] Add application options after the common options API is chosen.
 
 Acceptance: port the scenarios in [tests/batched_state_mutation.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/batched_state_mutation.py),
 [tests/redraw_semaphore.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/redraw_semaphore.py), and
@@ -256,25 +243,15 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
 [Qt base](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py),
 [layout.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/layout.py), and corresponding cookbook pages.
 
-- [ ] Add layout width/height, weight, padding, margin, and fluent grid placement
-  APIs; existing node coordinate/span fields already drive Grid.
-  Implement supported reference behavior and document parsed-but-unused options
-  instead of claiming they work. Distinguish omitted values from zero.
-- [ ] Apply generic colors/fonts and typed Qt options for size policies,
-  constraints, stylesheet, and application style. Resolve naming conflicts with
-  the existing `BaseLayout::layout` member before introducing `.layout(...)`.
-  Once the public API is chosen, migrate the cookbook's private presentation
-  adapters onto it while preserving the reference layout and recipe styling.
-- [ ] Align configurable HBox/VBox padding, stretch updates, and size hints.
-  Recompute properties from current declarations and reset omitted properties
-  to their defaults.
+- [ ] Add PUI's fluent grid placement API; existing node coordinate/span fields
+  already drive Grid. Verify changed spans and native geometry on a real display.
 - [ ] Add Window keypress after the deferred event contract is addressed; verify
   initial and imperative window-state behavior with a real window manager.
-- [ ] Add common event payloads and fluent modifiers needed by later widgets.
+- [ ] Add common event payloads after the explicitly deferred input contract is addressed.
 
-Acceptance: extend HBox/VBox/Grid/Stack scenarios with changed weights, including zero,
-dimensions, styles, and grid spans on a retained tree. Verify native geometry
-and child order. Port the window-state and size-policy cases from
+Acceptance: verify HBox/VBox/Grid/Stack native geometry, child order and size
+policies on a real display; add fluent grid placement coverage. Exercise the
+window-state scenarios from
 [pyside6_regression.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/pyside6_regression.py).
 
 ### Phase 4 — Bound controls and text/image components (P1)
@@ -285,8 +262,6 @@ and child order. Port the window-state and size-policy cases from
   explicit boolean membership Binding adapters are supported.
 - [ ] Extend ComboBox beyond string item values after choosing raw value adapters;
   typed change-event payloads remain deferred.
-- [ ] Apply shared dimension/stretch modifiers to Image once the common layout
-  API is chosen; natural-size image loading and the sized cookbook recipe exist.
 
 Acceptance: port the binding, textfield, checkbox, radiobutton, combobox,
 progressbar, text, and image cookbook cases. Assert a single commit, no feedback
@@ -373,9 +348,6 @@ Continue independent implementation while these contracts remain undecided.
   public choice unresolved.
 - **Batch completion:** queued redraw errors use stderr as agreed. A future
   batch-scope exit still needs defined exception behavior during stack unwinding.
-- **Common options:** choose concrete C++ layout/style/Qt option types against
-  reference behavior. Omitted properties reset as agreed. Event payloads remain
-  explicitly deferred; they do not block drawing or existing callbacks.
 - **Parameterized retained views:** reconciliation retains matching View objects
   and discards their replacement declarations. Constructor forwarding alone
   cannot deliver changed inputs to the retained view. Decide an explicit input
@@ -399,8 +371,8 @@ Continue independent implementation while these contracts remain undecided.
   runtime C++ code replacement is outside this alignment plan.
 - **Won't do — Shapely and Matplotlib:** Canvas.drawShapely, MatplotlibCanvas
   and their cookbook recipes are Python-only integrations, excluded from CPPUI.
-- Dynamic Qt keyword parameters: expose typed options and native interop;
-  enumerate supported options rather than promising arbitrary Python attributes.
+- Arbitrary dynamic Qt keyword parameters remain excluded; the supported typed
+  `.qt(...)` fields are listed in the [modifier reference](../REFERENCE.md#pui-modifiers).
 - Existing PUI gaps, such as unused tab position, Scroll offset capture and inconsistently applied
   layout/style options: document observed behavior and any intentional CPPUI
   improvement. Tab position and empty/multi-child label behavior are described

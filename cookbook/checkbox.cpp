@@ -46,21 +46,21 @@ namespace Cookbook {
         }
     }
     void checkbox(Model & model) {
-        for(auto column: Presentation::VBox(1)) {
-            Presentation::Label(std::string("Model value 1: ") + (model.checkboxOne ? "True" : "False"));
-            Presentation::Label(std::string("Model value 2: ") + (model.checkboxTwo ? "True" : "False"));
+        for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+            CPPUI::Label(std::string("Model value 1: ") + (model.checkboxOne ? "True" : "False"));
+            CPPUI::Label(std::string("Model value 2: ") + (model.checkboxTwo ? "True" : "False"));
             CPPUI::Checkbox("checkbox 1-1", model.checkboxOne).id("checkbox-1");
             CPPUI::Checkbox("checkbox 1-2", model.checkboxOne).id("checkbox-1-mirror");
             CPPUI::Checkbox("checkbox 2", model.checkboxTwo).id("checkbox-2");
-            Presentation::Divider();
-            Presentation::Label("List value: " + listText(model.checkboxList));
+            CPPUI::Divider();
+            CPPUI::Label("List value: " + listText(model.checkboxList));
             for(int i = 3; i <= 5; ++i) CPPUI::Checkbox("checkbox " + std::to_string(i),
                 membership(model.checkboxList, "value " + std::to_string(i))).id("checkbox-" + std::to_string(i));
-            Presentation::Divider();
-            Presentation::Label("Dict value: " + mapText(model.checkboxMap));
+            CPPUI::Divider();
+            CPPUI::Label("Dict value: " + mapText(model.checkboxMap));
             for(int i = 6; i <= 8; ++i) CPPUI::Checkbox("checkbox " + std::to_string(i),
                 membership(model.checkboxMap, "value " + std::to_string(i))).id("checkbox-" + std::to_string(i));
-            Presentation::Spacer();
+            CPPUI::Spacer();
         }
     }
 }

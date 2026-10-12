@@ -3,12 +3,12 @@
 
 namespace Cookbook {
     void stack(Model &) {
-        for(auto column: Presentation::VBox()) {
+        for(auto column: CPPUI::VBox()) {
             for(auto layers: CPPUI::Stack()) {
-                Presentation::StackLabel("Bottom", 48, false);
-                Presentation::StackLabel("Top", 32, true);
+                CPPUI::Label("Bottom").style({}, {}, 48);
+                CPPUI::Label("Top").style(0xff0000, {}, 32);
             }
-            Presentation::Spacer();
+            CPPUI::Spacer();
         }
     }
 }

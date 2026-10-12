@@ -14,7 +14,7 @@
 
 namespace CPPUI {
     namespace Qt {
-        class WindowWidget: public QMainWindow {
+        class WindowWidget: public Widget<QMainWindow> {
             protected:
             void mousePressEvent(QMouseEvent * event) override {
                 QPointer<WindowWidget> alive(this);

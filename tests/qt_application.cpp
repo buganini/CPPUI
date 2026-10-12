@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QImage>
 #include <QTemporaryDir>
+#include <QStyleFactory>
 #include <stdexcept>
 
 namespace {
@@ -84,6 +85,36 @@ namespace {
         }
         require(QCoreApplication::instance() == &qt && !qt.windowIcon().isNull(), "icon application changed borrowed native ownership");
     }
+    void applicationOptions(int argc, char ** argv, QApplication & qt) {
+        const auto originalSheet = qt.styleSheet();
+        qt.setStyleSheet("color:#123456;");
+        {
+            Root root(argc, argv); root.sync();
+            require(qt.styleSheet() == "color:#123456;", "omitted application styling changed a borrowed stylesheet");
+            CPPUI::QtOptions clear;
+            clear.StyleSheet = CPPUI::QtStyleSheet{};
+            root.qt(clear); root.sync();
+            require(qt.styleSheet().isEmpty(), "explicit empty application stylesheet did not clear borrowed styling");
+        }
+        {
+            Root root(argc, argv);
+            CPPUI::QtOptions options;
+            auto style = QStyleFactory::create("Fusion");
+            bool styleDestroyed = false;
+            QObject::connect(style, &QObject::destroyed, &qt, [&]() { styleDestroyed = true; });
+            options.Style = style; options.StyleSheet = CPPUI::QtStyleSheet{{"color", "#123456"}};
+            root.style(0xff0000, {}, 18).qt(options);
+            (*options.StyleSheet)["color"] = "#ffffff";
+            root.sync();
+            require(qt.styleSheet().contains("color:#123456;") && qt.styleSheet().contains("font:18pt;"),
+                "application options were not copied or did not override generic styles");
+            root.sync();
+            require(!styleDestroyed, "repeated application update destroyed its adopted style");
+            qt.setStyle(QStyleFactory::create("Fusion"));
+            require(styleDestroyed, "QApplication did not own the requested style");
+        }
+        qt.setStyleSheet(originalSheet);
+    }
 }
 
 int main(int argc, char ** argv) {
@@ -107,6 +138,7 @@ int main(int argc, char ** argv) {
         } else {
             QApplication qt(argc, argv);
             initialIcon(argc, argv, qt, iconPath.toStdString());
+            applicationOptions(argc, argv, qt);
             queuedQuit(argc, argv, qt);
             cancelledQuit(argc, argv, qt);
             require(QCoreApplication::instance() == &qt, "quit destroyed the borrowed QApplication");

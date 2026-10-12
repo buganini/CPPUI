@@ -19,7 +19,7 @@ namespace CPPUI { namespace Qt {
         }
         void capture(QScrollBar * bar) { offset = end ? bar->maximum() - bar->value() : bar->value(); }
     };
-    class ScrollWidget: public QScrollArea {
+    class ScrollWidget: public Widget<QScrollArea> {
         bool horizontalDisabled, verticalDisabled;
         static ::Qt::ScrollBarPolicy policy(const Optional<bool> & value) {
             return !value ? ::Qt::ScrollBarAsNeeded : *value ? ::Qt::ScrollBarAlwaysOn : ::Qt::ScrollBarAlwaysOff;

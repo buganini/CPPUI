@@ -10,7 +10,7 @@
 
 namespace CPPUI { namespace Qt {
     class ComboBoxItem;
-    class ComboBoxWidget: public QComboBox {
+    class ComboBoxWidget: public Widget<QComboBox> {
         public:
         bool itemsChanged = false;
         Optional<int> declaredIndex;

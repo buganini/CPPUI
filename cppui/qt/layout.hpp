@@ -16,11 +16,11 @@ namespace CPPUI {
             void update(BaseLayout * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
-                    layout = prev->layout;
+                    qtlayout = prev->qtlayout;
                 } else {
-                    ui = new QWidget();
-                    layout = new QHBoxLayout();
-                    ((QWidget *)ui)->setLayout(layout);
+                    ui = new Widget<QWidget>();
+                    qtlayout = new QHBoxLayout();
+                    ((QWidget *)ui)->setLayout(qtlayout);
                 }
             }
         };
@@ -30,11 +30,11 @@ namespace CPPUI {
             void update(BaseLayout * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
-                    layout = prev->layout;
+                    qtlayout = prev->qtlayout;
                 } else {
-                    ui = new QWidget();
-                    layout = new QVBoxLayout();
-                    ((QWidget *)ui)->setLayout(layout);
+                    ui = new Widget<QWidget>();
+                    qtlayout = new QVBoxLayout();
+                    ((QWidget *)ui)->setLayout(qtlayout);
                 }
             }
         };

@@ -18,13 +18,15 @@ class UI: public Application {
 
     void content(void) {
         for(auto _: Window().title("CPPUI counter").size(480, 320).id("window1")) {
-            for(auto _: VBox()) {
+            for(auto _: VBox().layout({}, {}, {}, Insets(12))) {
                 for(auto _: HBox()) {
                     Button("-").click([this](){
                         n -= 1;
                     });
 
-                    Label(std::to_string(n));
+                    QtOptions options;
+                    options.HorizontalPolicy = QSizePolicy::Fixed;
+                    Label(std::to_string(n)).layout(60).style(0x336699, {}, 20).qt(options);
 
                     Button("+").click([this](){
                         n += 1;

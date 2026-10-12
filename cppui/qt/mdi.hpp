@@ -8,7 +8,7 @@
 namespace CPPUI { namespace Qt {
     class MdiArea: public BaseWidget {
         public:
-        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new QMdiArea(); }
+        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new Widget<QMdiArea>(); }
         void addChild(int, Node * child) override {
             if(child->is_outoforder) return;
             auto widget = dynamic_cast<BaseWidget *>(child);
@@ -37,7 +37,7 @@ namespace CPPUI { namespace Qt {
 
     class MdiSubWindow: public BaseWidget {
         public:
-        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new QMdiSubWindow(); }
+        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new Widget<QMdiSubWindow>(); }
         void addChild(int index, Node * child) override {
             if(child->is_outoforder) return;
             auto widget = dynamic_cast<BaseWidget *>(child);

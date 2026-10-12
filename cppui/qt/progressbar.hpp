@@ -27,7 +27,7 @@ namespace CPPUI {
                 : progress(hundredths(progress)), maximum(hundredths(maximum)) {}
 
             void update(BaseWidget * prev) override {
-                ui = prev && prev->ui ? prev->ui : new QProgressBar();
+                ui = prev && prev->ui ? prev->ui : new Widget<QProgressBar>();
                 auto bar = static_cast<QProgressBar *>(ui);
                 bar->setMaximum(maximum);
                 bar->setValue(progress);

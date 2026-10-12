@@ -85,8 +85,8 @@ int main(int argc, char ** argv) {
             root.count = 2;
             settle();
             row = static_cast<CPPUI::Qt::BaseLayout *>(find(root, "row"));
-            require(items == 3 && row->layout->count() == 4
-                && std::abs(row->layout->itemAt(1)->geometry().width() - row->layout->itemAt(2)->geometry().width()) <= 1,
+            require(items == 3 && row->qtlayout->count() == 4
+                && std::abs(row->qtlayout->itemAt(1)->geometry().width() - row->qtlayout->itemAt(2)->geometry().width()) <= 1,
                 "multiple virtual spacers did not share spare width");
             root.count = 1;
             root.reverse = true;

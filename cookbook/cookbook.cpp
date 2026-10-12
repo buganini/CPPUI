@@ -12,29 +12,30 @@ namespace Cookbook {
 
         void content() override {
             const auto & page = recipes().at(static_cast<int>(selected));
-            for(auto window: Presentation::Window().id("cookbook")) {
-                Presentation::Menus();
-                for(auto row: Presentation::HBox().id("gallery")) {
-                    for(auto menu: Presentation::Sidebar().id("menu-container")) {
-                        Presentation::Label("Example");
-                        for(auto scroll: Presentation::Scroll().id("menu-scroller")) {
-                            for(auto list: Presentation::VBox().id("menu-list")) {
+            for(auto window: CPPUI::Window().id("cookbook")) {
+                Backend::configureWindow(window);
+                Backend::menus();
+                for(auto row: CPPUI::HBox().id("gallery")) {
+                    for(auto menu: CPPUI::VBox().layout(200).id("menu-container")) {
+                        CPPUI::Label("Example");
+                        for(auto scroll: CPPUI::Scroll().layout(200, 0, 1).id("menu-scroller")) {
+                            for(auto list: CPPUI::VBox().id("menu-list")) {
                                 for(std::size_t i = 0; i < recipes().size(); ++i) {
-                                    auto & link = Presentation::PageLink(recipes()[i].title);
+                                    auto & link = CPPUI::Label(recipes()[i].title);
                                     link.id(std::string("page:") + recipes()[i].key);
                                     link.click([this, i]() { selected = static_cast<int>(i); });
                                 }
-                                Presentation::Spacer();
+                                CPPUI::Spacer();
                             }
                         }
                     }
-                    for(auto result: Presentation::VBox(1).id("result")) {
-                        Presentation::Label("Result");
-                        for(auto body: Presentation::VBox(1).id(std::string("recipe:") + page.key)) {
+                    for(auto result: CPPUI::VBox().layout({}, {}, 1).id("result")) {
+                        CPPUI::Label("Result");
+                        for(auto body: CPPUI::VBox().layout({}, {}, 1).id(std::string("recipe:") + page.key)) {
                             if(page.render) page.render(model);
                             else {
-                                Presentation::Label("Not Supported for this backend");
-                                Presentation::Spacer();
+                                CPPUI::Label("Not Supported for this backend");
+                                CPPUI::Spacer();
                             }
                         }
                     }

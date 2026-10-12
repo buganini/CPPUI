@@ -4,7 +4,7 @@
 namespace Cookbook {
     namespace {
         void cell(const std::string & text, int row, int column, int rowSpan = 1) {
-            auto & label = Presentation::Label(text);
+            auto & label = CPPUI::Label(text);
             label.grid_row = row; label.grid_column = column; label.grid_rowspan = rowSpan;
         }
     }
@@ -15,6 +15,6 @@ namespace Cookbook {
             cell("R=0 C=1, rowspan=2", 0, 1, 2);
             cell("R=2 C=1", 2, 1);
         }
-        Presentation::Spacer();
+        CPPUI::Spacer();
     }
 }

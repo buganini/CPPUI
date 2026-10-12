@@ -18,7 +18,7 @@ namespace CPPUI {
                     ui = prev->ui;
                     ((QPushButton *)ui)->setText(QString::fromStdString(text));
                 } else {
-                    ui = new QPushButton(QString::fromStdString(text));
+                    ui = new Widget<QPushButton>(QString::fromStdString(text));
                 }
                 // Copy before invoking user code: it may redraw or remove this
                 // declaration and disconnect the currently executing connection.

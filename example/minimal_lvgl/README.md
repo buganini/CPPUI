@@ -19,3 +19,6 @@ path for LVGL v9.6.0; it does not require an in-tree clone.
 The example's `Spacer()` expands vertically in its `VBox`. The same public
 component expands horizontally in an `HBox`; it is available from
 `cppui/lvgl/layout.hpp` or `cppui/lvgl/spacer.hpp`.
+
+It also uses PUI's `.layout(...)` and `.style(...)` modifiers for padding, label
+width and color; font sizes use the nearest compiled LVGL bitmap font.

@@ -4,13 +4,13 @@
 namespace Cookbook {
     void mdi(Model &) {
         for(auto area: CPPUI::MdiArea()) {
-            for(auto first: CPPUI::MdiSubWindow()) for(auto column: Presentation::VBox()) {
-                Presentation::Label("1");
-                Presentation::Label("2");
+            for(auto first: CPPUI::MdiSubWindow()) for(auto column: CPPUI::VBox()) {
+                CPPUI::Label("1");
+                CPPUI::Label("2");
             }
-            for(auto second: CPPUI::MdiSubWindow()) for(auto column: Presentation::VBox()) {
-                Presentation::Label("A");
-                Presentation::Label("B");
+            for(auto second: CPPUI::MdiSubWindow()) for(auto column: CPPUI::VBox()) {
+                CPPUI::Label("A");
+                CPPUI::Label("B");
             }
         }
     }

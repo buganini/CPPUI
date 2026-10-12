@@ -67,7 +67,7 @@ namespace CPPUI { namespace Qt {
         public:
         explicit Menu(const std::string & text): text(text) {}
         void update(BaseWidget * prev) override {
-            ui = prev && prev->ui ? prev->ui : new QMenu();
+            ui = prev && prev->ui ? prev->ui : new Widget<QMenu>();
             static_cast<QMenu *>(ui)->setTitle(QString::fromStdString(text));
         }
         void addChild(int index, Node * child) override { insertMenuChild(ui, index, child); }
@@ -76,7 +76,7 @@ namespace CPPUI { namespace Qt {
     class MenuBar: public BaseWidget {
         public:
         MenuBar() { is_outoforder = true; }
-        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new QMenuBar(); }
+        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new Widget<QMenuBar>(); }
         void addChild(int index, Node * child) override { insertMenuChild(ui, index, child); }
         void removeChild(int, Node * child) override { removeMenuChild(ui, child); }
     };

@@ -24,7 +24,7 @@ namespace CPPUI {
             explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) {}
 
             void update(BaseWidget * prev) override {
-                ui = prev && prev->ui ? prev->ui : new QTabWidget();
+                ui = prev && prev->ui ? prev->ui : new Widget<QTabWidget>();
             }
             void addChild(int idx, Node * child) override {
                 if(child->is_outoforder) return;

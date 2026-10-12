@@ -24,9 +24,15 @@ namespace CPPUI { namespace Qt {
             else pixmap.load(QString::fromStdString(path));
             Label::update(previous);
             auto label = static_cast<QLabel *>(ui);
-            label->setScaledContents(false);
-            label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-            label->setPixmap(pixmap);
+            const bool stretch = layout_weight && *layout_weight > 0;
+            label->setScaledContents(stretch);
+            label->setSizePolicy(stretch ? QSizePolicy::Ignored : QSizePolicy::Preferred,
+                                 stretch ? QSizePolicy::Ignored : QSizePolicy::Preferred);
+            auto displayed = pixmap;
+            if(layout_width && layout_height) displayed = pixmap.scaled(*layout_width, *layout_height, ::Qt::KeepAspectRatio, ::Qt::SmoothTransformation);
+            else if(layout_width) displayed = pixmap.scaledToWidth(*layout_width, ::Qt::SmoothTransformation);
+            else if(layout_height) displayed = pixmap.scaledToHeight(*layout_height, ::Qt::SmoothTransformation);
+            label->setPixmap(displayed);
         }
     };
 }}

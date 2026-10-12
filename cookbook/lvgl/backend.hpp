@@ -3,6 +3,7 @@
 #include "cppui/lvgl/application.hpp"
 #include "cppui/lvgl/window.hpp"
 #include "cppui/lvgl/layout.hpp"
+#include "cppui/lvgl/scroll.hpp"
 #include "cppui/lvgl/label.hpp"
 #include "cppui/lvgl/button.hpp"
 #include "cppui/lvgl/canvas.hpp"
@@ -10,10 +11,11 @@
 #include "cppui/lvgl/tab.hpp"
 #include "cppui/lvgl/checkbox.hpp"
 #include "../recipes.hpp"
-#include "presentation.hpp"
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline void configureWindow(CPPUI::Context *) {}
+    inline void menus() {}
     inline int treeChildCount(CPPUI::Node &, const std::vector<int> &) { return -1; }
     inline bool treeExpanded(CPPUI::Node &, const std::vector<int> &) { return false; }
     inline bool editTable(CPPUI::Node &, int, int, const std::string &) { return false; }
@@ -79,7 +81,7 @@ namespace Cookbook { namespace Backend {
     inline void answerPrompt(const std::string &, bool) {}
     inline bool modalVisible(CPPUI::Node &) { return false; }
     inline bool selectPage(CPPUI::Node & node) {
-        auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);
+        auto link = dynamic_cast<CPPUI::LVGL::Label *>(&node);
         if(!link) return false;
         auto label = static_cast<lv_obj_t *>(link->outer());
         lv_obj_scroll_to_view_recursive(label, LV_ANIM_OFF);

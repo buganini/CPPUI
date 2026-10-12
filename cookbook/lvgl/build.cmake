@@ -47,6 +47,12 @@ if(BUILD_TESTING)
         CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
     cppui_add_test(lvgl.canvas cppui_lvgl_canvas)
 
+    add_executable(cppui_lvgl_modifiers "${cppui_lvgl_dir}/../../tests/lvgl_modifiers.cpp")
+    target_include_directories(cppui_lvgl_modifiers PRIVATE "${cppui_lvgl_dir}/../..")
+    target_link_libraries(cppui_lvgl_modifiers PRIVATE lvgl::lvgl)
+    set_target_properties(cppui_lvgl_modifiers PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(lvgl.modifiers cppui_lvgl_modifiers)
+
     add_executable(cppui_lvgl_spacer "${cppui_lvgl_dir}/../../tests/lvgl_spacer.cpp")
     target_include_directories(cppui_lvgl_spacer PRIVATE "${cppui_lvgl_dir}/../..")
     target_link_libraries(cppui_lvgl_spacer PRIVATE lvgl::lvgl)
@@ -84,7 +90,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header application base button canvas checkbox divider label layout spacer tab text window)
+    foreach(header application base button canvas checkbox divider label layout scroll spacer tab text window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

@@ -18,7 +18,7 @@ namespace CPPUI {
                 is_terminal = true;
             }
             void update(BaseWidget * prev) override {
-                ui = prev && prev->ui ? prev->ui : new QCheckBox();
+                ui = prev && prev->ui ? prev->ui : new Widget<QCheckBox>();
                 auto checkbox = static_cast<QCheckBox *>(ui);
                 {
                     QSignalBlocker block(checkbox);

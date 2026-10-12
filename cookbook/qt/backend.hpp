@@ -25,10 +25,27 @@
 #include "cppui/qt/timeline.hpp"
 #include <QTimer>
 #include "../recipes.hpp"
-#include "presentation.hpp"
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline void configureWindow(CPPUI::Context * node) { static_cast<CPPUI::Qt::Window *>(node)->title("CPPUI Cookbook").maximize(); }
+    inline void menus() {
+        for(auto bar: CPPUI::MenuBar()) {
+            for(auto menu: CPPUI::Menu("Menu")) {
+                CPPUI::MenuAction("Action").trigger([]() { std::cout << "action\n"; });
+                CPPUI::MenuAction("Action2").trigger([]() { std::cout << "action2\n"; });
+                for(auto submenu: CPPUI::Menu("Menu2")) {
+                    CPPUI::MenuAction("Action3").trigger([]() { std::cout << "action3\n"; });
+                    CPPUI::MenuAction("Action4").trigger([]() { std::cout << "action4\n"; });
+                }
+            }
+            for(auto menu: CPPUI::Menu("Menu3")) {
+                CPPUI::MenuAction("Action5");
+                CPPUI::MenuAction("Action6");
+            }
+        }
+    }
+
     inline void mount(CPPUI::Application & app) { app.sync(); }
     void configureRecipes(std::vector<Recipe> & pages);
     const char * const name = "Qt";
@@ -124,7 +141,7 @@ namespace Cookbook { namespace Backend {
             && static_cast<QDialog *>(modal->ui)->isModal();
     }
     inline bool selectPage(CPPUI::Node & node) {
-        auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);
+        auto link = dynamic_cast<CPPUI::Qt::Label *>(&node);
         if(!link) return false;
         auto label = static_cast<QWidget *>(link->outer());
         for(auto parent = label->parentWidget(); parent; parent = parent->parentWidget()) {
