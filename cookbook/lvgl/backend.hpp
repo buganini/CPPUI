@@ -7,6 +7,7 @@
 #include "cppui/lvgl/button.hpp"
 #include "cppui/lvgl/canvas.hpp"
 #include "cppui/lvgl/divider.hpp"
+#include "cppui/lvgl/tab.hpp"
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>
@@ -15,6 +16,9 @@ namespace Cookbook { namespace Backend {
     inline void configureRecipes(std::vector<Recipe> & pages) {
         for(auto & page: pages) if(std::string(page.key) == "canvas") {
             page.render = canvas;
+            page.remaining = "";
+        } else if(std::string(page.key) == "tab") {
+            page.render = tab;
             page.remaining = "";
         }
     }
@@ -42,7 +46,18 @@ namespace Cookbook { namespace Backend {
         auto label = dynamic_cast<CPPUI::LVGL::Label *>(&node);
         return label && text == lv_label_get_text(static_cast<lv_obj_t *>(label->outer()));
     }
-    inline bool selectTab(CPPUI::Node &, int, const std::string &) { return false; }
+    inline bool selectTab(CPPUI::Node & node, int index, const std::string & text) {
+        auto tabs = dynamic_cast<CPPUI::LVGL::Tabs *>(&node);
+        if(!tabs || !tabs->ui) return false;
+        auto object = static_cast<lv_obj_t *>(tabs->ui);
+        auto button = lv_tabview_get_tab_button(object, index);
+        if(!button) return false;
+        lv_obj_send_event(button, LV_EVENT_CLICKED, nullptr);
+        auto page = lv_obj_get_child(lv_tabview_get_content(object), index);
+        auto label = lv_obj_get_child(button, 0);
+        return lv_tabview_get_tab_active(object) == static_cast<uint32_t>(index)
+            && label && text == lv_label_get_text(label) && lv_obj_is_visible(page);
+    }
     inline void answerPrompt(const std::string &, bool) {}
     inline bool modalVisible(CPPUI::Node &) { return false; }
     inline bool selectPage(CPPUI::Node & node) {

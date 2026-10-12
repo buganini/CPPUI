@@ -2,7 +2,7 @@
     * Core: make C++11 headers safe across translation units; fix reconciliation, construction rollback, reactive dependencies and node ownership
     * Qt: add Text/Html/MarkDown, ProgressBar, Divider, Splitter, Tabs/Tab, Canvas/ImageResource, Modal and dialogs with Binding<T>/Optional<T>
     * Qt: add explicit native lifetime tracking, editor commit before button callbacks and queued application quit
-    * LVGL: add Canvas drawing, Spacer, Divider, clickable Label and wrapping Text; reclaim standalone views and safely handle native deletion and callback replacement
+    * LVGL: add Canvas drawing, Spacer, Divider, clickable Label, wrapping Text and virtual Tabs/Tab; reclaim standalone views and safely handle native deletion and callback replacement
     * Cookbook: share recipe sources across Qt and LVGL, preserve PUI's layout and support separate LVGL 9.6 SDL2/X11 builds
     * Tests: add CMake/CTest regressions, example/cookbook smoke tests, sanitizer coverage and optional Valgrind leak checks
     * Docs: add pinned PUI/Qt and LVGL alignment plans with explicit C++ ownership contracts

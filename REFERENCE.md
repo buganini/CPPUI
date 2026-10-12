@@ -14,7 +14,7 @@
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
 |[ImageResource](#canvas)|QImage|—|—|
-|[Tabs / Tab](#tabs)|QTabWidget / virtual node|—|—|
+|[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|—|
 |[Modal](#modal)|QDialog|—|—|
 |[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|—|
 
@@ -236,8 +236,9 @@ validation beyond the automated offscreen tests.
 
 ## Tabs
 
-Include `cppui/qt/tab.hpp`. `Tabs()` owns a native QTabWidget; `Tab(label)` is
-virtual and copies its label. Use normal construction scopes:
+Include `cppui/qt/tab.hpp` or `cppui/lvgl/tab.hpp`. `Tabs()` owns a native
+QTabWidget or LVGL tabview; `Tab(label)` is virtual and copies its label.
+Use normal construction scopes:
 
 ```cpp
 for(auto tabs: CPPUI::Tabs()) {
@@ -261,6 +262,12 @@ can appear inside each Tab.
 Native widgets are reused on redraw and keyed moves. Unchanged redraws and label
 updates preserve user selection; removal/reinsertion uses Qt's native selection
 behavior. Removed pages and declarations are reclaimed through normal teardown.
+
+LVGL provides one native page container per physical child, as required by its
+tabview. These containers do not group sibling declarations. Keyed moves preserve
+the child widget and selected page; removing the selected page clamps the active
+index to the remaining pages. Empty tabviews retain their native container.
+Independent subview redraws preserve the same page order and selection rules.
 
 Two reference quirks are preserved: `Tabs(tabposition = "n")` stores the string
 but leaves the native position unchanged, and `postSync()` updates page labels

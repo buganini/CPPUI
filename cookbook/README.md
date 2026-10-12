@@ -8,8 +8,8 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Button, Label, HBox, VBox, and Canvas share their recipe implementations across both backends.
-Qt also enables shared ProgressBar, Text, Splitter, Tab, Modal and Dialog recipes through
+Button, Label, HBox, VBox, Canvas and Tab share their recipe implementations across both backends.
+Qt also enables shared ProgressBar, Text, Splitter, Modal and Dialog recipes through
 its source manifest.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
@@ -125,6 +125,9 @@ same cases. The cookbook smoke test also checks Canvas size and rendered pixels.
 reuse, virtual views, repeated removal, native deletion and parent/application
 teardown, with an optional Valgrind variant.
 
+`lvgl.tab` covers virtual pages, explicit grouping, empty tabs, keyed moves,
+selection, label updates, independent subviews and native/declaration teardown.
+The cookbook smoke test switches both shared Tab pages.
 `lvgl.widgets` checks label callback replacement/removal, divider orientation
 through virtual views, plain-text wrapping and cleanup, including Valgrind.
 

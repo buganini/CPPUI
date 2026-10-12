@@ -24,7 +24,7 @@ and current contracts; summarize completed changes briefly in `Changelog.txt`.
 ## Current basis and remaining acceptance
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Spacer, Divider, plain Text and basic Canvas drawing. The shared cookbook
+Button, Spacer, Divider, plain Text, Tabs/Tab and basic Canvas drawing. The shared cookbook
 additionally has private presentation helpers for weights, styles and scrolling. Those helpers do not establish public component support.
 
 | Area | Current basis | Remaining acceptance / phase |
@@ -37,7 +37,7 @@ additionally has private presentation helpers for weights, styles and scrolling.
 | Spacer/Divider/Grid/Stack | Public expanding Spacer and flex-axis Divider | Define fixed spacing and shared placement/style API, then add Grid/Stack and verify spans/overlap (3) |
 | ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
 | Bound controls | Missing | Text edits and boolean/value selections commit once, rebind correctly and avoid feedback loops (4) |
-| Scroll/Tabs/Tab/Splitter | Cookbook-only scrolling; other public components missing | Preserve offsets/selection across content changes; apply PUI's virtual Tab mapping and decide splitter capability (5) |
+| Scroll/Tabs/Tab/Splitter | Public Tabs/Tab; cookbook-only scrolling | Define scroll offsets and splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
 | Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
@@ -139,10 +139,6 @@ native reuse, valid model retention after invalid input, and resource reclamatio
 
 - [ ] Add public Scroll after the shared start/end anchor contract is settled;
   preserve position through resize, growth, shrinkage and content replacement.
-- [ ] Add Tabs/Tab using LVGL tabview with [PUI's mapping](../REFERENCE.md#tabs): each
-  physical child under a virtual Tab becomes a page with its ancestor's label;
-  no implicit grouping or discarded children. Retain selection on keyed moves
-  and document the reference's label-update quirk.
 - [ ] Decide a custom resizable-pane implementation versus unsupported Splitter.
   Do not duplicate the shared splitter recipe to hide capability differences.
 - [ ] Agree modal overlays, dialogs, menus/toolbars and Window capabilities
