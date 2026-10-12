@@ -16,13 +16,17 @@ namespace CPPUI {
                 if(prev && prev->ui) {
                     ui = prev->ui;
                     ((QPushButton *)ui)->setText(QString::fromStdString(text));
-                    QObject::disconnect((QPushButton *)ui, &QPushButton::clicked, nullptr, nullptr);
                 } else {
                     ui = new QPushButton(QString::fromStdString(text));
                 }
-                QObject::connect((QPushButton *)ui, &QPushButton::clicked, [=]() {
-                    onClicked();
-                });
+                // Copy before invoking user code: it may redraw or remove this
+                // declaration and disconnect the currently executing connection.
+                auto callback = onClicked;
+                connectSignal(QObject::connect(static_cast<QPushButton *>(ui),
+                    &QPushButton::clicked, ui, [callback]() {
+                        auto invoke = callback;
+                        invoke();
+                    }));
             }
         };
     }

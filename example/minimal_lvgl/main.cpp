@@ -14,19 +14,19 @@ class UI: public Application {
 
     }
 
-    State<int> n = State<int>(1);
+    State<int> n{1};
 
     void content(void) {
         for(auto _: Window().id("window1")) {
             for(auto _: VBox()) {
                 for(auto _: HBox()) {
-                    Button("-").click([=](){
+                    Button("-").click([this](){
                         n -= 1;
                     });
 
                     Label(std::to_string(n));
 
-                    Button("+").click([=](){
+                    Button("+").click([this](){
                         n += 1;
                     });
                 }

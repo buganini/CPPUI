@@ -118,10 +118,10 @@ The checklist below contains remaining work only.
 | DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Full identity contract, dispatch lifetime safety, ordering/grid coverage |
 | Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, nested failure recovery, parameterized views |
 | State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, mutation guards, collection changes |
-| Application | Partial: creates `QApplication`, shows/closes children, starts loop | Safe application ownership, icon/options, queued quit |
+| Application | Partial: creates `QApplication`, shows/closes children, starts loop | Icon/options, queued quit |
 | Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
 | HBox/VBox | Partial: insertion/removal and native reuse | Padding, dimensions, weights, Qt policies, correct native mounting |
-| Label/Button | Partial: text and button click | Common modifiers, selectable/clickable labels, event contract, safe callback rebinding |
+| Label/Button | Partial: text and button click | Common modifiers, selectable/clickable labels, event contract |
 | Grid/Stack/Spacer/Divider | Missing native components | Core grid/order flags alone do not implement these widgets |
 | TextField/Checkbox/RadioButton | Missing | Two-way editing and selection |
 | ComboBox/ComboBoxItem/ProgressBar | Missing | Selection/value mapping and numeric progress |
@@ -181,10 +181,9 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
   prevention, safe self-removal from callbacks, and application teardown. Define
   when retired declarations become reclaimable without retaining every prior
   render indefinitely.
-- [ ] Give `QApplication`, borrowed widgets, and owned widgets distinct cleanup
-  paths. `QtView::destroy()` currently assumes its `ui` is a `QWidget`.
-- [ ] Guard deferred deletion and callback delivery after removal. Retain individual
-  signal connections instead of disconnecting unrelated application listeners.
+- [ ] Specify borrowed-widget cleanup and native remount after external owner
+  destruction. Clearing typed native access makes teardown safe, but a later
+  redraw must explicitly remount the deleted native subtree before it is reusable.
 
 Acceptance: keyed reorders reuse native objects; virtual siblings retain correct
 offsets; empty/nested/removed subtrees reconcile correctly; root teardown and
@@ -400,6 +399,10 @@ Continue independent implementation while these contracts remain undecided.
   during `sync()`, after earlier siblings may have changed. Atomic rollback needs
   prebuilding/matching work or a defined partial-sync recovery protocol; skip
   that extension until its failure contract is chosen.
+- **External native ownership:** Qt declarations now clear their native access
+  when a parent deletes the QObject, and application teardown is safe. Remounting
+  after external deletion and borrowing interop widgets need an agreed ownership
+  contract; do not claim arbitrary external native mutation is supported.
 - **Specialized APIs:** scroll end anchoring (including negative zero), dialog
   cancellation/results, table/tree value and identity types, and external widget
   ownership need their own C++ contracts before the corresponding phase. Their

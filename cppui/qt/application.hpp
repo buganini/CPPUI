@@ -2,43 +2,58 @@
 #define CPPUI_QT_APPLICATION
 
 #include "base.hpp"
-
-#include <iostream>
-#include <QMainWindow>
 #include <QApplication>
+#include <QEvent>
+#include <memory>
+#include <stdexcept>
 
 namespace CPPUI {
     class Application: public Qt::QtView {
         int argc;
-        char **argv;
+        char ** argv;
+        std::unique_ptr<QApplication> ownedApplication;
+        QApplication * application = nullptr;
 
         public:
-        Application(int argc, char *argv[]): QtView() {
-            this->argc = argc;
-            this->argv = argv;
+        Application(int argc, char * argv[]): argc(argc), argv(argv) {}
+
+        ~Application() override {
+            // Flush only this application's native roots while Qt is still live.
+            std::vector<QWidget *> roots;
+            collectRoots(children, roots);
+            clearChildren();
+            for(auto root: roots) QCoreApplication::sendPostedEvents(root, QEvent::DeferredDelete);
         }
 
-        void update(Node * prev) {
-            if(!ui) {
-                ui = new QApplication(argc, argv);
+        void update(Node * prev) override {
+            if(!application) {
+                application = qobject_cast<QApplication *>(QCoreApplication::instance());
+                if(!application) {
+                    if(QCoreApplication::instance()) {
+                        throw std::logic_error("CPPUI requires QApplication, not QCoreApplication");
+                    }
+                    ownedApplication.reset(new QApplication(argc, argv));
+                    application = ownedApplication.get();
+                }
             }
             QtView::update(prev);
         }
 
-        void addChild(int idx, Node *child) {
-            ((QMainWindow *)child->outer())->show();
+        void addChild(int, Node * child) override {
+            if(auto widget = static_cast<QWidget *>(child->outer())) widget->show();
         }
-
-        void removeChild(int idx, Node *child) {
-            ((QMainWindow *)child->outer())->close();
+        void removeChild(int, Node * child) override {
+            if(auto widget = static_cast<QWidget *>(child->outer())) widget->close();
         }
+        void start() override { application->exec(); }
 
-
-        void start(void) {
-            std::cout << "start\n";
-            ((QApplication *)ui)->exec();
+        private:
+        static void collectRoots(const std::vector<Node *> * nodes, std::vector<QWidget *> & roots) {
+            for(auto node: *nodes) {
+                if(node->is_virtual) collectRoots(node->children, roots);
+                else if(auto widget = static_cast<QWidget *>(node->outer())) roots.push_back(widget);
+            }
         }
     };
 }
-
 #endif

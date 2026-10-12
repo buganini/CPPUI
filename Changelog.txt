@@ -1,5 +1,18 @@
 2026-10-12
 
+- Give Qt widgets/layouts typed native observers and explicit destruction
+  notification/connection cleanup. Preserve external signal listeners on reuse;
+  snapshot button callbacks so self-removal cannot destroy an active callable.
+  Virtual Qt views clean their declarations without treating ui as a QWidget.
+  Applications create or borrow QApplication and release their native roots
+  before owned application teardown. Update minimal examples to use direct State
+  initialization and explicit application captures.
+  Validation: Qt examples/header builds, sanitizer CTest 7/7 and Valgrind 7/7
+  pass (GCC 15.2.0, Qt 6.10.2, Valgrind 3.26.0). New checks cover callback reuse,
+  unrelated connections, clicks during deferred deletion, repeated removal,
+  parent-driven native destruction, and owned/borrowed QApplication teardown.
+  External native subtree remount and borrowed-widget interop remain in the plan.
+
 - Add optional CPPUI_VALGRIND_TESTS and a shared cppui_add_test helper so every
   regression and future cookbook smoke target also gets a Memcheck run. Fail on
   memory errors and definite, indirect or possible leaks; report reachable

@@ -23,7 +23,7 @@ namespace CPPUI {
             }
 
             void removeChild(int idx, Node *child) override {
-                ((QWidget *)child->outer())->setParent(nullptr);
+                if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
        };
     }

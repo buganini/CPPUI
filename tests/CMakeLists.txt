@@ -47,6 +47,11 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_widgets PRIVATE CPPUI::qt)
     cppui_add_test(qt.widgets cppui_qt_widgets)
 
+    add_executable(cppui_qt_lifetime qt_lifetime.cpp)
+    target_link_libraries(cppui_qt_lifetime PRIVATE CPPUI::qt)
+    cppui_add_test(qt.lifetime cppui_qt_lifetime)
+    cppui_add_test(qt.application_owned cppui_qt_lifetime --owned)
+
     foreach(header application base button label layout window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
