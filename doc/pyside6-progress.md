@@ -132,7 +132,7 @@ the separate deferred section records intentional omissions.
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
 | Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
-| MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars/MDI coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
+| MenuBar/Menu/MenuAction/ToolBar/ToolBarAction | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
@@ -325,7 +325,7 @@ Modal focus and window-manager state require manual display checks.
 - [ ] Add MenuBar/Menu/MenuAction and ToolBar/ToolBarAction, including nested
   menus, widget actions, icons, current trigger callbacks, and keyed reorders.
 - [ ] Route these children through Window's native APIs without replacing its
-  central content. Implement MdiArea/MdiSubWindow and safe child removal.
+  central content.
 - [ ] Add equivalents of `QtInPui` and `PuiInQt`: specify borrowed native widget
   lifetime, removal/reparenting, and embedding into an existing Qt application.
 
@@ -393,7 +393,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `image.py` | 3, 4 | Sized image asset |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
-| `mdi.py`, `widget.py` | 6 | MDI children, borrowed Qt widget |
+| `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |
 | `drawshapely.py`, `matplotlib.py` | Deferred integrations | Requires an agreed C++ bridge/dependency strategy |

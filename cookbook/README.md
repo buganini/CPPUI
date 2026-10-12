@@ -141,7 +141,8 @@ handlers can destroy the display or exit before CPPUI tears down declarations.
 The tested smoke path returns to startup for ordered cleanup; it does not validate native
 window-close handling. See the [LVGL plan](../doc/lvgl-progress.md) for that decision.
 
-The shared TimelineView recipe is enabled on Qt and uses its cancellable timer.
+The shared MDI and TimelineView recipes are enabled on Qt; the timer stops when
+its recipe is removed.
 
 Qt smoke startup uses immediate `sync()`; interaction checks process Qt events to
 settle queued redraws and lifecycle notifications. LVGL startup remains immediate.

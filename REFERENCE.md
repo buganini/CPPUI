@@ -91,6 +91,22 @@ pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
 
+## MDI
+
+Include `cppui/qt/mdi.hpp` for `MdiArea()` and `MdiSubWindow()`. The area owns
+native subwindows and preserves their geometry across unchanged redraws. Like
+[PUI](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/mdi.py),
+a subwindow displays its first physical child; use a VBox/HBox to group content.
+Additional children are hidden and parent-owned for safe teardown. Virtual views
+flatten normally. Closing an explicit subwindow hides it without changing State;
+a redraw does not reopen it.
+
+A plain widget directly in an MdiArea uses Qt's automatic subwindow wrapper.
+[Qt leaves that wrapper behind when removing only its content](https://doc.qt.io/qt-6/qmdiarea.html#removeSubWindow);
+CPPUI also removes and deletes the empty wrapper. Keyed moves keep the content
+alive while its native ownership transfers. External native deletion clears
+observers for teardown; automatic remount after external deletion is deferred.
+
 ## TimelineView
 
 Include `cppui/qt/timeline.hpp`. `TimelineView(ttlSeconds)` is a virtual scope:

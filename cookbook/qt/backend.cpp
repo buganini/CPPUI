@@ -27,6 +27,9 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "timeline") {
                 page.render = timeline;
                 page.remaining = "";
+            } else if(std::string(page.key) == "mdi") {
+                page.render = mdi;
+                page.remaining = "";
             } else if(std::string(page.key) == "modal") {
                 page.render = modal;
                 page.remaining = "";

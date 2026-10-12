@@ -28,6 +28,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void mdi(Model &);
     void timeline(Model &);
     void checkbox(Model &);
     void progressbar(Model &);

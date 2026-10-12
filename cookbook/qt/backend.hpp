@@ -14,6 +14,7 @@
 #include "cppui/qt/tab.hpp"
 #include "cppui/qt/dialog.hpp"
 #include "cppui/qt/modal.hpp"
+#include "cppui/qt/mdi.hpp"
 #include "cppui/qt/timeline.hpp"
 #include <QTimer>
 #include "../recipes.hpp"
