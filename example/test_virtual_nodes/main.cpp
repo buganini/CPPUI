@@ -1,4 +1,5 @@
 #include <string>
+#include "../qt_smoke.hpp"
 
 #include "../../cppui/state.hpp"
 #include "../../cppui/qt/application.hpp"
@@ -98,7 +99,30 @@ class App: public Application {
 };
 
 int main(int argc, char * argv[]) {
-    App app(argc, argv);
-    app.run();
-    return 0;
+    try {
+        App app(argc, argv);
+        if(QtSmoke::requested(argc, argv)) {
+            app.redraw();
+            count1 = 3;
+            count3 = 2;
+            QtSmoke::settle();
+            QtSmoke::require(QtSmoke::hasText(app, "View1-2") && QtSmoke::hasText(app, "View3-1"),
+                             "independent view updates were lost");
+            for(int i = 1; i <= 3; ++i) {
+                QtSmoke::require(QtSmoke::click(app, "Hide"), "hide button missing");
+                QtSmoke::settle();
+                QtSmoke::require(!show2 && !QtSmoke::hasText(app, "View2Sub-0"), "virtual subtree was not removed");
+                count2sub = i;
+                QtSmoke::require(QtSmoke::click(app, "Show"), "show button missing");
+                QtSmoke::settle();
+                QtSmoke::require(show2 && QtSmoke::hasText(app, "View2Sub-" + std::to_string(i - 1)),
+                                 "reinserted nested view lost its current state");
+            }
+            return 0;
+        }
+        app.run();
+    } catch(const std::exception & error) {
+        std::cerr << error.what() << std::endl;
+        return 1;
+    }
 }

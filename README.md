@@ -24,7 +24,7 @@ ctest --test-dir build --output-on-failure
 The build also checks that each core header compiles independently.
 
 With Qt 6 development packages available, enable the Qt target, both existing
-examples, and an automated offscreen virtual-node regression:
+examples, and automated offscreen regressions:
 
 ```sh
 cmake -S . -B build-qt -DCPPUI_BUILD_QT=ON -DCMAKE_BUILD_TYPE=Release
@@ -35,7 +35,9 @@ ctest --test-dir build-qt --output-on-failure
 Qt applications can link `CPPUI::qt`; Qt's imported target supplies its compiler
 requirements. CTest sets the offscreen platform for the Qt test automatically.
 The interactive examples are `cppui_minimal_qt` and `cppui_virtual_nodes` in the
-build directory. Their original CMake projects under `example/` remain usable.
+build directory. Both accept `--smoke` and run as CTest regressions, including
+Valgrind variants when enabled. Their original CMake projects under `example/`
+remain usable.
 
 # Shared cookbook
 
@@ -99,9 +101,10 @@ platform-specific arguments, use `CPPUI_VALGRIND_OPTIONS` (a CMake list).
 # View Hierarchy Construction
 ```c++
 #include <iostream>
-#include "../../cppui/qt/application.hpp"
-#include "../../cppui/qt/window.hpp"
-#include "../../cppui/qt/label.hpp"
+#include "cppui/qt/application.hpp"
+#include "cppui/qt/window.hpp"
+#include "cppui/qt/label.hpp"
+#include "cppui/qt/layout.hpp"
 
 using namespace CPPUI;
 class UI: public Application {

@@ -134,10 +134,6 @@ The checklist below contains remaining work only.
 | Qt interop/TimelineView | Missing | Borrowed widgets, embedding, cancellable timers |
 | Validation | Core and offscreen Qt CTest harnesses, independent header builds, multi-file checks | Broader lifecycle, dispatch, and component parity coverage |
 
-The six existing components are documented in [REFERENCE.md](https://github.com/buganini/CPPUI/blob/848cf9a97c45ae6ca0050ab3fc645daf15009665/REFERENCE.md).
-The [virtual-node example](https://github.com/buganini/CPPUI/blob/848cf9a97c45ae6ca0050ab3fc645daf15009665/example/test_virtual_nodes/main.cpp) ports one PUI
-scenario but runs an interactive event loop and contains no assertions.
-
 ## Implementation sequence
 
 Work through the available tasks below. When a public API or lifecycle decision
@@ -150,10 +146,9 @@ behavioral checks and documentation.
 
 ### Phase 0 — Contract and test harness (P0)
 
-- [ ] Specify the C++ API shapes for `Binding<T>`, event payloads,
-  layout/style options, and borrowed construction references. Document that
-  application code must not retain those references across reconciliation. Keep
-  existing no-argument button callbacks usable while adding event-aware overloads.
+- [ ] Specify the C++ API shapes for `Binding<T>`, event payloads, and layout/style
+  options. Keep existing no-argument button callbacks usable while adding
+  event-aware overloads.
 - [ ] Map every component in the status table to a milestone, reference example,
   and acceptance case. Track intentional extensions and omissions separately.
 
@@ -177,10 +172,9 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
 - [ ] Ensure every backend update participates in the common retirement/transfer
   protocol. Transfer child ownership and parent links before releasing the old
   declaration; destroy native subtrees exactly once.
-- [ ] Implement the ownership/reclamation requirements above, including cycle
-  prevention, safe self-removal from callbacks, and application teardown. Define
-  when retired declarations become reclaimable without retaining every prior
-  render indefinitely.
+- [ ] Extend ownership coverage to queued callbacks/timers and externally owned
+  or self-deleting native widgets. Ensure new event APIs cannot retain retired
+  declarations indefinitely or introduce owning cycles.
 - [ ] Specify borrowed-widget cleanup and native remount after external owner
   destruction. Clearing typed native access makes teardown safe, but a later
   redraw must explicitly remount the deleted native subtree before it is reusable.

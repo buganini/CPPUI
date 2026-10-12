@@ -1,5 +1,14 @@
 2026-10-12
 
+- Add --smoke assertions to both existing Qt examples for native counter clicks,
+  independent view updates, and repeated nested subtree removal/reinsertion.
+  Register normal and optional Valgrind runs in the root and standalone CMake
+  projects. Update example/root build instructions and ignore local example
+  build output; remove stale completed ownership/example notes from the plan.
+  Validation: Qt/core ASan/UBSan/leak suite passes 11/11; non-sanitized normal
+  and Valgrind suite passes 22/22. Both standalone example builds and their
+  smoke tests pass (1/1 each), with GCC 15.2.0 and Qt 6.10.2 offscreen.
+
 - Add Qt Text, Html and MarkDown with explicit formats, owned text, wrapping,
   top alignment and optional mouse selection. Add selectable Label and reset
   selection flags on reuse. Port the shared Text cookbook recipe through the

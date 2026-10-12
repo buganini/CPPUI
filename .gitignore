@@ -12,3 +12,5 @@ example/*/minimal
 /build-cookbook-lvgl/
 /cookbook/*/build/
 /cookbook/*/build-*/
+/example/*/build/
+/example/*/build-*/
