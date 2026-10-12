@@ -451,6 +451,9 @@ requires an environment without ptrace tracing. Enable `CPPUI_VALGRIND_TESTS`
 in a separate non-sanitized build to run the regressions with Memcheck; use
 `ctest -L valgrind --output-on-failure`. All new regression and cookbook smoke
 targets must register through `cppui_add_test` so they receive leak checks too.
+The harness sets `QT_ENABLE_REGEXP_JIT=0` only for Valgrind runs, following the
+[Valgrind FAQ](https://valgrind.org/docs/manual/faq.html) for Qt regexp JIT
+diagnostics. Do not suppress CPPUI memory errors.
 
 Remove a task only after its acceptance checks pass. Keep CPPUI's README/REFERENCE, shared cookbook,
 examples, and tests current, and retain outstanding manual checks or intentional

@@ -108,7 +108,10 @@ ctest --test-dir build-valgrind -L valgrind --output-on-failure
 Every automated regression also runs under Memcheck when enabled. Invalid memory
 accesses and definite, indirect, or possible leaks fail the test. Reachable
 process-global allocations are reported but do not fail it. Qt tests use the
-offscreen platform. No project suppression file is applied. To pass additional
+offscreen platform. Valgrind runs set `QT_ENABLE_REGEXP_JIT=0` to avoid Qt regexp
+JIT diagnostics without function names, as recommended by the
+[Valgrind FAQ](https://valgrind.org/docs/manual/faq.html). Normal runs retain Qt's
+default JIT setting. No project suppression file is applied. To pass additional
 platform-specific arguments, use `CPPUI_VALGRIND_OPTIONS` (a CMake list).
 
 # View Hierarchy Construction

@@ -24,6 +24,9 @@ function(cppui_add_test name target)
                 $<TARGET_FILE:${target}> ${ARGN})
         set_tests_properties("valgrind.${name}" PROPERTIES
             ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+            # Qt's regexp JIT emits unsymbolized Memcheck conditional-jump
+            # reports; use its interpreted path in memory checks (Valgrind FAQ 5.4).
+            ENVIRONMENT_MODIFICATION "QT_ENABLE_REGEXP_JIT=set:0"
             LABELS valgrind
             TIMEOUT 120)
     endif()
