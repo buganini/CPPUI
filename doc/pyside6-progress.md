@@ -18,6 +18,7 @@ those backends is outside scope except for the shared cookbook build and
 compatibility fixes needed to run its existing components.
 
 Track LVGL-specific component/runtime work in the [LVGL plan](lvgl-progress.md).
+Track wxWidgets component/runtime work in the [wx plan](wx-progress.md).
 Shared-core and public API decisions remain coordinated here.
 
 Use reference implementation and regression tests together to establish each
