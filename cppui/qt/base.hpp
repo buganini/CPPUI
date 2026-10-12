@@ -88,6 +88,9 @@ namespace CPPUI {
 
             void update(BaseWidget * prev) override {
                 update(static_cast<BaseLayout *>(prev));
+                layout->setContentsMargins(0, 0, 0, 0);
+                const int padding = dynamic_cast<BaseLayout *>(dom_parent) ? 0 : 11;
+                ui->setContentsMargins(padding, padding, padding, padding);
             }
             virtual void update(BaseLayout * prev) = 0;
 

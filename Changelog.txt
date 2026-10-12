@@ -1,5 +1,14 @@
 2026-10-12
 
+- Match Qt box defaults with zero native layout margins and 11-pixel padding
+  only outside another physical box. Add public Qt Divider() with reference
+  orientation, sunken frame, terminal and non-movable behavior. The shared
+  cookbook's Qt adapter now uses the public divider and default padding.
+  Validation: native tests cover nested/virtual layout geometry, divider reuse,
+  adjacent moves, orientation and deletion. Qt/core sanitizer suite passes 15/15;
+  layout/cookbook normal and Valgrind checks pass 4/4. The divider header builds
+  independently. Update component docs and remove finished plan items.
+
 - Repair core reconciliation for repeated reversed layouts, out-of-order nodes
   inside moved virtual groups, and non-movable blockers. Include placed grid
   coordinates/spans in identity. Reclaim unplaced grid and unmounted terminal

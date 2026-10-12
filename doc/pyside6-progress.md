@@ -120,7 +120,7 @@ The checklist below contains remaining work only.
 | Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
 | HBox/VBox | Partial: insertion/removal and native reuse | Padding, dimensions, weights, Qt policies, correct native mounting |
 | Label/Button | Partial: text and button click | Common modifiers, clickable labels, event contract |
-| Grid/Stack/Spacer/Divider | Missing native components | Core grid/order flags alone do not implement these widgets |
+| Grid/Stack/Spacer | Missing native components | Core grid/order flags alone do not implement these widgets |
 | TextField/Checkbox/RadioButton | Missing | Two-way editing and selection |
 | ComboBox/ComboBoxItem | Missing | Selection/value mapping |
 | Image | Missing | Image loading, sizing and presentation |
@@ -230,9 +230,9 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
   the existing `BaseLayout::layout` member before introducing `.layout(...)`.
   Once the public API is chosen, migrate the cookbook's private presentation
   adapters onto it while preserving the reference layout and recipe styling.
-- [ ] Align HBox/VBox margins, stretch updates, size hints, and nested layouts.
+- [ ] Align configurable HBox/VBox padding, stretch updates, and size hints.
   Recompute properties from current declarations and define reset behavior.
-- [ ] Add `Grid`, `Stack`, `Spacer`, and `Divider`, including grid spans,
+- [ ] Add `Grid`, `Stack`, and `Spacer`, including grid spans,
   overlapping Stack order, and `QSpacerItem` ownership/non-movability.
 - [ ] Extend Window with title, icon, size, keypress, initial-only maximize and
   fullscreen flags, and imperative methods to change those states.

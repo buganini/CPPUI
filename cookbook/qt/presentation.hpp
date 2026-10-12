@@ -19,11 +19,6 @@ namespace Cookbook { namespace Presentation {
     class Box: public NativeBox, public Item {
         public:
         explicit Box(int weight): Item(weight) {}
-        void update(CPPUI::Qt::BaseLayout * prev) override {
-            NativeBox::update(prev);
-            const int margin = dynamic_cast<CPPUI::Qt::BaseLayout *>(this->dom_parent) ? 0 : 11;
-            this->layout->setContentsMargins(margin, margin, margin, margin);
-        }
         void postSync() override {
             for(auto child: *this->children) {
                 auto item = dynamic_cast<Item *>(child);
@@ -127,15 +122,7 @@ namespace Cookbook { namespace Presentation {
         }
     };
     inline SpacerNode & Spacer() { return *new SpacerNode(); }
-    class DividerNode: public CPPUI::Qt::BaseWidget {
-        public:
-        void update(CPPUI::Qt::BaseWidget * prev) override {
-            ui = prev && prev->ui ? prev->ui : new QFrame();
-            static_cast<QFrame *>(ui)->setFrameShape(QFrame::HLine);
-            static_cast<QFrame *>(ui)->setFrameShadow(QFrame::Sunken);
-        }
-    };
-    inline DividerNode & Divider() { return *new DividerNode(); }
+    inline CPPUI::Qt::Divider & Divider() { return CPPUI::Divider(); }
 
     class LabelNode: public CPPUI::Qt::Label, public Item {
         bool styled;

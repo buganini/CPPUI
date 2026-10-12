@@ -3,8 +3,9 @@
 |-------|-------|----|--|
 |[Application](#application)|QApplication|View|App|
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
-|[HBox](#hbox)|QHBoxLayout|flex_flow|wxBoxSizer|
-|[VBox](#vbox)|QVBoxLayout|flex_flow|wxBoxSizer|
+|[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
+|[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
+|[Divider](#divider)|QFrame|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
@@ -66,6 +67,20 @@ retained widgets. A zero maximum uses Qt's busy indicator; other range behavior
 follows `QProgressBar`. Non-finite or unrepresentable values throw
 `std::out_of_range` during construction. A state read passed as an argument
 subscribes the surrounding view; this component does not require a writable binding.
+
+## Box layouts
+
+Qt boxes use 11 pixels of outer padding when their physical parent is not another
+box layout, and zero padding when nested in a box. Native QBoxLayout margins are
+zero to avoid adding a second layer of spacing. Configurable padding and weights
+still await the common layout API.
+
+## Divider
+
+Include `cppui/qt/divider.hpp` and use `Divider()`. Its sunken QFrame is horizontal
+inside a VBox, vertical inside an HBox (including through virtual views), and
+frameless otherwise. Dividers are terminal and non-movable; removal releases the
+native frame using the normal deferred-deletion lifecycle.
 
 ## Text
 

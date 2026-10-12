@@ -3,6 +3,7 @@
 #include "cppui/qt/application.hpp"
 #include "cppui/qt/window.hpp"
 #include "cppui/qt/layout.hpp"
+#include "cppui/qt/divider.hpp"
 #include "cppui/qt/label.hpp"
 #include "cppui/qt/button.hpp"
 #include "cppui/qt/progressbar.hpp"
