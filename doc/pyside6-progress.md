@@ -130,7 +130,7 @@ the separate deferred section records intentional omissions.
 | Grid/Stack/Spacer | Public box Spacer; core grid/reverse-order flags | Define shared placement options, then port Grid spans and Stack overlap | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
 | TextField/Checkbox/RadioButton | Boolean Checkbox with Binding/State and membership adapters | Preserve unfinished edits; validate commit; define observable collection and typed value selections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
-| Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
+| Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
 | Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
@@ -300,8 +300,8 @@ and child order. Port the window-state and size-policy cases from
   overloads; explicit boolean membership Binding adapters are supported.
 - [ ] Add ComboBox/ComboBoxItem with editable text, index/text models, distinct
   labels/values, empty contents, invalid selection, and dynamic item updates.
-- [ ] Add Image with dimensions, path updates, and common modifiers as supported
-  by the pinned reference.
+- [ ] Apply shared dimension/stretch modifiers to Image once the common layout
+  API is chosen; natural-size image loading and the sized cookbook recipe exist.
 
 Acceptance: port the binding, textfield, checkbox, radiobutton, combobox,
 progressbar, text, and image cookbook cases. Assert a single commit, no feedback
@@ -391,7 +391,6 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `grid.py`, `stack.py` | 3 | Grid placement, overlap |
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, changed callback, edit/commit and conversion |
 | `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
-| `image.py` | 3, 4 | Sized image asset |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |

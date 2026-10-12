@@ -14,6 +14,9 @@
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
+|[Image](#image)|QLabel / QPixmap|—|—|
+|[MDI](#mdi)|QMdiArea / QMdiSubWindow|—|—|
+|[TimelineView](#timelineview)|QTimer / virtual node|—|—|
 |[ImageResource](#canvas)|QImage|—|—|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|—|
 |[Modal](#modal)|QDialog|—|—|
@@ -90,6 +93,17 @@ first. It can be called before `run()`; application destruction cancels any
 pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
+
+## Image
+
+Include `cppui/qt/image.hpp` for `Image(path)`. The clickable image label owns its
+path and pixmap, reuses the native label, and reloads when the path or file
+modification time changes. It uses the image's natural size. Click replacement,
+removal and native lifetime follow Label. A missing path throws during declaration
+building, preserving the mounted image on a failed redraw; undecodable existing
+files produce an empty Qt pixmap. Public dimension/stretch modifiers await the
+shared layout API. The cookbook uses a private 360-pixel-height adapter and the
+same screenshot as PUI's Image recipe.
 
 ## MDI
 

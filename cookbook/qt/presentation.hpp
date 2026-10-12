@@ -138,6 +138,16 @@ namespace Cookbook { namespace Presentation {
     };
     inline StyledButtonNode & StyledButton() { return *new StyledButtonNode(); }
 
+    class ImageNode: public CPPUI::Qt::Image {
+        public:
+        explicit ImageNode(const std::string & path): Image(path) {}
+        void update(CPPUI::Qt::BaseWidget * prev) override {
+            CPPUI::Qt::Image::update(prev);
+            static_cast<QLabel *>(ui)->setPixmap(pixmap.scaledToHeight(360, ::Qt::SmoothTransformation));
+        }
+    };
+    inline ImageNode & Image(const std::string & path) { return *new ImageNode(path); }
+
     class CanvasNode: public CPPUI::Qt::Canvas {
         public:
         explicit CanvasNode(Painter painter): CPPUI::Qt::Canvas(std::move(painter)) {}
