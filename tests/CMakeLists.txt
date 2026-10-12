@@ -108,6 +108,10 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_modal PRIVATE CPPUI::qt)
     cppui_add_test(qt.modal cppui_qt_modal)
 
+    add_executable(cppui_qt_window qt_window.cpp)
+    target_link_libraries(cppui_qt_window PRIVATE CPPUI::qt)
+    cppui_add_test(qt.window cppui_qt_window)
+
     add_executable(cppui_qt_scheduling qt_scheduling.cpp)
     target_link_libraries(cppui_qt_scheduling PRIVATE CPPUI::qt)
     cppui_add_test(qt.scheduling cppui_qt_scheduling)

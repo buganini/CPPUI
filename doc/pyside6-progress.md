@@ -124,7 +124,7 @@ the separate deferred section records intentional omissions.
 | Views | `QtView` queued/coalesced redraw, immediate sync and one-time setup | Changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
 | State | Read tracking, assignment, `+=`, `-=`, listener cleanup and Binding adapters | Change subscriptions and explicit notification; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
 | Application | Owned/borrowed `QApplication`, queued quit | Apply and reset declared icon/options without changing borrowed native ownership | 2 / [gallery startup][ref-gallery] |
-| Window | `QMainWindow` and central widget | Update title/icon/size; initial flags apply only on creation; imperative state changes and keypress payloads work | 3 / [Qt regression][ref-qt] |
+| Window | `QMainWindow`, title/icon/size and initial/imperative state flags | Keypress payloads follow the deferred event contract; verify window-manager behavior on a display | 3 / [Qt regression][ref-qt] |
 | HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
 | Label/Button | Owned text, selectable labels and current click callbacks | Styles reset on reuse; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
 | Grid/Stack/Spacer | Public box Spacer; core grid/reverse-order flags | Define shared placement options, then port Grid spans and Stack overlap | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
@@ -281,8 +281,8 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
   Recompute properties from current declarations and reset omitted properties
   to their defaults.
 - [ ] Add `Grid` and `Stack`, including grid spans and overlapping Stack order.
-- [ ] Extend Window with title, icon, size, keypress, initial-only maximize and
-  fullscreen flags, and imperative methods to change those states.
+- [ ] Add Window keypress after the deferred event contract is addressed; verify
+  initial and imperative window-state behavior with a real window manager.
 - [ ] Add common event payloads and fluent modifiers needed by later widgets.
 
 Acceptance: port HBox/VBox/Grid/Stack cookbook scenarios; change weights to zero,

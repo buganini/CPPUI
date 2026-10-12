@@ -2,19 +2,56 @@
 #define CPPUI_QT_WINDOW
 
 #include "base.hpp"
+#include "../optional.hpp"
 
 #include <QMainWindow>
+#include <QApplication>
+#include <QLineEdit>
+#include <QIcon>
+#include <QPointer>
 
 namespace CPPUI {
     namespace Qt {
+        class WindowWidget: public QMainWindow {
+            protected:
+            void mousePressEvent(QMouseEvent * event) override {
+                QPointer<WindowWidget> alive(this);
+                if(auto editor = qobject_cast<QLineEdit *>(QApplication::focusWidget())) editor->clearFocus();
+                if(alive) QMainWindow::mousePressEvent(event);
+            }
+        };
         class Window: public BaseWidget {
+            OptionalText caption, iconPath;
+            Optional<QSize> dimensions;
+            Optional<bool> initialMaximized, initialFullscreen;
+            static void windowFlag(QWidget * widget, ::Qt::WindowState flag, bool value) {
+                widget->setWindowState(value ? widget->windowState() | flag : widget->windowState() & ~flag);
+            }
             public:
-            void update(BaseWidget * prev) {
-                if(prev && prev->ui) {
-                    ui = prev->ui;
-                } else {
-                    ui = new QMainWindow();
+            Window & title(const std::string & value) { caption = value; return *this; }
+            Window & icon(const std::string & path) { iconPath = path.empty() ? OptionalText() : OptionalText(path); return *this; }
+            Window & size(int width, int height) { dimensions = QSize(width, height); return *this; }
+            Window & maximize(bool value = true) {
+                if(ui) windowFlag(ui, ::Qt::WindowMaximized, value);
+                else initialMaximized = value;
+                return *this;
+            }
+            Window & fullscreen(bool value = true) {
+                if(ui) windowFlag(ui, ::Qt::WindowFullScreen, value);
+                else initialFullscreen = value;
+                return *this;
+            }
 
+            void update(BaseWidget * previous) override {
+                auto prev = static_cast<Window *>(previous);
+                const bool creating = !prev || !prev->ui;
+                ui = creating ? new WindowWidget() : prev->ui;
+                if(dimensions && (creating || !prev->dimensions || *dimensions != *prev->dimensions)) ui->resize(*dimensions);
+                if(caption) ui->setWindowTitle(QString::fromStdString(*caption));
+                if(iconPath) ui->setWindowIcon(QIcon(QString::fromStdString(*iconPath)));
+                if(creating) {
+                    if(initialMaximized) windowFlag(ui, ::Qt::WindowMaximized, *initialMaximized);
+                    if(initialFullscreen) windowFlag(ui, ::Qt::WindowFullScreen, *initialFullscreen);
                 }
             }
 

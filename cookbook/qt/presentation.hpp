@@ -36,10 +36,10 @@ namespace Cookbook { namespace Presentation {
 
     class WindowNode: public CPPUI::Qt::Window {
         public:
+        WindowNode() { title("CPPUI Cookbook"); maximize(); }
         void update(CPPUI::Qt::BaseWidget * prev) override {
             CPPUI::Qt::Window::update(prev);
             auto window = static_cast<QMainWindow *>(ui);
-            window->setWindowTitle("CPPUI Cookbook");
             if(!prev || !prev->ui) {
                 auto menu = window->menuBar()->addMenu("Menu");
                 auto add = [window](QMenu * menu, const char * title, const char * output) {
@@ -54,7 +54,6 @@ namespace Cookbook { namespace Presentation {
                 auto menu3 = window->menuBar()->addMenu("Menu3");
                 menu3->addAction("Action5");
                 menu3->addAction("Action6");
-                window->setWindowState(window->windowState() | ::Qt::WindowMaximized);
             }
         }
     };

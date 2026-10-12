@@ -19,7 +19,7 @@ class UI: public Application {
     State<bool> showLabels{true};
 
     void content(void) {
-        for(auto _: Window().id("window1")) {
+        for(auto _: Window().title("CPPUI counter").size(480, 320).id("window1")) {
             for(auto _: VBox()) {
                 for(auto _: HBox()) {
                     Button("-").click([this](){

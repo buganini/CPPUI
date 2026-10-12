@@ -91,6 +91,17 @@ pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
 
+## Window
+
+Qt `Window().title(text).icon(path).size(width, height)` updates a retained native
+window. Text and paths are owned strings. Omitted title/icon preserve their
+current values, following PUI; an empty icon path also leaves the icon alone.
+An unchanged declared size preserves user resizing; changing it, or declaring it
+again after omission, resizes the window. `.maximize()` and `.fullscreen()` apply
+only at creation when used in a builder. On a current mounted declaration they
+change the native state immediately, as for Modal. A window mouse press clears a
+focused line editor so it can commit. Keypress payloads remain deferred.
+
 ## Binding
 
 `cppui/binding.hpp` provides a copyable C++11 `Binding<T>` with `get()` and
