@@ -5,6 +5,8 @@
 #include "../../cppui/lvgl/label.hpp"
 #include "../../cppui/lvgl/button.hpp"
 #include "../../cppui/lvgl/layout.hpp"
+#include "../../cppui/lvgl/divider.hpp"
+#include "../../cppui/lvgl/text.hpp"
 #include "unistd.h"
 
 using namespace CPPUI;
@@ -35,6 +37,8 @@ class UI: public Application {
                         Label(std::to_string(i));
                     }
                 }
+                Divider();
+                Text("The counter updates the labels above. This text wraps to the available width.");
                 Spacer();
             }
         }

@@ -12,9 +12,13 @@ namespace CPPUI {
             std::string text;
             Label(const char * text) {
                 this->text = std::string(text);
+                is_terminal = true;
+                clickable = true;
             }
             Label(const std::string text) {
                 this->text = text;
+                is_terminal = true;
+                clickable = true;
             }
 
             void update(Node * prev) {

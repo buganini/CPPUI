@@ -82,24 +82,8 @@ namespace Cookbook { namespace Presentation {
     inline ScrollNode & Scroll() { return *new ScrollNode(); }
 
     class PageLinkNode: public CPPUI::LVGL::Label {
-        static void clicked(lv_event_t * event) {
-            auto node = static_cast<PageLinkNode *>(lv_event_get_user_data(event));
-            auto invoke = node->onClicked;
-            invoke();
-        }
         public:
         explicit PageLinkNode(const std::string & text): Label(text) {}
-        void update(CPPUI::LVGL::Node * prev) override {
-            CPPUI::LVGL::Label::update(prev);
-            auto object = static_cast<lv_obj_t *>(ui);
-            lv_obj_add_flag(object, LV_OBJ_FLAG_CLICKABLE);
-            lv_obj_remove_event_cb(object, clicked);
-            lv_obj_add_event_cb(object, clicked, LV_EVENT_CLICKED, this);
-        }
-        void destroy(bool direct) override {
-            if(ui) lv_obj_remove_event_cb(static_cast<lv_obj_t *>(ui), clicked);
-            CPPUI::LVGL::Label::destroy(direct);
-        }
     };
     inline PageLinkNode & PageLink(const std::string & text) { return *new PageLinkNode(text); }
 
@@ -108,16 +92,9 @@ namespace Cookbook { namespace Presentation {
         SpacerNode(): Item(1) {}
     };
     inline SpacerNode & Spacer() { return *new SpacerNode(); }
-    class DividerNode: public CPPUI::LVGL::Node {
+    class DividerNode: public CPPUI::LVGL::Divider, public Item {
         public:
-        void update(CPPUI::LVGL::Node * prev) override {
-            ui = prev && prev->ui ? prev->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));
-            auto object = static_cast<lv_obj_t *>(ui);
-            lv_obj_remove_style_all(object);
-            lv_obj_set_height(object, 1);
-            lv_obj_set_style_bg_color(object, lv_color_hex(0x808080), 0);
-            lv_obj_set_style_bg_opa(object, LV_OPA_COVER, 0);
-        }
+        DividerNode() { fixedSize = true; }
     };
     inline DividerNode & Divider() { return *new DividerNode(); }
 

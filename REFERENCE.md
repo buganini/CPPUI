@@ -6,12 +6,12 @@
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
 |[Spacer](#spacer)|—|transparent flex item|—|
-|[Divider](#divider)|QFrame|—|—|
+|[Divider](#divider)|QFrame|flex-axis separator|—|
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
-|[Text / Html / MarkDown](#text)|QLabel|—|—|
+|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
 |[ImageResource](#canvas)|QImage|—|—|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|—|—|
@@ -146,6 +146,11 @@ Include `cppui/qt/divider.hpp` and use `Divider()`. Its sunken QFrame is horizon
 inside a VBox, vertical inside an HBox (including through virtual views), and
 frameless otherwise. Dividers are terminal and non-movable; removal releases the
 native frame using the normal deferred-deletion lifecycle.
+
+For LVGL, include `cppui/lvgl/divider.hpp`. The same terminal, non-movable
+declaration draws a one-pixel gray separator across its physical flex parent: a
+horizontal line in a column, a vertical line in a row, and no line outside flex
+layouts. It has no interactive behavior; native parent deletion reclaims it.
 
 ## Dialogs
 
@@ -339,6 +344,13 @@ UI thread without nested event loops or display/runtime teardown.
 Input/drag/drop events, shared layout/style modifiers and Shapely integration
 remain pending. The cookbook uses a private size/background adapter meanwhile.
 
+## Label
+
+LVGL `Label(text).click(callback)` dispatches a no-argument click callback.
+Redraw replaces or clears the handler and preserves unrelated native listeners.
+The callback may redraw or remove its own declaration. Label owns its literal
+text; interactive selection and typed input events remain pending on LVGL.
+
 ## Text
 
 Include `cppui/qt/text.hpp` for `Text(text, selectable = false)`,
@@ -347,6 +359,12 @@ They own their strings and use a wrapping, top-aligned QLabel with explicit
 plain, rich, or Markdown format. Text and selection flags update on retained
 widgets. `Label(text, selectable = false)` also supports mouse text selection,
 while keeping its literal plain-text format and normal single-line layout.
+
+For LVGL, include `cppui/lvgl/text.hpp` and use `Text(text)`. It owns literal
+text, wraps to its available width and recalculates its content height. Native
+reuse updates the text. `selectable=true` throws `std::invalid_argument` because
+interactive selection is not implemented; Html/MarkDown are unavailable. The
+full shared Text recipe remains disabled until those capabilities are decided.
 
 ## Splitter
 

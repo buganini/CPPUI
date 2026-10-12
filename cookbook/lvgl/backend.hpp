@@ -6,6 +6,7 @@
 #include "cppui/lvgl/label.hpp"
 #include "cppui/lvgl/button.hpp"
 #include "cppui/lvgl/canvas.hpp"
+#include "cppui/lvgl/divider.hpp"
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>

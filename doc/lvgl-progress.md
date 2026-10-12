@@ -24,9 +24,8 @@ and current contracts; summarize completed changes briefly in `Changelog.txt`.
 ## Current basis and remaining acceptance
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Spacer and basic Canvas drawing. The shared cookbook additionally has
-private presentation helpers for weights, styles, scrolling, dividers and page
-links. Those helpers do not establish public component support.
+Button, Spacer, Divider, plain Text and basic Canvas drawing. The shared cookbook
+additionally has private presentation helpers for weights, styles and scrolling. Those helpers do not establish public component support.
 
 | Area | Current basis | Remaining acceptance / phase |
 | --- | --- | --- |
@@ -34,9 +33,9 @@ links. Those helpers do not establish public component support.
 | Native lifetime | Views own declarations; primary/secondary native observers clear on deletion; callbacks detach on retirement | Define external remount and shared-screen ownership before broadening interop (2, 6) |
 | Application and native drivers | Timer loop; separate SDL2/X11 cookbook startup and smoke teardown | Define stop/event ownership, then close gracefully before native display destruction; support host-driven pumping without POSIX-only assumptions (2) |
 | HBox/VBox | Basic flex flow and child sizing | Common padding/dimensions/weights reset correctly, including zero; nested and virtual geometry remains stable (3) |
-| Label/Button | Owned text and current button callbacks | Public label clicks, event payloads and style reset follow common contracts (3) |
-| Spacer/Divider/Grid/Stack | Public expanding Spacer; cookbook-only divider | Define fixed spacing and shared placement/style API, then add Divider/Grid/Stack and verify spans/overlap (3) |
-| ProgressBar/Text/Image | Missing public components | Numeric range conversion, wrapping, source replacement and resource lifetime are explicit; rich-text gaps stay visible (4) |
+| Label/Button | Owned text and current button/label callbacks | Input payloads and style reset follow common contracts (3) |
+| Spacer/Divider/Grid/Stack | Public expanding Spacer and flex-axis Divider | Define fixed spacing and shared placement/style API, then add Grid/Stack and verify spans/overlap (3) |
+| ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
 | Bound controls | Missing | Text edits and boolean/value selections commit once, rebind correctly and avoid feedback loops (4) |
 | Scroll/Tabs/Tab/Splitter | Cookbook-only scrolling; other public components missing | Preserve offsets/selection across content changes; apply PUI's virtual Tab mapping and decide splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
@@ -109,11 +108,11 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
 
 - [ ] Apply the agreed common layout/style options to LVGL, with explicit
   omitted/reset behavior, font-resource ownership and supported units.
-- [ ] Add public Divider, Grid and Stack; verify nested padding, grid spans and
+- [ ] Add public Grid and Stack; verify nested padding, grid spans and
   overlapping child order. Add fixed-size spacing and configurable weights
   after the shared layout options are defined.
-- [ ] Add public clickable labels and agreed input payloads. Retained widgets
-  must use current handlers and restore properties when modifiers are removed.
+- [ ] Add agreed input payloads and restore style/layout properties when
+  modifiers are removed.
 - [ ] Migrate cookbook presentation helpers onto these public components once
   parity is verified, preserving the gallery and recipe geometry.
 
@@ -121,9 +120,9 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
 
 - [ ] Add ProgressBar using LVGL's bar after defining range/precision/busy-state
   mapping. Enable the shared `progressbar.cpp` recipe through the LVGL manifest.
-- [ ] Add plain Text and wrapping/selection capabilities where supported.
-  Choose rich-text/Markdown capability before enabling the complete `text.cpp`
-  page; a plain label must not silently stand in for formatted text.
+- [ ] Decide interactive text selection and rich-text/Markdown capability before
+  enabling the complete `text.cpp` page. Plain Text wraps, but a plain label must
+  not silently stand in for formatted text.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
 - [ ] Using the shared `Binding<T>`/State adapters, add TextField, Checkbox,
