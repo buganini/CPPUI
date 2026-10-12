@@ -25,9 +25,9 @@ and current contracts; completed behavior and verification belong in
 ## Current basis and remaining acceptance
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button and basic Canvas drawing. The shared cookbook additionally has private
-presentation helpers for spacing, weights, styles, scrolling, dividers and page links. Those helpers do
-not establish public component support.
+Button, Spacer and basic Canvas drawing. The shared cookbook additionally has
+private presentation helpers for weights, styles, scrolling, dividers and page
+links. Those helpers do not establish public component support.
 
 | Area | Current basis | Remaining acceptance / phase |
 | --- | --- | --- |
@@ -36,7 +36,7 @@ not establish public component support.
 | Application and native drivers | Timer loop; separate SDL2/X11 cookbook startup and smoke teardown | Define stop/event ownership, then close gracefully before native display destruction; support host-driven pumping without POSIX-only assumptions (2) |
 | HBox/VBox | Basic flex flow and child sizing | Common padding/dimensions/weights reset correctly, including zero; nested and virtual geometry remains stable (3) |
 | Label/Button | Owned text and current button callbacks | Public label clicks, event payloads and style reset follow common contracts; repeated callbacks/removal release captures (1, 3) |
-| Spacer/Divider/Grid/Stack | Cookbook-only spacer/divider; no public components | Define shared placement/style API, then verify orientation, spans, overlap, geometry and native reuse (3) |
+| Spacer/Divider/Grid/Stack | Public expanding Spacer; cookbook-only divider | Define fixed spacing and shared placement/style API, then add Divider/Grid/Stack and verify spans/overlap (3) |
 | ProgressBar/Text/Image | Missing public components | Numeric range conversion, wrapping, source replacement and resource lifetime are explicit; rich-text gaps stay visible (4) |
 | Bound controls | Missing | Text edits and boolean/value selections commit once, rebind correctly and avoid feedback loops (4) |
 | Scroll/Tabs/Tab/Splitter | Cookbook-only scrolling; other public components missing | Preserve offsets/selection across content changes; apply PUI's virtual Tab mapping and decide splitter capability (5) |
@@ -132,8 +132,9 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
 
 - [ ] Apply the agreed common layout/style options to LVGL, with explicit
   omitted/reset behavior, font-resource ownership and supported units.
-- [ ] Add public Spacer, Divider, Grid and Stack; verify fixed/expanding sizes,
-  nested padding, grid spans and overlapping child order.
+- [ ] Add public Divider, Grid and Stack; verify nested padding, grid spans and
+  overlapping child order. Add fixed-size spacing and configurable weights
+  after the shared layout options are defined.
 - [ ] Add public clickable labels and agreed input payloads. Retained widgets
   must use current handlers and restore properties when modifiers are removed.
 - [ ] Migrate cookbook presentation helpers onto these public components once

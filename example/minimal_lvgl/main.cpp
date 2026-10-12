@@ -35,6 +35,7 @@ class UI: public Application {
                         Label(std::to_string(i));
                     }
                 }
+                Spacer();
             }
         }
 

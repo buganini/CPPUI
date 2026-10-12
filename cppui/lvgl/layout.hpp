@@ -2,6 +2,7 @@
 #define CPPUI_LVGL_LAYOUT
 
 #include "base.hpp"
+#include "spacer.hpp"
 
 #include "lvgl.h"
 

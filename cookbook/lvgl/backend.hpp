@@ -88,6 +88,24 @@ namespace Cookbook { namespace Backend {
             throw std::runtime_error("cookbook page list must scroll and include every recipe");
         }
         if(find(root, "code")) throw std::runtime_error("source code pane must be omitted");
+        if(auto row = find(root, "spacer-row")) {
+            auto box = static_cast<lv_obj_t *>(row->outer());
+            auto gap = static_cast<lv_obj_t *>(find(root, "row-gap")->outer());
+            lv_area_t content, end;
+            lv_obj_get_content_coords(box, &content);
+            lv_obj_get_coords(static_cast<lv_obj_t *>(find(root, "row-end")->outer()), &end);
+            if(lv_obj_get_width(gap) <= lv_obj_get_content_width(box)/2 || end.x2 != content.x2)
+                throw std::runtime_error("horizontal spacer must push Column 2 to the row's far edge");
+        }
+        if(auto column = find(root, "spacer-column")) {
+            auto box = static_cast<lv_obj_t *>(column->outer());
+            auto gap = static_cast<lv_obj_t *>(find(root, "column-gap")->outer());
+            lv_area_t content, end;
+            lv_obj_get_content_coords(box, &content);
+            lv_obj_get_coords(gap, &end);
+            if(lv_obj_get_height(gap) <= lv_obj_get_content_height(box)/2 || end.y2 != content.y2)
+                throw std::runtime_error("vertical spacer must fill the remaining column height");
+        }
         if(auto canvas = find(root, "example-canvas")) {
             auto object = static_cast<lv_obj_t *>(canvas->outer());
             auto buffer = lv_canvas_get_draw_buf(object);

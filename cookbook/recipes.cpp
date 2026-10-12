@@ -27,10 +27,10 @@ namespace Cookbook {
         }
         void hbox(Model &) {
             for(auto column: Presentation::VBox()) {
-                for(auto row: Presentation::HBox()) {
+                for(auto row: Presentation::HBox().id("spacer-row")) {
                     Presentation::Label("Column 1");
-                    Presentation::Spacer();
-                    Presentation::Label("Column 2");
+                    Presentation::Spacer().id("row-gap");
+                    Presentation::Label("Column 2").id("row-end");
                 }
                 for(auto row: Presentation::HBox()) {
                     Presentation::Label("Column 1");
@@ -41,11 +41,11 @@ namespace Cookbook {
             Presentation::Spacer();
         }
         void vbox(Model &) {
-            for(auto column: Presentation::VBox(1)) {
+            for(auto column: Presentation::VBox(1).id("spacer-column")) {
                 Presentation::Label("Row 1");
                 Presentation::Divider();
                 Presentation::Label("Row 2");
-                Presentation::Spacer();
+                Presentation::Spacer().id("column-gap");
             }
         }
     }

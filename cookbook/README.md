@@ -26,6 +26,8 @@ prerequisites. The [Qt plan](../doc/pyside6-progress.md) and
 The backend `presentation.hpp` files provide private
 cookbook layout/appearance adapters until those public APIs are decided; these
 helpers do not imply general Scroll, menu, style, or layout API support in CPPUI.
+The LVGL spacer adapter uses public `CPPUI::Spacer()`; the gallery smoke test
+checks its horizontal and vertical expansion in the HBox/VBox recipes.
 
 ## Qt
 
@@ -118,6 +120,9 @@ application teardown through `lvgl.lifetime` and its optional Valgrind variant.
 resize, repeat painting, callback replacement, exceptions, self-removal, native
 deletion, parent deletion and capture cleanup. Its Valgrind variant checks the
 same cases. The cookbook smoke test also checks Canvas size and rendered pixels.
+`lvgl.spacer` covers public HBox/VBox expansion, equal sharing, resize, native
+reuse, virtual views, repeated removal, native deletion and parent/application
+teardown, with an optional Valgrind variant.
 
 Interactive SDL2/X11 input and real-display layout/focus checks remain outstanding.
 Interactive close also needs an application-stop contract: LVGL's SDL2/X11

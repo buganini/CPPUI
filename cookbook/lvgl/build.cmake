@@ -47,6 +47,13 @@ if(BUILD_TESTING)
         CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
     cppui_add_test(lvgl.canvas cppui_lvgl_canvas)
 
+    add_executable(cppui_lvgl_spacer "${cppui_lvgl_dir}/../../tests/lvgl_spacer.cpp")
+    target_include_directories(cppui_lvgl_spacer PRIVATE "${cppui_lvgl_dir}/../..")
+    target_link_libraries(cppui_lvgl_spacer PRIVATE lvgl::lvgl)
+    set_target_properties(cppui_lvgl_spacer PROPERTIES
+        CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(lvgl.spacer cppui_lvgl_spacer)
+
     if(CPPUI_LVGL_DRIVER STREQUAL "lvgl_sdl2")
         set_property(TEST cookbook.lvgl_sdl2 APPEND PROPERTY ENVIRONMENT
             "SDL_VIDEODRIVER=dummy" "SDL_AUDIODRIVER=dummy" "SDL_RENDER_DRIVER=software")
@@ -56,7 +63,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header application base button canvas label layout window)
+    foreach(header application base button canvas label layout spacer window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

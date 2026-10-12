@@ -1,5 +1,19 @@
 2026-10-12
 
+- Add public LVGL Spacer(), expanding along its physical parent's flex axis
+  and sharing spare space equally with other spacers. Follow PUI's terminal,
+  non-movable declaration contract; keep the native item transparent and
+  non-interactive, transfer its deletion observer on reuse, and detach it before
+  parent-owned teardown. Replace the cookbook-only native implementation with
+  this component and add it to the minimal LVGL example. Document the API and
+  remove the completed public-spacer task from the LVGL plan.
+  Validation: SDL2 and X11 spacer/cookbook normal plus Valgrind tests pass 4/4
+  each; ASan/UBSan/leak tests pass 2/2 each. Cover both orientations, equal
+  sharing, changed label sizes, display resize, repeated redraw/removal,
+  virtual-view redraw, native deletion and parent/application teardown. Shared
+  Qt cookbook sanitizer smoke passes 1/1; independent headers and the minimal
+  example compile as C++11. Rebuild the workspace X11 cookbook.
+
 - Add LVGL Canvas basic drawing: lines, polylines, cubic Beziers, even/odd
   polygons, rectangles, ellipses and bitmap text with size, rotation and anchors.
   Reuse owned native-resolution ARGB buffers, repaint on resize, and adapt void

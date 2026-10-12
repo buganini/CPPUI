@@ -103,16 +103,9 @@ namespace Cookbook { namespace Presentation {
     };
     inline PageLinkNode & PageLink(const std::string & text) { return *new PageLinkNode(text); }
 
-    class SpacerNode: public CPPUI::LVGL::Node, public Item {
+    class SpacerNode: public CPPUI::LVGL::Spacer, public Item {
         public:
         SpacerNode(): Item(1) {}
-        void update(CPPUI::LVGL::Node * prev) override {
-            ui = prev && prev->ui ? prev->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));
-            auto object = static_cast<lv_obj_t *>(ui);
-            lv_obj_remove_style_all(object);
-            lv_obj_set_size(object, 0, 0);
-            lv_obj_remove_flag(object, LV_OBJ_FLAG_SCROLLABLE);
-        }
     };
     inline SpacerNode & Spacer() { return *new SpacerNode(); }
     class DividerNode: public CPPUI::LVGL::Node {
