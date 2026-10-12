@@ -1,5 +1,15 @@
 2026-10-12
 
+- Add Qt Splitter(vertical = false) with native reuse, orientation updates and
+  ordered physical/virtual panes. Port its shared cookbook recipe with the
+  reference's nested splitters and gray panels. Update component/cookbook docs
+  and remove completed Qt splitter work from the plan.
+  Validation: Qt/core sanitizer suite passes 16/16; splitter/cookbook normal and
+  Valgrind checks pass 4/4. Tests cover user sizes across redraw, keyed moves,
+  virtual groups, empty/repopulate, orientation reset and exact native teardown.
+  The header builds independently; LVGL shared smoke passes 1/1. Inspect the Qt
+  recipe's offscreen rendering; real-display interaction remains pending.
+
 - Rename the shared cookbook entry source from gallery.cpp to cookbook.cpp and
   update its common CMake manifest and documentation.
   Validation: Qt and LVGL cookbook rebuilds and smoke tests pass (1/1 each).

@@ -18,6 +18,7 @@ namespace Cookbook {
     };
     void progressbar(Model &);
     void text(Model &);
+    void splitter(Model &);
     const std::vector<Recipe> & recipes();
     CPPUI::Node * find(CPPUI::Node & node, const std::string & id);
     int run(int argc, char ** argv);

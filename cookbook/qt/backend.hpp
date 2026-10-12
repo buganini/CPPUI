@@ -8,6 +8,7 @@
 #include "cppui/qt/button.hpp"
 #include "cppui/qt/progressbar.hpp"
 #include "cppui/qt/text.hpp"
+#include "cppui/qt/splitter.hpp"
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>

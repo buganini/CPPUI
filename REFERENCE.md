@@ -6,6 +6,7 @@
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
 |[Divider](#divider)|QFrame|—|—|
+|[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
@@ -90,3 +91,12 @@ They own their strings and use a wrapping, top-aligned QLabel with explicit
 plain, rich, or Markdown format. Text and selection flags update on retained
 widgets. `Label(text, selectable = false)` also supports mouse text selection,
 while keeping its literal plain-text format and normal single-line layout.
+
+## Splitter
+
+Include `cppui/qt/splitter.hpp` and use `Splitter(vertical = false)` as a child
+construction scope. It defaults to horizontal; `Splitter(true)` is vertical.
+Redraw updates orientation while retaining the native splitter and its panes.
+Unchanged redraw preserves user-adjusted pane sizes. Keyed children can move,
+be inserted or removed, including flattened virtual subviews. Nested splitters
+are supported; removed panes follow the normal deferred-deletion lifecycle.

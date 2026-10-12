@@ -8,7 +8,7 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
 Button, Label, HBox, and VBox share their implementations across both backends.
-Qt also enables shared ProgressBar and Text recipes through its source manifest.
+Qt also enables shared ProgressBar, Text, and Splitter recipes through its source manifest.
 The gallery preserves the reference's scrollable **Example** sidebar and expanding
 **Result** pane. Qt also keeps the nested example menus and initially maximized
 window. Only the source-code pane is omitted. Recipe spacing, weighted columns,

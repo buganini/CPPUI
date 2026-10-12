@@ -104,6 +104,11 @@ namespace Cookbook {
                     if(std::string(recipes()[i].key) == "text" && recipes()[i].render) {
                         require(hasText(gallery, "Multiple\nLines\nText"), "text recipe did not render");
                     }
+                    if(std::string(recipes()[i].key) == "splitter" && recipes()[i].render) {
+                        require(hasText(gallery, "item 1") && hasText(gallery, "item 4")
+                            && hasText(gallery, "pane") && hasText(gallery, "blah blah"),
+                            "splitter recipe did not render its panes");
+                    }
                     if(std::string(recipes()[i].key) == "progressbar" && recipes()[i].render) {
                         require(click(gallery, "-5"), "progress recipe is missing -5");
                         Backend::settle();

@@ -124,7 +124,7 @@ The checklist below contains remaining work only.
 | TextField/Checkbox/RadioButton | Missing | Two-way editing and selection |
 | ComboBox/ComboBoxItem | Missing | Selection/value mapping |
 | Image | Missing | Image loading, sizing and presentation |
-| Scroll/Tabs/Tab/Splitter | Missing | Container semantics and retained interaction state |
+| Scroll/Tabs/Tab | Missing | Container semantics and retained interaction state |
 | Modal/imperative dialogs | Missing | Bound visibility, callbacks, results/cancellation |
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions, out-of-order children, native ownership |
 | Canvas/ImageResource | Missing | Drawing, pointer events, HiDPI |
@@ -265,7 +265,7 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
 - [ ] Add Scroll with axis policies, safe single-content replacement, retained
   user position, start/end offsets, and `END`. Preserve the reference distinction
   between positive zero and negative-zero end anchoring in the C++ API.
-- [ ] Add Tabs/virtual Tab and Splitter, with reactive labels, child insertion,
+- [ ] Add Tabs/virtual Tab, with reactive labels, child insertion,
   removal, reordering, and native interaction state. Record `tabposition` as a
   reference gap: the pinned implementation stores it but does not apply it.
 - [ ] Add Modal with bound status/off-value, open/close callbacks, native-close
@@ -360,7 +360,8 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `progressbar.py` | 4 | LVGL page requires backend support |
 | `text.py` | 4 | LVGL page requires backend support |
 | `image.py` | 3, 4 | Sized image asset |
-| `scroll.py`, `tab.py`, `splitter.py` | 5 | Scroll offsets, tab switching, resize and retained native state |
+| `scroll.py`, `tab.py` | 5 | Scroll offsets, tab switching and retained native state |
+| `splitter.py` | 5 | LVGL page requires backend support |
 | `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
 | `canvas.py`, `drop.py` | 7 | Drawing, event payloads and accepted/rejected drops |

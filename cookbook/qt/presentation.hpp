@@ -135,6 +135,23 @@ namespace Cookbook { namespace Presentation {
     };
     inline LabelNode & Label(const std::string & text, int weight = 0) { return *new LabelNode(text, weight, false); }
     inline LabelNode & StyledLabel() { return *new LabelNode("Big Yellow", 0, true); }
+
+    template<class NativeText>
+    class GrayPane: public NativeText {
+        public:
+        explicit GrayPane(const std::string & text): NativeText(text) {}
+        void update(CPPUI::Qt::BaseWidget * prev) override {
+            NativeText::update(prev);
+            this->ui->setStyleSheet("background-color:gray;");
+        }
+    };
+    inline GrayPane<CPPUI::Qt::Label> & GrayLabel(const std::string & text) {
+        return *new GrayPane<CPPUI::Qt::Label>(text);
+    }
+    inline GrayPane<CPPUI::Qt::Text> & GrayText(const std::string & text) {
+        return *new GrayPane<CPPUI::Qt::Text>(text);
+    }
+
     class StyledButtonNode: public CPPUI::Qt::Button {
         public:
         StyledButtonNode(): Button("Styled") {}
