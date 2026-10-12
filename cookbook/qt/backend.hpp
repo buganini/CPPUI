@@ -12,6 +12,7 @@
 #include "cppui/qt/splitter.hpp"
 #include "cppui/qt/canvas.hpp"
 #include "cppui/qt/tab.hpp"
+#include "cppui/qt/table.hpp"
 #include "cppui/qt/dialog.hpp"
 #include "cppui/qt/modal.hpp"
 #include "cppui/qt/mdi.hpp"
@@ -35,6 +36,10 @@ namespace Cookbook { namespace Backend {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    inline bool editTable(CPPUI::Node & node, int row, int column, const std::string & value) {
+        auto table = dynamic_cast<CPPUI::Qt::Table *>(&node);
+        return table && table->model && table->model->setData(table->model->index(row, column), QString::fromStdString(value));
     }
     inline bool atScrollEnd(CPPUI::Node & node) {
         auto scroll = dynamic_cast<CPPUI::Qt::Scroll *>(&node);

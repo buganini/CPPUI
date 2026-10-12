@@ -126,6 +126,16 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "table" && recipes()[i].render) {
+                        require(Backend::editTable(*find(gallery, "example-table"), 0, 0, "edited"), "table string cell did not commit");
+                        Backend::settle();
+                        require(hasText(gallery, "A1: edited"), "table edit did not update the bound label");
+                        require(Backend::editTable(*find(gallery, "example-table"), 0, 3, "8"), "table numeric choice did not commit");
+                        Backend::settle();
+                        require(gallery.model.tableSides == 8 && hasText(gallery, "Sides: 8"), "table choice lost its integer value");
+                        require(Backend::editTable(*find(gallery, "example-table"), 1, 3, "CCW"), "table mapped choice did not commit");
+                        Backend::settle(); require(hasText(gallery, "Direction: CCW"), "table mapped choice lost its raw value");
+                    }
                     if(std::string(recipes()[i].key) == "scroll" && recipes()[i].render) {
                         require(Backend::atScrollEnd(*find(gallery, "scroller")), "scroll recipe did not start at the end");
                         require(click(gallery, "+"), "scroll recipe is missing +");

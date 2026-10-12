@@ -25,6 +25,7 @@
 |[TimelineView](#timelineview)|QTimer / virtual node|—|—|
 |[ImageResource](#canvas)|QImage|—|—|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|—|
+|[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|—|
 |[Modal](#modal)|QDialog|—|—|
 |[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|—|
 
@@ -107,6 +108,42 @@ first. It can be called before `run()`; application destruction cancels any
 pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
+
+## Table
+
+Include `cppui/qt/table.hpp`. `Table(autofit = true)` contains row
+`TableNode()` scopes, each containing cell `TableNode(value)` declarations.
+Cells accept `std::string` and arithmetic values, `State<T>` or `Binding<T>`.
+Bindings make a cell editable; an unbound cell can opt into editing with
+`.set(std::function<void(const T &)>)`. An explicit setter does not override a
+binding. Qt performs native scalar conversion; arbitrary user-defined values
+and external table adapters remain deferred.
+
+`.display(text)` (also accepting a string binding) overrides the displayed value
+without changing the editor's raw value. `.choices(std::vector<T>)` supplies
+values with default labels; `.choices(std::vector<std::pair<T, std::string>>)`
+supplies separate labels in declaration order. Editors preserve value types and
+duplicate labels, commit once on activation, and leave unknown values unselected
+with a placeholder. No selection does not overwrite the model. `.click()` and
+`.dblclick()` use no-argument callbacks on each cell.
+
+Table's `.columnHeader(labels)` and `.rowHeader(labels)` show optional headers;
+omitting them hides the headers on redraw. `.columnCount(n)` and `.rowCount(n)`
+override inference, accepting zero and rejecting negatives. Otherwise counts
+cover the longest row and any supplied headers. Ragged/missing cells are blank,
+inert and not editable. Autofit resizes columns to contents after synchronization.
+
+The native view/model/delegate are reused and owned by Qt. Each redraw resets
+the model, invalidating its old indexes/selection as in PUI's declarative Table.
+The model copies cell data/callbacks and never stores declaration pointers;
+retirement releases old captures and removal disables edits before deferred
+native deletion. Setters/clicks may redraw or remove their own table, and callback
+exceptions are reported to stderr. Bindings still borrow their model storage.
+Rows/cells are declaration-only children: use direct TableNode scopes, rather
+than nested retained views or native widgets inside a table.
+
+Reference: [PUI Table](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/table.py)
+and [ragged-table cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py).
 
 ## Image
 

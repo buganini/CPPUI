@@ -15,6 +15,7 @@ target_sources(${target} PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/../scroll.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../splitter.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tab.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../table.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../text.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../textfield.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../timeline.cpp")

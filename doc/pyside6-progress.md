@@ -136,7 +136,7 @@ the separate deferred section records intentional omissions.
 | ComboBox/ComboBoxItem | Index/string bindings, distinct labels/values, editable text and dynamic items | Define raw non-string value adapters and deferred event payloads | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
-| Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
+| Table adapters / Tree | Declarative scalar TableNode bindings, typed choices and ragged cells | Define external adapter values/ownership; add Tree with retained selection, expansion and persistent indexes | 8 / [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
 | Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 0–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
 
@@ -327,11 +327,8 @@ while validating physical-display rendering separately.
 ### Phase 8 — Table and Tree models (P2)
 
 - [ ] Add C++ table/tree adapter interfaces corresponding to
-  [interfaces.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/interfaces.py), plus declarative TableNode and
-  TreeNode forms. Choose typed data/identity representations before model code.
-- [ ] Implement Table headers, explicit/inferred counts, ragged and empty rows,
-  read-only/editable cells, display versus edit values, choice editors, autofit,
-  and click/double-click callbacks. Preserve raw choice types and duplicate labels.
+  [interfaces.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/interfaces.py). External adapters and arbitrary cell values
+  need explicit value/ownership contracts; they do not block declarative ports.
 - [ ] Implement Tree model notifications, node moves, persistent-index remapping,
   expansion/collapse APIs and callbacks, selection, and Qt drag/drop behavior.
   Reconciliation must preserve native state for retained nodes.
@@ -368,7 +365,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, binding change callbacks and text conversion/events |
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
-| `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |
+| `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Adapted data, tree identity and expansion |
 | `drawshapely.py`, `matplotlib.py` | Deferred integrations | Requires an agreed C++ bridge/dependency strategy |
 
 ## Decisions awaiting direction
@@ -397,9 +394,10 @@ Continue independent implementation while these contracts remain undecided.
   when a parent deletes the QObject, and application teardown is safe. Remounting
   after external deletion and borrowing interop widgets need an agreed ownership
   contract; do not claim arbitrary external native mutation is supported.
-- **Specialized APIs:** table/tree value and identity types and external widget
-  ownership need their own C++ contracts before the corresponding phase. Their
-  context and acceptance cases are recorded in phases 5–8 above.
+- **External model adapters:** decide portable arbitrary value types and borrowed
+  adapter/node lifetimes. Declarative Table already uses typed scalar bindings;
+  Tree can use model-owned internal identity without public weak references.
+  These choices must not block the declarative components.
 
 ## Explicitly deferred or requiring a C++ design decision
 

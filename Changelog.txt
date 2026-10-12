@@ -1,3 +1,6 @@
+2026-10-13
+    * Qt: add declarative Table with typed bindings/choices, shared cookbook recipe and lifetime regressions
+
 2026-10-12
     * Core: make C++11 headers safe across translation units; fix reconciliation, construction rollback, reactive dependencies and node ownership
     * Qt: port bound controls, layouts/scrolling, text/images, tabs, canvas, modal/dialogs, MDI, menus/toolbars and timers with Binding<T>/Optional<T>
