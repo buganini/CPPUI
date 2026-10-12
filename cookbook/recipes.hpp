@@ -21,6 +21,7 @@ namespace Cookbook {
     void text(Model &);
     void splitter(Model &);
     void canvas(Model &);
+    void tab(Model &);
     const std::vector<Recipe> & recipes();
     CPPUI::Node * find(CPPUI::Node & node, const std::string & id);
     int run(int argc, char ** argv);

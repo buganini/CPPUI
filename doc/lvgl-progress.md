@@ -154,7 +154,7 @@ native reuse, valid model retention after invalid input, and resource reclamatio
 
 - [ ] Add public Scroll after the shared start/end anchor contract is settled;
   preserve position through resize, growth, shrinkage and content replacement.
-- [ ] Add Tabs/Tab using LVGL tabview with the Qt plan's PUI mapping: each
+- [ ] Add Tabs/Tab using LVGL tabview with [PUI's mapping](../REFERENCE.md#tabs): each
   physical child under a virtual Tab becomes a page with its ancestor's label;
   no implicit grouping or discarded children. Retain selection on keyed moves
   and document the reference's label-update quirk.

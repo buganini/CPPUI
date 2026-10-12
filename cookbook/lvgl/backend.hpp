@@ -26,6 +26,7 @@ namespace Cookbook { namespace Backend {
         auto label = dynamic_cast<CPPUI::LVGL::Label *>(&node);
         return label && text == lv_label_get_text(static_cast<lv_obj_t *>(label->outer()));
     }
+    inline bool selectTab(CPPUI::Node &, int, const std::string &) { return false; }
     inline bool selectPage(CPPUI::Node & node) {
         auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);
         if(!link) return false;

@@ -117,6 +117,13 @@ namespace Cookbook {
                             && hasText(gallery, "Rotate: " + std::to_string(previousAngle + 15)),
                             "canvas rotation did not update");
                     }
+                    if(std::string(recipes()[i].key) == "tab" && recipes()[i].render) {
+                        auto tabs = find(gallery, "example-tabs");
+                        require(tabs && hasText(*tabs, "Content 1") && hasText(*tabs, "Content 2"),
+                            "tab recipe did not render its contents");
+                        require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
+                            "tab recipe could not switch pages");
+                    }
                     if(std::string(recipes()[i].key) == "progressbar" && recipes()[i].render) {
                         require(click(gallery, "-5"), "progress recipe is missing -5");
                         Backend::settle();

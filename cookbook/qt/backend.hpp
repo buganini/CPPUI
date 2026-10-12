@@ -10,6 +10,7 @@
 #include "cppui/qt/text.hpp"
 #include "cppui/qt/splitter.hpp"
 #include "cppui/qt/canvas.hpp"
+#include "cppui/qt/tab.hpp"
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>
@@ -33,6 +34,14 @@ namespace Cookbook { namespace Backend {
         auto widget = dynamic_cast<CPPUI::Qt::BaseWidget *>(&node);
         auto label = widget ? qobject_cast<QLabel *>(widget->ui) : nullptr;
         return label && label->text().toStdString() == text;
+    }
+    inline bool selectTab(CPPUI::Node & node, int index, const std::string & label) {
+        auto tabs = dynamic_cast<CPPUI::Qt::Tabs *>(&node);
+        if(!tabs) return false;
+        auto widget = static_cast<QTabWidget *>(tabs->outer());
+        if(index < 0 || index >= widget->count() || widget->tabText(index).toStdString() != label) return false;
+        widget->setCurrentIndex(index);
+        return widget->currentIndex() == index && widget->currentWidget()->isVisible();
     }
     inline bool selectPage(CPPUI::Node & node) {
         auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);

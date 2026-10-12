@@ -1,5 +1,19 @@
 2026-10-12
 
+- Add Qt Tabs and virtual Tab following the pinned PUI implementation: flatten
+  physical children into native pages and find their ancestor Tab for insertion
+  labels. Preserve native reuse and Qt selection behavior without implicit
+  grouping or discarded children. Document the reference's unused tabposition
+  and declaration-index label-update quirks for empty/multi-child Tabs.
+  Port the shared Tab cookbook recipe and test switching both pages. Remove
+  completed Qt Tab tasks from the plan and keep LVGL implementation pending.
+  Validation: Tabs/cookbook ASan/UBSan/leak checks pass 2/2; normal/Valgrind checks
+  pass 4/4. Cover label changes, insertion, keyed/virtual reorders, explicit
+  grouping, empty/repopulate, native selection, external deletion and exact
+  declaration/native reclamation. The header compiles independently; LVGL
+  cookbook rebuild and normal/Valgrind checks pass 2/2. Inspect the Qt recipe's
+  offscreen rendering; real-display interaction remains pending.
+
 - Add Qt Canvas with scoped painter callbacks, text/shape/Bezier/image drawing,
   logical dimensions and pixel density, and owned ImageResource load/crop/scale
   values. Snapshot active painters, replace retained callbacks, disable removed

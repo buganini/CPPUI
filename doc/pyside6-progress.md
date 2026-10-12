@@ -131,7 +131,7 @@ the separate deferred section records intentional omissions.
 | TextField/Checkbox/RadioButton | Missing | Preserve unfinished edits; validate commit; rebind boolean/collection/value selections without feedback loops | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
-| Scroll/Tabs/Tab | Missing | Preserve scroll anchor and selected tab through insertion/reorder/removal; flatten virtual Tab children as in PUI | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync], [Tab][ref-tab] |
+| Scroll | Missing | Preserve scroll anchor through insertion/reorder/removal and resizing | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync] |
 | Modal/imperative dialogs | Missing | Native close updates bound visibility; reopen/removal are safe; results distinguish accepted values from cancellation | 5 / [Modal][ref-modal], [Dialog][ref-dialog] |
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars/MDI coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
@@ -162,7 +162,6 @@ the separate deferred section records intentional omissions.
 [ref-combo]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/combobox.py
 [ref-image]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py
 [ref-scroll]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/scroll.py
-[ref-tab]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tab.py
 [ref-modal]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/modal.py
 [ref-dialog]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/dialog.py
 [ref-mdi]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/mdi.py
@@ -197,12 +196,6 @@ phases 0–3 does not block independent components in later phases.
   reconciliation; recovery after partial native updates is separate work.
 - Dialog value results use a C++11-compatible `Optional<T>`, with `OptionalText`
   as the text alias. Cancellation has no value; accepted empty text has a value.
-- Follow [PUI's Tabs/Tab implementation](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tab.py):
-  `Tab` is virtual and `Tabs` owns the native container. Each flattened physical
-  child becomes a page, using its ancestor Tab's label. Do not insert an implicit
-  VBox or discard extra children. The reference's `postSync()` labels pages by
-  top-level Tab index, which can mismatch empty/multi-child Tabs; preserve and
-  document that reference quirk rather than inventing a cardinality restriction.
 - Portable input event objects are explicitly deferred. Existing no-argument
   callbacks remain usable.
 
@@ -330,11 +323,6 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
 - [ ] Add Scroll with axis policies, safe single-content replacement, retained
   user position, start/end offsets, and `END`. Preserve the reference distinction
   between positive zero and negative-zero end anchoring in the C++ API.
-- [ ] Add Tabs/virtual Tab, with reactive labels, child insertion,
-  removal, reordering, and native interaction state. Record `tabposition` as a
-  reference gap: the pinned implementation stores it but does not apply it.
-  Use the agreed PUI physical-child/ancestor-Tab mapping, including regression
-  coverage of its empty/multi-child label-update quirk.
 - [ ] Add Modal with bound status/off-value, open/close callbacks, native-close
   synchronization, and Window's initial/imperative state contract.
 - [ ] Add OpenDirectory, OpenFile, OpenFiles, SaveFile, Information, Warning,
@@ -343,8 +331,8 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
   reference's inconsistent empty directory string on cancellation to no value.
 
 Acceptance: port [scroll_sync.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/scroll_sync.py); test content
-growth/shrinkage and a resize during reconciliation. Exercise tab/splitter edits,
-modal close/reopen/removal, dialog filters/defaults, and cancellation. Native
+growth/shrinkage and a resize during reconciliation. Exercise modal
+close/reopen/removal, dialog filters/defaults, and cancellation. Native
 dialog interaction and window-manager state also require manual display checks.
 
 ### Phase 6 — Menus, toolbars, MDI, interop, and timers (P2)
@@ -422,7 +410,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `binding.py`, `textfield.py` | 2, 4 | External get/set, changed callback, edit/commit and conversion |
 | `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `image.py` | 3, 4 | Sized image asset |
-| `scroll.py`, `tab.py` | 5 | Scroll offsets, tab switching and retained native state |
+| `scroll.py` | 5 | Scroll offsets and retained native state |
 | `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
@@ -471,7 +459,9 @@ Continue independent implementation while these contracts remain undecided.
   enumerate supported options rather than promising arbitrary Python attributes.
 - Existing PUI gaps, such as unused tab position and inconsistently applied
   layout/style options: document observed behavior and any intentional CPPUI
-  improvement. Do not infer complete support from a constructor argument alone.
+  improvement. Tab position and empty/multi-child label behavior are described
+  in the [component reference](../REFERENCE.md#tabs). Do not infer complete
+  support from a constructor argument alone.
 
 ## Validation and progress updates
 

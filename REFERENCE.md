@@ -12,6 +12,7 @@
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|—|—|
 |[Canvas / ImageResource](#canvas)|QWidget / QPainter / QImage|—|—|
+|[Tabs / Tab](#tabs)|QTabWidget / virtual node|—|—|
 
 Node IDs and Qt button text copy their string arguments, including temporary
 `std::string` values. An empty explicit ID is distinct from no ID; `id(nullptr)`
@@ -54,8 +55,8 @@ State reads during a successful build replace that view's dependencies. Values
 that are no longer read stop triggering redraws. Assigning, incrementing, or
 decrementing any State during a view builder throws
 `StateMutationInViewBuilderError` before changing its value. Mutate state in event
-handlers or application code outside construction. Redraw remains synchronous
-until the queued completion/error contract is chosen.
+handlers or application code outside construction. Redraw remains synchronous;
+queued redraw with stderr error reporting is planned.
 
 ## Application
 
@@ -88,6 +89,41 @@ Include `cppui/qt/divider.hpp` and use `Divider()`. Its sunken QFrame is horizon
 inside a VBox, vertical inside an HBox (including through virtual views), and
 frameless otherwise. Dividers are terminal and non-movable; removal releases the
 native frame using the normal deferred-deletion lifecycle.
+
+## Tabs
+
+Include `cppui/qt/tab.hpp`. `Tabs()` owns a native QTabWidget; `Tab(label)` is
+virtual and copies its label. Use normal construction scopes:
+
+```cpp
+for(auto tabs: CPPUI::Tabs()) {
+    for(auto first: CPPUI::Tab("Tab 1")) {
+        CPPUI::Label("Content 1");
+    }
+    for(auto second: CPPUI::Tab("Tab 2")) {
+        CPPUI::Label("Content 2");
+    }
+}
+```
+
+Following [PUI's implementation](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tab.py),
+each physical child reached through a virtual Tab becomes a native page. Page
+insertion finds the nearest ancestor Tab for its label. No implicit layout is
+inserted and no extra children are discarded. To put multiple controls on one
+page, place an explicit VBox or HBox inside the Tab. An empty Tab creates no page.
+Direct declarations inside Tabs must be `Tab` nodes; additional virtual views
+can appear inside each Tab.
+
+Native widgets are reused on redraw and keyed moves. Unchanged redraws and label
+updates preserve user selection; removal/reinsertion uses Qt's native selection
+behavior. Removed pages and declarations are reclaimed through normal teardown.
+
+Two reference quirks are preserved: `Tabs(tabposition = "n")` stores the string
+but leaves the native position unchanged, and `postSync()` updates page labels
+by direct Tab declaration index. With two physical children in Tab("A") followed
+by one in Tab("B"), page labels become A, B, B; an empty first Tab can similarly
+overwrite the next page's label. Use one physical child per Tab for matching
+page/title pairs. The cookbook follows that convention.
 
 ## Canvas
 

@@ -86,7 +86,11 @@ if(CPPUI_BUILD_QT)
         set_property(TEST valgrind.qt.canvas_hidpi APPEND PROPERTY ENVIRONMENT "QT_SCALE_FACTOR=2")
     endif()
 
-    foreach(header application base button canvas divider image_resource label layout progressbar splitter text window)
+    add_executable(cppui_qt_tab qt_tab.cpp)
+    target_link_libraries(cppui_qt_tab PRIVATE CPPUI::qt)
+    cppui_add_test(qt.tab cppui_qt_tab)
+
+    foreach(header application base button canvas divider image_resource label layout progressbar splitter tab text window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")
