@@ -115,9 +115,8 @@ explicit teardown leaves neither stale accesses nor retained declarations.
 “Partial” means code exists, not that parity or runtime correctness is verified.
 The checklist below contains remaining work only.
 
-Remaining tasks and unresolved contracts are listed below. Display checks and
-wx runtime validation are separate outstanding verification; they are not
-blocked on API choices.
+Remaining tasks and unresolved contracts are listed below. Display checks are outstanding verification, not blocked on API choices.
+Backend-specific wx verification is tracked in the wx plan.
 
 Each row maps remaining work to its implementation phase and a pinned reference
 case. Acceptance involving undecided APIs applies after that contract is chosen;
@@ -136,7 +135,7 @@ the separate deferred section records intentional omissions.
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/Tree values and input | Typed external adapters with explicit ownership and model-owned indexes | Define arbitrary cell values and deferred Tree drag/drop payloads | 8 / [Table adapter][ref-table-adapter], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
-| Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 1–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
+| Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; manual focus/window/HiDPI behavior on a display | 1–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
 
 [ref-virtual]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py
 [ref-nested]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/nested_view.py
@@ -195,9 +194,6 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
 [virtual_nodes.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py), and
 [subview_id.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/subview_id.py).
 
-- [ ] Validate wx native ownership transfer and teardown with its runtime
-  dependencies available: child ownership/parent links must transfer before the
-  old declaration is released, and native subtrees must be destroyed once.
 - [ ] Specify borrowed-widget cleanup and native remount after external owner
   destruction, including the native-widget identity used for matching interop
   declarations. Clearing typed native access makes teardown safe, but a later

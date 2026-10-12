@@ -1,5 +1,22 @@
 find_package(Threads REQUIRED)
 
+if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_native_baseline wx_native_baseline.cpp)
+    target_link_libraries(cppui_wx_native_baseline PRIVATE CPPUI::wx)
+    cppui_add_test(wx.native_baseline cppui_wx_native_baseline)
+    add_executable(cppui_wx_runtime wx_runtime.cpp wx_support.cpp)
+    target_link_libraries(cppui_wx_runtime PRIVATE CPPUI::wx)
+    cppui_add_test(wx.runtime cppui_wx_runtime)
+    cppui_add_test(wx.application_owned cppui_wx_runtime --owned)
+    foreach(header application base button label layout window)
+        set(source "${CMAKE_CURRENT_BINARY_DIR}/header_wx_${header}.cpp")
+        file(WRITE "${source}" "#include \"cppui/wx/${header}.hpp\"\n#include \"cppui/wx/${header}.hpp\"\n")
+        add_library(cppui_header_wx_${header} OBJECT "${source}")
+        target_link_libraries(cppui_header_wx_${header} PRIVATE CPPUI::wx)
+        set_target_properties(cppui_header_wx_${header} PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    endforeach()
+endif()
+
 add_executable(cppui_core_headers core_headers.cpp core_headers_support.cpp)
 target_link_libraries(cppui_core_headers PRIVATE CPPUI::cppui Threads::Threads)
 set_target_properties(cppui_core_headers PROPERTIES

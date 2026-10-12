@@ -1,0 +1,67 @@
+# Reproduced by tests/wx_native_baseline.cpp with wxGTK 3.2.9 / GTK 3.24.
+# Only font/theme caches and toolkit worker TLS; no CPPUI or wx allocation frames.
+{
+   wxgtk-fontconfig-cache
+   Memcheck:Leak
+   match-leak-kinds: definite,indirect,possible
+   fun:*alloc
+   obj:*/libfontconfig.so.*
+}
+{
+   wxgtk-fontconfig-values
+   Memcheck:Leak
+   match-leak-kinds: definite,indirect,possible
+   fun:malloc
+   fun:strdup
+   obj:*/libfontconfig.so.*
+}
+{
+   wxgtk-pango-language
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:g_malloc0
+   fun:pango_language_from_string
+   fun:pango_language_get_default
+}
+{
+   wxgtk-pango-font-cache
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:g_malloc0
+   fun:g_atomic_rc_box_alloc0
+   obj:*/libpangoft2-1.0.so.*
+}
+{
+   wxgtk-theme-state
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:g_malloc
+   fun:g_memdup
+   obj:*/libgtk-3.so.*
+   fun:gtk_style_context_set_state
+}
+{
+   wxgtk-theme-classes
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:g_malloc
+   obj:*/libgtk-3.so.*
+   obj:*/libgtk-3.so.*
+   fun:gtk_style_context_add_class
+}
+{
+   wxgtk-worker-tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create*
+   obj:*/libglib-2.0.so.*
+   fun:g_thread_*
+}

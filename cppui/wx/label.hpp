@@ -1,56 +1,23 @@
-#include "base.hpp"
-
-#include <wx/wx.h>
-
 #ifndef CPPUI_WX_LABEL
 #define CPPUI_WX_LABEL
-
-namespace CPPUI {
-    namespace Wx {
-        class Label: public Node {
-            public:
-            std::string text;
-            Label(const char * text) {
-                this->text = std::string(text);
-            }
-            Label(const std::string text) {
-                this->text = text;
-            }
-
-            wxWindow * parentWindow(void) {
-                ::CPPUI::Node * p = parent;
-                while(p) {
-                    Window * wx_window = dynamic_cast<Window *>(p);
-                    if(wx_window) {
-                        return (wxWindow *)(wx_window->ui);
-                    }
-                    p = p->parent;
-                }
-                return nullptr;
-            }
-
-            void update(Node * prev) {
-                if(prev && prev->ui) {
-                    ui = prev->ui;
-                    ((wxStaticText *)ui)->SetLabel(text);
-                } else {
-                    ui = new wxStaticText(parentWindow(), wxID_ANY, text);
-                }
-            }
-
-            void destroy(bool direct) {
-                if(direct && ui){
-                    delete (wxStaticText *)ui;
-                }
-            }
-       };
-    }
-    Wx::Label & Label(const char * text) {
-        return *(new Wx::Label(text));
-    }
-    Wx::Label & Label(const std::string text) {
-        return *(new Wx::Label(text));
-    }
+#include "base.hpp"
+namespace CPPUI { namespace Wx {
+    class Label: public Widget {
+        public:
+        std::string text;
+        bool selectable;
+        explicit Label(const std::string & text, bool selectable = false): text(text), selectable(selectable) {}
+        std::size_t typecode() const override { return Widget::typecode() ^ (selectable ? 0x927cU : 0U); }
+        void updateWidget(Widget * prev) override {
+            if(prev) ui = prev->ui;
+            else if(selectable) ui = new wxTextCtrl(parentWindow(), wxID_ANY, wxString::FromUTF8(text), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxBORDER_NONE);
+            else ui = new wxStaticText(parentWindow(), wxID_ANY, wxString::FromUTF8(text));
+            if(selectable) static_cast<wxTextCtrl *>(ui)->ChangeValue(wxString::FromUTF8(text));
+            else ui->SetLabel(wxString::FromUTF8(text));
+        }
+        void bindEvents() override { ui->Bind(wxEVT_LEFT_DOWN, &Native::mouse, native.get()); }
+    };
 }
-
+inline Wx::Label & Label(const std::string & text, bool selectable = false) { return *new Wx::Label(text, selectable); }
+}
 #endif

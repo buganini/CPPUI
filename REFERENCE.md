@@ -6,11 +6,11 @@
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
 |[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|—|
-|[Spacer](#spacer)|QSpacerItem|transparent flex item|—|
+|[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|—|
 |[Scroll](#scroll)|QScrollArea|scrollable object (basic)|—|
 |[Splitter](#splitter)|QSplitter|—|—|
-|[Label](#label)|QLabel|label|wxStaticText|
+|[Label](#label)|QLabel|label|wxStaticText / read-only wxTextCtrl|
 |[Button](#button)|QPushButton|button|wxButton|
 |[TextField](#textfield)|QLineEdit|—|—|
 |[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|—|
@@ -66,6 +66,20 @@ synchronously redraw; the active callback remains valid and the next click uses
 the updated callback. External native
 subtree deletion is safe for teardown; automatic remount after that deletion is
 not yet supported.
+
+wx applications create a wxApp when needed and otherwise borrow the initialized
+host runtime. `Wx::View::sync()` mounts immediately; State changes queue and
+coalesce redraws. Removed views cancel pending handlers and queued exceptions
+are reported to stderr. Native event contexts transfer on reuse and snapshot
+callbacks, including callbacks which synchronously remove themselves. Controls
+are destroyed after dispatch; sizer ownership and child-window ownership are
+released separately. External native deletion clears observers; automatic
+remount remains outside the supported contract. HBox/VBox use native sizers,
+PUI expansion priorities, four-sided padding and explicit weight overrides.
+Omitted dimensions, colors and fonts reset on redraw. Label supports selectable
+read-only text; changing that native creation mode remounts it. Window supports
+one physical content child, title/icon/size and initial/imperative maximize and
+fullscreen. Use a layout to group content. Only Linux/GTK is runtime-verified.
 
 LVGL views, including standalone views, release their owned declarations. Native
 objects remain parent-owned; deletion clears the primary observer and secondary

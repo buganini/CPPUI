@@ -8,6 +8,12 @@ endif()
 
 function(cppui_add_test name target)
     add_test(NAME "${name}" COMMAND ${target} ${ARGN})
+    set(native_memory_options)
+    if(name MATCHES "(^|\\.)wx($|[._])" AND UNIX AND NOT APPLE)
+        set(native_memory_options "--suppressions=${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tests/wx/valgrind.supp")
+        set_property(TEST "${name}" APPEND PROPERTY ENVIRONMENT_MODIFICATION
+            "LSAN_OPTIONS=string_append::suppressions=${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tests/wx/lsan.supp")
+    endif()
     set_tests_properties("${name}" PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
         TIMEOUT 20)
@@ -21,6 +27,7 @@ function(cppui_add_test name target)
                 --track-origins=yes
                 --error-exitcode=99
                 ${CPPUI_VALGRIND_OPTIONS}
+                ${native_memory_options}
                 $<TARGET_FILE:${target}> ${ARGN})
         set_tests_properties("valgrind.${name}" PROPERTIES
             ENVIRONMENT "QT_QPA_PLATFORM=offscreen"

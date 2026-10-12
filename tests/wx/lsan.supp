@@ -1,0 +1,2 @@
+# Fontconfig process caches also retained by wx_native_baseline (no CPPUI).
+leak:libfontconfig.so

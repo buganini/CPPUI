@@ -1,47 +1,35 @@
+#ifndef CPPUI_WX_WINDOW
+#define CPPUI_WX_WINDOW
 #include "base.hpp"
-#include "layout.hpp"
-
-#include <iostream>
-
-#include <wx/wx.h>
-
-namespace CPPUI {
-    namespace Wx {
-        class Window: public Node {
-            public:
-            void update(Node * prev) {
-                if(prev && prev->ui) {
-                    ui = prev->ui;
-                } else {
-                    ui = new wxFrame(nullptr, wxID_ANY, "lala");
-                }
+namespace CPPUI { namespace Wx {
+    class Window: public SingleChild {
+        OptionalText caption, iconPath;
+        Optional<wxSize> dimensions;
+        Optional<bool> initialMaximized, initialFullscreen;
+        public:
+        Window & title(const std::string & text) { caption = text; return *this; }
+        Window & icon(const std::string & path) { iconPath = path; return *this; }
+        Window & size(int w, int h) { dimensions = wxSize(w, h); return *this; }
+        Window & maximize(bool value = true) { if(ui) static_cast<wxFrame *>(ui)->Maximize(value); else initialMaximized = value; return *this; }
+        Window & fullscreen(bool value = true) { if(ui) static_cast<wxFrame *>(ui)->ShowFullScreen(value); else initialFullscreen = value; return *this; }
+        void updateWidget(Widget * previous) override {
+            auto prev = static_cast<Window *>(previous);
+            if(prev) { ui = prev->ui; panel = prev->panel; }
+            else {
+                ui = new wxFrame(nullptr, wxID_ANY, ""); panel = new wxPanel(ui);
+                auto box = new wxBoxSizer(wxVERTICAL); box->Add(panel, 1, wxEXPAND); ui->SetSizer(box);
             }
-
-            void addChild(int idx, Node * child) {
+            auto frame = static_cast<wxFrame *>(ui);
+            if(caption) frame->SetTitle(wxString::FromUTF8(*caption));
+            if(iconPath && !iconPath->empty()) { wxIcon icon; if(icon.LoadFile(wxString::FromUTF8(*iconPath))) frame->SetIcon(icon); }
+            if(dimensions && (!prev || (!prev->dimensions || *prev->dimensions != *dimensions))) frame->SetSize(*dimensions);
+            if(!prev) {
+                if(initialMaximized) frame->Maximize(*initialMaximized);
+                if(initialFullscreen) frame->ShowFullScreen(*initialFullscreen);
             }
-
-            void removeChild(int idx, Node * child) {
-            }
-
-            void postSync(void) {
-                if(children->size()) {
-                    ::CPPUI::Node * child = children->front();
-                    if(classtype!=2 && child->classtype==2) {
-                        ((wxFrame *)ui)->SetSizer((wxSizer *)child->outer());
-                        ((wxFrame *)ui)->Layout();
-                    }
-                }
-            }
-
-            void destroy(bool direct) {
-                if(direct && ui){
-                    delete (wxFrame *)ui;
-                }
-            }
-
-       };
-    }
-    Wx::Window & Window() {
-        return *(new Wx::Window());
-    }
+        }
+    };
 }
+inline Wx::Window & Window() { return *new Wx::Window(); }
+}
+#endif

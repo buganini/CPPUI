@@ -38,12 +38,15 @@ class UI: public Application {
             }
         }
 
-        // print UI hierarchy
-        std::cout << *this << std::endl;
+
     }
 };
 
 int main(int argc, char *argv[]) {
     UI app(argc, argv);
-    app.run();
+    if(argc > 1 && std::string(argv[1]) == "--smoke") {
+        app.sync();
+        app.n = 3; wxTheApp->ProcessPendingEvents();
+        app.n = 1; wxTheApp->ProcessPendingEvents();
+    } else app.run();
 }

@@ -28,13 +28,7 @@ and Matplotlib are Python-only and will not be ported.
 
 ## Implementation sequence
 
-1. **Runtime and existing widgets.** Replace prototype wx ownership, callback
-   rebinding and synchronous redraw with cancellable scheduling; support owned
-   and borrowed wxApp, ordered shutdown, native close and queued quit. Repair
-   Window content mounting, HBox/VBox reuse/reorder, virtual children, Spacer,
-   asymmetric padding, sizing/style resets, Label and Button. Add CMake targets,
-   independent-header checks, a runnable example and lifecycle regression tests.
-2. **Layouts and controls.** Port Grid, Divider, selectable Label, plain/rich
+2. **Layouts and controls.** Port Grid, Divider, plain/rich
    Text, ProgressBar, Checkbox, RadioButton, TextField and ComboBox/items. Follow
    PUI draft/commit, raw string/index binding and native creation-style behavior.
    Exercise empty selections, dynamic items, current callbacks and self-removal.
@@ -53,6 +47,16 @@ and Matplotlib are Python-only and will not be ported.
    layout, and add build instructions. Expand native regression/smoke coverage,
    sanitizers and Valgrind after each component. Check real-display interaction
    and platform-specific behavior separately from scripted native events.
+
+## Validation environment
+
+Native runtime/reconciliation tests run against wxGTK 3.2.9, including owned and
+borrowed applications, external destruction, keyed moves, subtree replacement,
+queued failure recovery, callback self-removal and repeated teardown. The plain
+`wx.native_baseline` executable uses no CPPUI declarations. Linux memory checks
+use narrow suppressions for its fontconfig/Pango/GTK caches and worker TLS;
+no CPPUI or wx object allocation stack is suppressed. Validate other wx ports
+separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 
 ## Reference cases
 

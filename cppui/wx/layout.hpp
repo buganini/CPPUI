@@ -1,63 +1,20 @@
-#include "base.hpp"
-
 #ifndef CPPUI_WX_LAYOUT
 #define CPPUI_WX_LAYOUT
-
-namespace CPPUI {
-    namespace Wx {
-        class Layout: public Node {
-            void addChild(int idx, Node * child) {
-                if(child->classtype==2){
-                    ((wxSizer *)ui)->Insert(idx, (wxSizer *)child->outer());
-                } else {
-                    ((wxSizer *)ui)->Insert(idx, (wxControl *)(child->outer()));
-                }
-            }
-            void removeChild(int idx, Node * child) {
-                if(child->classtype==2){
-                    ((wxSizer *)ui)->Detach((wxSizer *)child->outer());
-                } else {
-                    ((wxSizer *)ui)->Detach((wxControl *)(child->outer()));
-                }
-            }
-
-            void destroy(bool direct) {
-                if(direct && ui){
-                    delete (wxBoxSizer *)ui;
-                }
-            }
-        };
-        class HBox: public Layout {
-            public:
-            void update(Node * prev) {
-                classtype = 2;
-                if(prev && prev->ui) {
-                    ui = prev->ui;
-                } else {
-                    ui = new wxBoxSizer(wxHORIZONTAL);
-                }
-            }
-       };
-
-        class VBox: public Layout {
-            public:
-            void update(Node * prev) {
-                classtype = 2;
-                if(prev && prev->ui) {
-                    ui = prev->ui;
-                } else {
-                    ui = new wxBoxSizer(wxVERTICAL);
-                }
-            }
-        };
-
-    }
-    Wx::HBox & HBox() {
-        return *(new Wx::HBox());
-    }
-    Wx::VBox & VBox() {
-        return *(new Wx::VBox());
-    }
+#include "base.hpp"
+namespace CPPUI { namespace Wx {
+    class HBox: public Layout {
+        public:
+        HBox() { horizontal = true; expandX = 2; expandY = 1; }
+        wxSizer * createSizer() override { return new wxBoxSizer(wxHORIZONTAL); }
+    };
+    class VBox: public Layout {
+        public:
+        VBox() { vertical = true; expandX = 1; expandY = 2; }
+        wxSizer * createSizer() override { return new wxBoxSizer(wxVERTICAL); }
+    };
 }
-
+inline Wx::HBox & HBox() { return *new Wx::HBox(); }
+inline Wx::VBox & VBox() { return *new Wx::VBox(); }
+inline Wx::Spacer & Spacer() { return *new Wx::Spacer(); }
+}
 #endif

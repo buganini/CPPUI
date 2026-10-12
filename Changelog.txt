@@ -1,5 +1,5 @@
 2026-10-13
-    * wx: record the native port plan, ownership rules and pinned PUI reference cases
+    * wx: restore native ownership, queued redraw/quit, styled layouts/Spacer and selectable labels; add C++11/native lifetime and memory checks
     * Qt: port typed Table/Tree adapters with explicit data ownership, shared cookbook recipes and lifetime regressions
     * Core/Qt/LVGL: port PUI layout/style/qt modifiers and redraw resets; replace cookbook Presentation wrappers with public APIs
     * Qt: add declarative Table with typed bindings/choices and Tree with retained selection/expansion, shared recipes and lifetime regressions
