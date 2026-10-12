@@ -1,5 +1,22 @@
 2026-10-12
 
+- Add Qt Canvas with scoped painter callbacks, text/shape/Bezier/image drawing,
+  logical dimensions and pixel density, and owned ImageResource load/crop/scale
+  values. Snapshot active painters, replace retained callbacks, disable removed
+  dispatch before deferred deletion, and support bool-driven repeat paints.
+  Port the shared Canvas cookbook recipe, preserving its size, colors and
+  rotation control; document the API and remove completed Qt Canvas plan items.
+  Record accepted Binding/State adapters, omitted-property resets, stderr render
+  errors, Optional dialog results and PUI's virtual Tab mapping in both plans.
+  Inspect reference code/tests before raising further decisions; input payloads
+  remain deferred. LVGL drawing and real-display validation remain pending.
+  Validation: Qt 6.10.2 / GCC 15.2 full core/Qt ASan/UBSan/leak suite passes 18/18;
+  final Canvas/HiDPI/cookbook sanitizer rerun passes 3/3, normal/Valgrind checks
+  6/6. Tests cover drawing pixels/state, image lifetime, native reuse, callback
+  redraw/removal, queued/repeat paints and capture reclamation. Independent
+  headers compile, LVGL shared cookbook smoke passes 1/1, and the Qt Canvas
+  recipe's offscreen image was inspected.
+
 - Add doc/lvgl-progress.md with pinned CPPUI/PUI/LVGL baselines, current public
   versus cookbook-only capabilities, explicit C++ ownership, six implementation
   phases, acceptance cases, decisions and memory-test requirements. PUI has no

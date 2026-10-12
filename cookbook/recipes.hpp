@@ -8,6 +8,7 @@
 namespace Cookbook {
     struct Model {
         CPPUI::State<int> progress{50};
+        CPPUI::State<int> rotation{15};
         CPPUI::State<std::string> buttonValue{std::string("A")};
     };
     struct Recipe {
@@ -19,6 +20,7 @@ namespace Cookbook {
     void progressbar(Model &);
     void text(Model &);
     void splitter(Model &);
+    void canvas(Model &);
     const std::vector<Recipe> & recipes();
     CPPUI::Node * find(CPPUI::Node & node, const std::string & id);
     int run(int argc, char ** argv);

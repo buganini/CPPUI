@@ -39,8 +39,8 @@ not establish public component support.
 | Spacer/Divider/Grid/Stack | Cookbook-only spacer/divider; no public components | Define shared placement/style API, then verify orientation, spans, overlap, geometry and native reuse (3) |
 | ProgressBar/Text/Image | Missing public components | Numeric range conversion, wrapping, source replacement and resource lifetime are explicit; rich-text gaps stay visible (4) |
 | Bound controls | Missing | Text edits and boolean/value selections commit once, rebind correctly and avoid feedback loops (4) |
-| Scroll/Tabs/Tab/Splitter | Cookbook-only scrolling; other public components missing | Preserve offsets/selection across content changes; decide tab child mapping and splitter capability before implementation (5) |
-| Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays, result types and desktop-only omissions; preserve borrowed-screen ownership (5) |
+| Scroll/Tabs/Tab/Splitter | Cookbook-only scrolling; other public components missing | Preserve offsets/selection across content changes; apply PUI's virtual Tab mapping and decide splitter capability (5) |
+| Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Missing | Cancel timers and paint work on removal; use current callbacks; handle resource ownership, coordinates and input correctly (6) |
 | Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
 | Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand native dispatch/virtual/input cases, real SDL interaction, multiple resolutions and target-device validation (1–6) |
@@ -140,7 +140,7 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   page; a plain label must not silently stand in for formatted text.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
-- [ ] After the shared binding contract is chosen, add TextField, Checkbox,
+- [ ] Using the agreed `Binding<T>`/State adapters, add TextField, Checkbox,
   RadioButton and ComboBox/item equivalents. Preserve in-progress edits, distinct
   labels/values, empty selections and current callbacks through redraw.
 
@@ -154,8 +154,10 @@ native reuse, valid model retention after invalid input, and resource reclamatio
 
 - [ ] Add public Scroll after the shared start/end anchor contract is settled;
   preserve position through resize, growth, shrinkage and content replacement.
-- [ ] Add Tabs/Tab using LVGL tabview after resolving virtual Tab child/page
-  correspondence; retain selection and update labels on keyed moves.
+- [ ] Add Tabs/Tab using LVGL tabview with the Qt plan's PUI mapping: each
+  physical child under a virtual Tab becomes a page with its ancestor's label;
+  no implicit grouping or discarded children. Retain selection on keyed moves
+  and document the reference's label-update quirk.
 - [ ] Decide a custom resizable-pane implementation versus unsupported Splitter.
   Do not duplicate the shared splitter recipe to hide capability differences.
 - [ ] Agree modal overlays, dialogs, menus/toolbars and Window capabilities
@@ -171,9 +173,10 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
 
 - [ ] Add cancellable TimelineView timers after scheduling and retained-view
   input contracts are agreed; no redraw after removal/shutdown.
-- [ ] Map Canvas/ImageResource and pointer events onto LVGL drawing after the
-  common painter/event API is selected. Test transforms, source regions, density
-  and queued paint during removal.
+- [ ] Map the Qt CanvasPainter/ImageResource drawing API onto LVGL, with explicit
+  native resource ownership and capability gaps. Test transforms, source
+  regions, density and queued paint during removal. Pointer events remain tied
+  to the explicitly deferred shared input contract.
 - [ ] Define Table/Tree/adapters against the shared value/identity contracts;
   investigate custom tree behavior separately from LVGL's table widget.
 - [ ] Define native-object/display embedding and external owner deletion before
@@ -188,10 +191,12 @@ remain deferred with the Qt plan.
 
 ## Decisions awaiting direction
 
-- **Shared contracts:** bindings/conversion/subscription ownership, options and
-  reset semantics, event payloads, queued errors/completion, retained-view inputs,
-  nested-sync recovery, Tab cardinality and specialized data/result types remain
-  governed by the Qt plan. Implementing LVGL must not silently choose them.
+- **Shared contracts:** follow the Qt plan's accepted Binding/State adapters,
+  default reset for omitted properties, stderr render errors, Optional dialog
+  results and PUI virtual Tab mapping. Input payloads are explicitly deferred;
+  remaining subscription/value types, retained-view inputs and nested-sync
+  recovery stay coordinated there. Inspect reference code/tests before raising
+  any further decision; do not block independent work on those gaps.
 - **Runtime ownership and stop:** the existing Application loops forever while
   LVGL's SDL driver may destroy displays and call `exit`. Choose host-owned versus
   backend-owned pumping and native-event interception before implementing quit.

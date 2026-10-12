@@ -9,6 +9,7 @@
 #include "cppui/qt/progressbar.hpp"
 #include "cppui/qt/text.hpp"
 #include "cppui/qt/splitter.hpp"
+#include "cppui/qt/canvas.hpp"
 #include "../recipes.hpp"
 #include "presentation.hpp"
 #include <stdexcept>

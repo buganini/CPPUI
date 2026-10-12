@@ -11,6 +11,7 @@
 |[Button](#button)|QPushButton|button|wxButton|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|—|—|
+|[Canvas / ImageResource](#canvas)|QWidget / QPainter / QImage|—|—|
 
 Node IDs and Qt button text copy their string arguments, including temporary
 `std::string` values. An empty explicit ID is distinct from no ID; `id(nullptr)`
@@ -87,6 +88,55 @@ Include `cppui/qt/divider.hpp` and use `Divider()`. Its sunken QFrame is horizon
 inside a VBox, vertical inside an HBox (including through virtual views), and
 frameless otherwise. Dividers are terminal and non-movable; removal releases the
 native frame using the normal deferred-deletion lifecycle.
+
+## Canvas
+
+Include `cppui/qt/canvas.hpp`. A painter receives a `CanvasPainter&` valid for
+that invocation. It supplies drawing operations and the current logical `width`,
+`height`, and `pixel_density`; it is separate from the borrowed node declaration.
+
+```cpp
+CPPUI::Canvas([](CPPUI::CanvasPainter & canvas) {
+    canvas.drawRect(10, 10, 50, 40, 0xCCCCCC, 0xFF00FF, 2);
+    canvas.drawLine(0, 0, 80, 60, "yellow");
+    canvas.drawCubicBezier({10, 80}, {25, 20}, {75, 80}, {90, 20}, 0x00FFFF, 2);
+});
+```
+
+Callbacks can return void or bool. Returning true requests another native paint;
+false/void waits for an ordinary update. Read reactive State during `content()`
+and capture its value in the painter so the surrounding view tracks the read.
+Redraw reuses the native widget and replaces its painter. Active callbacks are
+copied before invocation, and queued painting becomes inert on removal.
+
+Drawing includes `drawText`, `drawLine`, `drawPolyline`, `drawCubicBezier`,
+`drawPolygon`, `drawRect`, `drawEllipse` and `drawImage`. Coordinates are logical
+pixels; each operation restores painter state. Colors accept `0xRRGGBB`, color
+names or strings such as `"#ff0000"`. Use `{}` for an absent color: shape fill and
+stroke are disabled when absent; text keeps the current pen. Rectangles take
+two corners, ellipses take center/radii, and coordinate sequences use
+`std::vector<CanvasPoint>` or initializer lists.
+
+`drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0,
+anchor = Anchor::LEFT_TOP)` uses canvas dimensions for negative w/h and keeps
+the native font for negative size. `Anchor` has the reference's nine positions;
+it selects the text rotation pivot while x/y is the unrotated text origin.
+
+`ImageResource::load(path)` owns its image data. `crop(x, y, width, height)` and
+`scale(width, height, keepAspectRatio = true, quality = 0)` return new values;
+zero quality means fast scaling, other values smooth. Missing files produce an
+empty resource (`isNull()`); drawing it does nothing. Image resources can also
+be included independently through `cppui/qt/image_resource.hpp`.
+`drawImage(image, x = 0, y = 0, width = -1, height = -1, src_x = 0, src_y = 0,
+src_width = -1, src_height = -1, opacity = 1)` infers negative dimensions from
+the source region. The resource exposes `width()` and `height()`.
+
+Paint contexts must not escape their callback. As with native Qt paint handlers,
+callbacks must not throw through Qt, run nested event loops, or synchronously
+destroy the painting widget or its ancestors. Framework redraw/removal may run
+during the callback; normal deferred native deletion occurs after it returns.
+Input/drag/drop events, shared layout/style modifiers and Shapely integration
+remain pending. The cookbook uses a private size/background adapter meanwhile.
 
 ## Text
 

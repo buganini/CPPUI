@@ -12,6 +12,9 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "splitter") {
                 page.render = splitter;
                 page.remaining = "";
+            } else if(std::string(page.key) == "canvas") {
+                page.render = canvas;
+                page.remaining = "";
             }
         }
     }

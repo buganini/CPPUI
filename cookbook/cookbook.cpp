@@ -109,6 +109,14 @@ namespace Cookbook {
                             && hasText(gallery, "pane") && hasText(gallery, "blah blah"),
                             "splitter recipe did not render its panes");
                     }
+                    if(std::string(recipes()[i].key) == "canvas" && recipes()[i].render) {
+                        const int previousAngle = gallery.model.rotation;
+                        require(click(gallery, "+"), "canvas recipe is missing its rotation button");
+                        Backend::settle();
+                        require(static_cast<int>(gallery.model.rotation) == previousAngle + 15
+                            && hasText(gallery, "Rotate: " + std::to_string(previousAngle + 15)),
+                            "canvas rotation did not update");
+                    }
                     if(std::string(recipes()[i].key) == "progressbar" && recipes()[i].render) {
                         require(click(gallery, "-5"), "progress recipe is missing -5");
                         Backend::settle();

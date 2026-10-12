@@ -131,10 +131,10 @@ the separate deferred section records intentional omissions.
 | TextField/Checkbox/RadioButton | Missing | Preserve unfinished edits; validate commit; rebind boolean/collection/value selections without feedback loops | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
-| Scroll/Tabs/Tab | Missing | Preserve scroll anchor and selected tab through insertion/reorder/removal; update labels using the chosen Tab child contract | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync], [Tab][ref-tab] |
+| Scroll/Tabs/Tab | Missing | Preserve scroll anchor and selected tab through insertion/reorder/removal; flatten virtual Tab children as in PUI | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync], [Tab][ref-tab] |
 | Modal/imperative dialogs | Missing | Native close updates bound visibility; reopen/removal are safe; results distinguish accepted values from cancellation | 5 / [Modal][ref-modal], [Dialog][ref-dialog] |
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars/MDI coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
-| Canvas/ImageResource | Missing | Verify drawing/transforms/crops at multiple pixel densities; event replacement and accepted/rejected drops are safe after redraw/removal | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
+| Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
 | Qt interop/TimelineView | Missing | Borrowed widgets survive removal according to their ownership contract; timers stop on removal/shutdown | 6 / [embedding example][ref-interop], [Widget][ref-widget], [Timeline][ref-timeline] |
 | Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 0–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
@@ -177,19 +177,40 @@ the separate deferred section records intentional omissions.
 
 ## Implementation sequence
 
-Work through the available tasks below. When a public API or lifecycle decision
-is unresolved, record its context under design decisions and continue with an
-independent task; do not choose that contract implicitly.
+Work through the available tasks below. Inspect the pinned implementation and
+tests before raising a decision: follow reference behavior where it settles the
+question. When a C++ API or lifecycle choice remains genuinely unresolved,
+record its context under design decisions and continue independent work.
 
-Complete phases 0–3 before adding most widgets. Phases 4–8 build on those
-contracts; implement each component as a separate reviewable change with its
-behavioral checks and documentation.
+Implement each component as a separate reviewable change with its behavioral
+checks and documentation. Respect its actual dependencies; unfinished work in
+phases 0–3 does not block independent components in later phases.
+
+### Agreed contracts for remaining work
+
+- Bound controls use reusable `Binding<T>` adapters, with `State<T>` accepted
+  through an adapter. Follow PUI's binding behavior where it transfers to C++.
+- Removing a previously specified layout/style property restores its default
+  on redraw. An explicit zero remains distinct from an omitted property.
+- Catch queued render exceptions inside the GUI callback and report them to
+  stderr. Preserve the previous UI when the failure precedes native
+  reconciliation; recovery after partial native updates is separate work.
+- Dialog value results use a C++11-compatible `Optional<T>`, with `OptionalText`
+  as the text alias. Cancellation has no value; accepted empty text has a value.
+- Follow [PUI's Tabs/Tab implementation](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tab.py):
+  `Tab` is virtual and `Tabs` owns the native container. Each flattened physical
+  child becomes a page, using its ancestor Tab's label. Do not insert an implicit
+  VBox or discard extra children. The reference's `postSync()` labels pages by
+  top-level Tab index, which can mismatch empty/multi-child Tabs; preserve and
+  document that reference quirk rather than inventing a cardinality restriction.
+- Portable input event objects are explicitly deferred. Existing no-argument
+  callbacks remain usable.
 
 ### Phase 0 — Contract and test harness (P0)
 
-- [ ] Specify the C++ API shapes for `Binding<T>`, event payloads, and layout/style
-  options. Keep existing no-argument button callbacks usable while adding
-  event-aware overloads.
+- [ ] Implement the agreed binding adapter and settle concrete layout/style
+  option types against reference behavior. Keep event-aware overloads deferred
+  without blocking components that use existing callbacks.
 
 Acceptance: the remaining public API choices are documented and each planned
 component has a reference example and a concrete acceptance case.
@@ -232,7 +253,9 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 
 - [ ] Separate immediate synchronization from redraw requests. Add dirty/updating
   guards, queue Qt redraws on the GUI thread, coalesce bursts, and ignore pending
-  work for removed views. Define a safe way to await completion in tests.
+  work for removed views. Catch/report queued render exceptions to stderr and
+  keep the previous tree on failure before native reconciliation. Define a safe
+  way to await completion in tests.
 - [ ] Add one-time setup and parameterized subview construction. Setup that
   mutates already-subscribed state must wait for the reentrant scheduling contract.
   Define when
@@ -240,7 +263,7 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 - [ ] Recover from a nested builder failure after native reconciliation has
   already started. Choose transactional prebuilding versus explicit partial-sync
   recovery; top-level declaration rollback alone cannot undo native updates.
-- [ ] Introduce typed readable/writable bindings, conversion/validation for text
+- [ ] Introduce reusable `Binding<T>` and `State<T>` adapters, conversion/validation for text
   editors, change subscriptions, external getter/setter binding, and explicit
   notification. Specify subscription ownership and `State` copy/move behavior.
 - [ ] Implement scoped batched mutation and suppress unchanged-value
@@ -272,7 +295,8 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
   Once the public API is chosen, migrate the cookbook's private presentation
   adapters onto it while preserving the reference layout and recipe styling.
 - [ ] Align configurable HBox/VBox padding, stretch updates, and size hints.
-  Recompute properties from current declarations and define reset behavior.
+  Recompute properties from current declarations and reset omitted properties
+  to their defaults.
 - [ ] Add `Grid`, `Stack`, and `Spacer`, including grid spans,
   overlapping Stack order, and `QSpacerItem` ownership/non-movability.
 - [ ] Extend Window with title, icon, size, keypress, initial-only maximize and
@@ -309,13 +333,14 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
 - [ ] Add Tabs/virtual Tab, with reactive labels, child insertion,
   removal, reordering, and native interaction state. Record `tabposition` as a
   reference gap: the pinned implementation stores it but does not apply it.
-  Resolve the page/child correspondence described under design decisions first.
+  Use the agreed PUI physical-child/ancestor-Tab mapping, including regression
+  coverage of its empty/multi-child label-update quirk.
 - [ ] Add Modal with bound status/off-value, open/close callbacks, native-close
   synchronization, and Window's initial/imperative state contract.
 - [ ] Add OpenDirectory, OpenFile, OpenFiles, SaveFile, Information, Warning,
-  Critical, Confirm, and Prompt. Define typed C++ results that preserve accepted
-  values versus cancellation, including the reference's inconsistent empty
-  directory string versus `None` for other cancelled file operations.
+  Critical, Confirm, and Prompt. Implement `Optional<T>`/`OptionalText` results
+  that preserve accepted empty values versus cancellation. Normalize the
+  reference's inconsistent empty directory string on cancellation to no value.
 
 Acceptance: port [scroll_sync.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/scroll_sync.py); test content
 growth/shrinkage and a resize during reconciliation. Exercise tab/splitter edits,
@@ -341,19 +366,16 @@ survive declaration removal. Port the lifecycle case in
 
 ### Phase 7 — Canvas and input (P2)
 
-- [ ] Add Canvas painter callbacks and drawing for text, lines, polylines, cubic
-  Beziers, polygons, rectangles, ellipses, and images; support fill/stroke,
-  transforms, text anchors, and image source regions/opacity.
-- [ ] Add ImageResource loading, cropping, and scaling. Keep coordinates in
-  logical pixels and update pixel density before each paint.
 - [ ] Implement mouse down/up/move/double-click, enter/leave, wheel deltas and
-  modifiers, plus Qt drag-enter/drop callbacks and their acceptance behavior.
-- [ ] Ensure retained paint/event callbacks resolve the current declaration and
-  become inert after destruction. Track Shapely integration separately below.
+  modifiers, plus Qt drag-enter/drop callbacks and their acceptance behavior
+  after the deferred input-event contract is addressed.
+- [ ] Ensure input callback replacement/removal cannot dispatch to a retired
+  declaration. Track Shapely integration separately below.
+- [ ] Verify Canvas rendering and logical coordinates on a real HiDPI display.
 
-Acceptance: port Canvas and drop cookbook cases, compare rendered output at
-multiple scale factors, and verify event payloads and callback replacement.
-Painting queued before removal must not access deleted declarations.
+Acceptance: port the drop cookbook case and verify event payloads, acceptance,
+callback replacement and removal. Retain automated painting/lifetime coverage
+while validating physical-display rendering separately.
 
 ### Phase 8 — Table and Tree models (P2)
 
@@ -403,7 +425,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `scroll.py`, `tab.py` | 5 | Scroll offsets, tab switching and retained native state |
 | `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
-| `canvas.py`, `drop.py` | 7 | Drawing, event payloads and accepted/rejected drops |
+| `drop.py` | 7 | Event payloads and accepted/rejected drops |
 | `table.py`, `table_adapter.py`, `tree.py`, `tree_adapter.py` | 8 | Declarative/adapted data, editing, identity and expansion |
 | `drawshapely.py`, `matplotlib.py` | Deferred integrations | Requires an agreed C++ bridge/dependency strategy |
 
@@ -411,24 +433,15 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 
 Continue independent implementation while these contracts remain undecided.
 
-- **Bindings:** `State<T>` already tracks reads and notifies subscribed views.
-  The missing public contract is a writable control model: borrowing `State<T>`
-  directly versus a reusable `Binding<T>` adapter with getter/setter conversion.
-  Choose conversion failure reporting, subscription ownership, and State
-  copy/move semantics together. This blocks bound editors, collection controls,
-  and the binding/textfield cookbook pages; ordinary state-driven labels/buttons
-  do not require that choice.
-- **Queued redraw completion/errors:** queued Qt work has no synchronous caller
-  to receive a builder exception. Choose an application error callback, stored
-  exception/completion handle, or another explicit reporting contract before
-  introducing asynchronous redraw. Batch-scope exit also needs defined exception
-  behavior during stack unwinding. Continue immediate redraw for now; callback
-  snapshots protect the current no-argument button handlers from self-removal.
-- **Common options and events:** choose the C++ spelling and omitted/reset-value
-  representation for layout/style/Qt options and event payloads. Preserve the
-  existing no-argument click overload. Styles, weighted layouts, grid, native
-  input events, and their complete cookbook pages depend on this API. Owned
-  strings, lifecycle repairs, and existing plain component examples can proceed.
+- **Binding ownership:** implement the accepted adapter design against PUI's
+  conversion/change/getter/setter behavior. Document C++ subscription lifetimes
+  and State copy/move semantics; ask only if tracing the reference and existing
+  C++ ownership rules leaves a public choice unresolved.
+- **Batch completion:** queued redraw errors use stderr as agreed. A future
+  batch-scope exit still needs defined exception behavior during stack unwinding.
+- **Common options:** choose concrete C++ layout/style/Qt option types against
+  reference behavior. Omitted properties reset as agreed. Event payloads remain
+  explicitly deferred; they do not block drawing or existing callbacks.
 - **Parameterized retained views:** reconciliation retains matching View objects
   and discards their replacement declarations. Constructor forwarding alone
   cannot deliver changed inputs to the retained view. Decide an explicit input
@@ -442,16 +455,10 @@ Continue independent implementation while these contracts remain undecided.
   when a parent deletes the QObject, and application teardown is safe. Remounting
   after external deletion and borrowing interop widgets need an agreed ownership
   contract; do not claim arbitrary external native mutation is supported.
-- **Specialized APIs:** scroll end anchoring (including negative zero), dialog
-  cancellation/results, table/tree value and identity types, and external widget
+- **Specialized APIs:** scroll end anchoring (including negative zero),
+  table/tree value and identity types, and external widget
   ownership need their own C++ contracts before the corresponding phase. Their
   context and acceptance cases are recorded in phases 5–8 above.
-- **Tab child cardinality:** [the pinned Tab implementation](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tab.py)
-  inserts a native page for each physical child under a virtual Tab, but updates
-  one label per top-level Tab in `postSync`. Empty or multi-child tabs therefore
-  lack a consistent page/label correspondence. Choose a single physical page
-  requirement versus an implicit grouping container before porting Tabs/Tab;
-  the cookbook exercises only one child per Tab.
 
 ## Explicitly deferred or requiring a C++ design decision
 
@@ -469,7 +476,7 @@ Continue independent implementation while these contracts remain undecided.
 ## Validation and progress updates
 
 Normal state notifications and view redraws must be silent. Keep framework
-diagnostic output opt-in so applications control their console output.
+debug tracing opt-in; queued render failures are reported to stderr as agreed.
 
 After every completed change, remove its finished checklist items and stale
 notes from this document. Keep this file focused on remaining work, current

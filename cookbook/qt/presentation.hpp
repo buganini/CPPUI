@@ -161,5 +161,21 @@ namespace Cookbook { namespace Presentation {
         }
     };
     inline StyledButtonNode & StyledButton() { return *new StyledButtonNode(); }
+
+    class CanvasNode: public CPPUI::Qt::Canvas {
+        public:
+        explicit CanvasNode(Painter painter): CPPUI::Qt::Canvas(std::move(painter)) {}
+        void update(CPPUI::Qt::BaseWidget * prev) override {
+            CPPUI::Qt::Canvas::update(prev);
+            ui->setFixedSize(100, 100);
+            auto palette = ui->palette();
+            palette.setColor(QPalette::Window, QColor(0x55, 0x55, 0x55));
+            ui->setPalette(palette);
+            ui->setAutoFillBackground(true);
+        }
+    };
+    inline CanvasNode & Canvas(CPPUI::Qt::Canvas::Painter painter) {
+        return *new CanvasNode(std::move(painter));
+    }
 }}
 #endif
