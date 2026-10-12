@@ -30,11 +30,11 @@ links. Those helpers do not establish public component support.
 
 | Area | Current basis | Remaining acceptance / phase |
 | --- | --- | --- |
-| Core integration | Shared state/reconciliation, common retirement updates | Nested virtual views retain native order and state; direct view destruction and failed builds reclaim declarations (1) |
-| Native lifetime | Application owns declarations; Window borrows the active screen | Deletion notifications invalidate observers; active callbacks, parent deletion and screen replacement cannot access retired nodes (1) |
+| Core integration | Shared reconciliation, nested virtual views, standalone view cleanup and top-level builder recovery | Nested partial-sync failure recovery needs a shared contract |
+| Native lifetime | Views own declarations; primary/secondary native observers clear on deletion; callbacks detach on retirement | Define external remount and shared-screen ownership before broadening interop (2, 6) |
 | Application and native drivers | Timer loop; separate SDL2/X11 cookbook startup and smoke teardown | Define stop/event ownership, then close gracefully before native display destruction; support host-driven pumping without POSIX-only assumptions (2) |
 | HBox/VBox | Basic flex flow and child sizing | Common padding/dimensions/weights reset correctly, including zero; nested and virtual geometry remains stable (3) |
-| Label/Button | Owned text and current button callbacks | Public label clicks, event payloads and style reset follow common contracts; repeated callbacks/removal release captures (1, 3) |
+| Label/Button | Owned text and current button callbacks | Public label clicks, event payloads and style reset follow common contracts (3) |
 | Spacer/Divider/Grid/Stack | Public expanding Spacer; cookbook-only divider | Define fixed spacing and shared placement/style API, then add Divider/Grid/Stack and verify spans/overlap (3) |
 | ProgressBar/Text/Image | Missing public components | Numeric range conversion, wrapping, source replacement and resource lifetime are explicit; rich-text gaps stay visible (4) |
 | Bound controls | Missing | Text edits and boolean/value selections commit once, rebind correctly and avoid feedback loops (4) |
@@ -42,7 +42,7 @@ links. Those helpers do not establish public component support.
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
 | Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
-| Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand native dispatch/virtual/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (1–6) |
+| Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand component/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (2–6) |
 
 ## Ownership contract
 
@@ -69,28 +69,6 @@ links. Those helpers do not establish public component support.
   and error-delivery contract.
 
 ## Implementation sequence
-
-### Phase 1 — Existing backend lifetime and reconciliation
-
-Reference: [PUI virtual-node cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py),
-[nested views](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/nested_view.py),
-and [LVGL object lifetime](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/core/lv_obj_tree.c).
-
-- [ ] Make standalone LVGL View destruction release its owned declarations;
-  verify both standalone and Application-owned roots, without deleting borrowed
-  screens or double-deleting native descendants.
-- [ ] Audit raw native storage and secondary handles such as a button's label.
-  Add native-delete invalidation with callback contexts whose own lifetime is
-  explicit. Teardown after external deletion must be safe; remount semantics
-  remain blocked by the external-ownership decision.
-- [ ] Add native tests for keyed/nested virtual moves, empty subviews, independent
-  redraw, repeated removal/reinsertion and top-level builder failure recovery.
-- [ ] Test callback replacement, self-removal, callback-triggered redraw and
-  capture reclamation. Verify CPPUI disconnects only its own event callbacks.
-
-Acceptance: stable native identity/order, current dispatch and exact declaration
-reclamation under allocation counts, ASan/UBSan/leak checks and Valgrind. Keep
-nested partial-sync recovery tied to the shared-core decision.
 
 ### Phase 2 — Runtime, SDL2/X11 and input
 
@@ -259,5 +237,6 @@ globals are reported separately. Do not hide framework leaks with suppressions.
 After each completed change, update component/build docs, examples and tests;
 remove its finished tasks from this plan; add a concise component-prefixed
 change summary to `Changelog.txt`; then commit before the next change. Keep
-detailed validation commands/results in tests, documentation or commit messages. Update the Qt plan only for shared contracts
-or shared-core gaps, keeping LVGL-specific remaining work here.
+detailed validation commands/results in tests, documentation or commit messages.
+Update the Qt plan only for shared contracts or shared-core gaps, keeping
+LVGL-specific remaining work here.

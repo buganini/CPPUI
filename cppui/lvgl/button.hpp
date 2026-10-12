@@ -3,64 +3,46 @@
 
 #include "base.hpp"
 
-#include "lvgl.h"
-
 namespace CPPUI {
     namespace LVGL {
-        inline void event_handler(lv_event_t * e);
-
         class Button: public Node {
+            static void labelDeleted(lv_event_t * event) {
+                static_cast<Button *>(lv_event_get_user_data(event))->label = nullptr;
+            }
+            void unobserveLabel() {
+                if(label) lv_obj_remove_event_cb_with_user_data(label, labelDeleted, this);
+            }
             public:
-            lv_obj_t * label;
-
+            lv_obj_t * label = nullptr;
             std::string text;
-            Button(const char * text) {
-                this->text = std::string(text);
+            explicit Button(const std::string & text): text(text) {
+                is_terminal = true;
+                clickable = true;
             }
-            Button(const std::string text) {
-                this->text = text;
-            }
-
+            ~Button() override { unobserveLabel(); }
             void destroy(bool direct) override {
-                if(ui) lv_obj_remove_event_cb(static_cast<lv_obj_t *>(ui), event_handler);
+                unobserveLabel();
+                label = nullptr;
                 Node::destroy(direct);
             }
-
-            void update(Node * prev) {
-                if(prev && prev->ui) {
-                    ui = prev->ui;
-                    label = ((Button *)prev)->label;
-                    lv_obj_remove_event_cb((lv_obj_t *)ui, event_handler);
+            void update(Node * prev) override {
+                auto previous = static_cast<Button *>(prev);
+                if(previous && previous->ui) {
+                    ui = previous->ui;
+                    label = previous->label;
+                    previous->unobserveLabel();
+                    previous->label = nullptr;
                 } else {
-                    ui = lv_button_create((lv_obj_t *)parent->inner());
-                    label = lv_label_create((lv_obj_t *)ui);
+                    ui = lv_button_create(static_cast<lv_obj_t *>(parent->inner()));
                 }
-                lv_obj_add_event_cb((lv_obj_t *)ui, event_handler, LV_EVENT_ALL, this);
+                if(!label) label = lv_label_create(static_cast<lv_obj_t *>(ui));
+                lv_obj_add_event_cb(label, labelDeleted, LV_EVENT_DELETE, this);
                 lv_label_set_text(label, text.c_str());
                 lv_obj_center(label);
             }
         };
-
-        inline void event_handler(lv_event_t * e)
-        {
-            lv_event_code_t code = lv_event_get_code(e);
-            Button * button = (Button *)lv_event_get_user_data(e);
-
-            if(code == LV_EVENT_CLICKED) {
-                auto callback = button->onClicked;
-                callback();
-            }
-            else if(code == LV_EVENT_VALUE_CHANGED) {
-                LV_LOG_USER("Toggled");
-            }
-        }
     }
-    inline LVGL::Button & Button(const char * text) {
-        return *(new LVGL::Button(text));
-    }
-    inline LVGL::Button & Button(const std::string text) {
-        return *(new LVGL::Button(text));
-    }
+    inline LVGL::Button & Button(const std::string & text) { return *new LVGL::Button(text); }
 }
 
 #endif

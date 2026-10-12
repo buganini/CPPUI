@@ -1,4 +1,5 @@
 2026-10-12
+    * LVGL: reclaim standalone views, invalidate native observers and safely transfer click callbacks through redraw/removal
     * LVGL.Spacer: add public expanding spacers and use them in the shared cookbook and minimal example
     * LVGL.Canvas: add basic shapes, Beziers and transformed text with resize/repeat painting, safe callback teardown and the shared Canvas recipe
     * Qt.Modal: add bound visibility, close synchronization and lifecycle callbacks using Binding<T>/State; port the shared Modal recipe

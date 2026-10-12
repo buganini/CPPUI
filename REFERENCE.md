@@ -55,6 +55,14 @@ the updated callback. External native
 subtree deletion is safe for teardown; automatic remount after that deletion is
 not yet supported.
 
+LVGL views, including standalone views, release their owned declarations. Native
+objects remain parent-owned; deletion clears the primary observer and secondary
+handles such as Button's label. Reuse and teardown detach only CPPUI's own event
+callbacks. Active click callbacks are copied before invocation; exceptions are
+reported to stderr at the native event boundary. External native deletion is
+safe for teardown, but does not establish automatic subtree remount support.
+Window borrows the display-owned screen and only clears its content.
+
 State reads during a successful build replace that view's dependencies. Values
 that are no longer read stop triggering redraws. Assigning, incrementing, or
 decrementing any State during a view builder throws

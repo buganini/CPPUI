@@ -18,12 +18,6 @@ namespace CPPUI {
             this->argv = argv;
         }
 
-        ~Application() override {
-            destroyed = true;
-            for(::CPPUI::Node * child: *children) recur_delete(child, true);
-            children->clear();
-        }
-
         void update(Node * prev) {
             View::update(prev);
         }
