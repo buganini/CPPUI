@@ -8,11 +8,17 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
 Button, Label, HBox, and VBox share their implementations across both backends.
-Qt also enables shared ProgressBar and Text recipes through its source manifest. These
-pages remain partial until their displayed missing details are implemented. The gallery and `--list` report missing details and unavailable pages.
-Full styles, layout options, bindings, source presentation, and remaining component
-pages follow the [alignment plan](../doc/pyside6-progress.md). The navigation
-buttons cycle through the same page registry on either backend.
+Qt also enables shared ProgressBar and Text recipes through its source manifest.
+The gallery preserves the reference's scrollable **Example** sidebar and expanding
+**Result** pane. Qt also keeps the nested example menus and initially maximized
+window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
+divider, and styled examples follow the reference on the available pages.
+
+Unsupported pages show “Not Supported for this backend”; `--list` gives their
+prerequisites. The [alignment plan](../doc/pyside6-progress.md) tracks remaining
+components and public APIs. The backend `presentation.hpp` files provide private
+cookbook layout/appearance adapters until those public APIs are decided; these
+helpers do not imply general Scroll, menu, style, or layout API support in CPPUI.
 
 ## Qt
 
@@ -49,9 +55,10 @@ The example assumes CPPUI owns the content of that screen.
 
 ## Tests and memory checks
 
-`--smoke` visits every page three times, checks native label contents, exercises
-A/B buttons and gallery navigation, and tears down the application. Unsupported
-pages display their prerequisites. Both CMake projects support
+`--smoke` clicks every sidebar page three times, checks the two-column geometry,
+scrollable list, Qt menus, native label contents, and A/B and progress buttons,
+then tears down the application. Sidebar native identity survives page changes.
+Both CMake projects support
 `-DCPPUI_VALGRIND_TESTS=ON`; `ctest -L valgrind --output-on-failure` runs the same
 scenarios with Memcheck. Use a separate build for ASan/UBSan and Valgrind.
 

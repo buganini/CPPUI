@@ -233,6 +233,8 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
 - [ ] Apply generic colors/fonts and typed Qt options for size policies,
   constraints, stylesheet, and application style. Resolve naming conflicts with
   the existing `BaseLayout::layout` member before introducing `.layout(...)`.
+  Once the public API is chosen, migrate the cookbook's private presentation
+  adapters onto it while preserving the reference layout and recipe styling.
 - [ ] Align HBox/VBox margins, stretch updates, size hints, and nested layouts.
   Recompute properties from current declarations and define reset behavior.
 - [ ] Add `Grid`, `Stack`, `Spacer`, and `Divider`, including grid spans,
@@ -346,21 +348,21 @@ Do not duplicate recipes or silently present unsupported behavior as a full port
 
 - [ ] Port each recipe alongside its components, preserving the state changes
   and interactions. The table below tracks only outstanding recipe work.
-- [ ] Extend the gallery with the reference's source/result panes and menus
-  once Scroll, Html, layout options, and action dependencies are available.
-  Python source inspection/highlighting needs a C++ equivalent; do not add a
-  runtime Python dependency just for the source pane.
 - [ ] Verify the interactive SDL build and real-display layout/input on both
   backends; headless recipe tests do not establish visual or focus parity.
 
+Preserve the reference gallery's Example sidebar, scrolling page list, Result
+pane, Qt menus, and recipe layout. The source-code pane is intentionally omitted
+at the user's request; no replacement navigation or extra status banner belongs
+in the gallery. Keep backend capability details in `--list` and documentation.
+
 | Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
 | --- | --- | --- |
-| `button.py`, `label.py` | 1, 3 | A/B state updates, literal label text, styles, spacer |
-| `hbox.py`, `vbox.py`, `grid.py`, `stack.py` | 3 | Ordering, weights, spacer/divider, grid placement, overlap |
+| `grid.py`, `stack.py` | 3 | Grid placement, overlap |
 | `binding.py`, `textfield.py` | 2, 4 | External get/set, changed callback, edit/commit and conversion |
 | `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
-| `progressbar.py` | 3 | Add Spacer; LVGL page requires backend support |
-| `text.py` | 3 | Add Spacer; LVGL page requires backend support |
+| `progressbar.py` | 4 | LVGL page requires backend support |
+| `text.py` | 4 | LVGL page requires backend support |
 | `image.py` | 3, 4 | Sized image asset |
 | `scroll.py`, `tab.py`, `splitter.py` | 5 | Scroll offsets, tab switching, resize and retained native state |
 | `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |

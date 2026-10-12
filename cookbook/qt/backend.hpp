@@ -8,11 +8,15 @@
 #include "cppui/qt/progressbar.hpp"
 #include "cppui/qt/text.hpp"
 #include "../recipes.hpp"
+#include "presentation.hpp"
+#include <stdexcept>
 
 namespace Cookbook { namespace Backend {
     void configureRecipes(std::vector<Recipe> & pages);
     const char * const name = "Qt";
     inline void settle() {
+        QCoreApplication::processEvents();
+        QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     }
@@ -26,6 +30,55 @@ namespace Cookbook { namespace Backend {
         auto widget = dynamic_cast<CPPUI::Qt::BaseWidget *>(&node);
         auto label = widget ? qobject_cast<QLabel *>(widget->ui) : nullptr;
         return label && label->text().toStdString() == text;
+    }
+    inline bool selectPage(CPPUI::Node & node) {
+        auto link = dynamic_cast<Presentation::PageLinkNode *>(&node);
+        if(!link) return false;
+        auto label = static_cast<QWidget *>(link->outer());
+        for(auto parent = label->parentWidget(); parent; parent = parent->parentWidget()) {
+            if(auto scroll = qobject_cast<QScrollArea *>(parent)) scroll->ensureWidgetVisible(label);
+        }
+        QMouseEvent event(QEvent::MouseButtonRelease, QPointF(2, 2), QPointF(2, 2),
+                          ::Qt::LeftButton, ::Qt::NoButton, ::Qt::NoModifier);
+        QCoreApplication::sendEvent(label, &event);
+        return true;
+    }
+    inline void prepareLayoutCheck(CPPUI::Node & root) {
+        auto window = static_cast<QMainWindow *>(find(root, "cookbook")->outer());
+        if(!window->isMaximized() || window->windowTitle() != "CPPUI Cookbook") {
+            throw std::runtime_error("cookbook should open maximized with its window title");
+        }
+        // Force an overflowing list independently of the host's screen size.
+        window->showNormal();
+        window->resize(800, 600);
+        settle();
+    }
+    inline bool pageVisible(CPPUI::Node & root, const std::string & key) {
+        auto scroll = static_cast<QScrollArea *>(find(root, "menu-scroller")->outer());
+        auto label = static_cast<QWidget *>(find(root, "page:" + key)->outer());
+        return scroll->viewport()->rect().contains(label->mapTo(scroll->viewport(), label->rect().center()));
+    }
+    inline void checkLayout(CPPUI::Node & root) {
+        auto window = static_cast<QMainWindow *>(find(root, "cookbook")->outer());
+        auto sidebar = static_cast<QWidget *>(find(root, "menu-container")->outer());
+        auto result = static_cast<QWidget *>(find(root, "result")->outer());
+        auto scroll = static_cast<QScrollArea *>(find(root, "menu-scroller")->outer());
+        if(sidebar->geometry().right() >= result->geometry().left()
+           || result->width() <= sidebar->width() || result->height() < 200) {
+            throw std::runtime_error("cookbook must retain a sidebar beside an expanding result pane");
+        }
+        if(scroll->verticalScrollBar()->maximum() <= 0 || !scroll->widget()
+           || scroll->widget()->findChildren<QLabel *>().size() != static_cast<int>(recipes().size())) {
+            throw std::runtime_error("cookbook page list must scroll and include every recipe");
+        }
+        const auto menus = window->menuBar()->actions();
+        if(menus.size() != 2 || menus[0]->text() != "Menu" || menus[1]->text() != "Menu3"
+           || menus[0]->menu()->actions().size() != 3
+           || menus[0]->menu()->actions()[2]->menu()->actions().size() != 2
+           || menus[1]->menu()->actions().size() != 2) {
+            throw std::runtime_error("reference menus are missing or duplicated");
+        }
+        if(find(root, "code")) throw std::runtime_error("source code pane must be omitted");
     }
 }}
 #endif

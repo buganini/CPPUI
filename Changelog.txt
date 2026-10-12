@@ -1,5 +1,18 @@
 2026-10-12
 
+- Restore the reference cookbook layout: scrollable Example sidebar beside an
+  expanding Result pane, native Qt menus and initial maximization. Remove only
+  the source-code pane; replace the simplified Previous/Next navigation and
+  status banner. Restore recipe spacers, divider, weights, and styled examples.
+  Keep gallery/recipes shared through private backend presentation adapters
+  while the public layout/style API remains undecided. Update README guidance
+  and remove finished recipe/gallery work from the remaining plan.
+  Validation: all 30 sidebar links are clicked three times with native identity,
+  geometry, scrolling, visibility and menu checks. Qt/core ASan/UBSan/leak suite
+  passes 11/11; LVGL sanitizer smoke passes 1/1. Standalone Qt and LVGL normal
+  and Valgrind checks pass 2/2 each. Offscreen renders of the available recipes
+  were inspected. Interactive SDL and platform focus checks remain pending.
+
 - Add --smoke assertions to both existing Qt examples for native counter clicks,
   independent view updates, and repeated nested subtree removal/reinsertion.
   Register normal and optional Valgrind runs in the root and standalone CMake

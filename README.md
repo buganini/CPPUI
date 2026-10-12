@@ -42,8 +42,9 @@ remain usable.
 # Shared cookbook
 
 The cookbook builds the same C++ recipe and gallery sources with separate Qt
-and LVGL CMake projects. Initial pages are partial ports; the gallery and
-`--list` show missing details explicitly.
+and LVGL CMake projects. It keeps PUI's scrollable Example sidebar and Result
+pane, plus the Qt menus; only the source-code pane is omitted. `--list` reports
+available recipes and prerequisites for pages that are not ported yet.
 
 With Qt 6 development packages installed:
 

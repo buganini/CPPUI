@@ -5,10 +5,10 @@ namespace Cookbook { namespace Backend {
         for(auto & page: pages) {
             if(std::string(page.key) == "progressbar") {
                 page.render = progressbar;
-                page.remaining = "Spacer";
+                page.remaining = "";
             } else if(std::string(page.key) == "text") {
                 page.render = text;
-                page.remaining = "Spacer";
+                page.remaining = "";
             }
         }
     }

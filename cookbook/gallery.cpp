@@ -12,27 +12,43 @@ namespace Cookbook {
 
         void content() override {
             const auto & page = recipes().at(static_cast<int>(selected));
-            for(auto window: CPPUI::Window().id("cookbook")) {
-                for(auto column: CPPUI::VBox()) {
-                    CPPUI::Label(std::string("CPPUI cookbook / ") + Backend::name);
-                    for(auto navigation: CPPUI::HBox()) {
-                        CPPUI::Button("Previous").click([this]() { move(-1); });
-                        CPPUI::Label(page.title);
-                        CPPUI::Button("Next").click([this]() { move(1); });
+            for(auto window: Presentation::Window().id("cookbook")) {
+                for(auto row: Presentation::HBox().id("gallery")) {
+                    for(auto menu: Presentation::Sidebar().id("menu-container")) {
+                        Presentation::Label("Example");
+                        for(auto scroll: Presentation::Scroll().id("menu-scroller")) {
+                            for(auto list: Presentation::VBox().id("menu-list")) {
+                                for(std::size_t i = 0; i < recipes().size(); ++i) {
+                                    auto & link = Presentation::PageLink(recipes()[i].title);
+                                    link.id(std::string("page:") + recipes()[i].key);
+                                    link.click([this, i]() { selected = static_cast<int>(i); });
+                                }
+                                Presentation::Spacer();
+                            }
+                        }
                     }
-                    CPPUI::Label(std::string(page.render ? "Remaining: " : "Unavailable: ") + page.remaining);
-                    for(auto body: CPPUI::VBox().id(std::string("recipe:") + page.key)) {
-                        if(page.render) page.render(model);
+                    for(auto result: Presentation::VBox(1).id("result")) {
+                        Presentation::Label("Result");
+                        for(auto body: Presentation::VBox(1).id(std::string("recipe:") + page.key)) {
+                            if(page.render) page.render(model);
+                            else {
+                                Presentation::Label("Not Supported for this backend");
+                                Presentation::Spacer();
+                            }
+                        }
                     }
                 }
             }
         }
-        void move(int delta) {
-            const int size = static_cast<int>(recipes().size());
-            selected = (static_cast<int>(selected) + delta + size) % size;
-        }
     };
 
+    CPPUI::Node * find(CPPUI::Node & node, const std::string & id) {
+        if(node.has_id && node._id == id) return &node;
+        for(auto child: *node.children) {
+            if(auto found = find(*child, id)) return found;
+        }
+        return nullptr;
+    }
     bool click(CPPUI::Node & node, const std::string & text) {
         if(Backend::clickButton(node, text)) return true;
         for(auto child: *node.children) {
@@ -57,7 +73,7 @@ namespace Cookbook {
             for(int i = 1; i < argc; ++i) {
                 if(std::string(argv[i]) == "--list") {
                     for(const auto & page: recipes()) {
-                        std::cout << page.key << " [" << (page.render ? "partial" : "unavailable")
+                        std::cout << page.key << " [" << (page.render ? (*page.remaining ? "partial" : "ported") : "unavailable")
                                   << "]: " << page.remaining << '\n';
                     }
                     return 0;
@@ -70,12 +86,21 @@ namespace Cookbook {
                 return 0;
             }
             gallery.redraw();
+            Backend::settle();
+            Backend::prepareLayoutCheck(gallery);
+            auto sidebar = find(gallery, "menu-scroller")->outer();
+            Backend::checkLayout(gallery);
             // Revisit pages to exercise replacement and retired callback cleanup.
             for(int cycle = 0; cycle < 3; ++cycle) {
                 for(std::size_t i = 0; i < recipes().size(); ++i) {
-                    gallery.selected = static_cast<int>(i);
+                    auto link = find(gallery, std::string("page:") + recipes()[i].key);
+                    require(link && Backend::selectPage(*link), "sidebar page link is missing");
                     Backend::settle();
-                    require(hasText(gallery, recipes()[i].title), "page selection did not render");
+                    require(static_cast<int>(gallery.selected) == static_cast<int>(i), "sidebar did not select the page");
+                    require(find(gallery, std::string("recipe:") + recipes()[i].key), "page selection did not render");
+                    require(find(gallery, "menu-scroller")->outer() == sidebar, "page selection replaced the sidebar");
+                    require(Backend::pageVisible(gallery, recipes()[i].key), "selected sidebar link is clipped or lost its scroll position");
+                    Backend::checkLayout(gallery);
                     if(std::string(recipes()[i].key) == "text" && recipes()[i].render) {
                         require(hasText(gallery, "Multiple\nLines\nText"), "text recipe did not render");
                     }
@@ -97,13 +122,7 @@ namespace Cookbook {
                     }
                 }
             }
-            require(click(gallery, "Next"), "gallery navigation is missing");
-            Backend::settle();
-            require(static_cast<int>(gallery.selected) == 0, "next did not wrap to the first page");
-            require(click(gallery, "Previous"), "gallery navigation is missing");
-            Backend::settle();
-            require(static_cast<int>(gallery.selected) == static_cast<int>(recipes().size()) - 1,
-                    "previous did not wrap to the last page");
+            require(!click(gallery, "Next") && !click(gallery, "Previous"), "obsolete navigation remains");
             std::cout << Backend::name << " cookbook smoke passed\n";
             return 0;
         } catch(const std::exception & error) {
