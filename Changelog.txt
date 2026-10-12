@@ -1,5 +1,20 @@
 2026-10-12
 
+- Add optional CPPUI::qt and CPPUI_BUILD_QT targets for both Qt examples and an
+  offscreen virtual-node regression. Make Qt headers repeat-includable and their
+  factory functions safe to link from multiple source files.
+  Fix three regressions exposed by the native tests: Window no longer downcasts
+  a layout declaration to BaseWidget; retained nested virtual views receive the
+  current physical parent before the old declaration is deleted; removing a
+  virtual subtree directly destroys its detached native descendants.
+  Validation: GCC 15.2.0, CMake 4.2.3, Qt 6.10.2 on Linux/offscreen. Configure with
+  -DCPPUI_BUILD_QT=ON, build, and ctest --output-on-failure pass 3/3 in Release and
+  Debug with ASan, UBSan (halt_on_error), and leak detection. Both Qt examples,
+  eight standalone core headers, and six standalone/repeated Qt headers build.
+  Tests cover cross-file declarations, native order/identity, independent and
+  nested redraw, keyed moves, removal/reinsertion, empty subviews, and teardown.
+  wx/LVGL native builds and real-display interaction checks were not run.
+
 - Keep doc/pyside6-progress.md focused on remaining work: remove completed tasks
   and implementation logs after each change, and retain completed behavior and
   validation history in this changelog. Remove stale toolchain/test setup notes.

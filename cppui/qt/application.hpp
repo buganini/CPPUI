@@ -1,3 +1,6 @@
+#ifndef CPPUI_QT_APPLICATION
+#define CPPUI_QT_APPLICATION
+
 #include "base.hpp"
 
 #include <iostream>
@@ -37,3 +40,5 @@ namespace CPPUI {
         }
     };
 }
+
+#endif

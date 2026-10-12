@@ -1,3 +1,6 @@
+#ifndef CPPUI_QT_WINDOW
+#define CPPUI_QT_WINDOW
+
 #include "base.hpp"
 
 #include <QMainWindow>
@@ -15,16 +18,18 @@ namespace CPPUI {
                 }
             }
 
-            void addChild(int idx, BaseWidget *child) {
+            void addChild(int idx, Node *child) override {
                 ((QMainWindow *)ui)->setCentralWidget((QWidget *) child->outer());
             }
 
-            void removeChild(int idx, BaseWidget *child) {
+            void removeChild(int idx, Node *child) override {
                 ((QWidget *)child->outer())->setParent(nullptr);
             }
        };
     }
-    Qt::Window & Window() {
+    inline Qt::Window & Window() {
         return *(new Qt::Window());
     }
 }
+
+#endif

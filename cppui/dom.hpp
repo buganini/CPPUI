@@ -30,7 +30,9 @@ namespace CPPUI {
         child->destroyed = true;
         for(Node * subchild: *child->children) {
             if(subchild) {
-                recur_delete(subchild, false);
+                // Virtual nodes have no native owner to delete descendants.
+                // Carry direct ownership through them until a physical node.
+                recur_delete(subchild, direct && child->is_virtual);
             }
         }
         child->children->clear();
@@ -81,6 +83,18 @@ namespace CPPUI {
             }
         }
         return num;
+    }
+
+    inline void rebind_dom_parent(Node * node, Node * dom_parent) {
+        node->dom_parent = dom_parent;
+        // Reused views keep their declarations. Virtual descendants still share
+        // this physical parent, whose previous declaration will be reclaimed.
+        // A physical child owns the parent relationship for its own subtree.
+        if(node->is_virtual) {
+            for(Node * child: *node->children) {
+                rebind_dom_parent(child, dom_parent);
+            }
+        }
     }
 
     inline void prepare_dom(Node * node, std::vector<Node *> * dom) {
@@ -150,7 +164,7 @@ namespace CPPUI {
                         if(oldNode->is_view) {
                             dom_children_curr += count_dom_children(oldNode->children);
                             oldNode->parent = newNode->parent;
-                            oldNode->dom_parent = newNode->dom_parent;
+                            rebind_dom_parent(oldNode, newNode->dom_parent);
                             newDOM->at(childIdx) = oldNode;
                             newNode->destroy(true);
                             delete newNode;

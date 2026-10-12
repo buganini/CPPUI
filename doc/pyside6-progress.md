@@ -13,9 +13,10 @@ Plan prepared on 2026-10-12 from these repository baselines:
 Align CPPUI's native Qt 6 implementation in `cppui/qt/` with the observable
 behavior of `PUI/PySide6` and its shared reactive core. The filename identifies
 the reference backend; implementation remains C++. Preserve the existing
-declarative construction style and C++11 compatibility unless a later change
-explicitly revises that requirement. Shared-core changes must account for the
-existing wx and LVGL implementations; expanding those backends is outside scope.
+declarative construction style and C++11 compatibility for the shared core. The
+Qt backend follows Qt 6's imported-target compiler requirements. Shared-core
+changes must account for the existing wx and LVGL implementations; expanding
+those backends is outside scope.
 
 Use reference implementation and regression tests together to establish each
 contract. Where documentation, implementation, and tests disagree, record the
@@ -113,7 +114,7 @@ The checklist below contains remaining work only.
 
 | Area | CPPUI baseline | Remaining alignment |
 | --- | --- | --- |
-| DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Identity contract, lifetime safety, automated coverage |
+| DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Full identity contract, dispatch lifetime safety, ordering/grid coverage |
 | Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, safe builder scopes, parameterized views |
 | State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, mutation guards, collection changes |
 | Application | Partial: creates `QApplication`, shows/closes children, starts loop | Safe application ownership, icon/options, queued quit |
@@ -130,7 +131,7 @@ The checklist below contains remaining work only.
 | Canvas/ImageResource | Missing | Drawing, pointer events, HiDPI |
 | Table/TableNode/Tree/TreeNode/adapters | Missing | Qt models, editing, stable identity |
 | Qt interop/TimelineView | Missing | Borrowed widgets, embedding, cancellable timers |
-| Validation | CMake/CTest core harness, independent header builds, multi-file state/construction checks; two interactive Qt examples | Core lifecycle coverage and offscreen Qt tests |
+| Validation | Core and offscreen Qt CTest harnesses, independent header builds, multi-file checks | Broader lifecycle, dispatch, and component parity coverage |
 
 The six existing components are documented in [REFERENCE.md](https://github.com/buganini/CPPUI/blob/848cf9a97c45ae6ca0050ab3fc645daf15009665/REFERENCE.md).
 The [virtual-node example](https://github.com/buganini/CPPUI/blob/848cf9a97c45ae6ca0050ab3fc645daf15009665/example/test_virtual_nodes/main.cpp) ports one PUI
@@ -144,10 +145,6 @@ behavioral checks and documentation.
 
 ### Phase 0 — Contract and test harness (P0)
 
-- [ ] Extend the harness to Qt tests and multi-file Qt headers, retaining and
-  building the existing examples.
-- [ ] Turn the virtual-node example into automated checks for physical child
-  order, native widget identity, independent redraw, and removal/reinsertion.
 - [ ] Specify the C++ API shapes for owned IDs/text, `Binding<T>`, event payloads,
   layout/style options, and borrowed construction references. Document that
   application code must not retain those references across reconciliation. Keep
@@ -155,9 +152,8 @@ behavioral checks and documentation.
 - [ ] Map every component in the status table to a milestone, reference example,
   and acceptance case. Track intentional extensions and omissions separately.
 
-Acceptance: both existing Qt examples build, core tests run without Qt, and an
-offscreen Qt test creates/reconciles/destroys a small tree and exits on its own.
-The same public headers link successfully from more than one translation unit.
+Acceptance: the remaining public API choices are documented and each planned
+component has a reference example and a concrete acceptance case.
 
 ### Phase 1 — Node identity, ownership, and reconciliation (P0)
 
@@ -180,9 +176,6 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
   prevention, safe self-removal from callbacks, and application teardown. Define
   when retired declarations become reclaimable without retaining every prior
   render indefinitely.
-- [ ] Remove unsafe mounting assumptions: `BaseLayout` is not a `BaseWidget`,
-  although `BaseWidget::addChild/removeChild` currently casts every child to it.
-  Distinguish widgets, layouts, spacers, actions, and application objects.
 - [ ] Give `QApplication`, borrowed widgets, and owned widgets distinct cleanup
   paths. `QtView::destroy()` currently assumes its `ui` is a `QWidget`.
 - [ ] Own IDs and button text rather than retaining caller-provided `const char*`.
@@ -375,21 +368,21 @@ For reclamation changes, include AddressSanitizer/UndefinedBehaviorSanitizer and
 LeakSanitizer where supported, plus deterministic destruction/allocation checks
 for callback cycles, retired nodes, state/view destruction order, and shutdown.
 
-The current Qt examples can be built with the following commands once CMake
-3.24+ and Qt 6 development packages are available:
+Build the Qt examples and automated suite with CMake 3.24+ and Qt 6 development
+packages:
 
 ```sh
-cmake -S example/minimal_qt -B /tmp/cppui-minimal-qt
-cmake --build /tmp/cppui-minimal-qt
-cmake -S example/test_virtual_nodes -B /tmp/cppui-virtual-nodes
-cmake --build /tmp/cppui-virtual-nodes
+cmake -S . -B build-qt -DCPPUI_BUILD_QT=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build-qt
+ctest --test-dir build-qt --output-on-failure
 ```
 
-Run the core suite with `ctest --test-dir <test-build-dir> --output-on-failure`.
-The Qt test harness remains to be added; interactive examples alone are not
-parity checks. The local temporary toolchain is under `/tmp/cppui-tools/root/usr`;
-its binaries require that prefix's `lib/x86_64-linux-gnu` on `LD_LIBRARY_PATH`.
-LeakSanitizer execution requires an environment without ptrace tracing.
+Omit `CPPUI_BUILD_QT` to test the C++11 core without a toolkit. CTest sets the Qt
+offscreen platform automatically. The local temporary toolchain is under
+`/tmp/cppui-tools/root/usr`; use that prefix for `CMAKE_PREFIX_PATH`, its
+`lib/x86_64-linux-gnu` for `LD_LIBRARY_PATH`, and its
+`lib/x86_64-linux-gnu/qt6/plugins` for `QT_PLUGIN_PATH`. LeakSanitizer execution
+requires an environment without ptrace tracing.
 
 Remove a task only after its acceptance checks pass. Keep CPPUI's README/REFERENCE
 and relevant examples current, and retain outstanding manual checks or intentional

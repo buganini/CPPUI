@@ -24,16 +24,6 @@ namespace CPPUI {
             }
 
             virtual void update(BaseWidget * prev) = 0;
-            virtual void addChild(int idx, BaseWidget * child) {}
-            virtual void removeChild(int idx, BaseWidget * child) {}
-
-            void addChild(int idx, Node *child) {
-                addChild(idx, (BaseWidget *) child);
-            }
-
-            void removeChild(int idx, Node *child) {
-                removeChild(idx, (BaseWidget *) child);
-            }
 
             void destroy(bool direct) {
                 if(direct){

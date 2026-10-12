@@ -21,8 +21,21 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-The build also checks that each core header compiles independently. Toolkit
-examples currently keep their own CMake projects under `example/`.
+The build also checks that each core header compiles independently.
+
+With Qt 6 development packages available, enable the Qt target, both existing
+examples, and an automated offscreen virtual-node regression:
+
+```sh
+cmake -S . -B build-qt -DCPPUI_BUILD_QT=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build-qt
+ctest --test-dir build-qt --output-on-failure
+```
+
+Qt applications can link `CPPUI::qt`; Qt's imported target supplies its compiler
+requirements. CTest sets the offscreen platform for the Qt test automatically.
+The interactive examples are `cppui_minimal_qt` and `cppui_virtual_nodes` in the
+build directory. Their original CMake projects under `example/` remain usable.
 
 # View Hierarchy Construction
 ```c++

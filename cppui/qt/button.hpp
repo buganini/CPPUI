@@ -1,3 +1,6 @@
+#ifndef CPPUI_QT_BUTTON
+#define CPPUI_QT_BUTTON
+
 #include "base.hpp"
 
 #include <QPushButton>
@@ -25,7 +28,9 @@ namespace CPPUI {
             }
         };
     }
-    Qt::Button & Button(const char * text) {
+    inline Qt::Button & Button(const char * text) {
         return *(new Qt::Button(text));
     }
 }
+
+#endif

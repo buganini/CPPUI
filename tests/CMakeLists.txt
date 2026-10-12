@@ -31,3 +31,21 @@ foreach(header context_header context node_header node view_header view state do
         CXX_EXTENSIONS NO
     )
 endforeach()
+
+if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_virtual_nodes qt_virtual_nodes.cpp qt_support.cpp)
+    target_link_libraries(cppui_qt_virtual_nodes PRIVATE CPPUI::qt)
+    add_test(NAME qt.virtual_nodes COMMAND cppui_qt_virtual_nodes)
+    set_tests_properties(qt.virtual_nodes PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+        TIMEOUT 20
+    )
+
+    foreach(header application base button label layout window)
+        set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
+        file(WRITE "${source}"
+            "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")
+        add_library(cppui_header_qt_${header} OBJECT "${source}")
+        target_link_libraries(cppui_header_qt_${header} PRIVATE CPPUI::qt)
+    endforeach()
+endif()

@@ -1,3 +1,6 @@
+#ifndef CPPUI_QT_LABEL
+#define CPPUI_QT_LABEL
+
 #include <string>
 
 #include <QLabel>
@@ -25,10 +28,12 @@ namespace CPPUI {
             }
         };
     }
-    Qt::Label & Label(const char * text) {
+    inline Qt::Label & Label(const char * text) {
         return *(new Qt::Label(text));
     }
-    Qt::Label & Label(const std::string text) {
+    inline Qt::Label & Label(const std::string text) {
         return *(new Qt::Label(text));
     }
 }
+
+#endif

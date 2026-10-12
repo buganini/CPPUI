@@ -1,3 +1,6 @@
+#ifndef CPPUI_QT_LAYOUT
+#define CPPUI_QT_LAYOUT
+
 #include "base.hpp"
 
 #include <QHBoxLayout>
@@ -33,10 +36,12 @@ namespace CPPUI {
             }
         };
     }
-    Qt::HBox & HBox() {
+    inline Qt::HBox & HBox() {
         return *(new Qt::HBox());
     }
-    Qt::VBox & VBox() {
+    inline Qt::VBox & VBox() {
         return *(new Qt::VBox());
     }
 }
+
+#endif
