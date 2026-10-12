@@ -7,12 +7,24 @@
 #include "node_header.hpp"
 
 namespace CPPUI {
+    class View;
+
+    class StateBase {
+        public:
+        virtual ~StateBase() {}
+        virtual void removeListener(View * view) = 0;
+    };
+
     class View: public Node {
         public:
         virtual void content(void) = 0;
         virtual void start(void){};
 
         std::vector<Node *> frames = std::vector<Node *>();
+        std::vector<StateBase *> stateSubscriptions = std::vector<StateBase *>();
+
+        View();
+        virtual ~View();
 
         View & id(const char * name) {
             _id = name;
@@ -25,6 +37,9 @@ namespace CPPUI {
         virtual void update(Node * prev);
         virtual void redraw(void);
         virtual void run(void);
+
+        void trackState(StateBase * state);
+        void untrackState(StateBase * state);
     };
 }
 

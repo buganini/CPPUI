@@ -1,4 +1,7 @@
+#include <algorithm>
 #include <iostream>
+#include <stdexcept>
+#include <tuple>
 #include <vector>
 
 #ifndef CPPUI_DOM
@@ -9,171 +12,282 @@
 #include "node_header.hpp"
 
 namespace CPPUI {
-    static inline int indexOfSince(std::vector<Node *> * dom, int since, Node * node) {
-        for(int i=since;i<dom->size();i+=1){
-            if(*dom->at(i) == *node){
+    class VDomError: public std::runtime_error {
+        public:
+        explicit VDomError(const std::string & message): std::runtime_error(message) {}
+    };
+
+    static inline int indexOfSince(const std::vector<Node *> * dom, int since, Node * node) {
+        for(int i = since; i < static_cast<int>(dom->size()); i += 1) {
+            if(*dom->at(i) == *node) {
                 return i;
             }
         }
         return -1;
     }
 
-    static inline int indexOf(std::vector<Node *> * dom, Node * node) {
-        return indexOfSince(dom, 0, node);
-    }
-
-    void recur_delete(Node * child, bool direct) {
-        for(Node * sc: *(child->children)) {
-            recur_delete(sc, false);
+    static inline void recur_delete(Node * child, bool direct) {
+        child->destroyed = true;
+        for(Node * subchild: *child->children) {
+            if(subchild) {
+                recur_delete(subchild, false);
+            }
         }
+        child->children->clear();
         child->destroy(direct);
+        delete child;
     }
 
-    void sync(Node & node, std::vector<Node *> * oldDOM, std::vector<Node *> * newDOM) {
-#if DEBUG_CPPUI_DOM > 0
-        std::cout << "===========" << std::endl;
-        std::cout << "sync " << typeid(node).name() << std::endl;
-
-        {
-            for(Node *n: *oldDOM) {
-                std::cout << "old " << typeid(*n).name() << std::endl;
+    static inline std::vector<Node *> dom_remove_node(Node * dom_parent, int dom_offset, Node * child) {
+        std::vector<Node *> removed(1, child);
+        if(child->is_virtual) {
+            for(Node * subchild: *child->children) {
+                std::vector<Node *> descendants = dom_remove_node(dom_parent, dom_offset, subchild);
+                removed.insert(removed.end(), descendants.begin(), descendants.end());
             }
-            for(Node *n: *newDOM) {
-                std::cout << "new " << typeid(*n).name() << std::endl;
+        } else {
+            dom_parent->removeChild(dom_offset, child);
+        }
+        return removed;
+    }
+
+    static inline void dom_add_nodes(Node * dom_parent, int dom_offset, const std::vector<Node *> & children) {
+        int childIdx = 0;
+        for(Node * child: children) {
+            if(!child->is_virtual) {
+                dom_parent->addChild(dom_offset + childIdx, child);
+                childIdx += 1;
             }
         }
+    }
 
+    static inline int count_dom_children(const std::vector<Node *> * nodes) {
+        int num = 0;
+        for(Node * child: *nodes) {
+            if(child->is_virtual) {
+                num += count_dom_children(child->children);
+            } else if(!child->is_outoforder) {
+                num += 1;
+            }
+        }
+        return num;
+    }
+
+    static inline int count_ordered_nodes(const std::vector<Node *> & nodes) {
+        int num = 0;
+        for(Node * node: nodes) {
+            if(!node->is_virtual && !node->is_outoforder) {
+                num += 1;
+            }
+        }
+        return num;
+    }
+
+    static inline void prepare_dom(Node * node, std::vector<Node *> * dom) {
+        if(node->is_grid_layout) {
+            dom->erase(
+                std::remove_if(dom->begin(), dom->end(), [](Node * child) {
+                    return child->grid_row < 0 || child->grid_column < 0;
+                }),
+                dom->end()
+            );
+            std::stable_sort(dom->begin(), dom->end(), [](Node * lhs, Node * rhs) {
+                return std::make_tuple(lhs->grid_row, lhs->grid_column, lhs->grid_rowspan, lhs->grid_columnspan)
+                    < std::make_tuple(rhs->grid_row, rhs->grid_column, rhs->grid_rowspan, rhs->grid_columnspan);
+            });
+            return;
+        }
+
+        std::vector<Node *> ordered;
+        std::vector<Node *> outoforder;
+        for(Node * child: *dom) {
+            (child->is_outoforder ? outoforder : ordered).push_back(child);
+        }
+        if(node->is_reversed_order) {
+            std::reverse(ordered.begin(), ordered.end());
+        }
+        dom->clear();
+        dom->insert(dom->end(), ordered.begin(), ordered.end());
+        dom->insert(dom->end(), outoforder.begin(), outoforder.end());
+    }
+
+    inline void sync(
+        Node * node,
+        Node * dom_parent,
+        int dom_offset,
+        std::vector<Node *> * oldDOM,
+        std::vector<Node *> * newDOM,
+        int depth,
+        int * result_num,
+        int * result_delta
+    ) {
+        int orig_dom_children_num = count_dom_children(oldDOM);
+        int dom_children_num = orig_dom_children_num;
+        int dom_children_curr = 0;
+
+        prepare_dom(node, oldDOM);
+        prepare_dom(node, newDOM);
+
+#if DEBUG_CPPUI_DOM > 0
+        std::cout << std::string(depth * 4, ' ') << "sync " << typeid(*node).name()
+                  << " old=" << oldDOM->size() << " new=" << newDOM->size()
+                  << " offset=" << dom_offset << std::endl;
 #endif
 
-        node.preSync();
+        node->preSync();
 
-        std::vector<Node *> tbd;
-        for (int i = 0; i < newDOM->size(); i+=1) {
-            Node * newNode = newDOM->at(i);
-#if DEBUG_CPPUI_DOM > 1
-            std::cout << "@" << i << " " << typeid(*newNode).name() << std::endl;
-#endif
-            while(1) {
-                // Step 1. skip common prefix
-                if(i < oldDOM->size()) {
-                    Node * oldNode = oldDOM->at(i);
-                    if(*oldNode == *newNode){
-#if DEBUG_CPPUI_DOM > 1
-                        std::cout << "@" << i << " matched, update " << typeid(*newNode).name() << std::endl;
-#endif
-                        newNode->update(oldNode);
+        std::vector<Node *> toBeDeleted;
+        std::vector<Node *> retired;
+        for(int childIdx = 0; childIdx < static_cast<int>(newDOM->size()); childIdx += 1) {
+            Node * newNode = newDOM->at(childIdx);
+            newNode->dom_parent = dom_parent;
 
-                        if(!newNode->terminal){
-                            sync(*newNode, oldNode->children, newNode->children);
+            while(true) {
+                // Step 1: the current nodes match.
+                if(childIdx < static_cast<int>(oldDOM->size())) {
+                    Node * oldNode = oldDOM->at(childIdx);
+                    if(*oldNode == *newNode) {
+                        if(oldNode->is_view) {
+                            dom_children_curr += count_dom_children(oldNode->children);
+                            oldNode->parent = newNode->parent;
+                            oldNode->dom_parent = newNode->dom_parent;
+                            newDOM->at(childIdx) = oldNode;
+                            newNode->destroy(true);
+                            delete newNode;
+                        } else {
+                            newNode->update(oldNode);
+                            if(newNode->is_virtual) {
+                                int num = 0;
+                                int delta = 0;
+                                sync(newNode, dom_parent, dom_offset + dom_children_curr,
+                                     oldNode->children, newNode->children, depth + 1, &num, &delta);
+                                dom_children_curr += num;
+                                dom_children_num += delta;
+                            } else {
+                                if(!newNode->is_outoforder) {
+                                    dom_children_curr += 1;
+                                }
+                                if(!newNode->is_terminal) {
+                                    int num = 0;
+                                    int delta = 0;
+                                    sync(newNode, newNode, 0, oldNode->children,
+                                         newNode->children, depth + 1, &num, &delta);
+                                }
+                            }
+                            oldNode->releaseRetiredRefs();
+                            retired.push_back(oldNode);
                         }
                         break;
                     }
                 }
 
+                // Step 2: trim old nodes that do not occur in the remaining new DOM.
                 bool trimmed = false;
-
-                // Step 2. trim removed nodes after common prefix
-                while(i < oldDOM->size() && indexOf(newDOM, oldDOM->at(i))==-1){
-                    Node * oldNode = oldDOM->at(i);
-#if DEBUG_CPPUI_DOM > 1
-                    std::cout << "TRIM " << i << " " << typeid(*oldNode).name() << std::endl;
-#endif
-                    oldDOM->erase(oldDOM->begin()+i);
-                    node.removeChild(i, oldNode);
-                    tbd.push_back(oldNode);
+                while(childIdx < static_cast<int>(oldDOM->size()) &&
+                      indexOfSince(newDOM, childIdx, oldDOM->at(childIdx)) == -1) {
+                    Node * oldNode = oldDOM->at(childIdx);
+                    oldDOM->erase(oldDOM->begin() + childIdx);
+                    std::vector<Node *> nodes = dom_remove_node(
+                        dom_parent, dom_offset + dom_children_curr, oldNode
+                    );
+                    dom_children_num -= count_ordered_nodes(nodes);
+                    toBeDeleted.push_back(oldNode);
                     trimmed = true;
                 }
-
                 if(trimmed) {
                     continue;
                 }
 
-                // Step 3. setup target node
-                int idx = indexOfSince(oldDOM, i+1, newNode);
+                // Step 3: add the target or move an existing matching node.
+                int matchedIdx = newNode->is_movable
+                    ? indexOfSince(oldDOM, childIdx + 1, newNode)
+                    : -1;
 
-                // Step 3-1. new node
-                if(idx == -1) {
-#if DEBUG_CPPUI_DOM > 1
-                    std::cout << "new node @" << i << " " << typeid(*newNode).name() << std::endl;
-#endif
+                if(matchedIdx == -1) {
+                    // Step 3-1: new node.
                     newNode->update(nullptr);
-                    if(!newNode->terminal){
+                    if(newNode->is_virtual) {
                         std::vector<Node *> empty;
-                        sync(*newNode, &empty, newNode->children);
-                    }
-                    node.addChild(i, newNode);
-                    oldDOM->insert(oldDOM->begin()+i, nullptr);
-
-                }
-                // Step 3-2. existed node
-                else {
-                    // if the target node is in just next position, requeue the front to prevent repositioning every nodes coming after
-                    // eg. when an element is removed from a long list, do single 3-2-1 instead of many 3-2-2
-
-                    // Step 3-2-1. yield the next position for the target node
-                    if(idx == i+1) {
-                        Node * oldNode = oldDOM->at(i);
-                        oldDOM->erase(oldDOM->begin()+i);
-                        node.removeChild(i, oldNode);
-
-                        node.addChild(oldDOM->size(), oldNode);
-                        oldDOM->push_back(oldNode);
-
-                        // sync will be peformed in next step 1
-                        continue;
-                    }
-
-                    // Step 3-2-2. move target node
-                    else {
-                        Node * oldNode = oldDOM->at(idx);
-                        oldDOM->erase(oldDOM->begin()+idx);
-                        node.removeChild(idx, oldNode);
-
-                        newNode->update(oldNode);
-                        if(!newNode->terminal) {
-                            sync(*newNode, oldNode->children, newNode->children);
+                        int num = 0;
+                        int delta = 0;
+                        sync(newNode, dom_parent, dom_offset + dom_children_curr, &empty,
+                             newNode->children, depth + 1, &num, &delta);
+                        dom_children_curr += num;
+                        dom_children_num += num;
+                    } else {
+                        dom_parent->addChild(dom_offset + dom_children_curr, newNode);
+                        if(!newNode->is_outoforder) {
+                            dom_children_curr += 1;
+                            dom_children_num += 1;
                         }
-
-                        node.addChild(i, newNode);
-                        oldDOM->insert(oldDOM->begin()+i, newNode);
+                        if(!newNode->is_terminal) {
+                            std::vector<Node *> empty;
+                            int num = 0;
+                            int delta = 0;
+                            sync(newNode, newNode, 0, &empty, newNode->children,
+                                 depth + 1, &num, &delta);
+                        }
                     }
+                    oldDOM->insert(oldDOM->begin() + childIdx, newNode);
+                } else {
+                    if(matchedIdx == childIdx + 1) {
+                        // Step 3-2-1: yield the next position by requeueing its blocker.
+                        Node * toBeRequeued = oldDOM->at(childIdx);
+                        oldDOM->erase(oldDOM->begin() + childIdx);
+                        std::vector<Node *> nodes = dom_remove_node(
+                            dom_parent, dom_offset + dom_children_curr, toBeRequeued
+                        );
+                        int n = count_ordered_nodes(nodes);
+                        dom_add_nodes(dom_parent, dom_offset + dom_children_num - n, nodes);
+                        oldDOM->push_back(toBeRequeued);
+                    } else {
+                        // Step 3-2-2: move the target into the current position.
+                        Node * oldNode = oldDOM->at(matchedIdx);
+                        int offset = dom_offset;
+                        for(int i = 0; i < matchedIdx; i += 1) {
+                            std::vector<Node *> one(1, oldDOM->at(i));
+                            offset += count_dom_children(&one);
+                        }
+                        oldDOM->erase(oldDOM->begin() + matchedIdx);
+                        std::vector<Node *> nodes = dom_remove_node(dom_parent, offset, oldNode);
+                        dom_add_nodes(dom_parent, dom_offset + dom_children_curr, nodes);
+                        oldDOM->insert(oldDOM->begin() + childIdx, oldNode);
+                    }
+                    continue;
                 }
-
                 break;
             }
         }
-        // Step 4. trim removed trail
-        int nl = newDOM->size();
-        while(oldDOM->size() > nl) {
-            Node * oldNode = oldDOM->back();
-            oldDOM->pop_back();
-#if DEBUG_CPPUI_DOM > 1
-            std::cout << "trim node " << " " << typeid(*oldNode).name() << std::endl;
-#endif
-            node.removeChild(oldDOM->size(), oldNode);
-            tbd.push_back(oldNode);
+
+        // Step 4: trim the old trail.
+        int newLength = static_cast<int>(newDOM->size());
+        while(static_cast<int>(oldDOM->size()) > newLength) {
+            Node * oldNode = oldDOM->at(newLength);
+            oldDOM->erase(oldDOM->begin() + newLength);
+            std::vector<Node *> nodes = dom_remove_node(
+                dom_parent, dom_offset + dom_children_curr, oldNode
+            );
+            dom_children_num -= count_ordered_nodes(nodes);
+            toBeDeleted.push_back(oldNode);
         }
 
-        for(Node *n: *newDOM) {
-            n->postUpdate();
+        for(Node * child: *newDOM) {
+            child->postUpdate();
+        }
+        node->postSync();
+
+        for(Node * oldNode: toBeDeleted) {
+            recur_delete(oldNode, true);
+        }
+        for(Node * oldNode: retired) {
+            delete oldNode;
         }
 
-        node.postSync();
-
-        // release deleted nodes
-
-        for(Node *n: tbd) { // removed from hierarchy
-            recur_delete(n, true);
-            delete n;
+        if(dom_children_curr != dom_children_num) {
+            throw VDomError("DOM child count mismatch");
         }
-
-        for(Node *n: *oldDOM) { // retired by new DOM
-            delete n;
-        }
-
-#if DEBUG_CPPUI_DOM > 0
-        std::cout << "sync end" << std::endl;
-#endif
+        *result_num = dom_children_curr;
+        *result_delta = dom_children_num - orig_dom_children_num;
     }
 }
 

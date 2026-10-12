@@ -21,8 +21,8 @@ namespace CPPUI {
         if(typecode() != obj.typecode()) {
             return false;
         }
-        if(_id && obj._id && strcmp(_id, obj._id)){
-            return false;
+        if(_id || obj._id) {
+            return _id && obj._id && strcmp(_id, obj._id) == 0;
         }
         return true;
     }
@@ -41,7 +41,7 @@ namespace CPPUI {
     }
 
     Node::~Node() {
-
+        delete children;
     }
 
     void Node::enter(void) {
@@ -57,6 +57,16 @@ namespace CPPUI {
         if(prev) {
             prev->retired_by = this;
         }
+    }
+
+    void Node::releaseRetiredRefs(void) {
+        cppui_root = nullptr;
+        parent = nullptr;
+        dom_parent = nullptr;
+        ui = nullptr;
+        onClicked = [](){};
+        delete children;
+        children = nullptr;
     }
 
     void Node::postUpdate(void) {
@@ -90,6 +100,45 @@ namespace CPPUI {
 
     void Node::addChild(int idx, Node *child) {}
     void Node::removeChild(int idx, Node *child) {}
+
+    Node * Node::getNode(void) {
+        Node * node = this;
+        while(node->retired_by) {
+            node = node->retired_by;
+        }
+        if(node != this) {
+            retired_by = node;
+        }
+        return node;
+    }
+
+    bool Node::findDomOffsetForNode(Node * node, int * offset) {
+        if(this == node) {
+            *offset = 0;
+            return true;
+        }
+
+        int current = 0;
+        for(Node * child: *children) {
+            if(child == node) {
+                *offset = current;
+                return true;
+            }
+            if(child->is_virtual) {
+                int nested = 0;
+                bool found = child->findDomOffsetForNode(node, &nested);
+                current += nested;
+                if(found) {
+                    *offset = current;
+                    return true;
+                }
+            } else if(!child->is_outoforder) {
+                current += 1;
+            }
+        }
+        *offset = current;
+        return false;
+    }
 
     void Node::click(std::function<void()> callback) {
         onClicked = callback;

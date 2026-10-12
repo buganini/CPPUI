@@ -7,7 +7,6 @@
 #define CPPUI_NODE_HEADER
 
 #include "context.hpp"
-#include "view_header.hpp"
 
 namespace CPPUI {
     class Node;
@@ -25,13 +24,27 @@ namespace CPPUI {
         Node * parent = nullptr;
 
         int classtype = 0;
-        bool terminal = false;
+
+        bool is_terminal = false;
+        bool is_outoforder = false;
+        bool is_reversed_order = false;
+        bool is_view = false;
+        bool is_virtual = false;
+        bool is_movable = true;
+        bool is_grid_layout = false;
+
+        int grid_row = -1;
+        int grid_column = -1;
+        int grid_rowspan = -1;
+        int grid_columnspan = -1;
+
+        Node * dom_parent = nullptr;
         bool destroyed = false;
         Node * retired_by = nullptr;
         int debug = 0;
         const char * _id = nullptr;
 
-        void * ui;
+        void * ui = nullptr;
 
         std::vector<Node *> * children = nullptr;
         std::function<void()> onClicked = [](){};
@@ -49,6 +62,7 @@ namespace CPPUI {
         virtual void exit(void);
 
         virtual void update(Node * prev);
+        virtual void releaseRetiredRefs(void);
         virtual void postUpdate(void);
         virtual void preSync(void);
         virtual void postSync(void);
@@ -59,6 +73,9 @@ namespace CPPUI {
 
         virtual void addChild(int idx, Node *child);
         virtual void removeChild(int idx, Node *child);
+
+        Node * getNode(void);
+        bool findDomOffsetForNode(Node * node, int * offset);
 
         virtual void click(std::function<void()> callback);
 
