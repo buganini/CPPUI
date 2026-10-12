@@ -3,6 +3,8 @@
 
 #include "cppui/state.hpp"
 #include "cppui/optional.hpp"
+#include "adapter_tree_data.hpp"
+#include "cppui/tree_adapter.hpp"
 #include <string>
 #include <vector>
 #include <map>
@@ -11,6 +13,8 @@
 namespace Cookbook {
     struct Model {
         CPPUI::State<int> treeItems{0};
+        std::shared_ptr<AdapterTreeData> adapterTree{new AdapterTreeData()};
+        std::shared_ptr<CPPUI::BaseTreeAdapter<AdapterTreeNode>> adapterTreeSource;
         using Matrix = std::vector<std::vector<int>>;
         std::shared_ptr<CPPUI::State<Matrix>> adapterTable{new CPPUI::State<Matrix>({
             {4, 9, 2}, {1, 0, 0}, {3, 5, 0}, {3, 3, 2}, {7, 8, 9}})};
@@ -41,6 +45,7 @@ namespace Cookbook {
         const char * remaining;
     };
     void tree(Model &);
+    void treeAdapter(Model &);
     void table(Model &);
     void tableAdapter(Model &);
     void scroll(Model &);

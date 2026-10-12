@@ -287,11 +287,52 @@ on the GUI event loop; process events before querying their updated model.
 Removal disables callbacks and releases item records and captures; native parent
 deletion clears declaration observers. Callback exceptions are reported to stderr,
 and callbacks may redraw or remove the tree. Factory returns remain borrowed
-construction references. External adapters, arbitrary value types and drag/drop
-payloads remain deferred.
+construction references. External adapters use the interface below; arbitrary
+display value types and drag/drop payloads remain deferred.
 
 Reference: [PUI Tree](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tree.py)
 and [tree synchronization cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/tree_sync.py).
+
+### Tree adapters
+
+`cppui/tree_adapter.hpp` provides `BaseTreeAdapter<T>` with PUI's `parent`,
+`child`, `data`, `rowCount`, `clicked`, `dblclicked`, `expanded` and `collapsed`
+methods. `Handle` is `std::shared_ptr<T>`; it refers to application data, not a
+CPPUI declaration. Getters are const methods, and `data` returns an owned
+`std::string`, matching the existing TreeNode label contract.
+Pass `std::shared_ptr<YourAdapter>` to `Tree(adapter)`; expansion modifiers work
+as for the declarative tree.
+
+A null handle denotes the invisible root. `child({}, row)` enumerates its visible
+children; `rowCount({})` counts those children. Each non-root child's `parent`
+must agree with the containing node. An optional application root above the
+visible children stays invisible. Counts must be nonnegative, and visible data
+objects must be non-null, unique and acyclic. Bad hierarchies throw during
+construction, leaving the mounted tree unchanged. CPPUI derives native parent
+indexes and their row numbers from this hierarchy; it does not copy PUI's
+external adapter bug that always uses parent row zero.
+
+The adapter and its data handles are retained through native callbacks. Own
+children downward and keep parent links non-owning (the cookbook uses weak
+parent links) to avoid data cycles. Removing an item releases its handles after
+index remapping and active callbacks finish; removing/replacing the tree releases
+the source. Factory-returned CPPUI declarations remain borrowed as before.
+
+Each declaration snapshots the complete external hierarchy during construction,
+then uses the existing Tree model and reconciliation to publish it. This is an
+eager adapter, not lazy loading for very large trees. State reads in getters
+subscribe the surrounding view. Plain data changes need an explicit redraw or
+a State revision update. Stable source/data handles preserve indexes, selection
+and expansion through same-parent reorder; removed nodes and replaced adapters
+invalidate indexes. Moving a node to another parent follows the existing
+reconciliation rule and creates a new item. Do not combine an adapter with
+manual TreeNode children in the same Tree.
+
+`cookbook/tree_adapter.cpp` ports [PUI's adapter recipe](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tree_adapter.py):
+two views share the same application hierarchy, one starts expanded, and Add
+item appends a subtree to both. Drag/drop remains tied to the deferred common
+input-event contract. Both adapter interfaces are toolkit-independent; native
+Table/Tree and their adapter cookbook pages are currently implemented for Qt.
 
 ## Image
 

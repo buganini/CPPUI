@@ -133,7 +133,7 @@ the separate deferred section records intentional omissions.
 | TextField/Checkbox | String TextField model/draft bindings; boolean Checkbox and membership adapters | Define conversion helpers and observable collections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Index/string bindings, distinct labels/values, editable text and dynamic items | Define raw non-string value adapters and deferred event payloads | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Canvas input | Native drawing and image resources | Add input/drop callbacks with safe replacement/removal; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
-| Tree adapters / arbitrary values | Typed Table adapters and declarative Tree nodes with model-owned identity | Port external Tree adapters; define arbitrary cell values and deferred drag/drop payloads | 8 / [Table adapter][ref-table-adapter], [Tree adapter][ref-tree-adapter] |
+| Table/Tree values and input | Typed external adapters with explicit ownership and model-owned indexes | Define arbitrary cell values and deferred Tree drag/drop payloads | 8 / [Table adapter][ref-table-adapter], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
 | Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 1–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
 
@@ -297,17 +297,16 @@ Acceptance: port the drop cookbook case and verify event payloads, acceptance,
 callback replacement and removal. Retain automated painting/lifetime coverage
 while validating physical-display rendering separately.
 
-### Phase 8 — Table/Tree adapters and input (P2)
+### Phase 8 — Table/Tree values and input (P2)
 
-- [ ] Add the C++ tree adapter interface corresponding to
-  [interfaces.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/interfaces.py). Keep external node identity and
-  ownership explicit; arbitrary mixed/custom table values remain separate work.
+- [ ] Define portable arbitrary mixed/custom cell values beyond typed scalar
+  Table adapters and string Tree labels before expanding those value contracts.
 - [ ] Add Tree drag/drop behavior after the deferred input-event contract is
   addressed; keep acceptance/rejection and callback lifetime explicit.
 
-Acceptance: port the external adapter cookbook cases, including value conversion,
-model updates and borrowed-data teardown. Verify accepted/rejected Tree drops
-and safe callback replacement/removal under the chosen event contract.
+Acceptance: verify added value conversion and storage lifetimes under their
+chosen contracts; verify accepted/rejected Tree drops and safe callback
+replacement/removal under the deferred event contract.
 
 ## Shared C++ cookbook
 
@@ -336,7 +335,6 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, binding change callbacks and text conversion/events |
 | `widget.py` | 6 | Borrowed Qt widget |
 | `drop.py` | 7 | Event payloads and accepted/rejected drops |
-| `tree_adapter.py` | 8 | External tree adapter and ownership |
 
 ## Decisions awaiting direction
 
@@ -361,9 +359,8 @@ Continue independent implementation while these contracts remain undecided.
   when a parent deletes the QObject, and application teardown is safe. Remounting
   after external deletion and borrowing interop widgets need an agreed ownership
   contract; do not claim arbitrary external native mutation is supported.
-- **External tree adapters / arbitrary values:** keep node ownership and index
-  identity explicit when porting the tree interface. Arbitrary mixed/custom table
-  value types still need a portable contract beyond typed scalar adapters.
+- **Arbitrary values:** mixed/custom table cell types and non-string tree labels
+  still need a portable conversion/storage contract beyond typed scalar adapters.
 
 ## Excluded, deferred or requiring a C++ design decision
 

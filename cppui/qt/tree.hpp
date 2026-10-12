@@ -3,6 +3,8 @@
 
 #include "base.hpp"
 #include "../binding.hpp"
+#include "../tree_adapter.hpp"
+#include <cstdint>
 #include "../optional.hpp"
 #include <QAbstractItemModel>
 #include <QTreeView>
@@ -154,6 +156,7 @@ namespace CPPUI { namespace Qt {
     };
     class Tree: public BaseWidget {
         Optional<bool> expansion, expandableValue;
+        std::shared_ptr<void> adapterOwner;
         protected:
         void clearNative() override {
             if(model && model->owner == this) model->owner = nullptr;
@@ -161,6 +164,7 @@ namespace CPPUI { namespace Qt {
         }
         public:
         TreeModel * model = nullptr;
+        explicit Tree(std::shared_ptr<void> adapter = {}): adapterOwner(std::move(adapter)) { layout_weight = 1; }
         Tree & expandAll() { if(ui) static_cast<QTreeView *>(ui)->expandAll(); else expansion = true; return *this; }
         Tree & collapseAll() { if(ui) static_cast<QTreeView *>(ui)->collapseAll(); else expansion = false; return *this; }
         Tree & expandable(bool value) { if(ui) static_cast<QTreeView *>(ui)->setItemsExpandable(value); else expandableValue = value; return *this; }
@@ -244,9 +248,64 @@ namespace CPPUI { namespace Qt {
     }
     inline void TreeNode::addChild(int, Node *) { if(item) item->model->requestSync(); }
     inline void TreeNode::removeChild(int, Node *) { if(item) item->model->requestSync(); }
+    namespace detail {
+        template<class T> struct AdapterTreeItem {
+            std::shared_ptr<T> value;
+            std::string text;
+            std::vector<AdapterTreeItem> children;
+        };
+        template<class T> std::vector<AdapterTreeItem<T>> readTreeAdapter(
+                const std::shared_ptr<BaseTreeAdapter<T>> & adapter, const std::shared_ptr<T> & parent,
+                std::unordered_set<const T *> & seen) {
+            const int count = adapter->rowCount(parent);
+            if(count < 0) throw std::invalid_argument("Tree adapter row count must be non-negative");
+            std::vector<AdapterTreeItem<T>> result;
+            for(int row = 0; row < count; ++row) {
+                auto node = adapter->child(parent, row);
+                if(!node || !seen.insert(node.get()).second)
+                    throw std::invalid_argument("Tree adapter children must be non-null, unique and acyclic");
+                if(parent && adapter->parent(node) != parent)
+                    throw std::invalid_argument("Tree adapter parent does not match its child hierarchy");
+                AdapterTreeItem<T> item{node, adapter->data(node), {}};
+                item.children = readTreeAdapter(adapter, node, seen);
+                result.push_back(std::move(item));
+            }
+            return result;
+        }
+        template<class T> void buildTreeAdapter(const std::shared_ptr<BaseTreeAdapter<T>> & adapter,
+                                                const std::vector<AdapterTreeItem<T>> & items) {
+            for(const auto & item: items) {
+                auto value = item.value;
+                auto & node = *new TreeNode(item.text);
+                // Source and data identities are stable while both are owned.
+                // QModelIndex still points to TreeModel's records, not these addresses.
+                node.id(std::to_string(reinterpret_cast<std::uintptr_t>(adapter.get())) + ":"
+                    + std::to_string(reinterpret_cast<std::uintptr_t>(value.get())));
+                node.click([adapter, value]() { adapter->clicked(value); });
+                node.dblclick([adapter, value]() { adapter->dblclicked(value); });
+                node.expand([adapter, value]() { adapter->expanded(value); });
+                node.collapse([adapter, value]() { adapter->collapsed(value); });
+                auto scope = node.begin();
+                buildTreeAdapter(adapter, item.children);
+            }
+        }
+    }
 }}
 namespace CPPUI {
     inline Qt::Tree & Tree() { return *new Qt::Tree(); }
+    template<class Adapter> inline Qt::Tree & Tree(std::shared_ptr<Adapter> source) {
+        using T = typename Adapter::Value;
+        std::shared_ptr<BaseTreeAdapter<T>> adapter = std::move(source);
+        if(!adapter) throw std::invalid_argument("Tree adapter must not be null");
+        // Snapshot application data during construction, before changing native
+        // indexes; State reads are tracked and failing getters leave the old UI.
+        std::unordered_set<const T *> seen;
+        auto items = Qt::detail::readTreeAdapter(adapter, std::shared_ptr<T>(), seen);
+        auto & tree = *new Qt::Tree(adapter);
+        auto scope = tree.begin();
+        Qt::detail::buildTreeAdapter(adapter, items);
+        return tree;
+    }
     inline Qt::TreeNode & TreeNode(const std::string & text = {}) { return *new Qt::TreeNode(text); }
     inline Qt::TreeNode & TreeNode(Binding<std::string> text) { return *new Qt::TreeNode(text); }
     inline Qt::TreeNode & TreeNode(State<std::string> & text) { return TreeNode(Binding<std::string>(text)); }

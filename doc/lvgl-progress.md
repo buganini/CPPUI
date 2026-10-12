@@ -40,7 +40,7 @@ drawing. Shared recipes use the public PUI layout/style modifiers; see the
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
-| Table/Tree/adapters/interop | Missing | Choose portable value/identity and borrowing contracts before adapting LVGL models or building custom widgets (6) |
+| Table/Tree/adapters/interop | Shared typed adapter interfaces; native widgets missing | Map the public interfaces to LVGL models or custom widgets and define interop borrowing (6) |
 | Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand component/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (2–6) |
 
 ## Ownership contract
@@ -162,8 +162,9 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
   the object's bitmap font to a pixel line height; Qt uses font points. Verify
   device rendering/antialiasing expectations before promising equivalent output.
   Pointer events remain tied to the explicitly deferred shared input contract.
-- [ ] Define Table/Tree/adapters against the shared value/identity contracts;
-  investigate custom tree behavior separately from LVGL's table widget.
+- [ ] Implement Table/Tree against the public typed adapter interfaces;
+  investigate custom tree behavior separately from LVGL's table widget. Preserve
+  adapter/data ownership; arbitrary mixed/custom values remain a shared gap.
 - [ ] Define native-object/display embedding and external owner deletion before
   exposing interop. Support shared-screen content only under an explicit scope.
 

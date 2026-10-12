@@ -9,7 +9,7 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
 Button, Label, HBox, VBox, Canvas, Checkbox and Tab share their recipe implementations across both backends.
-Qt also enables shared Table, Table(Adapter), Tree, Grid, Stack, Scroll, RadioButton, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
+Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, RadioButton, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment on both backends. Qt also has a
 partial TextField recipe with separate string model/draft bindings; dynamic
@@ -122,6 +122,10 @@ Table(Adapter) checks an edit shared between two tables and rejection in read-on
 rows. `qt.table_adapter` covers source replacement, State updates, header
 fallback, exceptions and native/adapter reclamation, also under Valgrind.
 The Tree page checks the nested hierarchy, expansion and the Add item button.
+Tree(Adapter) checks two views of external data, different initial expansion, and
+shared subtree insertion. `qt.tree_adapter` checks model consistency, stable
+selection/indexes, source replacement, bad hierarchies and ownership under
+sanitisers and Valgrind.
 It switches the Tab recipe's pages and accepts/cancels the
 Dialog recipe's prompt (including accepted empty text), opens/closes the Modal
 recipe through its bound buttons, then tears down the

@@ -48,7 +48,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter)
+foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -124,6 +124,10 @@ if(CPPUI_BUILD_QT)
     add_executable(cppui_qt_tree qt_tree.cpp)
     target_link_libraries(cppui_qt_tree PRIVATE CPPUI::qt Qt6::Test)
     cppui_add_test(qt.tree cppui_qt_tree)
+
+    add_executable(cppui_qt_tree_adapter qt_tree_adapter.cpp)
+    target_link_libraries(cppui_qt_tree_adapter PRIVATE CPPUI::qt Qt6::Test)
+    cppui_add_test(qt.tree_adapter cppui_qt_tree_adapter)
 
     add_executable(cppui_qt_scroll qt_scroll.cpp)
     target_link_libraries(cppui_qt_scroll PRIVATE CPPUI::qt)

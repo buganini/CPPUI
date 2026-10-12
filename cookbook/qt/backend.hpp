@@ -67,7 +67,7 @@ namespace Cookbook { namespace Backend {
         auto tree = dynamic_cast<CPPUI::Qt::Tree *>(&node);
         if(!tree || !tree->model) return -1;
         const auto index = treeIndex(*tree, path);
-        return index.isValid() ? tree->model->rowCount(index) : -1;
+        return path.empty() || index.isValid() ? tree->model->rowCount(index) : -1;
     }
     inline bool treeExpanded(CPPUI::Node & node, const std::vector<int> & path) {
         auto tree = dynamic_cast<CPPUI::Qt::Tree *>(&node);

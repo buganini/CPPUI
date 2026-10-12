@@ -127,6 +127,21 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "tree_adapter" && recipes()[i].render) {
+                        auto first = find(gallery, "adapter-tree-first");
+                        auto second = find(gallery, "adapter-tree-second");
+                        const auto before = gallery.model.adapterTree->root->children.size();
+                        require(first && second && Backend::treeChildCount(*first, {}) == static_cast<int>(before)
+                            && Backend::treeChildCount(*second, {0, 1}) == 2, "adapter tree hierarchy was lost");
+                        require(!Backend::treeExpanded(*first, {0}) && Backend::treeExpanded(*second, {0, 1}),
+                            "adapter tree initial expansion differed from the recipe");
+                        require(click(gallery, "Add item"), "tree adapter recipe is missing Add item");
+                        Backend::settle();
+                        first = find(gallery, "adapter-tree-first"); second = find(gallery, "adapter-tree-second");
+                        require(Backend::treeChildCount(*first, {}) == static_cast<int>(before + 1)
+                            && Backend::treeChildCount(*second, {static_cast<int>(before)}) == 1
+                            && Backend::treeExpanded(*second, {static_cast<int>(before)}), "tree adapter views did not share an added subtree");
+                    }
                     if(std::string(recipes()[i].key) == "tree" && recipes()[i].render) {
                         const int before = gallery.model.treeItems;
                         auto tree = find(gallery, "example-tree");
