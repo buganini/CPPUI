@@ -1,5 +1,10 @@
 2026-10-12
 
+- Keep doc/pyside6-progress.md focused on remaining work: remove completed tasks
+  and implementation logs after each change, and retain completed behavior and
+  validation history in this changelog. Remove stale toolchain/test setup notes.
+  Validation: documentation diff and whitespace checked; no runtime change.
+
 - Remove the invalid Node-to-View downcast during base construction. View now
   establishes its root only after the Node base has been constructed, while
   standalone non-view nodes have no construction root. Add regression checks

@@ -109,7 +109,7 @@ explicit teardown leaves neither stale accesses nor retained declarations.
 ## Current status
 
 “Partial” means code exists, not that parity or runtime correctness is verified.
-No implementation milestone below is complete.
+The checklist below contains remaining work only.
 
 | Area | CPPUI baseline | Remaining alignment |
 | --- | --- | --- |
@@ -144,9 +144,6 @@ behavioral checks and documentation.
 
 ### Phase 0 — Contract and test harness (P0)
 
-- [x] Establish the core CMake/CTest entry point and header-only strategy. All
-  eight core headers compile independently; multiple source files share one
-  construction stack per thread and can build nodes/subscribe to State together.
 - [ ] Extend the harness to Qt tests and multi-file Qt headers, retaining and
   building the existing examples.
 - [ ] Turn the virtual-node example into automated checks for physical child
@@ -362,25 +359,11 @@ Exercise both external adapters and declarative nodes using cookbook examples.
 
 ## Validation and progress updates
 
-Completed on 2026-10-12: core header/build increment. CMake 4.2.3 and GCC 15.2.0
-built all eight standalone core-header checks in C++11 mode. Release CTest passed
-`core.headers` (1/1), including cross-file construction/state tracking and separate
-thread stacks. CMake was extracted into `/tmp/cppui-tools`, without system package
-installation. An additional sanitizer run exposed an existing invalid downcast
-in `Node::Node()`, repaired in the next increment below. Qt validation remains
-pending.
-
-Completed on 2026-10-12: root construction and subscriber lifetime increment.
-`Node` no longer downcasts itself during base construction; `View` establishes
-its own root after that base is complete. Added `core.lifetime` for standalone
-nodes and both state/view destruction orders. Release CTest passed 2/2; Debug
-CTest passed 2/2 with AddressSanitizer, UndefinedBehaviorSanitizer, and leak checks
-enabled. Sanitizer execution ran outside sandbox tracing because LeakSanitizer
-does not support ptrace. The lifetime change does not add weak node handles.
-
-After every completed change, update this document and `Changelog.txt` with the
-behavior changed and validation results, then commit that change before starting
-the next one. Keep incomplete milestones unchecked and record unavailable checks.
+After every completed change, remove its finished checklist items and stale
+notes from this document. Keep this file focused on remaining work, current
+contracts, and outstanding checks. Record the completed behavior, validation
+commands/results, and tested versions in `Changelog.txt`, then commit before
+starting the next change. Do not retain completed-work logs here.
 
 For each component, check initial creation, unchanged redraw, property/binding/
 callback changes, keyed reorder, removal, and destruction where applicable.
@@ -402,17 +385,13 @@ cmake -S example/test_virtual_nodes -B /tmp/cppui-virtual-nodes
 cmake --build /tmp/cppui-virtual-nodes
 ```
 
-After phase 0 adds CTest registration, run automated Qt tests with
-`QT_QPA_PLATFORM=offscreen ctest --test-dir <test-build-dir> --output-on-failure`.
-The existing interactive executables are not yet automated parity checks.
+Run the core suite with `ctest --test-dir <test-build-dir> --output-on-failure`.
+The Qt test harness remains to be added; interactive examples alone are not
+parity checks. The local temporary toolchain is under `/tmp/cppui-tools/root/usr`;
+its binaries require that prefix's `lib/x86_64-linux-gnu` on `LD_LIBRARY_PATH`.
+LeakSanitizer execution requires an environment without ptrace tracing.
 
-Planning-session validation: inspected source and reference tests; did not build
-or run GUI tests. `cmake` was not found on PATH and `pkg-config Qt6Widgets` could
-not resolve the development package in this environment. These are setup tasks
-for phase 0, not evidence of a source failure.
-
-Mark a task complete only after its acceptance checks pass. Update this table,
-CPPUI's README/REFERENCE, and relevant examples with each completed component;
-record commands, results, tested Qt/platform versions, remaining manual checks,
-and any departure from the pinned PUI behavior. Core/widget parity is complete
-when phases 0–8 pass, with optional integrations still listed as explicit gaps.
+Remove a task only after its acceptance checks pass. Keep CPPUI's README/REFERENCE
+and relevant examples current, and retain outstanding manual checks or intentional
+departures from PUI here. Core/widget parity requires all remaining phases to
+pass, with optional integrations still listed as explicit gaps.
