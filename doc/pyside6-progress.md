@@ -115,7 +115,7 @@ No implementation milestone below is complete.
 | --- | --- | --- |
 | DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Identity contract, lifetime safety, automated coverage |
 | Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, safe builder scopes, parameterized views |
-| State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup | Bindings, batching, mutation guards, collection changes |
+| State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, mutation guards, collection changes |
 | Application | Partial: creates `QApplication`, shows/closes children, starts loop | Safe application ownership, icon/options, queued quit |
 | Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
 | HBox/VBox | Partial: insertion/removal and native reuse | Padding, dimensions, weights, Qt policies, correct native mounting |
@@ -367,8 +367,16 @@ built all eight standalone core-header checks in C++11 mode. Release CTest passe
 `core.headers` (1/1), including cross-file construction/state tracking and separate
 thread stacks. CMake was extracted into `/tmp/cppui-tools`, without system package
 installation. An additional sanitizer run exposed an existing invalid downcast
-in `Node::Node()`; repair is the next lifecycle change. LeakSanitizer could not
-run under the sandbox's ptrace environment. Qt validation remains pending.
+in `Node::Node()`, repaired in the next increment below. Qt validation remains
+pending.
+
+Completed on 2026-10-12: root construction and subscriber lifetime increment.
+`Node` no longer downcasts itself during base construction; `View` establishes
+its own root after that base is complete. Added `core.lifetime` for standalone
+nodes and both state/view destruction orders. Release CTest passed 2/2; Debug
+CTest passed 2/2 with AddressSanitizer, UndefinedBehaviorSanitizer, and leak checks
+enabled. Sanitizer execution ran outside sandbox tracing because LeakSanitizer
+does not support ptrace. The lifetime change does not add weak node handles.
 
 After every completed change, update this document and `Changelog.txt` with the
 behavior changed and validation results, then commit that change before starting

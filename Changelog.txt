@@ -1,5 +1,13 @@
 2026-10-12
 
+- Remove the invalid Node-to-View downcast during base construction. View now
+  establishes its root only after the Node base has been constructed, while
+  standalone non-view nodes have no construction root. Add regression checks
+  for both state/view destruction orders.
+  Validation: Release CTest 2/2 passed; Debug CTest 2/2 passed with ASan, UBSan
+  (halt_on_error), and leak detection outside sandbox tracing. No weak handles
+  or reference-counted node ownership were introduced.
+
 - Add a toolkit-independent CMake/CTest harness and choose header-only linkage
   for the core. Fix duplicate definitions, standalone include dependencies, and
   construction stacks that previously differed between translation units.

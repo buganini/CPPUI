@@ -31,7 +31,8 @@ namespace CPPUI {
         std::vector<View *> * stack = getStack();
         children = new std::vector<Node *>();
         if(stack->size()==0){
-            cppui_root = (View *)this;
+            // View establishes its root after the Node base is constructed.
+            // Standalone non-view nodes have no construction root.
             parent = this;
         }else{
             cppui_root = stack->back();
