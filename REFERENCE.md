@@ -11,6 +11,7 @@
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
+|[TextField](#textfield)|QLineEdit|—|—|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|—|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
@@ -181,6 +182,23 @@ External storage does not automatically notify views: redraw explicitly, or read
 reactive State in the getter. Change subscriptions, explicit notification and
 text conversion helpers remain pending; this adapter does not change State's
 copy/move semantics.
+
+## TextField
+
+Include `cppui/qt/textfield.hpp` for `TextField(model, editModel)`. Both arguments
+use `Binding<std::string>` or `State<std::string>&`; the draft binding is optional.
+Typing updates the draft and `.input(callback)`, while focus loss/Enter commits
+the model and calls `.change(callback)`. These callbacks take no arguments;
+typed event payloads remain deferred. Redraw/rebinding preserves an active draft,
+and commit uses the current binding. A successful commit reads the model back,
+so an adapter that rejects or normalizes input controls the displayed value.
+
+Programmatic updates suppress input/change feedback. The draft is synchronized
+when idle only if its value differs, avoiding repeated queued redraws. Callback
+and setter failures report to stderr; a throwing setter leaves the draft visible.
+Adapters own validation/conversion policy; generic numeric conversion and change
+subscriptions remain undecided. The shared recipe currently demonstrates string
+models and is marked partial for PUI's dynamic numeric conversion/event payloads.
 
 ## Checkbox
 

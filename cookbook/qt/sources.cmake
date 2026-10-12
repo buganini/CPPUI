@@ -13,6 +13,7 @@ target_sources(${target} PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/../splitter.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tab.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../text.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../textfield.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../timeline.cpp")
 
 target_compile_definitions(${target} PRIVATE CPPUI_COOKBOOK_ASSET_DIR="${CMAKE_CURRENT_LIST_DIR}/../assets")

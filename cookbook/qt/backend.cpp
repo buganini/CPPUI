@@ -27,6 +27,9 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "timeline") {
                 page.render = timeline;
                 page.remaining = "";
+            } else if(std::string(page.key) == "textfield") {
+                page.render = textfield;
+                page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";
             } else if(std::string(page.key) == "grid") {
                 page.render = grid;
                 page.remaining = "";

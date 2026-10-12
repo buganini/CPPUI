@@ -126,6 +126,20 @@ namespace Cookbook {
                         require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
                             "tab recipe could not switch pages");
                     }
+                    if(std::string(recipes()[i].key) == "textfield" && recipes()[i].render) {
+                        require(click(gallery, "Clear"), "textfield recipe is missing Clear");
+                        Backend::settle();
+                        require(Backend::editTextField(*find(gallery, "field-editing"), "draft", false), "textfield draft input failed");
+                        Backend::settle();
+                        require(static_cast<std::string>(gallery.model.fieldText).empty()
+                            && static_cast<std::string>(gallery.model.fieldEditing) == "draft", "typing did not preserve separate model/draft");
+                        require(Backend::editTextField(*find(gallery, "field-editing"), "committed", true), "textfield commit failed");
+                        Backend::settle();
+                        require(hasText(gallery, "State:committed"), "textfield commit did not redraw model labels");
+                        require(click(gallery, "Set something"), "textfield recipe is missing Set something");
+                        Backend::settle();
+                        require(hasText(gallery, "State:something"), "textfield programmatic update failed");
+                    }
                     if(std::string(recipes()[i].key) == "checkbox" && recipes()[i].render) {
                         for(const auto & id: {"checkbox-1", "checkbox-3", "checkbox-6"}) {
                             auto checkbox = find(gallery, id);

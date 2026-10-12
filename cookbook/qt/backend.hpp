@@ -16,6 +16,7 @@
 #include "cppui/qt/modal.hpp"
 #include "cppui/qt/mdi.hpp"
 #include "cppui/qt/image.hpp"
+#include "cppui/qt/textfield.hpp"
 #include "cppui/qt/timeline.hpp"
 #include <QTimer>
 #include "../recipes.hpp"
@@ -31,6 +32,14 @@ namespace Cookbook { namespace Backend {
         QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    }
+    inline bool editTextField(CPPUI::Node & node, const std::string & text, bool commit) {
+        auto editor = dynamic_cast<CPPUI::Qt::TextField *>(&node);
+        if(!editor || !editor->ui) return false;
+        auto native = static_cast<QLineEdit *>(editor->ui);
+        native->setText(QString::fromStdString(text));
+        if(commit) native->editingFinished();
+        return true;
     }
     inline bool clickButton(CPPUI::Node & node, const std::string & text) {
         auto button = dynamic_cast<CPPUI::Qt::Button *>(&node);
