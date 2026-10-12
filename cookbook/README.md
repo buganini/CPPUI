@@ -8,10 +8,10 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Button, Label, HBox, VBox, Canvas and Tab share their recipe implementations across both backends.
+Button, Label, HBox, VBox, Canvas, Checkbox and Tab share their recipe implementations across both backends.
 Qt also enables shared ProgressBar, Text, Splitter, Modal and Dialog recipes through
-its source manifest. LVGL also enables the shared Checkbox recipe; its boolean,
-list and dictionary examples use Binding adapters and explicit State assignment.
+its source manifest. Checkbox's boolean, list and dictionary examples use
+Binding adapters and explicit State assignment on both backends.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources and input callbacks remain pending. See the [Canvas reference](../REFERENCE.md#canvas)

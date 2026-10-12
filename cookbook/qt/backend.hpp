@@ -6,6 +6,7 @@
 #include "cppui/qt/divider.hpp"
 #include "cppui/qt/label.hpp"
 #include "cppui/qt/button.hpp"
+#include "cppui/qt/checkbox.hpp"
 #include "cppui/qt/progressbar.hpp"
 #include "cppui/qt/text.hpp"
 #include "cppui/qt/splitter.hpp"
@@ -46,7 +47,12 @@ namespace Cookbook { namespace Backend {
         widget->setCurrentIndex(index);
         return widget->currentIndex() == index && widget->currentWidget()->isVisible();
     }
-    inline bool toggleCheckbox(CPPUI::Node &) { return false; }
+    inline bool toggleCheckbox(CPPUI::Node & node) {
+        auto checkbox = dynamic_cast<CPPUI::Qt::Checkbox *>(&node);
+        if(!checkbox || !checkbox->ui) return false;
+        static_cast<QCheckBox *>(checkbox->ui)->click();
+        return true;
+    }
     inline void answerPrompt(const std::string & text, bool accepted) {
         QTimer::singleShot(0, qApp, [text, accepted]() {
             if(auto dialog = qobject_cast<QInputDialog *>(QApplication::activeModalWidget())) {

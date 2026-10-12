@@ -304,8 +304,9 @@ and child order. Port the window-state and size-policy cases from
 - [ ] Add `TextField(model, edit_model)`: preserve in-progress edits through
   redraw, emit input/change at the correct times, validate commit, and keep
   programmatic updates from triggering user-edit callbacks.
-- [ ] Add Checkbox boolean/collection membership binding and RadioButton value
-  selection, including rebinding and current click callbacks.
+- [ ] Add RadioButton value selection, including rebinding and current click
+  callbacks. Decide automatic collection observation and value-based Checkbox
+  overloads; explicit boolean membership Binding adapters are supported.
 - [ ] Add ComboBox/ComboBoxItem with editable text, index/text models, distinct
   labels/values, empty contents, invalid selection, and dynamic item updates.
 - [ ] Add Image with dimensions, path updates, and common modifiers as supported
@@ -401,7 +402,7 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | --- | --- | --- |
 | `grid.py`, `stack.py` | 3 | Grid placement, overlap |
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, changed callback, edit/commit and conversion |
-| `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
+| `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `image.py` | 3, 4 | Sized image asset |
 | `scroll.py` | 5 | Scroll offsets and retained native state |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |

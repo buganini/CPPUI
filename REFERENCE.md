@@ -10,7 +10,7 @@
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
-|[Checkbox](#checkbox)|—|checkbox|—|
+|[Checkbox](#checkbox)|QCheckBox|checkbox|—|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
@@ -103,7 +103,7 @@ copy/move semantics.
 
 ## Checkbox
 
-Include `cppui/lvgl/checkbox.hpp` and use `Checkbox(text, Binding<bool>)` or pass
+Include `cppui/qt/checkbox.hpp` or `cppui/lvgl/checkbox.hpp` and use `Checkbox(text, Binding<bool>)` or pass
 `State<bool>&` directly. Model reads during construction subscribe the view;
 programmatic updates reuse the native control without writing the model back.
 User changes write once through the current adapter, and `.click(callback)` runs
