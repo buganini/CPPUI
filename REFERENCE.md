@@ -39,6 +39,14 @@ decrementing any State during a view builder throws
 handlers or application code outside construction. Redraw remains synchronous
 until the queued completion/error contract is chosen.
 
+## Application
+
+Qt `Application::quit()` queues event-loop exit so the current handler can return
+first. It can be called before `run()`; application destruction cancels any
+pending quit. Quitting a borrowed QApplication exits its shared event loop but
+does not destroy it. Application operations, state mutation and redraw belong on
+the GUI thread; marshal background work there before accessing CPPUI state.
+
 ## ProgressBar
 
 Include `cppui/qt/progressbar.hpp` and use `ProgressBar(progress, maximum = 1.0)`.

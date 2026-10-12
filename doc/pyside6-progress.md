@@ -7,8 +7,6 @@ Plan prepared on 2026-10-12 from these repository baselines:
 - CPPUI: [848cf9a97c45ae6ca0050ab3fc645daf15009665](https://github.com/buganini/CPPUI/commit/848cf9a97c45ae6ca0050ab3fc645daf15009665).
 - Reference: [PUI](https://github.com/buganini/PUI), commit
   [009e9b9c3fbd724f0b73c862f8213ddc4742405c](https://github.com/buganini/PUI/commit/009e9b9c3fbd724f0b73c862f8213ddc4742405c).
-- The inspected PUI shared core, PySide6 backend, tests, and cookbook have no
-  local changes. Unrelated local Flet changes are outside this baseline.
 
 Align CPPUI's native Qt 6 implementation in `cppui/qt/` with the observable
 behavior of `PUI/PySide6` and its shared reactive core. The filename identifies
@@ -118,7 +116,7 @@ The checklist below contains remaining work only.
 | DOM reconciliation | Partial: type/id matching, keyed moves, virtual flattening, subtree removal, ordering/grid flags | Full identity contract, dispatch lifetime safety, ordering/grid coverage |
 | Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, nested failure recovery, parameterized views |
 | State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, collection changes |
-| Application | Partial: creates `QApplication`, shows/closes children, starts loop | Icon/options, queued quit |
+| Application | Partial: creates/borrows `QApplication`, shows/closes children, starts loop, queued quit | Icon/options |
 | Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
 | HBox/VBox | Partial: insertion/removal and native reuse | Padding, dimensions, weights, Qt policies, correct native mounting |
 | Label/Button | Partial: text and button click | Common modifiers, clickable labels, event contract |
@@ -212,8 +210,7 @@ Reference: [state.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c
 - [ ] Define observable list/map updates and element bindings corresponding to
   PUI's collection state. State explicitly how nested changes notify views;
   mutable container access must not silently bypass notification.
-- [ ] Add application icon/options and queued `quit()`. Document application
-  creation/reuse and the thread boundary for state updates.
+- [ ] Add application icon/options after the common options API is chosen.
 
 Acceptance: port the scenarios in [tests/batched_state_mutation.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/batched_state_mutation.py),
 [tests/redraw_semaphore.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/redraw_semaphore.py), and

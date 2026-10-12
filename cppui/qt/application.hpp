@@ -13,11 +13,14 @@ namespace CPPUI {
         char ** argv;
         std::unique_ptr<QApplication> ownedApplication;
         QApplication * application = nullptr;
+        std::unique_ptr<QObject> quitContext{new QObject()};
 
         public:
         Application(int argc, char * argv[]): argc(argc), argv(argv) {}
 
         ~Application() override {
+            // QObject destruction removes queued calls before native teardown.
+            quitContext.reset();
             // Flush only this application's native roots while Qt is still live.
             std::vector<QWidget *> roots;
             collectRoots(children, roots);
@@ -46,6 +49,13 @@ namespace CPPUI {
             if(auto widget = static_cast<QWidget *>(child->outer())) widget->close();
         }
         void start() override { application->exec(); }
+
+        void quit() {
+            if(destroyed || retired_by) return;
+            QMetaObject::invokeMethod(quitContext.get(), [this]() {
+                if(!destroyed && !retired_by && application) application->quit();
+            }, ::Qt::QueuedConnection);
+        }
 
         private:
         static void collectRoots(const std::vector<Node *> * nodes, std::vector<QWidget *> & roots) {

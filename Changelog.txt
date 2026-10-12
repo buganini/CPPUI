@@ -1,5 +1,13 @@
 2026-10-12
 
+- Add queued Qt Application::quit() with an application-owned dispatch context.
+  Quit requests wait for the active handler to return, work before lazy startup,
+  and are cancelled on destruction without affecting another application's loop.
+  Document borrowed QApplication behavior and the GUI-thread boundary; remove
+  queued quit from the remaining plan.
+  Validation: Qt/core sanitizer CTest passes 13/13. New owned/borrowed quit and
+  cancellation checks pass normally and under Valgrind (4/4).
+
 - Remove unconditional update/redraw console logging from View::update and
   State::notifyListeners. Keep normal framework rendering silent and record
   that requirement in the progress document.

@@ -58,6 +58,11 @@ if(CPPUI_BUILD_QT)
     cppui_add_test(qt.lifetime cppui_qt_lifetime)
     cppui_add_test(qt.application_owned cppui_qt_lifetime --owned)
 
+    add_executable(cppui_qt_application qt_application.cpp)
+    target_link_libraries(cppui_qt_application PRIVATE CPPUI::qt)
+    cppui_add_test(qt.application_quit cppui_qt_application)
+    cppui_add_test(qt.application_quit_owned cppui_qt_application --owned)
+
     foreach(header application base button label layout progressbar text window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
