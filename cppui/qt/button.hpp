@@ -9,18 +9,16 @@ namespace CPPUI {
     namespace Qt {
         class Button: public BaseWidget {
             public:
-            const char * text;
+            std::string text;
 
-            Button(const char * text) {
-                this->text = text;
-            }
+            explicit Button(const std::string & text): text(text) {}
             void update(BaseWidget * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
-                    ((QPushButton *)ui)->setText(text);
+                    ((QPushButton *)ui)->setText(QString::fromStdString(text));
                     QObject::disconnect((QPushButton *)ui, &QPushButton::clicked, nullptr, nullptr);
                 } else {
-                    ui = new QPushButton(text);
+                    ui = new QPushButton(QString::fromStdString(text));
                 }
                 QObject::connect((QPushButton *)ui, &QPushButton::clicked, [=]() {
                     onClicked();
@@ -28,7 +26,7 @@ namespace CPPUI {
             }
         };
     }
-    inline Qt::Button & Button(const char * text) {
+    inline Qt::Button & Button(const std::string & text) {
         return *(new Qt::Button(text));
     }
 }

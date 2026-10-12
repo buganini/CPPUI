@@ -1,5 +1,13 @@
 2026-10-12
 
+- Own node IDs and Qt button text, including temporary std::string arguments.
+  Preserve the distinction between absent and empty IDs and support clearing
+  with id(nullptr). Document borrowed construction-reference lifetime.
+  Validation: C++11 core/header builds and Qt examples/header builds pass;
+  CTest 4/4 passes with GCC 15.2.0, Qt 6.10.2, ASan, UBSan and leak detection.
+  Regression checks cover caller-buffer mutation, empty IDs, temporary button
+  text/IDs and reuse with changed text. Remove the completed plan item.
+
 - Expand the alignment plan to port the cookbook as shared C++ recipes, selected
   by separate Qt/LVGL CMake projects and backend startup code. Inventory every
   reference recipe and its prerequisites. Record unresolved binding, option,

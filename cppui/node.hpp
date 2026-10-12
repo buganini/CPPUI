@@ -1,7 +1,6 @@
 #include <thread>
 #include <vector>
 #include <iterator>
-#include <cstring>
 
 
 #ifndef CPPUI_NODE
@@ -21,8 +20,8 @@ namespace CPPUI {
         if(typecode() != obj.typecode()) {
             return false;
         }
-        if(_id || obj._id) {
-            return _id && obj._id && strcmp(_id, obj._id) == 0;
+        if(has_id || obj.has_id) {
+            return has_id && obj.has_id && _id == obj._id;
         }
         return true;
     }
@@ -150,7 +149,7 @@ namespace CPPUI {
             out << "  ";
         }
         out << typeid(*this).name();
-        if(_id){
+        if(has_id){
             out << "#" << _id;
         }
         out << " {" << std::endl;

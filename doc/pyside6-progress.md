@@ -150,7 +150,7 @@ behavioral checks and documentation.
 
 ### Phase 0 — Contract and test harness (P0)
 
-- [ ] Specify the C++ API shapes for owned IDs/text, `Binding<T>`, event payloads,
+- [ ] Specify the C++ API shapes for `Binding<T>`, event payloads,
   layout/style options, and borrowed construction references. Document that
   application code must not retain those references across reconciliation. Keep
   existing no-argument button callbacks usable while adding event-aware overloads.
@@ -183,8 +183,7 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
   render indefinitely.
 - [ ] Give `QApplication`, borrowed widgets, and owned widgets distinct cleanup
   paths. `QtView::destroy()` currently assumes its `ui` is a `QWidget`.
-- [ ] Own IDs and button text rather than retaining caller-provided `const char*`.
-  Guard deferred deletion and callback delivery after removal. Retain individual
+- [ ] Guard deferred deletion and callback delivery after removal. Retain individual
   signal connections instead of disconnecting unrelated application listeners.
 
 Acceptance: keyed reorders reuse native objects; virtual siblings retain correct

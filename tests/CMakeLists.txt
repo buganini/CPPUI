@@ -41,6 +41,12 @@ if(CPPUI_BUILD_QT)
         TIMEOUT 20
     )
 
+    add_executable(cppui_qt_widgets qt_widgets.cpp)
+    target_link_libraries(cppui_qt_widgets PRIVATE CPPUI::qt)
+    add_test(NAME qt.widgets COMMAND cppui_qt_widgets)
+    set_tests_properties(qt.widgets PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen" TIMEOUT 20)
+
     foreach(header application base button label layout window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"

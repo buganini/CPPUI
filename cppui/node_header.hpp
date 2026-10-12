@@ -1,5 +1,6 @@
 #include <functional>
 #include <iosfwd>
+#include <string>
 #include <typeinfo>
 #include <thread>
 #include <vector>
@@ -45,7 +46,8 @@ namespace CPPUI {
         bool destroyed = false;
         Node * retired_by = nullptr;
         int debug = 0;
-        const char * _id = nullptr;
+        std::string _id;
+        bool has_id = false;
 
         void * ui = nullptr;
 
@@ -56,6 +58,12 @@ namespace CPPUI {
         virtual ~Node();
 
         Node & id(const char * name) {
+            has_id = name != nullptr;
+            _id = name ? name : "";
+            return *this;
+        }
+        Node & id(const std::string & name) {
+            has_id = true;
             _id = name;
             return *this;
         }

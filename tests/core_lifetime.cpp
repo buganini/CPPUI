@@ -58,6 +58,19 @@ namespace {
         // The application must not redraw a view whose model it has destroyed.
         // Its destructor must nevertheless be safe and must not touch that model.
     }
+
+    void ownedIdentity() {
+        PlainNode first, second, anonymous;
+        std::string name(100, 'a');
+        first.id(name.c_str());
+        second.id(std::string(100, 'a'));
+        name.assign(100, 'b');
+        require(first == second, "node identity retained the caller's text buffer");
+        first.id("");
+        require(!(first == anonymous), "an empty ID must remain distinct from no ID");
+        first.id(nullptr);
+        require(first == anonymous, "null ID did not reset explicit identity");
+    }
 }
 
 int main() {
@@ -68,6 +81,7 @@ int main() {
         require(standalone.parent == &standalone, "standalone node parent changed");
         viewDestroyedFirst();
         stateDestroyedFirst();
+        ownedIdentity();
         require(CPPUI::getStack()->empty(), "a test left an active construction scope");
     } catch(const std::exception & error) {
         std::cerr << error.what() << std::endl;

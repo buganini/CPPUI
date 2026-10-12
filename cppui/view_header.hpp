@@ -27,7 +27,11 @@ namespace CPPUI {
         virtual ~View();
 
         View & id(const char * name) {
-            _id = name;
+            Node::id(name);
+            return *this;
+        }
+        View & id(const std::string & name) {
+            Node::id(name);
             return *this;
         }
 
