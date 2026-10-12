@@ -1,5 +1,5 @@
 # Reproduced by tests/wx_native_baseline.cpp with wxGTK 3.2.9 / GTK 3.24.
-# Only font/theme caches and toolkit worker TLS; no CPPUI or wx allocation frames.
+# Only reproduced toolkit allocations; no CPPUI or wx object allocations.
 {
    wxgtk-fontconfig-cache
    Memcheck:Leak
@@ -105,4 +105,19 @@
    match-leak-kinds: possible
    fun:posix_memalign
    obj:*/libglycin-*.so.*
+}
+# wxRB_SINGLE creates GTK radio-group weak-notification metadata. The plain
+# native baseline reproduces 32 + 56 possibly-lost bytes per standalone radio.
+# Include deeper callers so this never suppresses unrelated GObject weak refs.
+{
+   wxgtk-single-radio-weak-notifications
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:g_malloc
+   ...
+   fun:g_object_weak_ref
+   ...
+   fun:gtk_radio_button_new
+   fun:_ZN13wxRadioButton6Create*
 }

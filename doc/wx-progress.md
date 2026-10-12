@@ -40,15 +40,10 @@ Native runtime/reconciliation tests run against wxGTK 3.2.9, including owned and
 borrowed applications, external destruction, keyed moves, subtree replacement,
 queued failure recovery, callback self-removal and repeated teardown. The plain
 `wx.native_baseline` executable uses no CPPUI declarations. Linux memory checks
-use narrow suppressions for its fontconfig/Pango/GTK caches and worker TLS;
-no CPPUI or wx object allocation stack is suppressed. Validate other wx ports
+use narrow suppressions for its fontconfig/Pango/GTK caches, worker TLS and
+wxRB_SINGLE GTK weak-notification metadata; no CPPUI or wx object allocation
+stack is suppressed. Validate other wx ports
 separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
-
-Remaining memory investigation: `valgrind.wx.controls` reports 176 bytes in four
-possibly-lost GTK/GObject weak-notification allocations (no invalid access or
-definite/indirect leak); sanitizer checks pass. The native-only baseline reproduces
-font/theme/Glycin worker allocations, but not these final records, which remain
-unsuppressed. Resolve or isolate them before declaring all wx memory checks clean.
 
 ## Reference cases
 

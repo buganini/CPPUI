@@ -10,7 +10,7 @@ function(cppui_add_test name target)
     add_test(NAME "${name}" COMMAND ${target} ${ARGN})
     set(native_memory_options)
     if(name MATCHES "(^|\\.)wx($|[._])" AND UNIX AND NOT APPLE)
-        set(native_memory_options "--suppressions=${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tests/wx/valgrind.supp")
+        set(native_memory_options "--num-callers=24" "--suppressions=${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tests/wx/valgrind.supp")
         set_property(TEST "${name}" APPEND PROPERTY ENVIRONMENT_MODIFICATION
             "LSAN_OPTIONS=string_append::suppressions=${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tests/wx/lsan.supp")
     endif()
