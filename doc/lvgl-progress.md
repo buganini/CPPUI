@@ -236,7 +236,8 @@ globals are reported separately. Do not hide framework leaks with suppressions.
 
 After each completed change, update component/build docs, examples and tests;
 remove its finished tasks from this plan; add a concise component-prefixed
-change summary to `Changelog.txt`; then commit before the next change. Keep
-detailed validation commands/results in tests, documentation or commit messages.
+change summary to `Changelog.txt`, merging related work into milestone entries;
+then commit before the next change. Keep detailed validation commands/results
+in tests, documentation or commit messages.
 Update the Qt plan only for shared contracts or shared-core gaps, keeping
 LVGL-specific remaining work here.

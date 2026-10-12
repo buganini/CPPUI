@@ -463,8 +463,9 @@ debug tracing opt-in; queued render failures are reported to stderr as agreed.
 After every completed change, remove its finished checklist items and stale
 notes from this document. Keep this file focused on remaining work, current
 contracts, and outstanding checks. Add a concise component-prefixed change
-summary to `Changelog.txt`, then commit before starting the next change. Keep
-detailed validation commands/results in tests, documentation or commit messages.
+summary to `Changelog.txt`, merging related work into milestone entries; then
+commit before starting the next change. Keep detailed validation commands/results
+in tests, documentation or commit messages.
 Do not retain completed-work logs here.
 
 For each component, check initial creation, unchanged redraw, property/binding/

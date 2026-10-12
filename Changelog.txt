@@ -1,40 +1,30 @@
 2026-10-12
-    * LVGL: reclaim standalone views, invalidate native observers and safely transfer click callbacks through redraw/removal
-    * LVGL.Spacer: add public expanding spacers and use them in the shared cookbook and minimal example
-    * LVGL.Canvas: add basic shapes, Beziers and transformed text with resize/repeat painting, safe callback teardown and the shared Canvas recipe
-    * Qt.Modal: add bound visibility, close synchronization and lifecycle callbacks using Binding<T>/State; port the shared Modal recipe
-    * LVGL.X11: show a persistent arrow cursor and sleep between timer ticks
-    * Cookbook: split LVGL builds into lvgl_sdl2/lvgl_x11, remove the headless flavor and fix X11 driver thread teardown
-    * Qt.Dialog: add file/directory, message, confirmation and prompt dialogs with Optional<T>/OptionalText results; port the shared Dialog recipe
-    * Docs: use a shallow v9.6.0 clone into lvgl-9.6.0 for LVGL build instructions
-    * Qt.Tabs: add virtual Tab declarations and physical-child page mapping following PUI; port the shared Tab recipe
-    * Qt.Canvas: add drawing, ImageResource and safe repeat callbacks; port the shared Canvas recipe
-    * Plans: record accepted binding adapters, property resets, stderr render errors, optional dialog results and PUI Tab behavior
-    * Docs: add the LVGL alignment plan and map remaining Qt work to pinned references and acceptance checks
-    * LVGL/wx: apply the common node retirement protocol after native updates
-    * LVGL.SDL: add cookbook smoke/Valgrind coverage and release input devices/displays before SDL shutdown
-    * Qt.Splitter: add retained, ordered panes and orientation updates; port the shared Splitter recipe
-    * Cookbook: rename the shared entry source to cookbook.cpp
-    * Qt.Layout: match PUI box padding defaults and add public Divider with parent-dependent orientation
-    * Core: fix reversed/keyed reconciliation, moved virtual groups, non-movable blockers and grid declaration reclamation
-    * Qt.Button: commit the focused editor before dispatching a safely copied click callback
-    * Qt.Application: queue quit requests and cancel them on destruction
-    * Core: remove unconditional redraw and State notification logging
-    * Cookbook: restore PUI's sidebar, Result pane, Qt menus and recipe layouts; omit only the source-code pane
-    * Qt examples: add native interaction, nested-view and repeated-removal smoke/Valgrind tests
-    * Qt.Text: add plain, HTML and Markdown text, wrapping and selectable Label; port the shared Text recipe
-    * Qt.ProgressBar: use validated integer hundredths for progress/maximum; port the shared ProgressBar recipe
-    * Docs: add standalone cookbook build/run/test instructions to README
-    * State: reject writes during construction, refresh conditional dependencies and retain subscriptions after failed builds
-    * Cookbook: share C++ recipes across Qt/LVGL with backend manifests, native interaction tests and explicit capability reporting
-    * LVGL: make headers safe across translation units, copy active callbacks and reclaim application content without deleting the display-owned screen
-    * Qt: observe native destruction, preserve external listeners and support owned/borrowed QApplication lifetimes
-    * Tests: add optional Valgrind Memcheck runs for regressions and cookbook smoke tests
-    * Core: unwind construction scopes with RAII, reclaim incomplete declarations and preserve mounted content after top-level builder failure
-    * Core: own node IDs and Qt button text; document borrowed construction references
-    * Plans: inventory shared cookbook ports and remaining binding, layout, event and specialized API decisions
-    * Qt: add CMake targets and independent headers; fix Window casts, virtual-parent refresh and detached subtree destruction
-    * Docs: keep progress plans focused on remaining work and current contracts
-    * Core: initialize View roots after base construction and fix the invalid Node-to-View cast
-    * Core: add a C++11 header-only CMake/CTest harness and share construction state across translation units
-    * Docs: add the pinned PUI/Qt alignment plan with explicit C++ ownership and reclamation rules
+    * Core: make C++11 headers safe across translation units; fix reconciliation, construction rollback, reactive dependencies and node ownership
+    * Qt: add Text/Html/MarkDown, ProgressBar, Divider, Splitter, Tabs/Tab, Canvas/ImageResource, Modal and dialogs with Binding<T>/Optional<T>
+    * Qt: add explicit native lifetime tracking, editor commit before button callbacks and queued application quit
+    * LVGL: add Canvas drawing and public Spacer; reclaim standalone views and safely handle native deletion and callback replacement
+    * Cookbook: share recipe sources across Qt and LVGL, preserve PUI's layout and support separate LVGL 9.6 SDL2/X11 builds
+    * Tests: add CMake/CTest regressions, example/cookbook smoke tests, sanitizer coverage and optional Valgrind leak checks
+    * Docs: add pinned PUI/Qt and LVGL alignment plans with explicit C++ ownership contracts
+
+2024-06-22
+    * Core: reclaim retired nodes after reconciliation and rename .tag() to .id()
+
+2024-05-26
+    * wx: add the initial wxWidgets backend and minimal example
+    * LVGL: add HBox/VBox and move display/input driver setup into the application
+
+2024-05-25
+    * LVGL: add the initial backend and minimal example
+
+2024-05-19
+    * Core: add reactive State and node deletion; add Qt VBox
+
+2024-05-13
+    * Core/Qt: add initial DOM reconciliation, native child mounting, HBox and Button
+
+2024-05-09
+    * Core/Qt: implement hierarchical UI construction and Label
+
+2024-05-08
+    * Start CPPUI with declarative range-based construction and a working Qt window example
