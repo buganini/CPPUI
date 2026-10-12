@@ -36,8 +36,8 @@ its smoke test. CTest selects Qt's offscreen platform automatically.
 
 ## LVGL
 
-Use an LVGL 9 source checkout. Validated with
-[v9.3.0](https://github.com/lvgl/lvgl/tree/c033a98afddd65aaafeebea625382a94020fe4a7).
+Use an [LVGL 9.6.0 source checkout](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39).
+Validation against this target version is pending in the [LVGL plan](../doc/lvgl-progress.md).
 Dependencies are supplied explicitly; the build does not fetch them.
 
 ```sh
@@ -59,7 +59,7 @@ checkers can observe individual LVGL allocations. Application teardown preserves
 the display-owned active screen and releases its CPPUI content before `lv_deinit`.
 The example assumes CPPUI owns the content of that screen. In SDL builds, startup
 owns the input devices and display; teardown releases those before quitting SDL
-and deinitializing LVGL, avoiding LVGL 9.3's texture cleanup after SDL shutdown.
+and deinitializing LVGL, keeping SDL alive while display textures are released.
 
 ## Tests and memory checks
 

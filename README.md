@@ -58,8 +58,8 @@ ctest --test-dir build-cookbook-qt --output-on-failure
 The root `CPPUI_BUILD_QT=ON` build also includes `cppui_cookbook_qt`. Qt smoke tests
 use the offscreen platform automatically.
 
-For LVGL, provide an LVGL 9 source checkout (tested with
-[LVGL 9.3.0](https://github.com/lvgl/lvgl/tree/c033a98afddd65aaafeebea625382a94020fe4a7)):
+For LVGL, use a [9.6.0 source checkout](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39).
+Validation against this target version is pending in the [LVGL plan](doc/lvgl-progress.md):
 
 ```sh
 cmake -S cookbook/lvgl -B build-cookbook-lvgl \

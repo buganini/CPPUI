@@ -1,5 +1,11 @@
 2026-10-12
 
+- Set the documented LVGL target to 9.6.0 at 80ca777e37a2b176770726a02e07a6fb79ef0b39
+  in both READMEs, the LVGL plan and CMake cache help. Keep prior validation
+  history intact and add an explicit 9.6.0 compatibility/test task.
+  Validation: verify the official release commit and review documentation
+  references/whitespace. No 9.6.0 build or runtime compatibility claim yet.
+
 - Add Qt Tabs and virtual Tab following the pinned PUI implementation: flatten
   physical children into native pages and find their ancestor Tab for insertion
   labels. Preserve native reuse and Qt selection behavior without implicit

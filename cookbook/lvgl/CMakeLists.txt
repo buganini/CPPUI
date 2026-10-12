@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(CPPUICookbookLVGL LANGUAGES C CXX)
 
-set(CPPUI_LVGL_SOURCE_DIR "" CACHE PATH "LVGL 9 source checkout (tested with v9.3.0)")
+set(CPPUI_LVGL_SOURCE_DIR "" CACHE PATH "LVGL source checkout (target v9.6.0; validation pending)")
 option(CPPUI_LVGL_SDL "Enable the interactive SDL2 window" OFF)
 if(NOT EXISTS "${CPPUI_LVGL_SOURCE_DIR}/lvgl.h")
     message(FATAL_ERROR "Set CPPUI_LVGL_SOURCE_DIR to an LVGL 9 source checkout")

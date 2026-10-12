@@ -7,7 +7,7 @@ Plan prepared on 2026-10-12 against:
 - [CPPUI at 5befe3353d7f372dee4418cd439b833d5f15f93a](https://github.com/buganini/CPPUI/commit/5befe3353d7f372dee4418cd439b833d5f15f93a).
 - [PUI at 009e9b9c3fbd724f0b73c862f8213ddc4742405c](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c),
   for shared reactive behavior and [cookbook examples](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
-- [LVGL 9.3.0 at c033a98afddd65aaafeebea625382a94020fe4a7](https://github.com/lvgl/lvgl/tree/c033a98afddd65aaafeebea625382a94020fe4a7),
+- [LVGL 9.6.0 at 80ca777e37a2b176770726a02e07a6fb79ef0b39](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39),
   for native objects, events, widgets, displays, and SDL integration.
 
 The pinned PUI tree has no LVGL backend. This is a plan for CPPUI's existing
@@ -71,11 +71,16 @@ not establish public component support.
 
 ## Implementation sequence
 
+- [ ] Validate the current backend against LVGL 9.6.0: update source/header and
+  configuration integration as needed, then rerun headless/SDL lifecycle,
+  sanitizer and Valgrind checks. Earlier results in Changelog.txt used 9.3.0;
+  they do not establish 9.6.0 compatibility.
+
 ### Phase 1 — Existing backend lifetime and reconciliation
 
 Reference: [PUI virtual-node cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py),
 [nested views](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/nested_view.py),
-and [LVGL object lifetime](https://github.com/lvgl/lvgl/blob/c033a98afddd65aaafeebea625382a94020fe4a7/src/core/lv_obj_tree.c).
+and [LVGL object lifetime](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/core/lv_obj_tree.c).
 
 - [ ] Make standalone LVGL View destruction release its owned declarations;
   verify both standalone and Application-owned roots, without deleting borrowed
@@ -95,8 +100,8 @@ nested partial-sync recovery tied to the shared-core decision.
 
 ### Phase 2 — Runtime, SDL and input
 
-Reference: [LVGL SDL event loop](https://github.com/lvgl/lvgl/blob/c033a98afddd65aaafeebea625382a94020fe4a7/src/drivers/sdl/lv_sdl_window.c),
-[keyboard driver](https://github.com/lvgl/lvgl/blob/c033a98afddd65aaafeebea625382a94020fe4a7/src/drivers/sdl/lv_sdl_keyboard.c).
+Reference: [LVGL SDL event loop](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_window.c),
+[keyboard driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_keyboard.c).
 
 - [ ] After choosing the stop/host-loop contract, replace the unbounded POSIX
   sleep loop with an application loop that can stop and allow ordered teardown.
