@@ -52,7 +52,7 @@ wx applications can link `CPPUI::wx`. On Linux, install `libwxgtk3.2-dev`;
 on macOS, `brew install wxwidgets`. Native wx tests need an X/Wayland display
 (or `xvfb-run` on Linux); they are not headless widgets. Add
 `-DCPPUI_VALGRIND_TESTS=ON` in a non-sanitized build for memory checks. Linux wx
-checks suppress only font/theme/TLS allocations reproduced by the plain native
+checks suppress only font/theme/image-loader/TLS allocations reproduced by the plain native
 `wx.native_baseline` test; declaration and wx object allocations remain checked.
 Remaining work is tracked in the [wx plan](doc/wx-progress.md).
 

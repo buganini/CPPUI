@@ -5,19 +5,19 @@
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
-|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|—|
+|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|wxGridBagSizer / —|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
-|[Divider](#divider)|QFrame|flex-axis separator|—|
+|[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
 |[Scroll](#scroll)|QScrollArea|scrollable object (basic)|—|
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText / read-only wxTextCtrl|
 |[Button](#button)|QPushButton|button|wxButton|
-|[TextField](#textfield)|QLineEdit|—|—|
-|[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|—|
-|[RadioButton](#radiobutton)|QRadioButton|—|—|
-|[Checkbox](#checkbox)|QCheckBox|checkbox|—|
-|[ProgressBar](#progressbar)|QProgressBar|—|—|
-|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|—|
+|[TextField](#textfield)|QLineEdit|—|wxTextCtrl|
+|[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|wxComboBox|
+|[RadioButton](#radiobutton)|QRadioButton|—|wxRadioButton|
+|[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
+|[ProgressBar](#progressbar)|QProgressBar|—|wxGauge|
+|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / unsupported|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|—|
 |[Image](#image)|QLabel / QPixmap|—|—|
 |[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|—|
@@ -852,3 +852,19 @@ Redraw updates orientation while retaining the native splitter and its panes.
 Unchanged redraw preserves user-adjusted pane sizes. Keyed children can move,
 be inserted or removed, including flattened virtual subviews. Nested splitters
 are supported; removed panes follow the normal deferred-deletion lifecycle.
+
+## wx controls
+
+wx uses the shared Binding/State signatures for Checkbox, RadioButton, TextField
+and ComboBox. TextField preserves drafts during redraw, commits once on Enter
+or focus loss, and commits a focused editor before button callbacks. Programmatic
+updates do not emit input callbacks. RadioButton uses `wxRB_SINGLE`, with grouping
+provided by its model as in PUI/wx. ComboBox preserves unbound keyed selection and
+editable free text, maps labels to raw string values, and remounts when its native
+editable style changes. Grid uses existing row/column/span fields. ProgressBar
+uses integer hundredths, clamps to its range and treats a zero maximum as range
+one, matching PUI/wx rather than promising a busy indicator.
+
+Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
+HTML subset; its selection behavior is native. Markdown explicitly throws because
+PUI/wx also marks it unsupported; a renderer/dependency decision is still needed.

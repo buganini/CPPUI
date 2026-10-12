@@ -65,3 +65,44 @@
    obj:*/libglib-2.0.so.*
    fun:g_thread_*
 }
+# Native checkbox/radio theme images leave Rust interior pointers in Glycin's
+# process worker pool. Reproduced by the native-only control baseline.
+{
+   wxgtk-glycin-workers
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:*alloc
+   obj:*/libglycin-*.so.*
+}
+{
+   wxgtk-glycin-worker-tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:_dl_allocate_tls
+   ...
+   fun:pthread_create*
+   obj:*/libglycin-*.so.*
+}
+{
+   wxgtk-glib-worker-tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create*
+   obj:*/libglib-2.0.so.*
+   obj:*/libglib-2.0.so.*
+   obj:*/libglib-2.0.so.*
+   fun:start_thread
+}
+{
+   wxgtk-glycin-aligned-workers
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:posix_memalign
+   obj:*/libglycin-*.so.*
+}

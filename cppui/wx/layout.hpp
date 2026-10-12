@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_LAYOUT
 #define CPPUI_WX_LAYOUT
 #include "base.hpp"
+#include "grid.hpp"
 namespace CPPUI { namespace Wx {
     class HBox: public Layout {
         public:

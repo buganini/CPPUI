@@ -3,6 +3,7 @@
 
 #include "../view.hpp"
 #include <wx/wx.h>
+#include <wx/weakref.h>
 #include <memory>
 #include <functional>
 
@@ -11,6 +12,10 @@ namespace CPPUI { namespace Wx {
         try { throw; }
         catch(const std::exception & error) { std::cerr << "CPPUI " << operation << ": " << error.what() << '\n'; }
         catch(...) { std::cerr << "CPPUI " << operation << ": unknown exception\n"; }
+    }
+
+    inline wxEventTypeTag<wxCommandEvent> commitEvent() {
+        static const wxEventTypeTag<wxCommandEvent> type(wxNewEventType()); return type;
     }
 
     class View: public ::CPPUI::View {
@@ -75,7 +80,19 @@ namespace CPPUI { namespace Wx {
         wxSizer * sizer = nullptr;
         wxFont font;
         wxColour foreground, background;
-        std::function<void()> command;
+        std::function<void()> command, input, finish;
+        void typed(wxCommandEvent &) {
+            auto keep = shared_from_this(); auto callback = input;
+            if(callback) try { callback(); } catch(...) { reportException("input"); }
+        }
+        void commit(wxCommandEvent &) {
+            auto keep = shared_from_this(); auto callback = finish;
+            if(callback) try { callback(); } catch(...) { reportException("commit"); }
+        }
+        void blur(wxFocusEvent & event) {
+            auto keep = shared_from_this(); auto callback = finish; event.Skip();
+            if(callback) try { callback(); } catch(...) { reportException("commit"); }
+        }
         void destroyed(wxWindowDestroyEvent & event);
         void clicked(wxCommandEvent &) {
             auto keep = shared_from_this();
@@ -134,15 +151,15 @@ namespace CPPUI { namespace Wx {
             ::CPPUI::Node::update(previous);
         }
         static void commitFocused() {
-            // Native dispatch contexts are reached through a dedicated handler
-            // binding later by TextField; ordinary focus changes stay native.
-            auto focused = wxWindow::FindFocus();
+            wxWeakRef<wxWindow> focused(wxWindow::FindFocus());
+            if(!focused) return;
+            wxCommandEvent event(commitEvent()); focused->ProcessWindowEvent(event);
             if(focused && focused->GetParent()) focused->GetParent()->SetFocus();
         }
     };
     inline void Native::destroyed(wxWindowDestroyEvent & event) {
         if(event.GetEventObject() == owner) {
-            window = owner = nullptr; sizer = nullptr; command = {};
+            window = owner = nullptr; sizer = nullptr; command = {}; input = {}; finish = {};
             if(node) node->invalidateNative();
         }
         event.Skip();
@@ -171,9 +188,11 @@ namespace CPPUI { namespace Wx {
             if(style_fontsize && *style_fontsize > 0) font.SetPointSize(*style_fontsize);
             if(style_fontfamily) font.SetFaceName(wxString::FromUTF8(*style_fontfamily));
             if(style_fontweight) font.SetWeight(*style_fontweight >= 600 ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
-            ui->SetFont(font);
-            ui->SetForegroundColour(style_color ? colour(*style_color) : native->foreground);
-            ui->SetBackgroundColour(style_bgcolor ? colour(*style_bgcolor) : native->background);
+            if(ui->GetFont() != font) ui->SetFont(font);
+            auto foreground = style_color ? colour(*style_color) : native->foreground;
+            auto background = style_bgcolor ? colour(*style_bgcolor) : native->background;
+            if(ui->GetForegroundColour() != foreground) ui->SetForegroundColour(foreground);
+            if(ui->GetBackgroundColour() != background) ui->SetBackgroundColour(background);
             ui->SetMinSize(minSize());
             updateEvents();
         }
@@ -183,12 +202,18 @@ namespace CPPUI { namespace Wx {
         void releaseRetiredRefs() override { ui = nullptr; Node::releaseRetiredRefs(); }
         void destroy(bool) override {
             if(!native) return;
-            native->node = nullptr; native->command = {};
+            native->node = nullptr; native->command = {}; native->input = {}; native->finish = {};
             auto object = native;
             ui = nullptr;
             // Controls can be removed by their own command handler. Defer native
             // destruction until dispatch returns; external parent death cancels it.
-            if(object->window && wxTheApp) wxTheApp->CallAfter([object]() {
+            bool parentOwnsDeletion = false;
+            for(auto ancestor = parent; ancestor && ancestor != this; ancestor = ancestor->parent) {
+                auto widget = dynamic_cast<Widget *>(ancestor);
+                if(widget && widget->destroyed && widget->ui) { parentOwnsDeletion = true; break; }
+                if(ancestor == ancestor->parent) break;
+            }
+            if(!parentOwnsDeletion && object->window && wxTheApp) wxTheApp->CallAfter([object]() {
                 if(object->window && !object->window->IsBeingDeleted()) object->window->Destroy();
             });
         }

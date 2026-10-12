@@ -11,7 +11,7 @@ include(cmake/CPPUItesting.cmake)
 
 option(CPPUI_BUILD_WX "Build wxWidgets examples and tests" OFF)
 if(CPPUI_BUILD_WX)
-    find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base)
+    find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base html)
     include(${wxWidgets_USE_FILE})
     add_library(cppui_wx INTERFACE)
     add_library(CPPUI::wx ALIAS cppui_wx)

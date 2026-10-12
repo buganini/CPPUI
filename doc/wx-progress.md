@@ -28,10 +28,6 @@ and Matplotlib are Python-only and will not be ported.
 
 ## Implementation sequence
 
-2. **Layouts and controls.** Port Grid, Divider, plain/rich
-   Text, ProgressBar, Checkbox, RadioButton, TextField and ComboBox/items. Follow
-   PUI draft/commit, raw string/index binding and native creation-style behavior.
-   Exercise empty selections, dynamic items, current callbacks and self-removal.
 3. **Containers and application interactions.** Port Scroll offsets/end anchors,
    virtual Tabs/Tab, menus, window icon/state and standard dialogs. Use established
    CPPUI signatures; document unsupported capabilities rather than faking them.
@@ -58,6 +54,12 @@ use narrow suppressions for its fontconfig/Pango/GTK caches and worker TLS;
 no CPPUI or wx object allocation stack is suppressed. Validate other wx ports
 separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 
+Remaining memory investigation: `valgrind.wx.controls` reports 176 bytes in four
+possibly-lost GTK/GObject weak-notification allocations (no invalid access or
+definite/indirect leak); sanitizer checks pass. The native-only baseline reproduces
+font/theme/Glycin worker allocations, but not these final records, which remain
+unsuppressed. Resolve or isolate them before declaring all wx memory checks clean.
+
 ## Reference cases
 
 - [Runtime/base ownership and layout](https://github.com/buganini/PUI/blob/2e4f0eb82996e271bb3f4bc1f7511ea8b4c966bd/PUI/wx/base.py)
@@ -73,6 +75,9 @@ separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 
 - Input payloads, observable collections, retained-view inputs, arbitrary data
   values and native embedding share the existing deferred CPPUI contracts.
+- **Markdown:** PUI/wx marks it unsupported; choose a Markdown renderer/dependency
+  before enabling the complete shared Text cookbook page. Plain Text and Html
+  already have native APIs.
 - PUI/wx has no Stack, Splitter, Modal, MDI or toolbar implementation. Inspect
   wxWidgets capabilities and existing CPPUI contracts when reaching these;
   record specific unresolved behavior here instead of assuming all are blocked.
