@@ -67,5 +67,7 @@ then tears down the application. Sidebar native identity survives page changes.
 Both CMake projects support
 `-DCPPUI_VALGRIND_TESTS=ON`; `ctest -L valgrind --output-on-failure` runs the same
 scenarios with Memcheck. Use a separate build for ASan/UBSan and Valgrind.
+The LVGL project also tests declaration retirement, native reuse, removal, and
+application teardown through `lvgl.lifetime` and its optional Valgrind variant.
 
 Interactive SDL input and real-display layout/focus checks remain outstanding.

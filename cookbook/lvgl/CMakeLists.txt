@@ -27,6 +27,13 @@ set_target_properties(cppui_cookbook_lvgl PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 
 if(BUILD_TESTING)
+    add_executable(cppui_lvgl_lifetime "${CMAKE_CURRENT_SOURCE_DIR}/../../tests/lvgl_lifetime.cpp")
+    target_include_directories(cppui_lvgl_lifetime PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+    target_link_libraries(cppui_lvgl_lifetime PRIVATE lvgl::lvgl)
+    set_target_properties(cppui_lvgl_lifetime PROPERTIES
+        CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(lvgl.lifetime cppui_lvgl_lifetime)
+
     if(CPPUI_LVGL_SDL)
         cppui_add_test(cookbook.lvgl_sdl cppui_cookbook_lvgl --smoke --sdl)
         set_property(TEST cookbook.lvgl_sdl APPEND PROPERTY ENVIRONMENT

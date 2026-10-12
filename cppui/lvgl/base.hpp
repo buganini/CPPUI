@@ -21,6 +21,7 @@ namespace CPPUI {
             public:
             void update(::CPPUI::Node * prev) {
                 update((Node *) prev);
+                ::CPPUI::Node::update(prev);
             }
 
             virtual void update(Node * prev) = 0;

@@ -18,6 +18,11 @@ clears the ID. Factory return values are borrowed construction references: use
 fluent modifiers immediately, and keep application state rather than node
 references across redraws.
 
+Qt, LVGL and wx native updates participate in the common retirement protocol.
+Internal forwarding is valid only while reconciliation still owns the old
+declaration; the old declaration is then reclaimed. This does not extend the
+lifetime of borrowed factory references.
+
 Reconciliation compares type and explicit ID within the matched parent/view
 scope. Placed grid nodes also include row, column and both spans in identity.
 Grid declarations without both coordinates are discarded and reclaimed. Reversed

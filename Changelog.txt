@@ -1,5 +1,14 @@
 2026-10-12
 
+- Route LVGL and wx native updates through Node::update after backend dispatch,
+  matching Qt's common retirement protocol. Add an LVGL lifecycle regression
+  for internal forwarding while declarations are alive, native reuse, repeated
+  reclamation, removal and application teardown. Update lifecycle documentation
+  and narrow the remaining backend audit to wx runtime ownership checks.
+  Validation: LVGL C++11 normal/Valgrind suite passes 4/4; fully instrumented
+  LVGL headless/SDL/lifecycle ASan/UBSan/leak checks pass 3/3. wx runtime checks
+  remain pending because its development/runtime dependencies are unavailable.
+
 - Validate the LVGL SDL cookbook build and add --smoke --sdl with normal and
   Valgrind CTest coverage using SDL's dummy video/software-renderer drivers.
   Use SDL.h from the imported target's include directory. Release input devices

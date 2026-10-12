@@ -164,9 +164,9 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
   safely follow `getNode()` afterward. Implement explicit internal dispatch and
   reclamation lifetimes for callbacks, timers, and imperative operations without
   introducing a public weak node wrapper.
-- [ ] Ensure every backend update participates in the common retirement/transfer
-  protocol. Transfer child ownership and parent links before releasing the old
-  declaration; destroy native subtrees exactly once.
+- [ ] Validate wx native ownership transfer and teardown with its runtime
+  dependencies available: child ownership/parent links must transfer before the
+  old declaration is released, and native subtrees must be destroyed once.
 - [ ] Extend ownership coverage to queued callbacks/timers and externally owned
   or self-deleting native widgets. Ensure new event APIs cannot retain retired
   declarations indefinitely or introduce owning cycles.
