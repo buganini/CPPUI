@@ -1,5 +1,20 @@
 2026-10-12
 
+- Add one shared C++ cookbook/gallery with separate Qt and LVGL CMake projects,
+  backend startup/native test helpers, and no backend conditionals in recipes.
+  Port the basic Button/Label/HBox/VBox interactions; explicitly show remaining
+  details and unavailable pages in the gallery and --list. Add repeated native
+  interaction/navigation smoke runs and optional Valgrind tests on both backends.
+  Make Qt Label literal text match PUI. Make LVGL headers multi-file/repeat-include
+  safe, copy active button callbacks, release application declarations, and keep
+  the display-owned screen alive while clearing its CPPUI content.
+  Validation: standalone Qt/LVGL cookbook builds and native smoke/Valgrind tests
+  pass (2/2 each). Root Qt ASan/UBSan/leak suite passes 8/8, and a fully sanitized
+  LVGL build passes 1/1. Six LVGL standalone headers build. Tested GCC 15.2.0,
+  Qt 6.10.2, LVGL 9.3.0 (c033a98afddd65aaafeebea625382a94020fe4a7), Valgrind 3.26.0.
+  SDK/tool packages remain in /tmp. SDL interaction and full recipe parity remain
+  explicit tasks; update cookbook docs, example guidance, and the remaining plan.
+
 - Give Qt widgets/layouts typed native observers and explicit destruction
   notification/connection cleanup. Preserve external signal listeners on reuse;
   snapshot button callbacks so self-removal cannot destroy an active callable.

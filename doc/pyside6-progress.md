@@ -350,15 +350,14 @@ capabilities, startup, and toolkit dependencies. Keep toolkit includes and
 conditional compilation out of the recipes. Each executable links one backend.
 Do not duplicate recipes or silently present unsupported behavior as a full port.
 
-- [ ] Add the shared recipe registry and backend-specific build/entry points.
-  Build Qt and LVGL from the same recipe files; list unsupported pages explicitly.
-  Add a noninteractive smoke mode that builds every supported recipe.
 - [ ] Port each recipe alongside its components, preserving the state changes
   and interactions. The table below tracks only outstanding recipe work.
-- [ ] Port the gallery navigation, source/result presentation, and menu examples
-  once their Label events, Scroll, Html, and action dependencies are available.
+- [ ] Extend the gallery with the reference's source/result panes and menus
+  once Scroll, Html, layout options, and action dependencies are available.
   Python source inspection/highlighting needs a C++ equivalent; do not add a
   runtime Python dependency just for the source pane.
+- [ ] Verify the interactive SDL build and real-display layout/input on both
+  backends; headless recipe tests do not establish visual or focus parity.
 
 | Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
 | --- | --- | --- |

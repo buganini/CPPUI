@@ -1,3 +1,6 @@
+#ifndef CPPUI_LVGL_LABEL
+#define CPPUI_LVGL_LABEL
+
 #include "base.hpp"
 
 #include "lvgl.h"
@@ -24,10 +27,12 @@ namespace CPPUI {
             }
        };
     }
-    LVGL::Label & Label(const char * text) {
+    inline LVGL::Label & Label(const char * text) {
         return *(new LVGL::Label(text));
     }
-    LVGL::Label & Label(const std::string text) {
+    inline LVGL::Label & Label(const std::string text) {
         return *(new LVGL::Label(text));
     }
 }
+
+#endif

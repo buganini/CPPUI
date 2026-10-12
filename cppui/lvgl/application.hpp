@@ -1,3 +1,6 @@
+#ifndef CPPUI_LVGL_APPLICATION
+#define CPPUI_LVGL_APPLICATION
+
 #include "base.hpp"
 
 #include <iostream>
@@ -13,6 +16,12 @@ namespace CPPUI {
         Application(int argc, char *argv[]): LVGL::View() {
             this->argc = argc;
             this->argv = argv;
+        }
+
+        ~Application() override {
+            destroyed = true;
+            for(::CPPUI::Node * child: *children) recur_delete(child, true);
+            children->clear();
         }
 
         void update(Node * prev) {
@@ -35,3 +44,5 @@ namespace CPPUI {
         }
     };
 }
+
+#endif

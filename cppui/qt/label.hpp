@@ -24,6 +24,7 @@ namespace CPPUI {
                 } else {
                     ui = new QLabel();
                 }
+                ((QLabel *)ui)->setTextFormat(::Qt::PlainText);
                 ((QLabel *)ui)->setText(text.c_str());
             }
         };

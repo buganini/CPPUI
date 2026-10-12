@@ -1,10 +1,13 @@
+#ifndef CPPUI_LVGL_BUTTON
+#define CPPUI_LVGL_BUTTON
+
 #include "base.hpp"
 
 #include "lvgl.h"
 
 namespace CPPUI {
     namespace LVGL {
-        static void event_handler(lv_event_t * e);
+        inline void event_handler(lv_event_t * e);
 
         class Button: public Node {
             public:
@@ -16,6 +19,11 @@ namespace CPPUI {
             }
             Button(const std::string text) {
                 this->text = text;
+            }
+
+            void destroy(bool direct) override {
+                if(ui) lv_obj_remove_event_cb(static_cast<lv_obj_t *>(ui), event_handler);
+                Node::destroy(direct);
             }
 
             void update(Node * prev) {
@@ -33,23 +41,26 @@ namespace CPPUI {
             }
         };
 
-        static void event_handler(lv_event_t * e)
+        inline void event_handler(lv_event_t * e)
         {
             lv_event_code_t code = lv_event_get_code(e);
             Button * button = (Button *)lv_event_get_user_data(e);
 
             if(code == LV_EVENT_CLICKED) {
-                button->onClicked();
+                auto callback = button->onClicked;
+                callback();
             }
             else if(code == LV_EVENT_VALUE_CHANGED) {
                 LV_LOG_USER("Toggled");
             }
         }
     }
-    LVGL::Button & Button(const char * text) {
+    inline LVGL::Button & Button(const char * text) {
         return *(new LVGL::Button(text));
     }
-    LVGL::Button & Button(const std::string text) {
+    inline LVGL::Button & Button(const std::string text) {
         return *(new LVGL::Button(text));
     }
 }
+
+#endif

@@ -13,6 +13,10 @@ if(CPPUI_BUILD_QT)
     add_library(CPPUI::qt ALIAS cppui_qt)
     target_link_libraries(cppui_qt INTERFACE CPPUI::cppui Qt6::Widgets)
 
+    include(cookbook/common.cmake)
+    cppui_add_cookbook(cppui_cookbook_qt qt)
+    target_link_libraries(cppui_cookbook_qt PRIVATE CPPUI::qt)
+
     add_executable(cppui_minimal_qt example/minimal_qt/main.cpp)
     target_link_libraries(cppui_minimal_qt PRIVATE CPPUI::qt)
     add_executable(cppui_virtual_nodes example/test_virtual_nodes/main.cpp)

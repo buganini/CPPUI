@@ -37,6 +37,14 @@ requirements. CTest sets the offscreen platform for the Qt test automatically.
 The interactive examples are `cppui_minimal_qt` and `cppui_virtual_nodes` in the
 build directory. Their original CMake projects under `example/` remain usable.
 
+# Shared cookbook
+
+[The cookbook](cookbook/README.md) builds the same C++ recipe and gallery sources
+with separate Qt and LVGL CMake projects. The Qt executable is also included in
+`CPPUI_BUILD_QT=ON`. Run it with `--list` to see available and pending pages, or
+`--smoke` for automated navigation and interaction checks. Initial pages are
+partial ports, with missing details shown explicitly.
+
 # Memory checks
 
 With Valgrind installed, use a separate build without sanitizer flags:

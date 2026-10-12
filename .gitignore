@@ -8,3 +8,5 @@ example/*/minimal
 /build/
 /build-qt/
 /build-valgrind/
+/build-cookbook-qt/
+/build-cookbook-lvgl/

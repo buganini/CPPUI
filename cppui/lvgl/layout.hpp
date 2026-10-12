@@ -1,3 +1,6 @@
+#ifndef CPPUI_LVGL_LAYOUT
+#define CPPUI_LVGL_LAYOUT
+
 #include "base.hpp"
 
 #include "lvgl.h"
@@ -39,10 +42,12 @@ namespace CPPUI {
        };
 
     }
-    LVGL::HBox & HBox() {
+    inline LVGL::HBox & HBox() {
         return *(new LVGL::HBox());
     }
-    LVGL::VBox & VBox() {
+    inline LVGL::VBox & VBox() {
         return *(new LVGL::VBox());
     }
 }
+
+#endif

@@ -23,6 +23,7 @@ namespace {
         void content() override {
             // Both arguments die before native reconciliation starts.
             CPPUI::Button(std::string(caption)).id(std::string(100, 'b'));
+            CPPUI::Label("No <b>HTML</b>");
         }
     };
 }
@@ -32,6 +33,8 @@ int main(int argc, char ** argv) {
     try {
         Root root;
         root.redraw();
+        auto label = static_cast<QLabel *>(root.children->back()->outer());
+        require(label->textFormat() == Qt::PlainText, "Label interpreted markup as HTML");
         auto button = static_cast<QPushButton *>(root.children->front()->outer());
         require(button->text().toStdString() == root.caption, "temporary button text was lost");
         root.caption.assign(120, 'y');

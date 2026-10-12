@@ -1,3 +1,6 @@
+#ifndef CPPUI_LVGL_WINDOW
+#define CPPUI_LVGL_WINDOW
+
 #include "base.hpp"
 #include "lvgl.h"
 
@@ -15,6 +18,12 @@ namespace CPPUI {
                 }
             }
 
+            void destroy(bool direct) override {
+                // The display owns its active screen; only clear our content.
+                if(direct && ui) lv_obj_clean(static_cast<lv_obj_t *>(ui));
+                ui = nullptr;
+            }
+
             void addChild(int idx, Node * child) {
                 Node::addChild(idx, child);
                 lv_obj_set_size((lv_obj_t *)child->outer(), lv_pct(100), lv_pct(100));
@@ -25,7 +34,9 @@ namespace CPPUI {
             }
        };
     }
-    LVGL::Window & Window() {
+    inline LVGL::Window & Window() {
         return *(new LVGL::Window());
     }
 }
+
+#endif

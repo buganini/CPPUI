@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.24)
+project(CPPUICookbookQt LANGUAGES CXX)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+include(../common.cmake)
+cppui_add_cookbook(cppui_cookbook_qt qt)
+target_link_libraries(cppui_cookbook_qt PRIVATE Qt6::Widgets)

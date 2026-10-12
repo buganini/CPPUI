@@ -13,6 +13,7 @@ namespace CPPUI {
                 if(direct && ui){
                     lv_obj_delete((lv_obj_t *)ui);
                 }
+                ui = nullptr;
             }
          };
 
@@ -43,6 +44,7 @@ namespace CPPUI {
                 if(direct && ui){
                     lv_obj_delete((lv_obj_t *)ui);
                 }
+                ui = nullptr;
             }
          };
     }
