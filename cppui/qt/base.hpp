@@ -160,7 +160,7 @@ namespace CPPUI {
             void * outer() override { return ui; }
             void releaseRetiredRefs() override { release(); Node::releaseRetiredRefs(); }
             void destroy(bool direct) override {
-                if(direct && ui) {
+                if(ui && (direct || !owner)) {
                     if(owner) owner->removeItem(ui);
                     delete ui;
                 }
@@ -169,7 +169,15 @@ namespace CPPUI {
             }
         };
 
-        class BaseLayout: public BaseWidget {
+        class LayoutWidget: public BaseWidget {
+            protected:
+            void applyPadding() {
+                const int padding = dynamic_cast<LayoutWidget *>(dom_parent) ? 0 : 11;
+                ui->setContentsMargins(padding, padding, padding, padding);
+            }
+        };
+
+        class BaseLayout: public LayoutWidget {
             protected:
             void clearNative() override {
                 layout = nullptr;
@@ -182,8 +190,7 @@ namespace CPPUI {
             void update(BaseWidget * prev) override {
                 update(static_cast<BaseLayout *>(prev));
                 layout->setContentsMargins(0, 0, 0, 0);
-                const int padding = dynamic_cast<BaseLayout *>(dom_parent) ? 0 : 11;
-                ui->setContentsMargins(padding, padding, padding, padding);
+                applyPadding();
             }
             virtual void update(BaseLayout * prev) = 0;
 
@@ -201,16 +208,18 @@ namespace CPPUI {
         };
         inline void Spacer::update(Node * previous) {
             auto box = dynamic_cast<BaseLayout *>(dom_parent);
-            if(!box || !box->layout) throw std::logic_error("Qt Spacer requires an HBox or VBox parent");
+            if(!dynamic_cast<LayoutWidget *>(dom_parent)) throw std::logic_error("Qt Spacer requires a layout parent");
             auto prev = static_cast<Spacer *>(previous);
             ui = prev && prev->ui ? prev->ui : new QSpacerItem(0, 0);
-            owner = box->layout;
-            const auto direction = owner->direction();
+            owner = box ? box->layout : nullptr;
+            const auto direction = owner ? owner->direction() : QBoxLayout::LeftToRight;
             const bool horizontal = direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft;
-            ui->changeSize(0, 0, horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred,
-                           horizontal ? QSizePolicy::Preferred : QSizePolicy::Expanding);
-            owner->invalidate();
-            nativeDestroyed = QObject::connect(owner, &QObject::destroyed, [this]() { ui = nullptr; owner = nullptr; });
+            ui->changeSize(0, 0, !owner || horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred,
+                           !owner || !horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred);
+            if(owner) {
+                owner->invalidate();
+                nativeDestroyed = QObject::connect(owner, &QObject::destroyed, [this]() { ui = nullptr; owner = nullptr; });
+            }
             Node::update(previous);
         }
     }

@@ -5,6 +5,7 @@
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
+|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|—|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|—|
 |[Divider](#divider)|QFrame|flex-axis separator|—|
 |[Splitter](#splitter)|QSplitter|—|—|
@@ -196,6 +197,24 @@ Qt boxes use 11 pixels of outer padding when their physical parent is not anothe
 box layout, and zero padding when nested in a box. Native QBoxLayout margins are
 zero to avoid adding a second layer of spacing. Configurable padding and weights
 still await the common layout API.
+
+## Grid and Stack
+
+`cppui/qt/layout.hpp` includes `Grid()` and `Stack()` (also available through
+`grid.hpp` and `stack.hpp`). Grid uses the existing node fields `grid_row`,
+`grid_column`, `grid_rowspan` and `grid_columnspan`. Both coordinates must be
+nonnegative; absent/zero spans use one cell. Grid coordinates/spans participate
+in reconciliation identity, so changing them replaces that cell. A layout is
+required to group several controls in a cell. The shared fluent placement API
+is still undecided; the cookbook currently assigns these fields directly.
+
+Stack uses Qt's StackAll mode and reverses initial declaration order, placing
+the last declared layer on top. All layers share the available geometry.
+Unchanged redraws retain the raised layer. Insertions/removals and keyed moves
+let QStackedLayout choose its current layer, as in PUI; moving the current layer
+can raise its neighbor. Grid and Stack share HBox/VBox's nested
+padding rules. PUI ignores Spacer inside these two containers; CPPUI also skips
+its native insertion and explicitly reclaims the unmounted item.
 
 ## Spacer
 

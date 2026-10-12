@@ -3,6 +3,8 @@
 
 #include "base.hpp"
 #include "spacer.hpp"
+#include "grid.hpp"
+#include "stack.hpp"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>

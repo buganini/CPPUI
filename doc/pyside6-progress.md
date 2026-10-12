@@ -127,7 +127,7 @@ the separate deferred section records intentional omissions.
 | Window | `QMainWindow`, title/icon/size and initial/imperative state flags | Keypress payloads follow the deferred event contract; verify window-manager behavior on a display | 3 / [Qt regression][ref-qt] |
 | HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
 | Label/Button | Owned text, selectable labels and current click callbacks | Styles reset on reuse; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
-| Grid/Stack/Spacer | Public box Spacer; core grid/reverse-order flags | Define shared placement options, then port Grid spans and Stack overlap | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
+| Grid/Stack/Spacer | Native Grid spans, StackAll overlap and box Spacer | Define shared fluent placement and layout/style options | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
 | TextField/Checkbox/RadioButton | Boolean Checkbox with Binding/State and membership adapters | Preserve unfinished edits; validate commit; define observable collection and typed value selections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
 | Image | Owned path/pixmap, native reuse, clicks and modification-time reload | Add dimensions/stretch after the common layout API is chosen | 4 / [Image][ref-image] |
@@ -280,7 +280,6 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
 - [ ] Align configurable HBox/VBox padding, stretch updates, and size hints.
   Recompute properties from current declarations and reset omitted properties
   to their defaults.
-- [ ] Add `Grid` and `Stack`, including grid spans and overlapping Stack order.
 - [ ] Add Window keypress after the deferred event contract is addressed; verify
   initial and imperative window-state behavior with a real window manager.
 - [ ] Add common event payloads and fluent modifiers needed by later widgets.
@@ -388,7 +387,6 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 
 | Reference recipe (`cookbook/`) | Prerequisite phase | Acceptance / remaining work |
 | --- | --- | --- |
-| `grid.py`, `stack.py` | 3 | Grid placement, overlap |
 | `binding.py`, `textfield.py` | 2, 4 | External-change notification, changed callback, edit/commit and conversion |
 | `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `scroll.py` | 5 | Scroll offsets and retained native state |

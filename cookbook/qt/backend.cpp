@@ -27,6 +27,12 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "timeline") {
                 page.render = timeline;
                 page.remaining = "";
+            } else if(std::string(page.key) == "grid") {
+                page.render = grid;
+                page.remaining = "";
+            } else if(std::string(page.key) == "stack") {
+                page.render = stack;
+                page.remaining = "";
             } else if(std::string(page.key) == "image") {
                 page.render = image;
                 page.remaining = "";

@@ -138,6 +138,18 @@ namespace Cookbook { namespace Presentation {
     };
     inline StyledButtonNode & StyledButton() { return *new StyledButtonNode(); }
 
+    class StackLabelNode: public CPPUI::Qt::Label {
+        int size; bool red;
+        public:
+        StackLabelNode(const std::string & text, int size, bool red): Label(text), size(size), red(red) {}
+        void update(CPPUI::Qt::BaseWidget * prev) override {
+            CPPUI::Qt::Label::update(prev);
+            auto font = ui->font(); font.setPointSize(size); ui->setFont(font);
+            ui->setStyleSheet(red ? "color:#ff0000;" : "");
+        }
+    };
+    inline StackLabelNode & StackLabel(const std::string & text, int size, bool red) { return *new StackLabelNode(text, size, red); }
+
     class ImageNode: public CPPUI::Qt::Image {
         public:
         explicit ImageNode(const std::string & path): Image(path) {}

@@ -28,6 +28,8 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void grid(Model &);
+    void stack(Model &);
     void image(Model &);
     void mdi(Model &);
     void timeline(Model &);
