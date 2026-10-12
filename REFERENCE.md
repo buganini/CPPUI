@@ -1,5 +1,5 @@
 # Declarative Components
-|Generic|PySide6|lvgl|wx|
+|Generic|Qt|lvgl|wx|
 |-------|-------|----|--|
 |[Application](#application)|QApplication|View|App|
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
@@ -7,6 +7,7 @@
 |[VBox](#vbox)|QVBoxLayout|flex_flow|wxBoxSizer|
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
+|[ProgressBar](#progressbar)|QProgressBar|—|—|
 
 Node IDs and Qt button text copy their string arguments, including temporary
 `std::string` values. An empty explicit ID is distinct from no ID; `id(nullptr)`
@@ -36,3 +37,13 @@ decrementing any State during a view builder throws
 `StateMutationInViewBuilderError` before changing its value. Mutate state in event
 handlers or application code outside construction. Redraw remains synchronous
 until the queued completion/error contract is chosen.
+
+## ProgressBar
+
+Include `cppui/qt/progressbar.hpp` and use `ProgressBar(progress, maximum = 1.0)`.
+Both numbers are multiplied by 100 and truncated toward zero to match PUI:
+`ProgressBar(0.125, 0.25)` sets native value 12 and maximum 25. Redraw updates
+retained widgets. A zero maximum uses Qt's busy indicator; other range behavior
+follows `QProgressBar`. Non-finite or unrepresentable values throw
+`std::out_of_range` during construction. A state read passed as an argument
+subscribes the surrounding view; this component does not require a writable binding.

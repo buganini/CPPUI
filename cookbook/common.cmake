@@ -10,6 +10,7 @@ function(cppui_add_cookbook target backend)
     target_include_directories(${target} PRIVATE
         "${cookbook_dir}/.." "${cookbook_dir}/${backend}")
     target_compile_features(${target} PRIVATE cxx_std_11)
+    include("${cookbook_dir}/${backend}/sources.cmake" OPTIONAL)
     if(BUILD_TESTING)
         cppui_add_test("cookbook.${backend}" ${target} --smoke)
     endif()

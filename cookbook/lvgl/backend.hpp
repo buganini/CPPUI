@@ -5,8 +5,10 @@
 #include "cppui/lvgl/layout.hpp"
 #include "cppui/lvgl/label.hpp"
 #include "cppui/lvgl/button.hpp"
+#include "../recipes.hpp"
 
 namespace Cookbook { namespace Backend {
+    inline void configureRecipes(std::vector<Recipe> &) {}
     const char * const name = "LVGL";
     inline void settle() {
         lv_tick_inc(20);

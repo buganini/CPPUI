@@ -7,6 +7,7 @@
 
 namespace Cookbook {
     struct Model {
+        CPPUI::State<int> progress{50};
         CPPUI::State<std::string> buttonValue{std::string("A")};
     };
     struct Recipe {
@@ -15,6 +16,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void progressbar(Model &);
     const std::vector<Recipe> & recipes();
     int run(int argc, char ** argv);
 }

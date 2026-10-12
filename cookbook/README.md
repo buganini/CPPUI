@@ -7,8 +7,9 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-The initial Button, Label, HBox, and VBox pages are partial ports using existing
-components. The gallery and `--list` report missing details and unavailable pages.
+Button, Label, HBox, and VBox share their implementations across both backends.
+Qt also enables the shared ProgressBar recipe through its source manifest. These
+pages remain partial until their displayed missing details are implemented. The gallery and `--list` report missing details and unavailable pages.
 Full styles, layout options, bindings, source presentation, and remaining component
 pages follow the [alignment plan](../doc/pyside6-progress.md). The navigation
 buttons cycle through the same page registry on either backend.

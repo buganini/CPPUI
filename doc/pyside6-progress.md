@@ -124,7 +124,7 @@ The checklist below contains remaining work only.
 | Label/Button | Partial: text and button click | Common modifiers, selectable/clickable labels, event contract |
 | Grid/Stack/Spacer/Divider | Missing native components | Core grid/order flags alone do not implement these widgets |
 | TextField/Checkbox/RadioButton | Missing | Two-way editing and selection |
-| ComboBox/ComboBoxItem/ProgressBar | Missing | Selection/value mapping and numeric progress |
+| ComboBox/ComboBoxItem | Missing | Selection/value mapping |
 | Text/Html/MarkDown/Image | Missing | Rich/selectable text and image presentation |
 | Scroll/Tabs/Tab/Splitter | Missing | Container semantics and retained interaction state |
 | Modal/imperative dialogs | Missing | Bound visibility, callbacks, results/cancellation |
@@ -263,8 +263,6 @@ and child order. Port the window-state and size-policy cases from
   selection, including rebinding and current click callbacks.
 - [ ] Add ComboBox/ComboBoxItem with editable text, index/text models, distinct
   labels/values, empty contents, invalid selection, and dynamic item updates.
-- [ ] Add ProgressBar with the reference hundredths conversion, including
-  fractional maximum (`0.25` becomes native `25`, `0.125` becomes `12`).
 - [ ] Add Text, Html, MarkDown, and Image with selection, wrapping, dimensions,
   path updates, and common modifiers as supported by the pinned reference.
 
@@ -368,7 +366,8 @@ Do not duplicate recipes or silently present unsupported behavior as a full port
 | `hbox.py`, `vbox.py`, `grid.py`, `stack.py` | 3 | Ordering, weights, spacer/divider, grid placement, overlap |
 | `binding.py`, `textfield.py` | 2, 4 | External get/set, changed callback, edit/commit and conversion |
 | `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
-| `progressbar.py`, `text.py`, `image.py` | 3, 4 | Reactive progress, three text formats, sized image asset |
+| `progressbar.py` | 3 | Add Spacer; LVGL page requires backend support |
+| `text.py`, `image.py` | 3, 4 | Three text formats, sized image asset |
 | `scroll.py`, `tab.py`, `splitter.py` | 5 | Scroll offsets, tab switching, resize and retained native state |
 | `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |

@@ -76,6 +76,14 @@ namespace Cookbook {
                     gallery.selected = static_cast<int>(i);
                     Backend::settle();
                     require(hasText(gallery, recipes()[i].title), "page selection did not render");
+                    if(std::string(recipes()[i].key) == "progressbar" && recipes()[i].render) {
+                        require(click(gallery, "-5"), "progress recipe is missing -5");
+                        Backend::settle();
+                        require(hasText(gallery, "45"), "progress did not decrease");
+                        require(click(gallery, "+5"), "progress recipe is missing +5");
+                        Backend::settle();
+                        require(hasText(gallery, "50"), "progress did not increase");
+                    }
                     if(std::string(recipes()[i].key) == "button") {
                         require(click(gallery, "B"), "button recipe is missing B");
                         Backend::settle();

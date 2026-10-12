@@ -1,5 +1,16 @@
 2026-10-12
 
+- Add Qt ProgressBar with PUI's hundredths conversion, fractional maximum,
+  retained native updates, and finite/integer-range validation. Add its shared
+  cookbook recipe; backend source manifests enable it for Qt while LVGL lists
+  its missing capability. Keep recipe code free of backend conditionals.
+  Validation: Qt/core sanitizer suite 9/9 passes; affected Qt widget/cookbook
+  Valgrind tests 2/2 and LVGL normal/Valgrind smoke tests 2/2 pass. Standalone
+  cookbook projects and the new standalone/repeated Qt header build. Checks
+  cover 0.125/0.25 -> 12/25, changed ranges, busy mode, invalid construction
+  cleanup, native reuse, and -5/+5 recipe interaction. Update component/cookbook
+  references and remove the completed component task from the plan.
+
 - Put standalone Qt and LVGL cookbook configure/build/run/test commands directly
   in the root README, including the explicit LVGL source path, headless default,
   optional SDL2 window, and Valgrind option. Link the detailed cookbook guide.

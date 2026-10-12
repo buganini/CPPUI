@@ -36,7 +36,8 @@ namespace Cookbook {
     }
 
     const std::vector<Recipe> & recipes() {
-        static const std::vector<Recipe> result = {
+        static const std::vector<Recipe> result = []() {
+            std::vector<Recipe> pages = {
             {"vbox", "VBox", vbox, "Spacer and Divider"},
             {"hbox", "HBox", hbox, "Spacer and layout weights"},
             {"stack", "Stack", nullptr, "Stack and layout options"},
@@ -67,7 +68,10 @@ namespace Cookbook {
             {"splitter", "Splitter", nullptr, "Splitter"},
             {"modal", "Modal", nullptr, "Bound visibility"},
             {"dialog", "Dialog", nullptr, "Typed results and cancellation"},
-        };
+            };
+            Backend::configureRecipes(pages);
+            return pages;
+        }();
         return result;
     }
 }

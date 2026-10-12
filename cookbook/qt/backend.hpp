@@ -5,8 +5,11 @@
 #include "cppui/qt/layout.hpp"
 #include "cppui/qt/label.hpp"
 #include "cppui/qt/button.hpp"
+#include "cppui/qt/progressbar.hpp"
+#include "../recipes.hpp"
 
 namespace Cookbook { namespace Backend {
+    void configureRecipes(std::vector<Recipe> & pages);
     const char * const name = "Qt";
     inline void settle() {
         QCoreApplication::processEvents();
