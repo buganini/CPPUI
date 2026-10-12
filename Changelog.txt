@@ -1,5 +1,15 @@
 2026-10-12
 
+- Add doc/lvgl-progress.md with pinned CPPUI/PUI/LVGL baselines, current public
+  versus cookbook-only capabilities, explicit C++ ownership, six implementation
+  phases, acceptance cases, decisions and memory-test requirements. PUI has no
+  LVGL backend at the pinned baseline; distinguish shared behavior from native
+  toolkit capabilities. Link both plans from README/cookbook docs and move
+  LVGL-only recipe/runtime gaps out of the Qt plan.
+  Validation: all 25 unique pinned GitHub references exist in their Git trees;
+  local document links, whitespace and remaining-only checklists pass. No
+  runtime changes.
+
 - Map every remaining Qt alignment area to its phase, pinned reference cases
   and concrete acceptance checks. Remove the completed mapping checklist item.
   Record the inconsistent Tab child/page correspondence and SDL interactive

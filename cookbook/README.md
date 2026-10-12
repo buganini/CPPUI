@@ -15,8 +15,9 @@ window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
 divider, and styled examples follow the reference on the available pages.
 
 Unsupported pages show “Not Supported for this backend”; `--list` gives their
-prerequisites. The [alignment plan](../doc/pyside6-progress.md) tracks remaining
-components and public APIs. The backend `presentation.hpp` files provide private
+prerequisites. The [Qt plan](../doc/pyside6-progress.md) and
+[LVGL plan](../doc/lvgl-progress.md) track remaining components and public APIs.
+The backend `presentation.hpp` files provide private
 cookbook layout/appearance adapters until those public APIs are decided; these
 helpers do not imply general Scroll, menu, style, or layout API support in CPPUI.
 
@@ -74,4 +75,4 @@ Interactive SDL input and real-display layout/focus checks remain outstanding.
 Interactive close also needs an application-stop contract: LVGL's SDL handler
 can destroy the display or exit before CPPUI tears down declarations. The tested
 smoke path returns to startup for ordered cleanup; it does not validate native
-window-close handling. See the alignment plan for that decision.
+window-close handling. See the [LVGL plan](../doc/lvgl-progress.md) for that decision.

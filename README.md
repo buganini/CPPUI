@@ -84,6 +84,8 @@ test the SDL renderer with the dummy video driver (`--smoke --sdl`), including
 device teardown, without needing a desktop display. Both projects
 accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. See the
 [cookbook documentation](cookbook/README.md) for capabilities and validation limits.
+Remaining implementation work is tracked in the [Qt plan](doc/pyside6-progress.md)
+and [LVGL plan](doc/lvgl-progress.md).
 
 # Memory checks
 

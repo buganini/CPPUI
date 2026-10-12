@@ -17,6 +17,9 @@ changes must account for the existing wx and LVGL implementations; expanding
 those backends is outside scope except for the shared cookbook build and
 compatibility fixes needed to run its existing components.
 
+Track LVGL-specific component/runtime work in the [LVGL plan](lvgl-progress.md).
+Shared-core and public API decisions remain coordinated here.
+
 Use reference implementation and regression tests together to establish each
 contract. Where documentation, implementation, and tests disagree, record the
 case and chosen behavior before implementing it. Python decorators, dynamic
@@ -385,8 +388,6 @@ Do not duplicate recipes or silently present unsupported behavior as a full port
   and interactions. The table below tracks only outstanding recipe work.
 - [ ] Verify real-display layout/input on both backends; Qt offscreen and SDL
   dummy-driver recipe tests do not establish physical input or focus parity.
-- [ ] Integrate interactive SDL window close with application teardown after the
-  application-stop/native-event ownership contract below is chosen.
 
 Preserve the reference gallery's Example sidebar, scrolling page list, Result
 pane, Qt menus, and recipe layout. The source-code pane is intentionally omitted
@@ -398,11 +399,8 @@ in the gallery. Keep backend capability details in `--list` and documentation.
 | `grid.py`, `stack.py` | 3 | Grid placement, overlap |
 | `binding.py`, `textfield.py` | 2, 4 | External get/set, changed callback, edit/commit and conversion |
 | `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
-| `progressbar.py` | 4 | LVGL page requires backend support |
-| `text.py` | 4 | LVGL page requires backend support |
 | `image.py` | 3, 4 | Sized image asset |
 | `scroll.py`, `tab.py` | 5 | Scroll offsets, tab switching and retained native state |
-| `splitter.py` | 5 | LVGL page requires backend support |
 | `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |
 | `canvas.py`, `drop.py` | 7 | Drawing, event payloads and accepted/rejected drops |
@@ -454,12 +452,6 @@ Continue independent implementation while these contracts remain undecided.
   lack a consistent page/label correspondence. Choose a single physical page
   requirement versus an implicit grouping container before porting Tabs/Tab;
   the cookbook exercises only one child per Tab.
-- **Interactive SDL close:** [LVGL 9.3's event handler](https://github.com/lvgl/lvgl/blob/c033a98afddd65aaafeebea625382a94020fe4a7/src/drivers/sdl/lv_sdl_window.c)
-  deletes a display on window close and deinitializes LVGL/exits the process on
-  `SDL_QUIT`. CPPUI's LVGL loop has no stop contract, and its borrowed screen
-  must remain live until declaration teardown. Choose application-controlled
-  event interception/stop or a backend-owned loop before claiming graceful
-  interactive closure. Explicit smoke teardown does not exercise that path.
 
 ## Explicitly deferred or requiring a C++ design decision
 
