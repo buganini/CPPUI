@@ -113,8 +113,9 @@ used) and deinitializing LVGL.
 ## Tests and memory checks
 
 `--smoke` clicks every sidebar page three times, checks the two-column geometry,
-scrollable list, Qt menus, native label contents, and A/B, progress and Canvas
-rotation buttons. It switches the Tab recipe's pages and accepts/cancels the
+scrollable list, Qt menus, native label contents, bound controls, text editing,
+scroll anchoring, and A/B, progress and Canvas rotation buttons where supported.
+It switches the Tab recipe's pages and accepts/cancels the
 Dialog recipe's prompt (including accepted empty text), opens/closes the Modal
 recipe through its bound buttons, then tears down the
 application. Sidebar native identity survives page changes.

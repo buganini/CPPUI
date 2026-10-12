@@ -114,13 +114,17 @@ explicit teardown leaves neither stale accesses nor retained declarations.
 “Partial” means code exists, not that parity or runtime correctness is verified.
 The checklist below contains remaining work only.
 
+The remaining implementation tasks depend on the contracts recorded below.
+Display checks and wx runtime validation are separate outstanding verification;
+they are not blocked on API choices.
+
 Each row maps remaining work to its implementation phase and a pinned reference
 case. Acceptance involving undecided APIs applies after that contract is chosen;
 the separate deferred section records intentional omissions.
 
 | Area | Current basis | Remaining acceptance | Phase / reference case |
 | --- | --- | --- | --- |
-| DOM reconciliation | Scoped identity, native moves, virtual flattening and reclamation | External native deletion/remount respects identity; queued dispatch cannot reach reclaimed nodes | 1 / [virtual nodes][ref-virtual] |
+| DOM reconciliation | Scoped identity, native moves, virtual flattening and reclamation | Define native remount and interop identity after external deletion | 1 / [virtual nodes][ref-virtual] |
 | Views | `QtView` queued/coalesced redraw, immediate sync and one-time setup | Changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
 | State | Read tracking, assignment, `+=`, `-=`, listener cleanup and Binding adapters | Change subscriptions and explicit notification; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
 | Application | Owned/borrowed `QApplication`, initial icon, queued quit | Add typed application options under the shared options contract | 2 / [gallery startup][ref-gallery] |
@@ -142,9 +146,7 @@ the separate deferred section records intentional omissions.
 [ref-batch]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/batched_state_mutation.py
 [ref-qt]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/pyside6_regression.py
 [ref-wx]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/wx_regression.py
-[ref-scroll-sync]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/scroll_sync.py
 [ref-interop]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/examples/pyside6_interop.py
-[ref-window]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/window.py
 [ref-gallery]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/__main__.py
 [ref-binding]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/binding.py
 [ref-hbox]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/hbox.py
@@ -158,8 +160,6 @@ the separate deferred section records intentional omissions.
 [ref-radio]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/radiobutton.py
 [ref-combo]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/combobox.py
 [ref-image]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py
-[ref-scroll]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/scroll.py
-[ref-mdi]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/mdi.py
 [ref-canvas]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py
 [ref-drop]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/drop.py
 [ref-table]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/table.py
@@ -167,7 +167,6 @@ the separate deferred section records intentional omissions.
 [ref-tree]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tree.py
 [ref-tree-adapter]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tree_adapter.py
 [ref-widget]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/widget.py
-[ref-timeline]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/timeline.py
 
 ## Implementation sequence
 
@@ -194,7 +193,7 @@ phases 0–3 does not block independent components in later phases.
 - Portable input event objects are explicitly deferred. Existing no-argument
   callbacks remain usable.
 
-### Phase 0 — Contract and test harness (P0)
+### Phase 0 — Public option contracts (P0)
 
 - [ ] Settle concrete layout/style option types against reference behavior.
   Keep event-aware overloads deferred without blocking components that use
@@ -209,17 +208,9 @@ Reference: [node.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c8
 [virtual_nodes.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py), and
 [subview_id.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/subview_id.py).
 
-- [ ] Replace assumptions that Python-style retired-node links remain valid in
-  C++. `sync()` currently deletes retired declarations; a retained pointer cannot
-  safely follow `getNode()` afterward. Implement explicit internal dispatch and
-  reclamation lifetimes for callbacks, timers, and imperative operations without
-  introducing a public weak node wrapper.
 - [ ] Validate wx native ownership transfer and teardown with its runtime
   dependencies available: child ownership/parent links must transfer before the
   old declaration is released, and native subtrees must be destroyed once.
-- [ ] Extend ownership coverage to queued callbacks/timers and externally owned
-  or self-deleting native widgets. Ensure new event APIs cannot retain retired
-  declarations indefinitely or introduce owning cycles.
 - [ ] Specify borrowed-widget cleanup and native remount after external owner
   destruction, including the native-widget identity used for matching interop
   declarations. Clearing typed native access makes teardown safe, but a later
@@ -267,7 +258,8 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
 [Qt base](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py),
 [layout.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/layout.py), and corresponding cookbook pages.
 
-- [ ] Add layout width/height, weight, padding, margin, and grid placement APIs.
+- [ ] Add layout width/height, weight, padding, margin, and fluent grid placement
+  APIs; existing node coordinate/span fields already drive Grid.
   Implement supported reference behavior and document parsed-but-unused options
   instead of claiming they work. Distinguish omitted values from zero.
 - [ ] Apply generic colors/fonts and typed Qt options for size policies,

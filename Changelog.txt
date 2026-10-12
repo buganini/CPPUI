@@ -5,7 +5,7 @@
     * LVGL: add Canvas drawing, Spacer, Divider, clickable Label, wrapping Text, bound Checkbox and virtual Tabs/Tab; reclaim standalone views and safely handle native deletion and callback replacement
     * Cookbook: share recipe sources across Qt and LVGL, preserve PUI's layout and support separate LVGL 9.6 SDL2/X11 builds
     * Tests: add CMake/CTest regressions, example/cookbook smoke tests, sanitizer coverage and optional Valgrind leak checks
-    * Docs: add pinned PUI/Qt and LVGL alignment plans with explicit C++ ownership contracts
+    * Docs: track remaining PUI/Qt and LVGL work against pinned sources, with C++ ownership contracts and decision context
 
 2024-06-22
     * Core: reclaim retired nodes after reconciliation and rename .tag() to .id()

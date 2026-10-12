@@ -185,7 +185,16 @@ remain deferred with the Qt plan.
   visibility mode for an object; choose how independently forced/off/as-needed
   axes map before claiming the same Scroll contract. The offset representation
   itself no longer needs a shared C++ decision.
-
+- **Grid sizing:** existing node coordinates/spans can drive placement. LVGL
+  additionally requires explicit row/column track arrays; choose content-sized
+  versus fractional tracks and their interaction with the shared size/weight
+  options. See the pinned [Grid API](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/layouts/lv_grid.h).
+- **Selection controls:** LVGL's [dropdown](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/widgets/lv_dropdown.h)
+  takes newline-separated labels and exposes an unsigned selected index; it does
+  not supply Qt's editable text field or negative-index empty selection contract.
+  Choose a restricted native control versus a composite implementation. A radio
+  control also needs an explicit grouping/focus policy; Qt's native sibling
+  auto-exclusion does not automatically transfer to LVGL.
 - **Shared contracts:** use the shared Binding/State adapters and follow the Qt plan's
   default reset for omitted properties, stderr render errors, Optional dialog
   results and PUI virtual Tab mapping. Input payloads are explicitly deferred;
