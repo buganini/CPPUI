@@ -1,5 +1,16 @@
 2026-10-12
 
+- Add Qt Text, Html and MarkDown with explicit formats, owned text, wrapping,
+  top alignment and optional mouse selection. Add selectable Label and reset
+  selection flags on reuse. Port the shared Text cookbook recipe through the
+  Qt source manifest; other backends retain explicit capability reporting.
+  Validation: Qt/core sanitizer suite 9/9 and affected Qt widget/cookbook
+  Valgrind checks 2/2 pass. Existing Qt examples and eight independent Qt headers
+  compile; LVGL rebuild and shared smoke pass. Tests cover all text formats,
+  updated text, native reuse, selection enable/reset and repeated page teardown.
+  Update component/cookbook docs, ignore local cookbook build output, and remove
+  completed component work from the plan.
+
 - Add Qt ProgressBar with PUI's hundredths conversion, fractional maximum,
   retained native updates, and finite/integer-range validation. Add its shared
   cookbook recipe; backend source manifests enable it for Qt while LVGL lists

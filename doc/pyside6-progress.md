@@ -121,11 +121,11 @@ The checklist below contains remaining work only.
 | Application | Partial: creates `QApplication`, shows/closes children, starts loop | Icon/options, queued quit |
 | Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
 | HBox/VBox | Partial: insertion/removal and native reuse | Padding, dimensions, weights, Qt policies, correct native mounting |
-| Label/Button | Partial: text and button click | Common modifiers, selectable/clickable labels, event contract |
+| Label/Button | Partial: text and button click | Common modifiers, clickable labels, event contract |
 | Grid/Stack/Spacer/Divider | Missing native components | Core grid/order flags alone do not implement these widgets |
 | TextField/Checkbox/RadioButton | Missing | Two-way editing and selection |
 | ComboBox/ComboBoxItem | Missing | Selection/value mapping |
-| Text/Html/MarkDown/Image | Missing | Rich/selectable text and image presentation |
+| Image | Missing | Image loading, sizing and presentation |
 | Scroll/Tabs/Tab/Splitter | Missing | Container semantics and retained interaction state |
 | Modal/imperative dialogs | Missing | Bound visibility, callbacks, results/cancellation |
 | MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions, out-of-order children, native ownership |
@@ -245,9 +245,8 @@ Reference: [node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724
   overlapping Stack order, and `QSpacerItem` ownership/non-movability.
 - [ ] Extend Window with title, icon, size, keypress, initial-only maximize and
   fullscreen flags, and imperative methods to change those states.
-- [ ] Extend Label with selectable text/clicks and Button with current callback
-  dispatch and reference focus behavior. Add common event payloads and fluent
-  modifiers needed by later widgets.
+- [ ] Extend Label with clicks and align Button's reference focus behavior.
+  Add common event payloads and fluent modifiers needed by later widgets.
 
 Acceptance: port HBox/VBox/Grid/Stack cookbook scenarios; change weights to zero,
 dimensions, styles, and grid spans on a retained tree. Verify native geometry
@@ -263,8 +262,8 @@ and child order. Port the window-state and size-policy cases from
   selection, including rebinding and current click callbacks.
 - [ ] Add ComboBox/ComboBoxItem with editable text, index/text models, distinct
   labels/values, empty contents, invalid selection, and dynamic item updates.
-- [ ] Add Text, Html, MarkDown, and Image with selection, wrapping, dimensions,
-  path updates, and common modifiers as supported by the pinned reference.
+- [ ] Add Image with dimensions, path updates, and common modifiers as supported
+  by the pinned reference.
 
 Acceptance: port the binding, textfield, checkbox, radiobutton, combobox,
 progressbar, text, and image cookbook cases. Assert a single commit, no feedback
@@ -367,7 +366,8 @@ Do not duplicate recipes or silently present unsupported behavior as a full port
 | `binding.py`, `textfield.py` | 2, 4 | External get/set, changed callback, edit/commit and conversion |
 | `checkbox.py`, `radiobutton.py`, `combobox.py` | 2, 4 | Boolean/collection/value selections and dynamic items |
 | `progressbar.py` | 3 | Add Spacer; LVGL page requires backend support |
-| `text.py`, `image.py` | 3, 4 | Three text formats, sized image asset |
+| `text.py` | 3 | Add Spacer; LVGL page requires backend support |
+| `image.py` | 3, 4 | Sized image asset |
 | `scroll.py`, `tab.py`, `splitter.py` | 5 | Scroll offsets, tab switching, resize and retained native state |
 | `modal.py`, `dialog.py` | 5 | Open/close, accepted values and cancellation |
 | `mdi.py`, `widget.py`, `timeline.py` | 6 | MDI children, borrowed Qt widget, timer stops on removal |

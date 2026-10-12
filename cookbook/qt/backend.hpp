@@ -6,6 +6,7 @@
 #include "cppui/qt/label.hpp"
 #include "cppui/qt/button.hpp"
 #include "cppui/qt/progressbar.hpp"
+#include "cppui/qt/text.hpp"
 #include "../recipes.hpp"
 
 namespace Cookbook { namespace Backend {
@@ -22,8 +23,9 @@ namespace Cookbook { namespace Backend {
         return true;
     }
     inline bool labelHasText(CPPUI::Node & node, const std::string & text) {
-        auto label = dynamic_cast<CPPUI::Qt::Label *>(&node);
-        return label && static_cast<QLabel *>(label->outer())->text().toStdString() == text;
+        auto widget = dynamic_cast<CPPUI::Qt::BaseWidget *>(&node);
+        auto label = widget ? qobject_cast<QLabel *>(widget->ui) : nullptr;
+        return label && label->text().toStdString() == text;
     }
 }}
 #endif

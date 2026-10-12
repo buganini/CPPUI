@@ -12,10 +12,11 @@ namespace CPPUI {
         class Label: public BaseWidget {
             public:
             std::string text;
-            Label(const char * text) {
+            bool selectable;
+            Label(const char * text, bool selectable = false): selectable(selectable) {
                 this->text = std::string(text);
             }
-            Label(const std::string text) {
+            Label(const std::string & text, bool selectable = false): selectable(selectable) {
                 this->text = text;
             }
             void update(BaseWidget * prev) {
@@ -26,14 +27,16 @@ namespace CPPUI {
                 }
                 ((QLabel *)ui)->setTextFormat(::Qt::PlainText);
                 ((QLabel *)ui)->setText(text.c_str());
+                ((QLabel *)ui)->setTextInteractionFlags(
+                    selectable ? ::Qt::TextSelectableByMouse : ::Qt::NoTextInteraction);
             }
         };
     }
-    inline Qt::Label & Label(const char * text) {
-        return *(new Qt::Label(text));
+    inline Qt::Label & Label(const char * text, bool selectable = false) {
+        return *(new Qt::Label(text, selectable));
     }
-    inline Qt::Label & Label(const std::string text) {
-        return *(new Qt::Label(text));
+    inline Qt::Label & Label(const std::string & text, bool selectable = false) {
+        return *(new Qt::Label(text, selectable));
     }
 }
 

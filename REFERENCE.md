@@ -8,6 +8,7 @@
 |[Label](#label)|QLabel|label|wxStaticText|
 |[Button](#button)|QPushButton|button|wxButton|
 |[ProgressBar](#progressbar)|QProgressBar|—|—|
+|[Text / Html / MarkDown](#text)|QLabel|—|—|
 
 Node IDs and Qt button text copy their string arguments, including temporary
 `std::string` values. An empty explicit ID is distinct from no ID; `id(nullptr)`
@@ -47,3 +48,12 @@ retained widgets. A zero maximum uses Qt's busy indicator; other range behavior
 follows `QProgressBar`. Non-finite or unrepresentable values throw
 `std::out_of_range` during construction. A state read passed as an argument
 subscribes the surrounding view; this component does not require a writable binding.
+
+## Text
+
+Include `cppui/qt/text.hpp` for `Text(text, selectable = false)`,
+`Html(text, selectable = false)`, and `MarkDown(text, selectable = false)`.
+They own their strings and use a wrapping, top-aligned QLabel with explicit
+plain, rich, or Markdown format. Text and selection flags update on retained
+widgets. `Label(text, selectable = false)` also supports mouse text selection,
+while keeping its literal plain-text format and normal single-line layout.

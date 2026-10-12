@@ -10,3 +10,5 @@ example/*/minimal
 /build-valgrind/
 /build-cookbook-qt/
 /build-cookbook-lvgl/
+/cookbook/*/build/
+/cookbook/*/build-*/

@@ -2,6 +2,7 @@
 #include "cppui/qt/label.hpp"
 #include "cppui/qt/layout.hpp"
 #include "cppui/qt/progressbar.hpp"
+#include "cppui/qt/text.hpp"
 #include <limits>
 #include <QApplication>
 #include <QEvent>
@@ -14,6 +15,7 @@ namespace {
 
     class Root: public CPPUI::Qt::QtView {
         public:
+        bool selectable = true;
         double progress = 0.125;
         double maximum = 0.25;
         std::string caption = std::string(100, 'x');
@@ -27,8 +29,11 @@ namespace {
         void content() override {
             // Both arguments die before native reconciliation starts.
             CPPUI::Button(std::string(caption)).id(std::string(100, 'b'));
-            CPPUI::Label("No <b>HTML</b>");
+            CPPUI::Label("No <b>HTML</b>", selectable);
             CPPUI::ProgressBar(progress, maximum);
+            CPPUI::Text(caption, selectable);
+            CPPUI::Html("<i>HTML</i>");
+            CPPUI::MarkDown("# Heading");
         }
     };
 }
@@ -42,10 +47,25 @@ int main(int argc, char ** argv) {
         require(label->textFormat() == Qt::PlainText, "Label interpreted markup as HTML");
         auto button = static_cast<QPushButton *>(root.children->front()->outer());
         require(button->text().toStdString() == root.caption, "temporary button text was lost");
+        require(label->textInteractionFlags() == Qt::TextSelectableByMouse, "Label selection was not enabled");
+        auto text = static_cast<QLabel *>(root.children->at(3)->outer());
+        auto html = static_cast<QLabel *>(root.children->at(4)->outer());
+        auto markdown = static_cast<QLabel *>(root.children->at(5)->outer());
+        require(text->textFormat() == Qt::PlainText && text->wordWrap()
+                && (text->alignment() & Qt::AlignTop), "plain Text presentation differs from PUI");
+        require(html->textFormat() == Qt::RichText && markdown->textFormat() == Qt::MarkdownText,
+                "rich text format was not applied");
+        require(text->textInteractionFlags() == Qt::TextSelectableByMouse, "Text selection was not enabled");
+        root.selectable = false;
         root.caption.assign(120, 'y');
         root.redraw();
         require(root.children->front()->outer() == button, "temporary ID changed native identity");
         require(button->text().toStdString() == root.caption, "retained button text was not updated");
+        require(root.children->at(3)->outer() == text && text->text().toStdString() == root.caption,
+                "Text did not reuse its native widget with updated content");
+        require(label->textInteractionFlags() == Qt::NoTextInteraction
+                && text->textInteractionFlags() == Qt::NoTextInteraction,
+                "redraw did not clear selection flags");
         auto bar = static_cast<QProgressBar *>(root.children->at(2)->outer());
         require(bar->maximum() == 25 && bar->value() == 12, "fractional hundredths conversion differs from PUI");
         root.maximum = 2.5;

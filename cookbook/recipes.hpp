@@ -17,6 +17,7 @@ namespace Cookbook {
         const char * remaining;
     };
     void progressbar(Model &);
+    void text(Model &);
     const std::vector<Recipe> & recipes();
     int run(int argc, char ** argv);
 }
