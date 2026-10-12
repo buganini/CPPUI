@@ -1,5 +1,13 @@
 2026-10-12
 
+- Map every remaining Qt alignment area to its phase, pinned reference cases
+  and concrete acceptance checks. Remove the completed mapping checklist item.
+  Record the inconsistent Tab child/page correspondence and SDL interactive
+  stop/ownership decisions; clarify the cookbook's native-close test limitation.
+  Validation: all 35 reference labels resolve and all 49 pinned PUI paths exist
+  in the reference Git tree. Whitespace and remaining-only checklists checked;
+  no runtime changes.
+
 - Route LVGL and wx native updates through Node::update after backend dispatch,
   matching Qt's common retirement protocol. Add an LVGL lifecycle regression
   for internal forwarding while declarations are alive, native reuse, repeated

@@ -111,26 +111,66 @@ explicit teardown leaves neither stale accesses nor retained declarations.
 “Partial” means code exists, not that parity or runtime correctness is verified.
 The checklist below contains remaining work only.
 
-| Area | CPPUI baseline | Remaining alignment |
-| --- | --- | --- |
-| DOM reconciliation | Partial: scoped type/id/grid matching, keyed moves, virtual flattening, subtree removal, ordering/terminal coverage | Native interop identity and dispatch lifetime safety |
-| Views | Partial: `View`, `QtView`, `SubView<T>()`, independent redraw | Queued/coalesced Qt redraw, setup lifecycle, nested failure recovery, parameterized views |
-| State | Partial: `State<T>` read tracking, assignment, `+=`, `-=`, listener cleanup; both state/view destruction orders tested | Bindings, batching, collection changes |
-| Application | Partial: creates/borrows `QApplication`, shows/closes children, starts loop, queued quit | Icon/options |
-| Window | Partial: `QMainWindow` and central widget | Title/icon/size, initial state flags, imperative state changes, keypress |
-| HBox/VBox | Partial: insertion/removal and native reuse | Padding, dimensions, weights, Qt policies, correct native mounting |
-| Label/Button | Partial: text and button click | Common modifiers, clickable labels, event contract |
-| Grid/Stack/Spacer | Missing native components | Core grid/order flags alone do not implement these widgets |
-| TextField/Checkbox/RadioButton | Missing | Two-way editing and selection |
-| ComboBox/ComboBoxItem | Missing | Selection/value mapping |
-| Image | Missing | Image loading, sizing and presentation |
-| Scroll/Tabs/Tab | Missing | Container semantics and retained interaction state |
-| Modal/imperative dialogs | Missing | Bound visibility, callbacks, results/cancellation |
-| MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions, out-of-order children, native ownership |
-| Canvas/ImageResource | Missing | Drawing, pointer events, HiDPI |
-| Table/TableNode/Tree/TreeNode/adapters | Missing | Qt models, editing, stable identity |
-| Qt interop/TimelineView | Missing | Borrowed widgets, embedding, cancellable timers |
-| Validation | Core and offscreen Qt CTest harnesses, independent header builds, multi-file checks | Broader lifecycle, dispatch, and component parity coverage |
+Each row maps remaining work to its implementation phase and a pinned reference
+case. Acceptance involving undecided APIs applies after that contract is chosen;
+the separate deferred section records intentional omissions.
+
+| Area | Current basis | Remaining acceptance | Phase / reference case |
+| --- | --- | --- | --- |
+| DOM reconciliation | Scoped identity, native moves, virtual flattening and reclamation | External native deletion/remount respects identity; queued dispatch cannot reach reclaimed nodes | 1 / [virtual nodes][ref-virtual] |
+| Views | `View`, `QtView`, `SubView<T>()`, synchronous independent redraw | Bursts coalesce; removed views receive no work; changed retained-view inputs arrive; a failed nested render can recover | 2 / [nested views][ref-nested], [redraw semaphore][ref-redraw] |
+| State | Read tracking, assignment, `+=`, `-=`, listener cleanup | Writable bindings commit once; a batch renders its final value; nested collection edits notify subscribers | 2 / [binding][ref-binding], [batched mutation][ref-batch] |
+| Application | Owned/borrowed `QApplication`, queued quit | Apply and reset declared icon/options without changing borrowed native ownership | 2 / [gallery startup][ref-gallery] |
+| Window | `QMainWindow` and central widget | Update title/icon/size; initial flags apply only on creation; imperative state changes and keypress payloads work | 3 / [Qt regression][ref-qt] |
+| HBox/VBox | Insertion/removal, native reuse, default padding | Reset padding/dimensions/weights, including zero; apply copied Qt size policies | 3 / [HBox][ref-hbox], [VBox][ref-vbox], [Qt regression][ref-qt] |
+| Label/Button | Owned text, selectable labels and button clicks | Styles reset on reuse; clickable labels use current callbacks; event payloads follow the chosen contract | 3 / [Label][ref-label], [Button][ref-button] |
+| Grid/Stack/Spacer | Core flags only | Grid spans mount correctly; Stack preserves overlap order; spacers resize and release their native items once | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
+| TextField/Checkbox/RadioButton | Missing | Preserve unfinished edits; validate commit; rebind boolean/collection/value selections without feedback loops | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
+| ComboBox/ComboBoxItem | Missing | Preserve distinct labels/values across item updates; handle empty contents and negative selection | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
+| Image | Missing | Update source and declared dimensions while preserving native identity | 4 / [Image][ref-image] |
+| Scroll/Tabs/Tab | Missing | Preserve scroll anchor and selected tab through insertion/reorder/removal; update labels using the chosen Tab child contract | 5 / [Scroll][ref-scroll], [scroll sync][ref-scroll-sync], [Tab][ref-tab] |
+| Modal/imperative dialogs | Missing | Native close updates bound visibility; reopen/removal are safe; results distinguish accepted values from cancellation | 5 / [Modal][ref-modal], [Dialog][ref-dialog] |
+| MenuBar/Menu/MenuAction/ToolBar/ToolBarAction/MDI | Missing | Actions fire once with current data; keyed moves retain native objects; menus/toolbars/MDI coexist with central content and release ownership correctly | 6 / [gallery menus][ref-gallery], [Window routing][ref-window], [MDI][ref-mdi] |
+| Canvas/ImageResource | Missing | Verify drawing/transforms/crops at multiple pixel densities; event replacement and accepted/rejected drops are safe after redraw/removal | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
+| Table/TableNode/Tree/TreeNode/adapters | Missing | Ragged cells stay inert; typed choices commit once; tree moves retain selection, expansion and persistent indexes | 8 / [Table][ref-table], [Table adapter][ref-table-adapter], [Tree][ref-tree], [Tree adapter][ref-tree-adapter] |
+| Qt interop/TimelineView | Missing | Borrowed widgets survive removal according to their ownership contract; timers stop on removal/shutdown | 6 / [embedding example][ref-interop], [Widget][ref-widget], [Timeline][ref-timeline] |
+| Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; exercise wx lifecycle with its dependencies and manual focus/window/HiDPI behavior on a display | 0–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
+
+[ref-virtual]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/virtual_nodes.py
+[ref-nested]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/nested_view.py
+[ref-redraw]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/redraw_semaphore.py
+[ref-batch]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/batched_state_mutation.py
+[ref-qt]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/pyside6_regression.py
+[ref-wx]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/wx_regression.py
+[ref-scroll-sync]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/scroll_sync.py
+[ref-interop]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/examples/pyside6_interop.py
+[ref-window]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/window.py
+[ref-gallery]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/__main__.py
+[ref-binding]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/binding.py
+[ref-hbox]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/hbox.py
+[ref-vbox]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/vbox.py
+[ref-label]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/label.py
+[ref-button]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/button.py
+[ref-grid]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/grid.py
+[ref-stack]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/stack.py
+[ref-textfield]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/textfield.py
+[ref-checkbox]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/checkbox.py
+[ref-radio]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/radiobutton.py
+[ref-combo]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/combobox.py
+[ref-image]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py
+[ref-scroll]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/scroll.py
+[ref-tab]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tab.py
+[ref-modal]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/modal.py
+[ref-dialog]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/dialog.py
+[ref-mdi]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/mdi.py
+[ref-canvas]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py
+[ref-drop]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/drop.py
+[ref-table]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/table.py
+[ref-table-adapter]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/table_adapter.py
+[ref-tree]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tree.py
+[ref-tree-adapter]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tree_adapter.py
+[ref-widget]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/widget.py
+[ref-timeline]: https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/timeline.py
 
 ## Implementation sequence
 
@@ -147,8 +187,6 @@ behavioral checks and documentation.
 - [ ] Specify the C++ API shapes for `Binding<T>`, event payloads, and layout/style
   options. Keep existing no-argument button callbacks usable while adding
   event-aware overloads.
-- [ ] Map every component in the status table to a milestone, reference example,
-  and acceptance case. Track intentional extensions and omissions separately.
 
 Acceptance: the remaining public API choices are documented and each planned
 component has a reference example and a concrete acceptance case.
@@ -268,6 +306,7 @@ loops, current binding/callback after reuse, and negative ComboBox index handlin
 - [ ] Add Tabs/virtual Tab, with reactive labels, child insertion,
   removal, reordering, and native interaction state. Record `tabposition` as a
   reference gap: the pinned implementation stores it but does not apply it.
+  Resolve the page/child correspondence described under design decisions first.
 - [ ] Add Modal with bound status/off-value, open/close callbacks, native-close
   synchronization, and Window's initial/imperative state contract.
 - [ ] Add OpenDirectory, OpenFile, OpenFiles, SaveFile, Information, Warning,
@@ -346,6 +385,8 @@ Do not duplicate recipes or silently present unsupported behavior as a full port
   and interactions. The table below tracks only outstanding recipe work.
 - [ ] Verify real-display layout/input on both backends; Qt offscreen and SDL
   dummy-driver recipe tests do not establish physical input or focus parity.
+- [ ] Integrate interactive SDL window close with application teardown after the
+  application-stop/native-event ownership contract below is chosen.
 
 Preserve the reference gallery's Example sidebar, scrolling page list, Result
 pane, Qt menus, and recipe layout. The source-code pane is intentionally omitted
@@ -407,6 +448,18 @@ Continue independent implementation while these contracts remain undecided.
   cancellation/results, table/tree value and identity types, and external widget
   ownership need their own C++ contracts before the corresponding phase. Their
   context and acceptance cases are recorded in phases 5–8 above.
+- **Tab child cardinality:** [the pinned Tab implementation](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tab.py)
+  inserts a native page for each physical child under a virtual Tab, but updates
+  one label per top-level Tab in `postSync`. Empty or multi-child tabs therefore
+  lack a consistent page/label correspondence. Choose a single physical page
+  requirement versus an implicit grouping container before porting Tabs/Tab;
+  the cookbook exercises only one child per Tab.
+- **Interactive SDL close:** [LVGL 9.3's event handler](https://github.com/lvgl/lvgl/blob/c033a98afddd65aaafeebea625382a94020fe4a7/src/drivers/sdl/lv_sdl_window.c)
+  deletes a display on window close and deinitializes LVGL/exits the process on
+  `SDL_QUIT`. CPPUI's LVGL loop has no stop contract, and its borrowed screen
+  must remain live until declaration teardown. Choose application-controlled
+  event interception/stop or a backend-owned loop before claiming graceful
+  interactive closure. Explicit smoke teardown does not exercise that path.
 
 ## Explicitly deferred or requiring a C++ design decision
 

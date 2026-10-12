@@ -71,3 +71,7 @@ The LVGL project also tests declaration retirement, native reuse, removal, and
 application teardown through `lvgl.lifetime` and its optional Valgrind variant.
 
 Interactive SDL input and real-display layout/focus checks remain outstanding.
+Interactive close also needs an application-stop contract: LVGL's SDL handler
+can destroy the display or exit before CPPUI tears down declarations. The tested
+smoke path returns to startup for ordered cleanup; it does not validate native
+window-close handling. See the alignment plan for that decision.
