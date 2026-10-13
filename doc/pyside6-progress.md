@@ -32,6 +32,9 @@ Adopted reference updates beyond the original baseline:
 - Window content sizing follows PUI `7d8655e`: the top-level native layout uses
   `SetNoConstraint`, preserving declared and user-set sizes as content grows.
 - Tabs follows PUI `b9e3ad5`: validate and apply native north/south/east/west placement.
+- ComboBox follows PUI `9a3b142` and its shared `combobox_get`/set helpers:
+  retain editable buffers, clear the index for free text, display selected labels,
+  and preserve unbound selection by item identity across keyed moves.
 
 ### C++ ownership and reclamation requirements
 

@@ -527,8 +527,12 @@ Use explicit IDs to distinguish duplicate labels or retain a renamed item.
 Index binding takes precedence for displayed selection. Negative/out-of-range
 indices produce no selection; an index-change callback for -1 writes empty text,
 never the last item's value. A text-only binding matches stored values. Editable
-text writes its string binding. `.change(callback)` has no arguments; an editable
-selection can emit both Qt index and text changes, as in PUI.
+selection displays the item's label. Typing free text clears the index binding
+to -1 and writes the text binding; with no text binding, the native widget retains
+the edit buffer. Unbound selection follows the selected item's key through
+reorders and label changes, including items in independently redrawn subviews.
+`.change(callback)` has no arguments. A selected item's label-change signal is
+ignored, so selection writes the stored value and calls the callback once.
 
 Unchanged declarations preserve user edits; changing/reordering items refreshes
 labels/data and reapplies bound selection without feedback writes. Native

@@ -7,14 +7,18 @@
 #include <QComboBox>
 #include <QSignalBlocker>
 #include <QPointer>
+#include <QStringList>
 
 namespace CPPUI { namespace Qt {
     class ComboBoxItem;
     class ComboBoxWidget: public Widget<QComboBox> {
         public:
+        enum { IdentityRole = ::Qt::UserRole + 1 };
         bool itemsChanged = false;
         Optional<int> declaredIndex;
         OptionalText declaredText;
+        QVariant selectedKey;
+        QString freeText;
     };
     class ComboBox: public BaseWidget {
         bool editable;
@@ -47,18 +51,26 @@ namespace CPPUI { namespace Qt {
             if(!ui) return;
             auto combo = static_cast<ComboBoxWidget *>(ui);
             disconnectSignals();
-            if(indexModel || textModel || !combo->declaredIndex) {
+            {
                 QSignalBlocker block(combo);
                 int index = -1;
                 QString text;
                 if(indexModel) {
                     if(indexValue >= 0 && indexValue < combo->count()) { index = indexValue; text = combo->itemText(index); }
+                    else if(editable) text = textModel ? QString::fromStdString(textValue) : combo->freeText;
                 } else if(textModel) {
                     text = QString::fromStdString(textValue);
                     index = combo->findData(text);
+                    if(index >= 0) text = combo->itemText(index);
+                } else {
+                    if(combo->selectedKey.isValid()) index = combo->findData(combo->selectedKey, ComboBoxWidget::IdentityRole);
+                    if(index >= 0) text = combo->itemText(index);
+                    else if(editable) text = combo->freeText;
                 }
                 if(combo->itemsChanged || !combo->declaredIndex || *combo->declaredIndex != index) combo->setCurrentIndex(index);
-                if(combo->itemsChanged || !combo->declaredText || *combo->declaredText != text.toStdString()) combo->setCurrentText(text);
+                // Read-only text follows the selected index. setCurrentText()
+                // would select the first duplicate label and lose value identity.
+                if(editable && (combo->itemsChanged || !combo->declaredText || *combo->declaredText != text.toStdString())) combo->setCurrentText(text);
                 combo->declaredIndex = index;
                 combo->declaredText = text.toStdString();
             }
@@ -71,7 +83,12 @@ namespace CPPUI { namespace Qt {
                 auto indices = indexBinding;
                 auto texts = textBinding;
                 auto invoke = callback;
-                const auto value = alive && index >= 0 && index < alive->count() ? alive->itemData(index).toString().toStdString() : std::string();
+                if(!alive) return;
+                const bool valid = index >= 0 && index < alive->count();
+                const auto value = valid ? alive->itemData(index).toString().toStdString() : std::string();
+                // Save native state before a binding can redraw or remove us.
+                alive->selectedKey = valid ? alive->itemData(index, ComboBoxWidget::IdentityRole) : QVariant();
+                alive->freeText = valid ? alive->itemText(index) : QString();
                 try {
                     if(indices) indices->set(index);
                     if(texts) texts->set(value);
@@ -79,11 +96,19 @@ namespace CPPUI { namespace Qt {
                 } catch(const std::exception & error) { std::cerr << "CPPUI ComboBox index: " << error.what() << '\n'; }
                 catch(...) { std::cerr << "CPPUI ComboBox index: unknown exception\n"; }
             }));
-            if(editable) connectSignal(QObject::connect(combo, &QComboBox::currentTextChanged, combo, [textBinding, callback](const QString & text) {
+            if(editable) connectSignal(QObject::connect(combo, &QComboBox::currentTextChanged, combo, [alive, indexBinding, textBinding, callback](const QString & text) {
+                auto indices = indexBinding;
                 auto texts = textBinding;
                 auto invoke = callback;
+                if(!alive) return;
+                const int index = alive->currentIndex();
+                // A native selection also changes its displayed label; commit
+                // the item's value only through currentIndexChanged.
+                if(index >= 0 && index < alive->count() && text == alive->itemText(index)) return;
                 const auto value = text.toStdString();
-                try { if(texts) texts->set(value); if(invoke) invoke(); }
+                alive->selectedKey.clear();
+                alive->freeText = text;
+                try { if(indices) indices->set(-1); if(texts) texts->set(value); if(invoke) invoke(); }
                 catch(const std::exception & error) { std::cerr << "CPPUI ComboBox text: " << error.what() << '\n'; }
                 catch(...) { std::cerr << "CPPUI ComboBox text: unknown exception\n"; }
             }));
@@ -94,6 +119,20 @@ namespace CPPUI { namespace Qt {
         std::string text, value;
         explicit ComboBoxItem(const std::string & text): ComboBoxItem(text, text) {}
         ComboBoxItem(const std::string & text, const std::string & value): text(text), value(value) { id(text); is_terminal = true; }
+        QStringList identity() const {
+            // Include virtual scopes so equal item IDs in different subviews
+            // remain distinct, without retaining declaration pointers.
+            QStringList key;
+            for(auto node = static_cast<const Node *>(this); node && node != dom_parent; node = node->parent) {
+                QString part = QString::number(static_cast<qulonglong>(node->typecode()));
+                if(node->grid_row >= 0 && node->grid_column >= 0)
+                    part += QString(":%1,%2,%3,%4").arg(node->grid_row).arg(node->grid_column).arg(node->grid_rowspan).arg(node->grid_columnspan);
+                part += node->has_id ? ":id:" + QString::fromStdString(node->_id) : ":none";
+                key.prepend(part);
+                if(node == node->parent) break;
+            }
+            return key;
+        }
         void destroy(bool) override {} // The native ComboBox owns its item data.
         void postUpdate() override {
             auto parent = dynamic_cast<ComboBox *>(dom_parent);
@@ -107,6 +146,7 @@ namespace CPPUI { namespace Qt {
                     || combo->itemData(index).toString() != QString::fromStdString(value)) combo->itemsChanged = true;
                 combo->setItemText(index, QString::fromStdString(text));
                 combo->setItemData(index, QString::fromStdString(value));
+                combo->setItemData(index, identity(), ComboBoxWidget::IdentityRole);
             }
             // Independent virtual views can update items without rebuilding the
             // ComboBox declaration. Refresh selection after their items settle.
@@ -118,6 +158,7 @@ namespace CPPUI { namespace Qt {
             QSignalBlocker block(ui);
             auto combo = static_cast<ComboBoxWidget *>(ui);
             combo->insertItem(index, QString::fromStdString(item->text), QString::fromStdString(item->value));
+            combo->setItemData(index, item->identity(), ComboBoxWidget::IdentityRole);
             combo->itemsChanged = true;
         }
     }

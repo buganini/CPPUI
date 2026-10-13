@@ -1,5 +1,5 @@
 2026-10-13
-    * Qt: sync PUI window layout boundaries and native tab placement; preserve declared/user-set window sizes and retained tab pages
+    * Qt: sync PUI window boundaries, native tab placement and ComboBox editable/keyed state; preserve native sizes/pages and commit selection values once
     * LVGL: port ProgressBar with busy animation and TimelineView with cancellable timers; enable shared recipes and add range/timing/lifetime regressions
     * LVGL: port typed RadioButton with native sibling exclusion, shared cookbook recipe and binding/lifetime regressions
     * Docs/Cookbook: distinguish unfinished CPPUI ports from verified toolkit limits and intentional exclusions
