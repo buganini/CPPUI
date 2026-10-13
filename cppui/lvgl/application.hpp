@@ -4,7 +4,6 @@
 #include "base.hpp"
 
 #include <iostream>
-#include "unistd.h"
 #include "lvgl.h"
 
 namespace CPPUI {
@@ -29,11 +28,14 @@ namespace CPPUI {
         }
 
 
-        void start(void) {
+        void start(void) override {
             std::cout << "start\n";
-            while (true) {
+            while(lv_display_get_next(nullptr)) {
                 uint32_t ms_delay = lv_timer_handler();
-                usleep(ms_delay * 1000);
+                // A native close can delete the last display inside the handler.
+                // Return before sleeping so declarations and the runtime unwind.
+                if(!lv_display_get_next(nullptr)) break;
+                lv_delay_ms(ms_delay == LV_NO_TIMER_READY ? LV_DEF_REFR_PERIOD : ms_delay);
             }
         }
     };

@@ -46,6 +46,61 @@ namespace {
     }
     void counted(lv_event_t * event) { ++*static_cast<int *>(lv_event_get_user_data(event)); }
 
+    uint32_t loopTick = 0;
+    unsigned loopDelays = 0;
+    uint32_t readLoopTick() { return loopTick; }
+    void advanceLoopTick(uint32_t milliseconds) {
+        require(++loopDelays <= 10, "application loop failed to return after native close");
+        require(milliseconds <= LV_DEF_REFR_PERIOD, "application slept for an invalid timer delay");
+        loopTick += milliseconds;
+    }
+    void closeDisplay(lv_timer_t * timer) {
+        lv_display_delete(static_cast<lv_display_t *>(lv_timer_get_user_data(timer)));
+    }
+    void applicationClose(int argc, char ** argv) {
+        while(auto display = lv_display_get_next(nullptr)) lv_display_delete(display);
+        lv_tick_set_cb(readLoopTick);
+        lv_delay_set_cb(advanceLoopTick);
+        {
+            Root root(argc, argv);
+            root.start();
+            require(loopDelays == 0, "application slept with no display");
+        }
+        {
+            auto display = lv_display_create(800, 600);
+            Root root(argc, argv);
+            root.redraw();
+            auto window = root.children->front();
+            auto label = window->children->front();
+            auto timer = lv_timer_create(closeDisplay, 1, display);
+            lv_timer_set_repeat_count(timer, 1);
+            lv_timer_ready(timer);
+            root.start();
+            require(!lv_display_get_next(nullptr) && !window->ui && !label->ui,
+                    "native close did not invalidate the mounted application");
+            require(loopDelays == 0, "application slept after its last display closed");
+        }
+        require(alive == 0, "native close retained application declarations");
+        {
+            auto first = lv_display_create(800, 600);
+            auto last = lv_display_create(800, 600);
+            // These displays test loop ownership without a renderer.
+            lv_timer_pause(lv_display_get_refr_timer(first));
+            lv_timer_pause(lv_display_get_refr_timer(last));
+            auto finalClose = lv_timer_create(closeDisplay, 5, last);
+            lv_timer_set_repeat_count(finalClose, 1);
+            auto firstClose = lv_timer_create(closeDisplay, 1, first);
+            lv_timer_set_repeat_count(firstClose, 1);
+            lv_timer_ready(firstClose);
+            Root root(argc, argv);
+            root.start();
+            require(!lv_display_get_next(nullptr) && loopTick >= 5 && loopDelays > 0,
+                    "application stopped while another display was still open");
+        }
+        lv_delay_set_cb(nullptr);
+        lv_tick_set_cb(nullptr);
+    }
+
     class ClickRoot: public CPPUI::LVGL::View {
         public:
         bool show = true;
@@ -260,6 +315,7 @@ int main(int argc, char ** argv) {
                 "application teardown retained declarations or native content");
         callbacksAndDeletion();
         virtualViews();
+        applicationClose(argc, argv);
     } catch(const std::exception & error) {
         std::cerr << error.what() << '\n';
         result = 1;

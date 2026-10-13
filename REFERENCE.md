@@ -205,6 +205,12 @@ pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
 
+LVGL `Application::start()` pumps timers while at least one LVGL display exists.
+Closing the last display returns from the loop; closing one of several displays
+keeps it running. Delays use LVGL's configured delay callback. Native deletion
+invalidates CPPUI handles, so declaration teardown remains safe after a display
+closes. The caller still owns input-device cleanup and `lv_deinit()`.
+
 ## Table
 
 Include `cppui/qt/table.hpp`. `Table(autofit = true)` contains row

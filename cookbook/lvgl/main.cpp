@@ -66,10 +66,12 @@ int main(int argc, char ** argv) {
     });
 #endif
     int result = Cookbook::run(argc, argv);
-    // The application must have released declarations and borrowed screen content.
-    if(lv_obj_get_child_count(lv_screen_active()) != 0) {
-        std::cerr << "Cookbook teardown left native screen children\n";
-        result = 1;
+    // Native close may already have deleted the display and its screen.
+    if(lv_display_get_default()) {
+        if(lv_obj_get_child_count(lv_screen_active()) != 0) {
+            std::cerr << "Cookbook teardown left native screen children\n";
+            result = 1;
+        }
     }
     shutdown();
     return result;

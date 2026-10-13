@@ -32,7 +32,7 @@ drawing. Shared recipes use the public PUI layout/style modifiers; see the
 | --- | --- | --- |
 | Core integration | Shared reconciliation, nested virtual views, standalone view cleanup and top-level builder recovery | Nested partial-sync failure recovery needs a shared contract |
 | Native lifetime | Views own declarations; primary/secondary native observers clear on deletion; callbacks detach on retirement | Define external remount and shared-screen ownership before broadening interop (2, 6) |
-| Application and native drivers | Timer loop; separate SDL2/X11 cookbook startup and smoke teardown | Define stop/event ownership, then close gracefully before native display destruction; support host-driven pumping without POSIX-only assumptions (2) |
+| Application and native drivers | Loop returns when the last display closes; LVGL delay callback; separate SDL2/X11 startup and cleanup | Define explicit quit/host-driven pumping and borrowed-runtime ownership; handle SDL2 direct exit (2) |
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
 | Grid/Stack | Missing | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
 | ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
@@ -81,15 +81,17 @@ display/input timers. It builds a corrected copy of the v9.6.0 display driver
 to install the native cursor and stop and join its tick thread during
 programmatic deletion, with an atomic stop flag. The clock callback supersedes
 the thread's simulated ticks.
-Review this version-specific workaround when updating LVGL. It does not resolve
-the application-stop and external-deletion contracts below.
+Review this version-specific workaround when updating LVGL. The application loop
+returns after the last display is deleted and uses LVGL's delay callback.
+X11 window-manager close invalidates native handles, releases declarations, then
+returns to startup for remaining input/runtime cleanup. Lifetime tests cover
+no-display entry, last-display close and multiple-display loop ownership.
 
-- [ ] After choosing the stop/host-loop contract, replace the unbounded POSIX
-  sleep loop with an application loop that can stop and allow ordered teardown.
-  Define tick, delay, idle and host-pump responsibilities.
-- [ ] Intercept/route native close before LVGL deletes the borrowed display or
-  deinitializes itself. Test pending work, repeated quit and teardown from an
-  active callback; verify the host's runtime survives borrowed use.
+- [ ] Add explicit quit and host-driven pumping beyond last-display loop exit.
+  Define tick, delay, idle and host ownership responsibilities.
+- [ ] Route SDL2 direct exit through application cleanup and define borrowed
+  display/runtime close ownership. Test pending work, repeated quit and teardown
+  from an active callback; verify the host's runtime survives borrowed use.
 - [ ] Specify focus-group and keyboard/encoder ownership. Exercise SDL2/X11 pointer,
   wheel and keyboard input through the native driver, including scrolling to
   clipped sidebar pages and focus after page changes.

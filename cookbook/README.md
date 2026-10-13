@@ -148,8 +148,10 @@ version-specific fixes.
 `cookbook/lvgl/` holds the common LVGL implementation. Both executables always
 create their selected native display and input devices. The configuration uses
 libc allocation so memory checkers can observe individual LVGL allocations.
-Application teardown preserves
-the display-owned active screen and releases its CPPUI content before `lv_deinit`.
+When the display is still open, application teardown preserves its active screen
+and releases its CPPUI content before `lv_deinit`. Closing the last X11 window
+deletes the display and returns from the application loop. Native observers
+invalidate the deleted objects before the remaining declarations are released.
 The example assumes CPPUI owns the content of that screen. Startup owns the
 input devices and display; teardown releases those before quitting SDL (when
 used) and deinitializing LVGL.
@@ -200,10 +202,11 @@ The cookbook smoke test switches both shared Tab pages.
 through virtual views, plain-text wrapping and cleanup, including Valgrind.
 
 Interactive SDL2/X11 input and real-display layout/focus checks remain outstanding.
-Interactive close also needs an application-stop contract: LVGL's SDL2/X11
-handlers can destroy the display or exit before CPPUI tears down declarations.
-The tested smoke path returns to startup for ordered cleanup; it does not validate native
-window-close handling. See the [LVGL plan](../doc/lvgl-progress.md) for that decision.
+X11 window-manager close returns through application and runtime cleanup.
+`lvgl.lifetime` covers loop exit without a display, deletion of the last display,
+and continued operation while another display remains. SDL2's direct-exit path
+and an explicit quit/host-driven loop contract still need work; see the
+[LVGL plan](../doc/lvgl-progress.md).
 
 The shared MDI and TimelineView recipes are enabled on Qt; the timer stops when
 its recipe is removed.
