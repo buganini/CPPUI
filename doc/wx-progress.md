@@ -52,7 +52,8 @@ separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 
 - Input payloads, observable collections, retained-view inputs, arbitrary data
   values and native embedding share the existing deferred CPPUI contracts.
-- **Markdown:** PUI/wx marks it unsupported; choose a Markdown renderer/dependency
+- **Markdown:** not yet implemented in CPPUI/wx or the PUI/wx reference;
+  choose and integrate a Markdown renderer/dependency
   before enabling the complete shared Text cookbook page. Plain Text and Html
   already have native APIs.
 - **Splitter:** PUI/wx has no implementation. The shared API accepts arbitrary

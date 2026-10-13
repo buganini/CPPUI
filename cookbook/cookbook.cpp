@@ -35,7 +35,7 @@ namespace Cookbook {
                         for(auto body: CPPUI::VBox().layout({}, {}, 1).id(std::string("recipe:") + page.key)) {
                             if(page.render) page.render(model);
                             else {
-                                CPPUI::Label("Not Supported for this backend");
+                                CPPUI::Label("Not yet ported to this backend");
                                 CPPUI::Spacer();
                             }
                         }
@@ -76,7 +76,7 @@ namespace Cookbook {
             for(int i = 1; i < argc; ++i) {
                 if(std::string(argv[i]) == "--list") {
                     for(const auto & page: recipes()) {
-                        std::cout << page.key << " [" << (page.render ? (*page.remaining ? "partial" : "ported") : "unavailable")
+                        std::cout << page.key << " [" << (page.render ? (*page.remaining ? "partial" : "ported") : "not ported")
                                   << "]: " << page.remaining << '\n';
                     }
                     return 0;

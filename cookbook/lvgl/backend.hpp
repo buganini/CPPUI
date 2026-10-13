@@ -10,6 +10,7 @@
 #include "cppui/lvgl/divider.hpp"
 #include "cppui/lvgl/tab.hpp"
 #include "cppui/lvgl/checkbox.hpp"
+#include "cppui/lvgl/radiobutton.hpp"
 #include "../recipes.hpp"
 #include <stdexcept>
 
@@ -22,7 +23,6 @@ namespace Cookbook { namespace Backend {
     inline bool editTable(CPPUI::Node &, int, int, const std::string &) { return false; }
     inline bool atScrollEnd(CPPUI::Node &) { return false; }
     inline bool selectCombo(CPPUI::Node &, int) { return false; }
-    inline bool selectRadio(CPPUI::Node &) { return false; }
     inline bool editTextField(CPPUI::Node &, const std::string &, bool) { return false; }
     inline void mount(CPPUI::Application & app) { app.redraw(); }
     inline void configureRecipes(std::vector<Recipe> & pages) {
@@ -34,6 +34,9 @@ namespace Cookbook { namespace Backend {
             page.remaining = "";
         } else if(std::string(page.key) == "checkbox") {
             page.render = checkbox;
+            page.remaining = "";
+        } else if(std::string(page.key) == "radiobutton") {
+            page.render = radiobutton;
             page.remaining = "";
         }
     }
@@ -77,6 +80,14 @@ namespace Cookbook { namespace Backend {
         auto checkbox = dynamic_cast<CPPUI::LVGL::Checkbox *>(&node);
         if(!checkbox || !checkbox->ui) return false;
         lv_obj_send_event(static_cast<lv_obj_t *>(checkbox->ui), LV_EVENT_RELEASED, nullptr);
+        return true;
+    }
+    inline bool selectRadio(CPPUI::Node & node) {
+        auto radio = dynamic_cast<CPPUI::LVGL::Node *>(&node);
+        auto object = radio ? static_cast<lv_obj_t *>(radio->ui) : nullptr;
+        if(!object || !lv_obj_is_radio_button(object)) return false;
+        if(lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr) == LV_RESULT_OK)
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
         return true;
     }
     inline void answerPrompt(const std::string &, bool) {}

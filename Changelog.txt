@@ -1,4 +1,6 @@
 2026-10-13
+    * LVGL: port typed RadioButton with native sibling exclusion, shared cookbook recipe and binding/lifetime regressions
+    * Docs/Cookbook: distinguish unfinished CPPUI ports from verified toolkit limits and intentional exclusions
     * wx: port native runtime/ownership, layouts, controls, scrolling, tabs, menus, dialogs, timers, Canvas/images and typed Table/Tree adapters
     * Cookbook/Tests: add shared wx gallery and build instructions, native/sanitizer/Valgrind coverage; remove the copied PUI license file
     * Qt: port typed Table/Tree adapters with explicit data ownership, shared cookbook recipes and lifetime regressions

@@ -1,4 +1,10 @@
 # Declarative Components
+
+This table records CPPUI implementations, not the full capabilities of each
+toolkit. `—` means **not yet implemented in CPPUI**. It does not mean the toolkit
+cannot provide the feature. Partial implementations and specific native limits
+are described in the component sections and backend plans.
+
 |Generic|Qt|lvgl|wx|
 |-------|-------|----|--|
 |[Application](#application)|QApplication|View|App|
@@ -14,10 +20,10 @@
 |[Button](#button)|QPushButton|button|wxButton|
 |[TextField](#textfield)|QLineEdit|—|wxTextCtrl|
 |[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|wxComboBox|
-|[RadioButton](#radiobutton)|QRadioButton|—|wxRadioButton|
+|[RadioButton](#radiobutton)|QRadioButton|checkbox (radio mode)|wxRadioButton|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
 |[ProgressBar](#progressbar)|QProgressBar|—|wxGauge|
-|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / unsupported|
+|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / not yet implemented|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|wxPanel / wxGraphicsContext|
 |[Image](#image)|QLabel / QPixmap|—|wxStaticBitmap / wxImage|
 |[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)|
@@ -520,7 +526,8 @@ non-string values and typed event payloads remain deferred.
 
 ## RadioButton
 
-Include `cppui/qt/radiobutton.hpp` for `RadioButton(text, value, model)`, accepting
+Include `cppui/qt/radiobutton.hpp` or `cppui/lvgl/radiobutton.hpp` for
+`RadioButton(text, value, model)`, accepting
 `Binding<T>` or `State<T>&`. Values are copied and must support equality.
 Construction reads the model for dependency tracking; native clicks commit the
 current value before the current `.click()` callback. Programmatic updates do
@@ -531,6 +538,13 @@ parent. Separate layouts form separate groups. This also preserves a reference
 quirk: setting the model to an unmatched value after selection can leave the
 last radio checked, because Qt refuses to uncheck its only selected button.
 An initially unmatched model has no selected radio.
+
+LVGL uses its checkbox widget with native radio-button mode and a circular
+indicator. Radio buttons sharing a physical parent form an exclusive group;
+use the same model within that group and separate layouts for independent
+groups. An unmatched model clears selection. Native Up/Right key selection
+commits the value without emitting `.click()`; clicking an already selected
+radio keeps it selected and commits once. Focus-group setup belongs to the host.
 
 ## Checkbox
 
@@ -848,8 +862,9 @@ while keeping its literal plain-text format and normal single-line layout.
 For LVGL, include `cppui/lvgl/text.hpp` and use `Text(text)`. It owns literal
 text, wraps to its available width and recalculates its content height. Native
 reuse updates the text. `selectable=true` throws `std::invalid_argument` because
-interactive selection is not implemented; Html/MarkDown are unavailable. The
-full shared Text recipe remains disabled until those capabilities are decided.
+interactive selection is not yet implemented in CPPUI's LVGL backend.
+Html/MarkDown rendering is also not yet implemented; a renderer must be chosen
+before enabling the full shared Text recipe. These are remaining porting tasks.
 
 ## Splitter
 
@@ -874,7 +889,8 @@ one, matching PUI/wx rather than promising a busy indicator.
 
 Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
 HTML subset; its selection behavior is native. Markdown explicitly throws because
-PUI/wx also marks it unsupported; a renderer/dependency decision is still needed.
+CPPUI/wx has no Markdown renderer yet. Choosing and integrating one remains work
+to do; the reference PUI/wx implementation also omits it.
 
 wx Scroll retains manual offsets and end-relative anchors when content changes.
 Tabs uses wxNotebook with a physical wxPanel per Tab, following PUI/wx; each

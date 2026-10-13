@@ -23,9 +23,19 @@ and current contracts; summarize completed changes briefly in `Changelog.txt`.
 
 ## Current basis and remaining acceptance
 
+Use **not yet ported** for missing CPPUI implementations and **partial** for
+implemented behavior with remaining gaps. An unchecked task remains work to do.
+Reserve **native limitation** for a verified LVGL API constraint, with its source
+and the adapter or custom implementation needed. A missing dedicated widget does
+not establish that a feature is impossible. **Excluded** means an explicit scope
+decision, such as the Python-only integrations below. An unresolved design choice
+must name the choice; it must not be reported as toolkit non-support. Call work
+**blocked** only when a specific dependency prevents progress, and name that
+dependency. Routine implementation choices remain part of the porting work.
+
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Checkbox, Spacer, Divider, plain Text, basic Scroll, Tabs/Tab and Canvas
-drawing. Shared recipes use the public PUI layout/style modifiers; see the
+Button, Checkbox, RadioButton, Spacer, Divider, plain Text, basic Scroll,
+Tabs/Tab and Canvas drawing. Shared recipes use the public PUI layout/style modifiers; see the
 [component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
 
 | Area | Current basis | Remaining acceptance / phase |
@@ -34,13 +44,13 @@ drawing. Shared recipes use the public PUI layout/style modifiers; see the
 | Native lifetime | Views own declarations; primary/secondary native observers clear on deletion; callbacks detach on retirement | Define external remount and shared-screen ownership before broadening interop (2, 6) |
 | Application and native drivers | Loop returns when the last display closes; LVGL delay callback; separate SDL2/X11 startup and cleanup | Define explicit quit/host-driven pumping and borrowed-runtime ownership; handle SDL2 direct exit (2) |
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
-| Grid/Stack | Missing | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
+| Grid/Stack | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
 | ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
-| Bound controls | Boolean Checkbox with Binding/State; cookbook membership adapters | Text edit/commit and typed value selection contracts remain (4) |
+| Bound controls | Boolean Checkbox and typed RadioButton with Binding/State; cookbook membership adapters | TextField edit/commit and ComboBox value selection remain to port (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
-| Table/Tree/adapters/interop | Shared typed adapter interfaces; native widgets missing | Map the public interfaces to LVGL models or custom widgets and define interop borrowing (6) |
+| Table/Tree/adapters/interop | Shared typed adapter interfaces; LVGL wrappers not yet ported | Map the public interfaces to LVGL models or custom widgets and define interop borrowing (6) |
 | Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand component/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (2–6) |
 
 ## Ownership contract
@@ -125,8 +135,8 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   not silently stand in for formatted text.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
-- [ ] Using the shared `Binding<T>`/State adapters, add TextField,
-  RadioButton and ComboBox/item equivalents. Preserve in-progress edits, distinct
+- [ ] Using the shared `Binding<T>`/State adapters, add TextField
+  and ComboBox/item equivalents. Preserve in-progress edits, distinct
   labels/values, empty selections and current callbacks through redraw. Keep
   automatic collection observation and value-based Checkbox overloads tied to
   the shared collection contract; explicit boolean membership adapters work now.
@@ -143,7 +153,8 @@ native reuse, valid model retention after invalid input, and resource reclamatio
   end anchor and position retention through resize, growth, shrinkage and content
   replacement. Resolve mixed forced/automatic axis policies before supporting
   that combination; it currently throws explicitly.
-- [ ] Decide a custom resizable-pane implementation versus unsupported Splitter.
+- [ ] Implement Splitter with custom resizable panes, or record an explicit scope
+  decision to omit it. The missing CPPUI wrapper is not a proven LVGL limitation.
   Do not duplicate the shared splitter recipe to hide capability differences.
 - [ ] Agree modal overlays, dialogs, menus/toolbars and Window capabilities
   suitable for LVGL before implementing them. Desktop native dialogs, MDI,
@@ -180,7 +191,7 @@ cases where the agreed LVGL capability supports them. **Won't do — Shapely and
 Matplotlib:** the Python-only Canvas.drawShapely and MatplotlibCanvas integrations
 and their cookbook recipes are excluded from CPPUI.
 
-## Decisions awaiting direction
+## Implementation choices and native constraints
 
 - **Scroll policy mapping:** Qt now follows PUI's Optional<bool> axis policies,
   signed-zero end anchor and pre-sync position capture. LVGL has one scrollbar
@@ -194,18 +205,19 @@ and their cookbook recipes are excluded from CPPUI.
 - **Selection controls:** LVGL's [dropdown](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/widgets/lv_dropdown.h)
   takes newline-separated labels and exposes an unsigned selected index; it does
   not supply Qt's editable text field or negative-index empty selection contract.
-  Choose a restricted native control versus a composite implementation. A radio
-  control also needs an explicit grouping/focus policy; Qt's native sibling
-  auto-exclusion does not automatically transfer to LVGL.
+  Choose a restricted native control versus a composite implementation.
+  RadioButton already uses LVGL 9.6's native sibling exclusion via
+  `lv_obj_set_radio_button`; separate layouts form separate groups. General
+  focus-group ownership remains in the runtime/input tasks above.
 - **Shared contracts:** use the shared Binding/State adapters and follow the Qt plan's
   default reset for omitted properties, stderr render errors, Optional dialog
   results and PUI virtual Tab mapping. Input payloads are explicitly deferred;
   remaining subscription/value types, retained-view inputs and nested-sync
   recovery stay coordinated there. Inspect reference code/tests before raising
   any further decision; do not block independent work on those gaps.
-- **Runtime ownership and stop:** the existing Application loops forever while
-  LVGL's SDL2/X11 drivers may destroy displays or call `exit`. Choose host-owned versus
-  backend-owned pumping and native-event interception before implementing quit.
+- **Runtime ownership and stop:** Application returns when the last display closes;
+  LVGL's SDL2 driver can still call `exit`. Choose host-owned versus
+  backend-owned pumping and native-event interception for an explicit quit API.
   Native resources must outlive declarations in both modes.
 - **Screen ownership:** active-screen content is currently exclusive. Choose
   scoped content roots, screen switching, multiple displays and external-delete
@@ -222,8 +234,8 @@ and their cookbook recipes are excluded from CPPUI.
   invalid/out-of-range behavior before claiming the same ProgressBar API.
 - **Capability differences:** decide progress busy/range behavior, rich text and
   selection, font/image resources, custom splitters/trees, and desktop features
-  independently. Unsupported must remain visible; pixel-identical desktop
-  rendering is not implied by sharing recipe source.
+  independently. State verified native limits separately from unfinished wrappers;
+  pixel-identical desktop rendering is not implied by sharing recipe source.
 
 ## Shared cookbook and verification
 
@@ -232,7 +244,8 @@ Keep `cookbook/cookbook.cpp` and recipe sources shared. Select SDL2 or X11 in
 and build logic in `cookbook/lvgl/`; keep native APIs and conditional
 compilation out of recipe files. Preserve the Example sidebar, scrolling list,
 Result pane and recipe layouts. Only the reference's source-code pane is omitted;
-any toolkit capability limitation must remain explicit in `--list` and docs.
+`--list` reports unfinished wrappers as `not ported` and enabled recipes with gaps
+as `partial`. Record any verified toolkit limitation separately in the docs.
 
 SDL2 C++11 build and tests (requires SDL2 development packages):
 

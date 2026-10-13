@@ -81,6 +81,13 @@ if(BUILD_TESTING)
         CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
     cppui_add_test(lvgl.checkbox cppui_lvgl_checkbox)
 
+    add_executable(cppui_lvgl_radiobutton "${cppui_lvgl_dir}/../../tests/lvgl_radiobutton.cpp")
+    target_include_directories(cppui_lvgl_radiobutton PRIVATE "${cppui_lvgl_dir}/../..")
+    target_link_libraries(cppui_lvgl_radiobutton PRIVATE lvgl::lvgl)
+    set_target_properties(cppui_lvgl_radiobutton PROPERTIES
+        CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(lvgl.radiobutton cppui_lvgl_radiobutton)
+
     if(CPPUI_LVGL_DRIVER STREQUAL "lvgl_sdl2")
         set_property(TEST cookbook.lvgl_sdl2 APPEND PROPERTY ENVIRONMENT
             "SDL_VIDEODRIVER=dummy" "SDL_AUDIODRIVER=dummy" "SDL_RENDER_DRIVER=software")
@@ -90,7 +97,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header application base button canvas checkbox divider label layout scroll spacer tab text window)
+    foreach(header application base button canvas checkbox divider label layout radiobutton scroll spacer tab text window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

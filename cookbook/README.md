@@ -8,8 +8,8 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Button, Label, HBox, VBox, Canvas, Checkbox and Tab share their recipe implementations across all three backends.
-Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, RadioButton, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
+Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton and Tab share their recipe implementations across all three backends.
+Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. Qt also has a
 partial TextField recipe with separate string model/draft bindings; dynamic
@@ -23,9 +23,14 @@ The gallery preserves the reference's scrollable **Example** sidebar and expandi
 window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
 divider, and styled examples follow the reference on the available pages.
 
-Unsupported pages show “Not Supported for this backend”; `--list` gives their
-prerequisites. The Python-only DrawShapely and Matplotlib recipes are excluded
-(won't-do).
+Pages awaiting a CPPUI implementation show “Not yet ported to this backend”;
+`--list` labels them `not ported` and describes the remaining work. `partial`
+means a recipe is enabled with listed gaps; `ported` means that recipe is
+implemented, not that every toolkit feature or input path has been verified.
+These statuses do not claim that the underlying toolkit lacks the feature.
+Document specific native limitations separately, including any needed adapter
+or custom implementation. The Python-only DrawShapely and Matplotlib recipes
+are intentionally excluded (won't-do).
 The [Qt plan](../doc/pyside6-progress.md) and
 [LVGL plan](../doc/lvgl-progress.md) and [wx plan](../doc/wx-progress.md) track remaining components and public APIs.
 Recipes use public CPPUI components and PUI's `.layout(...)` / `.style(...)`
@@ -195,6 +200,9 @@ teardown, with an optional Valgrind variant.
 `lvgl.checkbox` checks binding writes, mirrored controls, dependency rebinding,
 feedback suppression, exceptions, callback removal and native cleanup; the
 cookbook checks boolean and collection membership interactions.
+`lvgl.radiobutton` checks exclusive selection, independent groups, binding and
+callback replacement, repeated clicks, keyboard selection, unmatched values,
+exceptions and cleanup. Both cookbooks exercise the shared A/B recipe.
 `lvgl.tab` covers virtual pages, explicit grouping, empty tabs, keyed moves,
 selection, label updates, independent subviews and native/declaration teardown.
 The cookbook smoke test switches both shared Tab pages.
