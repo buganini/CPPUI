@@ -52,7 +52,7 @@ namespace Cookbook { namespace Backend {
                 page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";
             } else if(std::string(page.key) == "text") {
                 page.render = text;
-                page.remaining = "Plain multiline text and HTML implemented; Markdown rendering not yet ported";
+                page.remaining = "Plain multiline text and HTML implemented; Markdown displays raw source";
             } else if(std::string(page.key) == "grid") {
                 page.render = grid;
                 page.remaining = "";

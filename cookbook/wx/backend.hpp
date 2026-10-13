@@ -25,7 +25,6 @@
 #include "../recipes.hpp"
 #include <wx/stopwatch.h>
 namespace Cookbook { namespace Backend {
-    inline void markdownExample(const std::string &) { CPPUI::Label("Markdown rendering is not yet ported to wx"); }
     using View = CPPUI::Wx::View;
     using Views = CPPUI::Wx::Views;
     inline bool viewSelected(CPPUI::Node & node, const std::string & key) {

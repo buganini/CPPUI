@@ -23,7 +23,7 @@ are described in the component sections and backend plans.
 |[RadioButton](#radiobutton)|QRadioButton|checkbox (radio mode)|wxRadioButton|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
 |[ProgressBar](#progressbar)|QProgressBar|bar / busy animation|wxGauge|
-|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / not yet implemented|
+|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / raw text fallback|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|wxPanel / wxGraphicsContext|
 |[Image](#image)|QLabel / QPixmap|—|wxStaticBitmap / wxImage|
 |[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)|
@@ -964,11 +964,16 @@ uses integer hundredths, clamps to its range and treats a zero maximum as range
 one, matching PUI/wx rather than promising a busy indicator.
 
 Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
-HTML subset; its selection behavior is native. Markdown explicitly throws because
-CPPUI/wx has no Markdown renderer yet. Choosing and integrating one remains work
-to do; the reference PUI/wx implementation also omits it. The wx Text cookbook
-page is enabled with its multiline and HTML examples; only Markdown shows an
-unfinished notice.
+HTML subset; its selection behavior is native. MarkDown displays the original
+source as plain multiline text, following PUI/wx. Its optional `selectable` flag
+uses a read-only multiline text control. Markdown formatting remains unimplemented.
+The shared Text cookbook calls all three public factories directly.
+
+The wx MarkDown factory has a `CPPUI_UNSUPPORTED` annotation from
+`cppui/diagnostics.hpp`. GCC/Clang and MSVC emit a custom deprecation warning at
+each call site, explaining the raw-text fallback. Including the header alone
+does not warn. Normal builds still compile; projects treating deprecation warnings
+as errors must allow this diagnostic explicitly if they want the fallback.
 
 wx Scroll retains manual offsets and end-relative anchors when content changes.
 Tabs uses wxNotebook with a physical wxPanel per Tab, following PUI/wx; each

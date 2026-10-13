@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_TEXT
 #define CPPUI_WX_TEXT
 #include "label.hpp"
+#include "../diagnostics.hpp"
 #include <wx/html/htmlwin.h>
 namespace CPPUI { namespace Wx {
 class Text: public Label {
@@ -26,7 +27,8 @@ public:
 }
 inline Wx::Text & Text(const std::string & text, bool selectable = false) { return *new Wx::Text(text, selectable); }
 inline Wx::Html & Html(const std::string & text, bool selectable = false) { return *new Wx::Html(text, selectable); }
-// PUI/wx explicitly marks Markdown unsupported; never display raw markup as a port.
-inline Wx::Text & MarkDown(const std::string &, bool = false) { throw std::logic_error("wx Markdown rendering is unsupported"); }
+// Match PUI/wx's plain Text fallback while identifying the missing renderer.
+CPPUI_UNSUPPORTED("CPPUI/wx MarkDown has no Markdown renderer; displaying raw text")
+inline Wx::Text & MarkDown(const std::string & text, bool selectable = false) { return *new Wx::Text(text, selectable); }
 }
 #endif

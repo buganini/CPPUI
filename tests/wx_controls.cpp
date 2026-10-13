@@ -25,6 +25,8 @@ public:
     CPPUI::State<bool> checked{false};
     CPPUI::State<int> radio{1}, index{-1};
     CPPUI::State<std::string> text{std::string("initial")}, draft{std::string()}, selected{std::string("raw")};
+    std::string markdown="# Heading\n**bold** <i>literal</i>";
+    bool markdownSelectable=false;
     int inputs=0, changes=0, comboChanges=0;
     bool show=true, reverse=false, editable=true;
     double progress=.125, maximum=.25;
@@ -43,6 +45,7 @@ public:
             }
             CPPUI::ProgressBar(progress,maximum).id("progress"); CPPUI::Divider();
             CPPUI::Text("a\nb",true).id("text"); CPPUI::Html("<b>bold</b>").id("html");
+            CPPUI::MarkDown(markdown,markdownSelectable).id("markdown");
             for(auto g: CPPUI::Grid().id("grid")) { auto & label=CPPUI::Label("cell"); label.grid_row=0;label.grid_column=column;label.grid_columnspan=2;label.id("cell"); }
         }
     }
@@ -54,6 +57,15 @@ int main(int argc,char **argv) {
         auto multiline=ui<wxTextCtrl>(root,"text");
         require(multiline->IsMultiLine() && !multiline->IsEditable() && multiline->GetValue()=="a\nb"
             && multiline->GetNumberOfLines()==2, "selectable Text did not retain native multiline/read-only behavior");
+        auto markdown=ui<wxStaticText>(root,"markdown");
+        require(markdown->GetLabel()==wxString::FromUTF8(root.markdown), "Markdown fallback did not display literal source");
+        root.markdown="# Updated\n* literal item";root.sync();
+        require(ui<wxStaticText>(root,"markdown")==markdown && markdown->GetLabel()==wxString::FromUTF8(root.markdown),
+            "Markdown update lost native identity or raw source");
+        wxWeakRef<wxWindow> oldMarkdown(markdown);root.markdownSelectable=true;root.sync();pump();
+        auto selectableMarkdown=ui<wxTextCtrl>(root,"markdown");
+        require(!oldMarkdown && selectableMarkdown->IsMultiLine() && !selectableMarkdown->IsEditable()
+            && selectableMarkdown->GetValue()==wxString::FromUTF8(root.markdown), "selectable Markdown fallback did not remount as read-only multiline text");
         require(static_cast<std::string>(root.draft)=="initial", "draft not initialized");
         auto field=ui<wxTextCtrl>(root,"field");field->SetValue("typed");pump();
         require(root.inputs==1 && static_cast<std::string>(root.text)=="initial" && static_cast<std::string>(root.draft)=="typed", "typing committed model or lost draft");
