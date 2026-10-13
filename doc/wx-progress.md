@@ -25,6 +25,12 @@ Native regressions cover initial visibility, retained-window content growth and
 shrinkage, and expansion when the available layout space changes. The shared
 HTML sample uses `span` for its styled text, matching that reference update.
 
+TextField sizing follows PUI `5fc15ed`, audited through `b551e19`: use the native
+minimum size and height, with horizontal expansion priority 3. Explicit layout
+dimensions still apply and reset when omitted. Native regressions cover fields
+in rows and columns, window resizing and explicit dimension reset. The remaining
+`b551e19` changes affect Flet, Textual and Tkinter, which CPPUI does not implement.
+
 ## Ownership and established contracts
 
 Factory results are borrowed construction references. Applications retain State

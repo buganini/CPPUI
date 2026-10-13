@@ -956,7 +956,9 @@ are supported; removed panes follow the normal deferred-deletion lifecycle.
 wx uses the shared Binding/State signatures for Checkbox, RadioButton, TextField
 and ComboBox. TextField preserves drafts during redraw, commits once on Enter
 or focus loss, and commits a focused editor before button callbacks. Programmatic
-updates do not emit input callbacks. RadioButton uses `wxRB_SINGLE`, with grouping
+updates do not emit input callbacks. TextField expands horizontally at its native
+height with no forced minimum width; explicit layout dimensions override these
+defaults and reset when omitted. RadioButton uses `wxRB_SINGLE`, with grouping
 provided by its model as in PUI/wx. ComboBox preserves unbound keyed selection and
 editable free text, maps labels to raw string values, and remounts when its native
 editable style changes. Grid uses existing row/column/span fields. ProgressBar

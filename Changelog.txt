@@ -1,4 +1,5 @@
 2026-10-13
+    * wx: sync PUI TextField sizing with horizontal expansion at native height and no forced 50-pixel minimum width; retain explicit layout overrides and reset behavior
     * wx/Cookbook: sync PUI HTML content sizing, best-size invalidation and layout expansion; use span in the shared styled HTML sample
     * wx: display MarkDown source as plain multiline text with optional selection and a call-site compiler warning; use the public factory in the shared Text recipe
     * wx/Cookbook: enable the shared Text page with multiline text and HTML; limit the unfinished notice to Markdown, matching PUI's available text capabilities

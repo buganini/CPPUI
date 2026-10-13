@@ -11,7 +11,7 @@ class TextField: public Widget {
     std::string value, editValue;
     std::function<void()> onInput, onChange;
 public:
-    explicit TextField(Binding<std::string> model): model(model), value(model.get()) { layout_width = 50; }
+    explicit TextField(Binding<std::string> model): model(model), value(model.get()) { expandX = 3; }
     TextField(Binding<std::string> model, Binding<std::string> edit): TextField(model) { editModel = edit; editValue = edit.get(); }
     TextField & input(std::function<void()> callback) { onInput = std::move(callback); return *this; }
     TextField & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }

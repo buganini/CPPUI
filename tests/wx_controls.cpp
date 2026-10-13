@@ -67,6 +67,47 @@ public:
         }
     }
 };
+class TextFieldSizingRoot: public CPPUI::Application {
+public:
+    using Application::Application;
+    CPPUI::State<std::string> text{std::string("value")};
+    int width=400;
+    bool explicitSize=false;
+    void content() override {
+        for(auto w: CPPUI::Window().size(width,240)) for(auto v: CPPUI::VBox()) {
+            auto & field=CPPUI::TextField(text).id("column-field");
+            if(explicitSize) field.layout(160,44);
+            for(auto row: CPPUI::HBox()) {
+                CPPUI::Label("Field");
+                CPPUI::TextField(text).id("row-field");
+            }
+            CPPUI::Spacer();
+        }
+    }
+};
+static void textFieldSizing(int argc,char **argv) {
+    TextFieldSizingRoot root(argc,argv);root.sync();pump();
+    auto column=ui<wxTextCtrl>(root,"column-field");
+    auto row=ui<wxTextCtrl>(root,"row-field");
+    for(auto field: {column,row}) {
+        require(field->GetMinSize()==wxDefaultSize, "TextField imposed a default minimum size");
+        require(field->GetSize().GetWidth()>field->GetBestSize().GetWidth(), "TextField did not expand horizontally");
+        require(field->GetSize().GetHeight()==field->GetBestSize().GetHeight(), "TextField lost its native height");
+    }
+    const auto columnSize=column->GetSize(), rowSize=row->GetSize();
+    root.width=640;root.sync();pump();
+    require(ui<wxTextCtrl>(root,"column-field")==column && ui<wxTextCtrl>(root,"row-field")==row,
+        "TextField resizing replaced native controls");
+    require(column->GetSize().GetWidth()>columnSize.GetWidth() && row->GetSize().GetWidth()>rowSize.GetWidth()
+        && column->GetSize().GetHeight()==columnSize.GetHeight() && row->GetSize().GetHeight()==rowSize.GetHeight(),
+        "TextField resize did not preserve horizontal expansion at native height");
+    root.explicitSize=true;root.sync();pump();
+    require(column->GetMinSize()==wxSize(160,44) && column->GetSize().GetHeight()==44,
+        "TextField ignored explicit layout dimensions");
+    root.explicitSize=false;root.sync();pump();
+    require(column->GetMinSize()==wxDefaultSize && column->GetSize().GetHeight()==columnSize.GetHeight(),
+        "TextField retained removed layout dimensions");
+}
 static void htmlSizing(int argc,char **argv) {
     HtmlSizingRoot root(argc,argv);root.sync();pump();
     auto html=ui<wxHtmlWindow>(root,"html");
@@ -122,5 +163,6 @@ int main(int argc,char **argv) {
         wxWeakRef<wxWindow> old(combo);root.editable=false;root.sync();pump();require(!old,"combo creation style change did not remount");
         root.show=false;root.sync();pump();root.redraw();
         htmlSizing(argc,argv);
+        textFieldSizing(argc,argv);
     } catch(const std::exception & e) {std::cerr<<e.what()<<'\n';return 1;}
 }
