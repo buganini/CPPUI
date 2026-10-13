@@ -167,6 +167,19 @@ JIT diagnostics without function names, as recommended by the
 default JIT setting. No project suppression file is applied. To pass additional
 platform-specific arguments, use `CPPUI_VALGRIND_OPTIONS` (a CMake list).
 
+# Layout and styling
+
+Start with the sizing supplied by each component and its parent layout. CPPUI
+uses the selected backend's native size hints, layout rules and component
+defaults. For example, Qt and wx TextField controls expand horizontally while
+keeping their native height, and Spacer takes flexible space in an HBox or VBox.
+Exact dimensions depend on the toolkit, platform, font and theme.
+
+Use `.layout(...)` when a design needs explicit dimensions, a particular share
+of flexible space, or custom padding. Width and height map to preferred sizes,
+minimum sizes or object dimensions depending on the backend; the
+[modifier reference](REFERENCE.md#pui-modifiers) describes these mappings.
+
 PUI's `.layout(...)`, `.style(...)` and `.qt(...)` modifiers are available on
 CPPUI nodes. For example, `Label("Title").layout(200, 40).style(0x336699, {}, 20)`
 sets a preferred Qt size and text style. See the [modifier reference](REFERENCE.md#pui-modifiers)

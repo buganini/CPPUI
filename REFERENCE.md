@@ -128,6 +128,17 @@ C++ arguments follow the Python keyword order; `{}` omits an argument:
 .qt(const CPPUI::QtOptions & options)
 ```
 
+Sizing follows each component's defaults and its parent's native layout rules
+unless overridden. Qt and wx TextField controls expand horizontally at their
+native height; Spacer consumes flexible space along its HBox/VBox's main axis.
+LVGL uses component sizes and native flex layout, with VBox filling unspecified
+child widths. Exact sizes depend on the toolkit, platform, font and theme.
+
+Use `.layout()` for intentional overrides: width and height supply native size
+hints or dimensions, weight controls flexible space along the parent's main
+axis, and padding adds spacing. Start with the defaults for ordinary controls;
+see the backend mappings below when a design needs more control.
+
 Dimensions, weight, colors and font size/weight use `Optional<int>`; padding and
 margin use `Optional<Insets>`, and font family uses `OptionalText`. Strings and
 option maps are copied. Repeated calls merge supplied values on that declaration.

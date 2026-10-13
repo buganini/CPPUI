@@ -1,3 +1,6 @@
+2026-10-14
+    * Docs: sync PUI automatic sizing guidance and audit through c84796f; Views additions already match, and the new redraw fix is Textual-specific
+
 2026-10-13
     * Docs: replace the blanket pre-alpha warning with an active-development note and links to backend features and examples
     * LVGL/Cookbook: enable the shared Text page on SDL2/X11 with multiline Text, raw HTML/Markdown fallbacks, call-site warnings and a visible formatting notice

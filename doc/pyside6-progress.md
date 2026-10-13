@@ -38,11 +38,13 @@ Adopted reference updates beyond the original baseline:
   retain editable buffers, clear the index for free text, display selected labels,
   and preserve unbound selection by item identity across keyed moves.
 - Views follows PUI `e5927cb`, the selection contract in `65f2c02`, and cookbook
-  updates through `44c7fa4`: optional internal/external models, retained native
+  updates through `c84796f`: optional internal/external models, retained native
   pages and subviews, keyed moves, blank/unknown selection, and pre-mount ID
   validation. C++ `select()` requires the current declaration under the borrowed
   return contract below; Python's old-handle forwarding is not copied.
-- The remaining Qt/shared deltas were compared through PUI `b551e19`:
+  PUI `c84796f` adopts CPPUI's Change text button, Saved text label and distinct
+  state-selection labels, so the shared example already matches that update.
+- The remaining Qt/shared deltas were compared through PUI `c84796f`:
   reused Table adapter resets (`df4cbac`), guarded queued quit (`675e831`), and
   native teardown through virtual subviews (`9d24163`) already have C++
   equivalents. Optional binding clears (`fd69ff0`) preserve empty `OptionalText`
@@ -53,6 +55,10 @@ Adopted reference updates beyond the original baseline:
   Subsequent changes add no Qt runtime delta: the shared Text sample uses a
   styled `span`, and wx HTML/TextField sizing is tracked in the wx plan. The
   TextField sizing changes in Flet, Textual and Tkinter have no CPPUI backend.
+  Automatic sizing guidance from `1beb36d` is documented with CPPUI's actual
+  backend mappings. The Textual-only redraw fix (`4b78b2a`) has no backend to
+  port here; Qt/wx already queue redraws, while LVGL TextField defers draft
+  synchronization until reconciliation has finished.
 
 ### C++ ownership and reclamation requirements
 
