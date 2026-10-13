@@ -64,6 +64,18 @@ and LVGL CMake projects. It keeps PUI's scrollable Example sidebar and Result
 pane, plus the Qt/wx menus; only the source-code pane is omitted. `--list` reports
 available recipes and prerequisites for pages that are not ported yet.
 
+From the repository root, build and run a cookbook with `make qt`, `make wx`,
+`make lvgl_sdl2`, or `make lvgl_x11`. Each target configures its CMake project
+and builds `build-cookbook-<backend>/cppui_cookbook_<backend>` with `-j $(nproc)`,
+then launches the executable after a successful build.
+The default build type is `RelWithDebInfo`; override settings with, for example,
+`make qt BUILD_TYPE=Debug JOBS=4`. LVGL targets automatically clone v9.6.0 into
+`lvgl-9.6.0` in the repository root if the sources are missing; existing sources
+are reused. Run `make lvgl-checkout` to obtain only the sources, or use
+`CPPUI_LVGL_SOURCE_DIR=/path/to/lvgl` for another checkout location.
+Pass extra CMake configure options with `CMAKE_ARGS='-DOPTION=value'`.
+Toolkit dependencies must be installed as described below.
+
 With Qt 6 development packages installed:
 
 ```sh
@@ -90,7 +102,8 @@ The root `CPPUI_BUILD_WX=ON` build also includes `cppui_cookbook_wx`.
 Interactive and smoke runs require a display; on Linux CI, use
 `xvfb-run -a ctest --test-dir build-cookbook-wx --output-on-failure`.
 
-For LVGL, first obtain the [v9.6.0 sources](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39):
+For direct LVGL CMake builds, first obtain the [v9.6.0 sources](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39)
+with `make lvgl-checkout` or clone them manually:
 
 ```sh
 git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0

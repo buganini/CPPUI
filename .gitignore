@@ -1,6 +1,7 @@
 CMakeCache.txt
 CMakeFiles
 Makefile
+!/Makefile
 cmake_install.cmake
 .qt
 .vscode
@@ -9,6 +10,7 @@ example/*/minimal
 /build-qt/
 /build-valgrind/
 /build-cookbook-qt/
+/build-cookbook-wx/
 /build-cookbook-lvgl/
 /build-cookbook-lvgl_sdl2/
 /build-cookbook-lvgl_x11/

@@ -38,6 +38,17 @@ recipe. See the [modifier reference](../REFERENCE.md#pui-modifiers) for the type
 The gallery smoke test checks horizontal and vertical Spacer expansion and the
 Canvas drawing area in addition to page navigation.
 
+The root Makefile provides `make qt`, `make wx`, `make lvgl_sdl2`, and
+`make lvgl_x11` as shortcuts for configuring, building, and running each cookbook
+executable in `build-cookbook-<backend>`. Each target launches the executable
+after a successful build. Builds use `-j $(nproc)` and default
+to `RelWithDebInfo`. Override `JOBS`, `BUILD_TYPE`, `CPPUI_LVGL_SOURCE_DIR`
+(default: `lvgl-9.6.0` in the repository root), or pass additional configure
+options through `CMAKE_ARGS` as needed. LVGL targets automatically run
+`make lvgl-checkout` to clone v9.6.0 if its sources are missing; existing sources
+are reused. Install the toolkit development packages first.
+The equivalent direct CMake commands follow.
+
 ## Qt
 
 ```sh
@@ -79,7 +90,9 @@ Reference: [PUI/wx at 2e4f0eb](https://github.com/buganini/PUI/tree/2e4f0eb82996
 ## LVGL
 
 Use an [LVGL 9.6.0 source checkout](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39).
-Dependencies are supplied explicitly; the build does not fetch them.
+The Makefile's LVGL targets clone these sources automatically if missing.
+Run `make lvgl-checkout` to obtain just the sources. Direct CMake builds require
+the sources to be supplied explicitly, using that target or a manual clone:
 
 ```sh
 git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0
