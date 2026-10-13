@@ -1,5 +1,5 @@
 2026-10-13
-    * Qt: port Views with optional selection models, retained native pages/subviews, safe imperative selection and cookbook examples
+    * Qt: sync Views/Tabs optional selection models, retained native pages/subviews, safe imperative selection and cookbook examples; group empty/multi-control Tabs into physical pages
     * Qt: sync PUI window boundaries, native tab placement and ComboBox editable/keyed state; preserve native sizes/pages and commit selection values once
     * LVGL: port ProgressBar with busy animation and TimelineView with cancellable timers; enable shared recipes and add range/timing/lifetime regressions
     * LVGL: port typed RadioButton with native sibling exclusion, shared cookbook recipe and binding/lifetime regressions

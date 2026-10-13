@@ -30,7 +30,7 @@ are described in the component sections and backend plans.
 |[MDI](#mdi)|QMdiArea / QMdiSubWindow|—|—|
 |[TimelineView](#timelineview)|QTimer / virtual node|timer / virtual node|wxTimer / virtual node|
 |[ImageResource](#canvas)|QImage|—|wxImage|
-|[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|wxNotebook / wxPanel|
+|[Tabs / Tab](#tabs)|QTabWidget / QWidget|tabview / virtual node|wxNotebook / wxPanel|
 |[Views](#views)|QStackedWidget|Not yet ported|Not yet ported|
 |[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|wxGrid / wxGridTableBase|
 |[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|wxDataViewCtrl / wxDataViewModel|
@@ -747,13 +747,12 @@ validation beyond the automated offscreen tests.
 
 ## Tabs
 
-Include `cppui/qt/tab.hpp` or `cppui/lvgl/tab.hpp`. `Tabs()` owns a native
-QTabWidget or LVGL tabview; `Tab(label)` is virtual and copies its label.
-Use normal construction scopes:
+Include `cppui/qt/tab.hpp`, `cppui/lvgl/tab.hpp`, or `cppui/wx/tab.hpp` for the
+selected backend. Use normal construction scopes:
 
 ```cpp
 for(auto tabs: CPPUI::Tabs()) {
-    for(auto first: CPPUI::Tab("Tab 1")) {
+    for(auto first: CPPUI::Tab("Tab 1").id("first")) {
         CPPUI::Label("Content 1");
     }
     for(auto second: CPPUI::Tab("Tab 2")) {
@@ -762,34 +761,39 @@ for(auto tabs: CPPUI::Tabs()) {
 }
 ```
 
-Following [PUI's implementation](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tab.py),
-each physical child reached through a virtual Tab becomes a native page. Page
-insertion finds the nearest ancestor Tab for its label. No implicit layout is
-inserted and no extra children are discarded. To put multiple controls on one
-page, place an explicit VBox or HBox inside the Tab. An empty Tab creates no page.
-Direct declarations inside Tabs must be `Tab` nodes; additional virtual views
-can appear inside each Tab.
+Qt follows [PUI's selection contract](https://github.com/buganini/PUI/blob/65f2c02/PUI/selection.py):
+`Tabs()` keeps an internal selection; `Tabs(Binding<OptionalText>)` or
+`Tabs(State<OptionalText>&)` accepts an external model. Use
+`Tabs("s", model)` to combine placement and binding. The selection key is a Tab's
+non-empty `.id()`, falling back to its label. The first matching key wins.
+Native selection and `.select(key)` write through the current model. Binding
+updates, insertion, removal and reordering do not write back during reconciliation.
 
-Native widgets are reused on redraw and keyed moves. Unchanged redraws and label
-updates preserve user selection; removal/reinsertion uses Qt's native selection
-behavior. Removed pages and declarations are reclaimed through normal teardown.
+An absent or unknown key displays the first tab without changing the external
+model; an empty container selects no page. The internal model initially records
+the first available tab's key. Clearing it with `.select()` displays the first tab;
+unknown keys remain stored and select a matching page if it returns. Empty-string
+keys are allowed for Tabs, including a Tab with an empty label. As with Views,
+`select()` must use the current mounted declaration, not a saved factory reference.
 
-LVGL provides one native page container per physical child, as required by its
-tabview. These containers do not group sibling declarations. Keyed moves preserve
-the child widget and selected page; removing the selected page clamps the active
-index to the remaining pages. Empty tabviews retain their native container.
-Independent subview redraws preserve the same page order and selection rules.
+Qt `Tab(label)` is a physical, zero-padding VBox page. Empty Tabs still have a
+page, and multiple controls or virtual subviews stay together on that page.
+Direct children of Tabs must be Tab declarations; invalid children are rejected
+before native reconciliation. Keyed moves and selection changes preserve native
+pages, local view state and controls. Removed pages are reclaimed normally.
 
 Qt `Tabs(tabposition = "n")` maps `n`, `s`, `e`, and `w` to native North, South,
 East, and West placement and updates it on redraw without replacing pages.
-Other values throw `std::invalid_argument` during construction. LVGL currently
-stores this option without applying it; native placement remains to port there.
+Other values throw `std::invalid_argument` during construction.
 
-The reference's `postSync()` label quirk is preserved: it updates page labels
-by direct Tab declaration index. With two physical children in Tab("A") followed
-by one in Tab("B"), page labels become A, B, B; an empty first Tab can similarly
-overwrite the next page's label. Use one physical child per Tab for matching
-page/title pairs. The cookbook follows that convention.
+LVGL still uses virtual Tab declarations: each physical descendant creates a
+native tabview page, so group multiple controls in an explicit VBox or HBox.
+Empty virtual Tabs create no page. Its legacy label update uses direct declaration
+indexes: two physical children in Tab("A") followed by one in Tab("B") display
+A, B, B. Keyed moves retain child widgets and selection; removing the selected
+page clamps its index. Empty tabviews retain their native container. Native tab
+placement and the new optional selection API remain to port to LVGL. The optional
+selection API also remains to port to wx; wx already owns one panel per Tab.
 
 ## Views
 

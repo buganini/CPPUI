@@ -12,6 +12,7 @@ namespace CPPUI {
     namespace Qt {
         class QtView: public View {
             friend class Views;
+            friend class Tabs;
             QObject callbackContext;
             bool dirty = false, updating = false, scheduled = false, setupDone = false;
 

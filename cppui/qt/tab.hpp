@@ -1,22 +1,28 @@
 #ifndef CPPUI_QT_TAB
 #define CPPUI_QT_TAB
 
-#include "base.hpp"
+#include "layout.hpp"
+#include "../binding.hpp"
 #include <QTabWidget>
+#include <QPointer>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
 namespace CPPUI {
     namespace Qt {
-        class Tab: public Node {
+        class Tab: public VBox {
             public:
             std::string label;
-
-            explicit Tab(const std::string & label): label(label) { is_virtual = true; }
-            void destroy(bool) override {}
+            explicit Tab(const std::string & label): label(label) { layout_padding = Insets(0); }
         };
 
         class Tabs: public BaseWidget {
+            Optional<Binding<OptionalText>> model;
+            std::shared_ptr<OptionalText> internal{new OptionalText()};
+            OptionalText selected;
+            bool initialized = false, syncing = true;
+            int applied = -1;
             static QTabWidget::TabPosition nativePosition(const std::string & position) {
                 if(position == "n") return QTabWidget::North;
                 if(position == "s") return QTabWidget::South;
@@ -24,46 +30,86 @@ namespace CPPUI {
                 if(position == "w") return QTabWidget::West;
                 throw std::invalid_argument("Unknown tab position");
             }
+            static std::string key(const Node * node) {
+                const auto tab = static_cast<const Tab *>(node);
+                return tab->has_id && !tab->_id.empty() ? tab->_id : tab->label;
+            }
             public:
             std::string tabposition;
 
-            explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) { nativePosition(tabposition); }
-
-            void update(BaseWidget * prev) override {
+            explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) {
+                nativePosition(tabposition);
+                if(!dynamic_cast<QtView *>(cppui_root)) throw std::logic_error("Tabs requires a Qt Application or QtView");
+            }
+            Tabs(const std::string & tabposition, Binding<OptionalText> model): Tabs(tabposition) {
+                this->model = model;
+                selected = model.get();
+            }
+            void prepare() override {
+                for(auto child: *children) if(!dynamic_cast<Tab *>(child))
+                    throw std::invalid_argument("Tabs children must be Tab declarations");
+                Node::prepare();
+            }
+            void update(BaseWidget * previous) override {
+                auto prev = static_cast<Tabs *>(previous);
+                if(!model) {
+                    if(prev && !prev->model) { internal = prev->internal; initialized = prev->initialized; }
+                    selected = *internal;
+                }
                 ui = prev && prev->ui ? prev->ui : new Widget<QTabWidget>();
-                static_cast<QTabWidget *>(ui)->setTabPosition(nativePosition(tabposition));
+                auto tabs = static_cast<QTabWidget *>(ui);
+                tabs->setTabPosition(nativePosition(tabposition));
+                connectSignal(QObject::connect(tabs, &QTabWidget::currentChanged, tabs, [this](int index) {
+                    if(destroyed || syncing || index == applied || index < 0 || index >= static_cast<int>(children->size())) return;
+                    const auto selectedKey = key(children->at(index));
+                    // select snapshots everything needed before invoking a setter.
+                    try { select(selectedKey); }
+                    catch(const std::exception & error) { std::cerr << "CPPUI Tabs selection: " << error.what() << '\n'; }
+                    catch(...) { std::cerr << "CPPUI Tabs selection: unknown exception\n"; }
+                }));
             }
+            void preSync() override { syncing = true; }
             void addChild(int idx, Node * child) override {
-                if(child->is_outoforder) return;
-                Node * parent = child->parent;
-                while(parent && parent != this) {
-                    if(auto tab = dynamic_cast<Tab *>(parent)) {
-                        static_cast<QTabWidget *>(ui)->insertTab(idx,
-                            static_cast<QWidget *>(child->outer()), QString::fromStdString(tab->label));
-                        return;
-                    }
-                    if(parent == parent->parent) break;
-                    parent = parent->parent;
-                }
-                throw std::logic_error("Tabs pages must have an ancestor Tab");
+                auto tab = static_cast<Tab *>(child);
+                static_cast<QTabWidget *>(ui)->insertTab(idx, static_cast<QWidget *>(tab->outer()), QString::fromStdString(tab->label));
             }
-            void removeChild(int idx, Node * child) override {
-                if(child->is_outoforder) return;
-                static_cast<QTabWidget *>(ui)->removeTab(idx);
-            }
+            void removeChild(int idx, Node *) override { static_cast<QTabWidget *>(ui)->removeTab(idx); }
             void postSync() override {
-                // Preserve PUI's declaration-index label update, including its
-                // mismatch when an empty/multi-child Tab changes page counts.
-                int index = 0;
-                for(auto child: *children) {
-                    auto tab = dynamic_cast<Tab *>(child);
-                    if(!tab) throw std::logic_error("Tabs declarations must be Tab nodes");
-                    static_cast<QTabWidget *>(ui)->setTabText(index++, QString::fromStdString(tab->label));
+                auto tabs = static_cast<QTabWidget *>(ui);
+                int index = children->empty() ? -1 : 0;
+                bool matched = false;
+                for(std::size_t i = 0; i < children->size(); ++i) {
+                    tabs->setTabText(static_cast<int>(i), QString::fromStdString(static_cast<Tab *>(children->at(i))->label));
+                    if(!matched && selected && key(children->at(i)) == *selected) {
+                        index = static_cast<int>(i); matched = true;
+                    }
                 }
+                if(!model && !initialized && index >= 0) {
+                    if(!selected) *internal = key(children->at(index));
+                    initialized = true;
+                }
+                tabs->setCurrentIndex(index);
+                applied = index;
+                syncing = false;
             }
+            void select(OptionalText key = {}) {
+                if(destroyed || retired_by || !ui) return;
+                auto binding = model;
+                auto owned = internal;
+                auto root = static_cast<QtView *>(cppui_root);
+                QPointer<QWidget> alive(ui);
+                QPointer<QObject> viewAlive(&root->callbackContext);
+                if(binding) binding->set(key);
+                else *owned = key;
+                if(alive && viewAlive) root->redraw();
+            }
+            void select(const std::string & key) { select(OptionalText(key)); }
+            void select(const char * key) { select(key ? OptionalText(std::string(key)) : OptionalText()); }
         };
     }
     inline Qt::Tabs & Tabs(const std::string & tabposition = "n") { return *new Qt::Tabs(tabposition); }
+    inline Qt::Tabs & Tabs(const std::string & tabposition, Binding<OptionalText> model) { return *new Qt::Tabs(tabposition, model); }
+    inline Qt::Tabs & Tabs(Binding<OptionalText> model) { return *new Qt::Tabs("n", model); }
     inline Qt::Tab & Tab(const std::string & label) { return *new Qt::Tab(label); }
 }
 #endif

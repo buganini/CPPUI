@@ -31,7 +31,9 @@ Adopted reference updates beyond the original baseline:
 
 - Window content sizing follows PUI `7d8655e`: the top-level native layout uses
   `SetNoConstraint`, preserving declared and user-set sizes as content grows.
-- Tabs follows PUI `b9e3ad5`: validate and apply native north/south/east/west placement.
+- Tabs follows PUI `65f2c02` (including placement from `b9e3ad5`): one physical
+  page per Tab, optional internal/external selection, native model updates,
+  imperative selection, ID/label keys and first-page fallback for missing keys.
 - ComboBox follows PUI `9a3b142` and its shared `combobox_get`/set helpers:
   retain editable buffers, clear the index for free text, display selected labels,
   and preserve unbound selection by item identity across keyed moves.
@@ -383,7 +385,7 @@ Continue independent implementation while these contracts remain undecided.
   `.qt(...)` fields are listed in the [modifier reference](../REFERENCE.md#pui-modifiers).
 - Existing PUI gaps, such as Scroll offset capture and inconsistently applied
   layout/style options: document observed behavior and any intentional CPPUI
-  improvement. Native tab position and empty/multi-child label behavior are described
+  improvement. Native tab position and backend-specific empty/multi-child behavior are described
   in the [component reference](../REFERENCE.md#tabs). Do not infer complete
   support from a constructor argument alone.
 

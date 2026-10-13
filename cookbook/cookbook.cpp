@@ -149,8 +149,18 @@ namespace Cookbook {
                         auto tabs = find(gallery, "example-tabs");
                         require(tabs && hasText(*tabs, "Content 1") && hasText(*tabs, "Content 2"),
                             "tab recipe did not render its contents");
-                        require(Backend::selectTab(*tabs, 1, "Tab 2") && Backend::selectTab(*tabs, 0, "Tab 1"),
-                            "tab recipe could not switch pages");
+                        require(Backend::selectTab(*tabs, 1, "Tab 2"), "tab recipe could not select its second page");
+                        Backend::settle();
+                        require(Backend::selectTab(*find(gallery, "example-tabs"), 0, "Tab 1"), "tab recipe could not select its first page");
+                        Backend::settle();
+                        if(find(gallery, "bound-tabs")) {
+                            require(click(gallery, "Tab 2") && click(gallery, "Tab 2 (state)"), "tab selection buttons are missing");
+                            Backend::settle();
+                            require(hasText(gallery, "Select by state: Tab 2"), "State did not select the second tab");
+                            require(Backend::selectTab(*find(gallery, "bound-tabs"), 0, "Tab 1"), "bound tabs could not select their first page");
+                            Backend::settle();
+                            require(hasText(gallery, "Select by state: first"), "native tab selection did not update State");
+                        }
                     }
                     if(std::string(recipes()[i].key) == "tree_adapter" && recipes()[i].render) {
                         auto first = find(gallery, "adapter-tree-first");
