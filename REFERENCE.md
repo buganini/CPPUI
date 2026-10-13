@@ -31,7 +31,7 @@ are described in the component sections and backend plans.
 |[TimelineView](#timelineview)|QTimer / virtual node|timer / virtual node|wxTimer / virtual node|
 |[ImageResource](#canvas)|QImage|—|wxImage|
 |[Tabs / Tab](#tabs)|QTabWidget / QWidget|tabview / virtual node|wxNotebook / wxPanel|
-|[Views](#views)|QStackedWidget|Not yet ported|Not yet ported|
+|[Views](#views)|QStackedWidget|Not yet ported|wxSimplebook|
 |[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|wxGrid / wxGridTableBase|
 |[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|wxDataViewCtrl / wxDataViewModel|
 |[Modal](#modal)|QDialog|—|—|
@@ -797,12 +797,15 @@ selection API also remains to port to wx; wx already owns one panel per Tab.
 
 ## Views
 
-Include `cppui/qt/views.hpp`. `Views()` owns an internal selection, initially
+Include `cppui/qt/views.hpp` or `cppui/wx/views.hpp`. `Views()` owns an internal selection, initially
 empty; `Views(Binding<OptionalText>)` or `Views(State<OptionalText>&)` uses an
 external model. Every direct child must have a unique, non-empty `.id()`.
 Each child receives a native page, including virtual subviews that render zero
 or multiple controls. Switching pages preserves native controls, view instances,
 and local state. Keyed reordering retains pages; removal destroys them.
+Qt uses QStackedWidget with a VBox page per child. wx uses wxSimplebook with a
+wxPanel and zero-padding VBox sizer per child, so empty and multi-root subviews
+remain a single page there too. Both reserve an empty native page for no selection.
 
 Set the binding or call `.select("editor")` on the current mounted Views
 declaration. `.select()` or an empty `OptionalText` clears the selection.
@@ -815,6 +818,7 @@ Unlike Python's retained handles, CPPUI factory references are borrowed and
 must not be saved across redraws. Keep state or resolve the current declaration
 from the owning view when invoking `select()`. The cookbook demonstrates both
 internal selection and an optional State model with retained editor subviews.
+The Views cookbook page is enabled for both Qt and wx; LVGL remains unported.
 
 ## Canvas
 

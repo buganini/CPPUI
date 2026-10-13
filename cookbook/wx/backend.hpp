@@ -11,6 +11,7 @@
 #include "cppui/wx/progressbar.hpp"
 #include "cppui/wx/canvas.hpp"
 #include "cppui/wx/tab.hpp"
+#include "cppui/wx/views.hpp"
 #include "cppui/wx/table.hpp"
 #include "cppui/wx/tree.hpp"
 #include "cppui/wx/dialog.hpp"
@@ -23,7 +24,14 @@
 #include "../recipes.hpp"
 #include <wx/stopwatch.h>
 namespace Cookbook { namespace Backend {
-    inline bool viewSelected(CPPUI::Node &, const std::string &) { return false; }
+    using View = CPPUI::Wx::View;
+    using Views = CPPUI::Wx::Views;
+    inline bool viewSelected(CPPUI::Node & node, const std::string & key) {
+        auto views = dynamic_cast<Views *>(&node);
+        if(!views || !views->ui) return false;
+        const int index = static_cast<wxSimplebook *>(views->ui)->GetSelection();
+        return key.empty() ? index == 0 : index > 0 && views->children->at(index - 1)->_id == key;
+    }
     const char * const name="wxWidgets";
     inline void configureWindow(CPPUI::Context * node){static_cast<CPPUI::Wx::Window *>(node)->title("CPPUI Cookbook").maximize();}
     inline void menus(){
@@ -63,10 +71,21 @@ namespace Cookbook { namespace Backend {
     inline bool selectPage(CPPUI::Node & node){auto link=dynamic_cast<CPPUI::Wx::Label *>(&node);if(!link||!link->ui)return false;
         for(auto parent=link->ui->GetParent();parent;parent=parent->GetParent())if(auto scroll=dynamic_cast<wxScrolledWindow *>(parent)){int x,y;scroll->GetViewStart(&x,&y);auto point=scroll->ScreenToClient(link->ui->ClientToScreen(wxPoint(0,0)));scroll->Scroll(x,std::max(0,y+point.y));}
         wxMouseEvent event(wxEVT_LEFT_DOWN);event.SetEventObject(link->ui);link->ui->ProcessWindowEvent(event);return true;}
-    inline void prepareLayoutCheck(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());if(frame->GetTitle()!="CPPUI Cookbook")throw std::runtime_error("cookbook window title missing");frame->Maximize(false);frame->SetSize(800,600);settle();}
+    inline void prepareLayoutCheck(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());if(frame->GetTitle()!="CPPUI Cookbook")throw std::runtime_error("cookbook window title missing");frame->Maximize(false);frame->SetSize(800,600);
+        // The window manager may deliver unmaximize/resize after the first idle
+        // cycle. Wait for the native client size before checking child layout.
+        wxStopWatch clock;
+        do {
+            settle(); frame->Layout();
+            auto panel=static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel;
+            panel->Layout();
+            auto result=static_cast<CPPUI::Wx::Layout *>(find(root,"result"))->sizer();
+            if(result->GetSize().x>206 && result->GetSize().y>=200) break;
+        } while(clock.Time()<1000);
+    }
     inline bool pageVisible(CPPUI::Node & root,const std::string & key){auto scroll=static_cast<wxScrolledWindow *>(find(root,"menu-scroller")->outer());auto label=static_cast<wxWindow *>(find(root,"page:"+key)->outer());auto center=scroll->ScreenToClient(label->ClientToScreen(wxPoint(label->GetSize().x/2,label->GetSize().y/2)));return wxRect(wxPoint(0,0),scroll->GetClientSize()).Contains(center);}
     inline void checkLayout(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());auto sidebar=static_cast<CPPUI::Wx::Layout *>(find(root,"menu-container"))->sizer();auto result=static_cast<CPPUI::Wx::Layout *>(find(root,"result"))->sizer();auto scroll=static_cast<wxScrolledWindow *>(find(root,"menu-scroller")->outer());
-        if(sidebar->GetPosition().x+sidebar->GetSize().x>result->GetPosition().x||result->GetSize().x<=sidebar->GetSize().x||result->GetSize().y<200)throw std::runtime_error("cookbook must retain a sidebar beside an expanding result pane");
+        if(sidebar->GetPosition().x+sidebar->GetSize().x>result->GetPosition().x||result->GetSize().x<=sidebar->GetSize().x||result->GetSize().y<200)throw std::runtime_error("cookbook layout: frame="+std::to_string(frame->GetSize().x)+"x"+std::to_string(frame->GetSize().y)+"; panel="+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().x)+"x"+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().y)+"; sidebar x="+std::to_string(sidebar->GetPosition().x)+" width="+std::to_string(sidebar->GetSize().x)+"; result x="+std::to_string(result->GetPosition().x)+" width="+std::to_string(result->GetSize().x)+" height="+std::to_string(result->GetSize().y));
         if(scroll->GetVirtualSize().y<=scroll->GetClientSize().y)throw std::runtime_error("cookbook page list must scroll");
         auto bar=frame->GetMenuBar();if(!bar||bar->GetMenuCount()!=2||bar->GetMenu(0)->GetMenuItemCount()!=3||bar->GetMenu(1)->GetMenuItemCount()!=2)throw std::runtime_error("reference menus missing");
         if(find(root,"code"))throw std::runtime_error("source code pane must be omitted");

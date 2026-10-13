@@ -7,6 +7,13 @@ C++11 headers and the same shared cookbook sources. Inspect the reference code
 and tests before treating a difference as a design decision. This checklist
 contains remaining work only; remove completed items after each tested commit.
 
+Views follows PUI `ffd2256`, the shared optional selection contract in `65f2c02`,
+and the native cleanup cases in `9d24163`: wxSimplebook owns retained panel pages,
+each with a zero-padding VBox for ordinary controls, layouts and virtual views.
+Internal and external models share `select()` and blank/unknown-key behavior.
+The common cookbook demonstrates both forms. As with Qt, imperative selection
+uses the current C++ declaration, not a factory reference saved across redraws.
+
 ## Ownership and established contracts
 
 Factory results are borrowed construction references. Applications retain State
@@ -56,10 +63,9 @@ separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
   choose and integrate a Markdown renderer/dependency
   before enabling the complete shared Text cookbook page. Plain Text and Html
   already have native APIs.
-- **Splitter:** PUI/wx has no implementation. The shared API accepts arbitrary
-  panes; [wxSplitterWindow](https://github.com/wxWidgets/wxWidgets/blob/v3.2.9/include/wx/generic/splitter.h)
-  owns two. Choose nested splitters versus a custom multipane sash container,
-  including how existing sash positions survive keyed insertion/reordering.
+- **Splitter:** not yet ported in CPPUI/wx. PUI `d3f0679` supplies nested native
+  two-pane splitters for arbitrary child counts. Port that implementation and
+  verify that sash positions survive keyed insertion/reordering.
 - **Modal:** the shared API opens application-modal content without blocking
   reconciliation. wxGTK's [ShowWindowModal fallback](https://github.com/wxWidgets/wxWidgets/blob/v3.2.9/src/common/dlgcmn.cpp#L450)
   calls blocking ShowModal. Choose a modeless dialog plus an application-wide

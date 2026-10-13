@@ -19,6 +19,7 @@ namespace CPPUI { namespace Wx {
     }
 
     class View: public ::CPPUI::View {
+        friend class Views;
         wxEvtHandler queue;
         bool dirty = false, updating = false, scheduled = false, setupDone = false;
         public:
@@ -120,6 +121,14 @@ namespace CPPUI { namespace Wx {
         virtual wxSizer * sizer() const { return nullptr; }
         virtual void invalidateNative() {}
         virtual void commit() {}
+        virtual void rebindChild(Node *, Node *) {}
+        void update(::CPPUI::Node * previous) override {
+            ::CPPUI::Node::update(previous);
+            // An independently redrawing virtual view can retire declarations
+            // before its physical parent's next sync. Rebind cached mounts now.
+            if(previous && !is_outoforder) if(auto owner = dynamic_cast<Node *>(dom_parent))
+                owner->rebindChild(static_cast<Node *>(previous), this);
+        }
         ~Node() override { if(native && native->node == this) native->node = nullptr; }
         Node * physicalParent() const {
             auto p = parent;
@@ -152,7 +161,7 @@ namespace CPPUI { namespace Wx {
         void transfer(Node * previous) {
             native = previous && previous->native ? previous->native : std::make_shared<Native>();
             native->node = this;
-            ::CPPUI::Node::update(previous);
+            Node::update(previous);
         }
         static void commitFocused() {
             wxWeakRef<wxWindow> focused(wxWindow::FindFocus());
@@ -242,7 +251,6 @@ namespace CPPUI { namespace Wx {
         return mount;
     }
     inline void applyPadding(Mount & mount) {
-        mount.node = static_cast<Node *>(mount.node->getNode());
         if(!mount.content) return;
         auto pad = mount.node->layout_padding.valueOr(Insets(0));
         mount.padding[0]->SetMinSize(0, pad.top); mount.padding[1]->SetMinSize(pad.right, 0);
@@ -273,6 +281,9 @@ namespace CPPUI { namespace Wx {
         void * inner() override { return nullptr; }
         void invalidateNative() override { wxSizerObject = nullptr; mounts.clear(); }
         virtual wxSizer * createSizer() = 0;
+        void rebindChild(Node * previous, Node * current) override {
+            for(auto & mount: mounts) if(mount.node == previous) mount.node = current;
+        }
         void update(::CPPUI::Node * old) override {
             auto prev = static_cast<Layout *>(old);
             const bool reuse = prev && prev->wxSizerObject;
@@ -337,6 +348,9 @@ namespace CPPUI { namespace Wx {
         wxWindow * panel = nullptr;
         std::shared_ptr<Mount> contentMount;
         SingleChild() { is_terminal = false; }
+        void rebindChild(Node * previous, Node * current) override {
+            if(contentMount && contentMount->node == previous) contentMount->node = current;
+        }
         void * inner() override { return panel; }
         void invalidateNative() override { Widget::invalidateNative(); panel = nullptr; contentMount.reset(); }
         void update(::CPPUI::Node * old) override {

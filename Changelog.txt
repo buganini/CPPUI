@@ -1,4 +1,5 @@
 2026-10-13
+    * wx: port Views with retained wxSimplebook pages, optional selection models and shared cookbook examples; rebind layout mounts before independently redrawn subviews retire declarations
     * Qt: sync Views/Tabs optional selection models, retained native pages/subviews, safe imperative selection and cookbook examples; group empty/multi-control Tabs into physical pages
     * Qt: sync PUI window boundaries, native tab placement and ComboBox editable/keyed state; preserve native sizes/pages and commit selection values once
     * Qt/Cookbook: sync the three-pane Splitter example and verify reused adapter refresh and guarded queued quit against current PUI

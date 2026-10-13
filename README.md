@@ -42,6 +42,7 @@ remain usable.
 Qt [Views](REFERENCE.md#views) and [Tabs](REFERENCE.md#tabs) support internal
 selection or a `State<OptionalText>` binding. Pages retain their controls and
 subview state across selection changes; the cookbook demonstrates both forms.
+wx also provides Views with the same selection contract and shared cookbook page.
 
 With wxWidgets 3.2 development packages and a display available:
 
