@@ -9,6 +9,7 @@
 #include "cppui/lvgl/canvas.hpp"
 #include "cppui/lvgl/divider.hpp"
 #include "cppui/lvgl/tab.hpp"
+#include "cppui/lvgl/views.hpp"
 #include "cppui/lvgl/checkbox.hpp"
 #include "cppui/lvgl/radiobutton.hpp"
 #include "cppui/lvgl/progressbar.hpp"
@@ -17,7 +18,20 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
-    inline bool viewSelected(CPPUI::Node &, const std::string &) { return false; }
+    using View = CPPUI::LVGL::View;
+    using Views = CPPUI::LVGL::Views;
+    inline void viewsEditor(CPPUI::State<std::string> & text) { CPPUI::Label(static_cast<std::string>(text)).id("views-editor-field"); }
+    inline bool viewSelected(CPPUI::Node & node, const std::string & key) {
+        auto views = dynamic_cast<Views *>(&node);
+        if(!views || !views->ui) return false;
+        bool found = key.empty();
+        for(auto child: *views->children) {
+            const bool visible = !lv_obj_is_hidden(static_cast<lv_obj_t *>(child->outer()));
+            if(visible != (!key.empty() && child->_id == key)) return false;
+            if(visible) found = true;
+        }
+        return found;
+    }
     inline void configureWindow(CPPUI::Context *) {}
     inline void menus() {}
     inline int treeChildCount(CPPUI::Node &, const std::vector<int> &) { return -1; }
@@ -34,6 +48,9 @@ namespace Cookbook { namespace Backend {
             page.remaining = "";
         } else if(std::string(page.key) == "tab") {
             page.render = tab;
+            page.remaining = "";
+        } else if(std::string(page.key) == "views") {
+            page.render = views;
             page.remaining = "";
         } else if(std::string(page.key) == "checkbox") {
             page.render = checkbox;

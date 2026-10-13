@@ -35,7 +35,7 @@ dependency. Routine implementation choices remain part of the porting work.
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
 Button, Checkbox, RadioButton, Spacer, Divider, plain Text, basic Scroll,
-Tabs/Tab, ProgressBar, TimelineView and Canvas drawing. Shared recipes use the
+Tabs/Tab, Views, ProgressBar, TimelineView and Canvas drawing. Shared recipes use the
 public PUI layout/style modifiers; see the
 [component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
 
@@ -49,6 +49,7 @@ public PUI layout/style modifiers; see the
 | ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
 | Bound controls | Boolean Checkbox and typed RadioButton with Binding/State; cookbook membership adapters | TextField edit/commit and ComboBox value selection remain to port (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
+| Views | Retained native pages, internal/optional bound selection, keyed reuse and shared cookbook | Real-display input/layout checks remain part of general validation |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Cancellable TimelineView timers; basic Canvas primitives, text and native-resolution buffers | Add image resources, font/density capabilities and deferred input support (6) |
 | Table/Tree/adapters/interop | Shared typed adapter interfaces; LVGL wrappers not yet ported | Map the public interfaces to LVGL models or custom widgets and define interop borrowing (6) |
@@ -146,6 +147,15 @@ and the binding/control pages. Assert one commit per edit, no feedback loop,
 native reuse, valid model retention after invalid input, and resource reclamation.
 
 ### Phase 5 — Containers and window interactions
+
+Views adopts the shared PUI behavior introduced in `e5927cb` and `65f2c02`:
+unique non-empty child IDs, internal or optional bound selection, retained page
+state, and blank content for cleared or unknown keys without rewriting the model.
+Each page is an LVGL VBox; hidden pages remain mounted and can redraw independently.
+Selection dispatch follows the current declaration across synchronous redraws,
+and stops safely if a model setter removes the container or destroys its owner.
+The shared cookbook uses a Change text button and Label to exercise retained state;
+LVGL TextField remains a separate unfinished port.
 
 - [ ] Extend basic Scroll with `.scrollX()`/`.scrollY()`, the shared signed-zero
   end anchor and position retention through resize, growth, shrinkage and content

@@ -88,7 +88,7 @@ if(BUILD_TESTING)
         CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
     cppui_add_test(lvgl.radiobutton cppui_lvgl_radiobutton)
 
-    foreach(component progressbar timeline)
+    foreach(component progressbar timeline views)
         add_executable(cppui_lvgl_${component} "${cppui_lvgl_dir}/../../tests/lvgl_${component}.cpp")
         target_include_directories(cppui_lvgl_${component} PRIVATE "${cppui_lvgl_dir}/../..")
         target_link_libraries(cppui_lvgl_${component} PRIVATE lvgl::lvgl)
@@ -106,7 +106,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header application base button canvas checkbox divider label layout progressbar radiobutton scroll spacer tab text timeline window)
+    foreach(header application base button canvas checkbox divider label layout progressbar radiobutton scroll spacer tab text timeline views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

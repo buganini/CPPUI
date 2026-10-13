@@ -10,6 +10,9 @@ Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b
 
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView
 and Tab share their recipe implementations across all three backends.
+Views also shares internal and bound selection examples across all backends.
+Its Change text button demonstrates retained local state; Qt and wx provide a
+TextField too, while LVGL displays the value in a Label pending the TextField port.
 Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Text, Image, MDI, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. Qt also has a
@@ -213,6 +216,10 @@ progress buttons and mounts/removes the clock recipe.
 `lvgl.tab` covers virtual pages, explicit grouping, empty tabs, keyed moves,
 selection, label updates, independent subviews and native/declaration teardown.
 The cookbook smoke test switches both shared Tab pages.
+`lvgl.views` covers optional/internal selection, empty and multi-root pages,
+hidden-page redraw, retained controls/state, keyed moves, invalid IDs, model
+rebinding, setter-driven removal and native/display teardown. The cookbook
+switches and clears both Views examples and checks retained state and controls.
 `lvgl.widgets` checks label callback replacement/removal, divider orientation
 through virtual views, plain-text wrapping and cleanup, including Valgrind.
 

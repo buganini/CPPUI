@@ -39,10 +39,10 @@ build directory. Both accept `--smoke` and run as CTest regressions, including
 Valgrind variants when enabled. Their original CMake projects under `example/`
 remain usable.
 
-Qt [Views](REFERENCE.md#views) and [Tabs](REFERENCE.md#tabs) support internal
-selection or a `State<OptionalText>` binding. Pages retain their controls and
-subview state across selection changes; the cookbook demonstrates both forms.
-wx also provides Views with the same selection contract and shared cookbook page.
+[Views](REFERENCE.md#views) on Qt, wx and LVGL supports internal selection or a
+`State<OptionalText>` binding. Pages retain their controls and subview state
+across selection changes; the shared cookbook demonstrates both forms.
+Qt [Tabs](REFERENCE.md#tabs) also supports these selection models.
 
 With wxWidgets 3.2 development packages and a display available:
 

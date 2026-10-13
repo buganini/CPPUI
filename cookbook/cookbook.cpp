@@ -114,7 +114,7 @@ namespace Cookbook {
                             Backend::settle();
                             auto field = find(*find(gallery, id), "views-editor-field");
                             auto native = field->outer();
-                            require(Backend::editTextField(*field, "retained draft", true), "Views editor is missing");
+                            require(click(*find(gallery, id), "Change text"), "Views state control is missing");
                             Backend::settle();
                             require(click(gallery, "Settings" + suffix), "Views Settings button is missing");
                             Backend::settle();
@@ -122,7 +122,8 @@ namespace Cookbook {
                             require(click(gallery, "Editor" + suffix), "Views Editor button was lost");
                             Backend::settle();
                             require(Backend::viewSelected(*find(gallery, id), "editor")
-                                && find(*find(gallery, id), "views-editor-field")->outer() == native, "Views replaced the hidden editor");
+                                && find(*find(gallery, id), "views-editor-field")->outer() == native
+                                && hasText(*find(gallery, id), "Saved text: retained draft"), "Views replaced the hidden editor or lost its state");
                             require(click(gallery, "Clear" + suffix), "Views Clear button is missing");
                             Backend::settle();
                             require(Backend::viewSelected(*find(gallery, id), ""), "Views did not clear its selection");
