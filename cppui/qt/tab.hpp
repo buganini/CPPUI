@@ -17,14 +17,21 @@ namespace CPPUI {
         };
 
         class Tabs: public BaseWidget {
+            static QTabWidget::TabPosition nativePosition(const std::string & position) {
+                if(position == "n") return QTabWidget::North;
+                if(position == "s") return QTabWidget::South;
+                if(position == "e") return QTabWidget::East;
+                if(position == "w") return QTabWidget::West;
+                throw std::invalid_argument("Unknown tab position");
+            }
             public:
-            // PUI stores this option but does not apply it to the native widget.
             std::string tabposition;
 
-            explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) {}
+            explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) { nativePosition(tabposition); }
 
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new Widget<QTabWidget>();
+                static_cast<QTabWidget *>(ui)->setTabPosition(nativePosition(tabposition));
             }
             void addChild(int idx, Node * child) override {
                 if(child->is_outoforder) return;

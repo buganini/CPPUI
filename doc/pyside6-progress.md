@@ -31,6 +31,7 @@ Adopted reference updates beyond the original baseline:
 
 - Window content sizing follows PUI `7d8655e`: the top-level native layout uses
   `SetNoConstraint`, preserving declared and user-set sizes as content grows.
+- Tabs follows PUI `b9e3ad5`: validate and apply native north/south/east/west placement.
 
 ### C++ ownership and reclamation requirements
 
@@ -372,9 +373,9 @@ Continue independent implementation while these contracts remain undecided.
   and their cookbook recipes are Python-only integrations, excluded from CPPUI.
 - Arbitrary dynamic Qt keyword parameters remain excluded; the supported typed
   `.qt(...)` fields are listed in the [modifier reference](../REFERENCE.md#pui-modifiers).
-- Existing PUI gaps, such as unused tab position, Scroll offset capture and inconsistently applied
+- Existing PUI gaps, such as Scroll offset capture and inconsistently applied
   layout/style options: document observed behavior and any intentional CPPUI
-  improvement. Tab position and empty/multi-child label behavior are described
+  improvement. Native tab position and empty/multi-child label behavior are described
   in the [component reference](../REFERENCE.md#tabs). Do not infer complete
   support from a constructor argument alone.
 

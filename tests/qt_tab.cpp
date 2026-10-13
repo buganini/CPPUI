@@ -122,7 +122,22 @@ namespace {
             root.position = "s";
             root.sync();
             root.checkSinglePages();
-            require(tabs->tabPosition() == QTabWidget::North, "unused PUI tabposition unexpectedly applied");
+            require(tabs->tabPosition() == QTabWidget::South, "south tab position was not applied");
+            auto page = tabs->widget(0);
+            for(const auto & position: std::map<std::string, QTabWidget::TabPosition>{
+                    {"n", QTabWidget::North}, {"s", QTabWidget::South}, {"e", QTabWidget::East}, {"w", QTabWidget::West}}) {
+                root.position = position.first; root.sync();
+                require(root.native() == tabs && tabs->tabPosition() == position.second
+                    && tabs->currentWidget() == page, "tab placement change replaced native content or selection");
+            }
+            for(const auto & invalid: {"", "north", "invalid"}) {
+                root.position = invalid;
+                bool rejected = false;
+                try { root.sync(); } catch(const std::invalid_argument &) { rejected = true; }
+                require(rejected && root.native() == tabs && tabs->currentWidget() == page
+                    && declarations == 1, "invalid tab placement damaged mounted content");
+            }
+            root.position = "n";
             root.show = false;
             root.sync();
             settle();

@@ -775,8 +775,12 @@ the child widget and selected page; removing the selected page clamps the active
 index to the remaining pages. Empty tabviews retain their native container.
 Independent subview redraws preserve the same page order and selection rules.
 
-Two reference quirks are preserved: `Tabs(tabposition = "n")` stores the string
-but leaves the native position unchanged, and `postSync()` updates page labels
+Qt `Tabs(tabposition = "n")` maps `n`, `s`, `e`, and `w` to native North, South,
+East, and West placement and updates it on redraw without replacing pages.
+Other values throw `std::invalid_argument` during construction. LVGL currently
+stores this option without applying it; native placement remains to port there.
+
+The reference's `postSync()` label quirk is preserved: it updates page labels
 by direct Tab declaration index. With two physical children in Tab("A") followed
 by one in Tab("B"), page labels become A, B, B; an empty first Tab can similarly
 overwrite the next page's label. Use one physical child per Tab for matching
