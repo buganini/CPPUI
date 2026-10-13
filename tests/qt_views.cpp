@@ -2,6 +2,8 @@
 #include "cppui/qt/window.hpp"
 #include "cppui/qt/label.hpp"
 #include "cppui/qt/textfield.hpp"
+#include "cppui/qt/button.hpp"
+#include "cppui/qt/checkbox.hpp"
 #include <QApplication>
 #include <QEvent>
 #include <QLineEdit>
@@ -50,6 +52,47 @@ namespace {
         QStackedWidget * native() { return static_cast<QStackedWidget *>(views()->ui); }
         Editor * editor(int index) { return static_cast<Editor *>(views()->children->at(index)->children->front()); }
     };
+    class SelectionRoot: public CPPUI::Qt::QtView {
+        public:
+        CPPUI::State<CPPUI::OptionalText> page{CPPUI::OptionalText("a")};
+        CPPUI::State<bool> checked{false};
+        void content() override {
+            for(auto window: CPPUI::Window()) for(auto column: CPPUI::VBox()) {
+                CPPUI::Button("a").click([this]() { page = CPPUI::OptionalText("a"); });
+                CPPUI::Button("b").click([this]() { page = CPPUI::OptionalText("b"); });
+                CPPUI::Checkbox("redraw", checked);
+                for(auto views: CPPUI::Views(page)) {
+                    CPPUI::Label("first").id("a");
+                    CPPUI::Label("second").id("b");
+                }
+            }
+        }
+    };
+    void buttonSelectionAfterRedraw() {
+        SelectionRoot root; root.sync(); settle();
+        auto window = static_cast<QWidget *>(root.children->front()->outer());
+        auto stack = window->findChild<QStackedWidget *>();
+        for(int repeat = 0; repeat < 8; ++repeat) {
+            root.sync(); settle();
+            const auto key = repeat % 2 ? "a" : "b";
+            QPushButton * button = nullptr;
+            for(auto candidate: window->findChildren<QPushButton *>())
+                if(candidate->text() == key) button = candidate;
+            require(button, "selection button was lost after redraw");
+            button->click(); settle();
+            auto checkbox = window->findChild<QCheckBox *>();
+            require(checkbox, "redraw checkbox was lost");
+            checkbox->click(); settle();
+            root.sync(); settle();
+            const auto selected = static_cast<CPPUI::OptionalText>(root.page);
+            require(selected && *selected == key
+                && static_cast<bool>(root.checked) == (repeat % 2 == 0),
+                "button or checkbox callback lost its current receiver after redraw");
+            require(window->findChild<QStackedWidget *>() == stack
+                && stack->currentIndex() == (repeat % 2 ? 1 : 2),
+                "button/checkbox redraw replaced Views or lost the selected page");
+        }
+    }
 }
 int main(int argc, char ** argv) {
     QApplication app(argc, argv);
@@ -144,6 +187,7 @@ int main(int argc, char ** argv) {
             delete root.native();
             require(!declaration->ui, "external native deletion left stale Views access");
         }
+        buttonSelectionAfterRedraw();
         settle();
         require(editors == 0 && app.topLevelWidgets().isEmpty(), "Views teardown leaked native roots or declarations");
     } catch(const std::exception & error) { std::cerr << error.what() << '\n'; return 1; }

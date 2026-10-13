@@ -34,6 +34,10 @@ Adopted reference updates beyond the original baseline:
 - Tabs follows PUI `65f2c02` (including placement from `b9e3ad5`): one physical
   page per Tab, optional internal/external selection, native model updates,
   imperative selection, ID/label keys and first-page fallback for missing keys.
+  The receiver refresh fix in `7206343` is already handled by BaseWidget's
+  per-declaration connection cleanup and Tabs' reconnect on every update.
+  Matching regressions check repeated native selection after old declarations
+  are reclaimed and preservation of unrelated native selection listeners.
 - ComboBox follows PUI `9a3b142` and its shared `combobox_get`/set helpers:
   retain editable buffers, clear the index for free text, display selected labels,
   and preserve unbound selection by item identity across keyed moves.
@@ -44,7 +48,9 @@ Adopted reference updates beyond the original baseline:
   return contract below; Python's old-handle forwarding is not copied.
   PUI `c84796f` adopts CPPUI's Change text button, Saved text label and distinct
   state-selection labels, so the shared example already matches that update.
-- The remaining Qt/shared deltas were compared through PUI `c84796f`:
+  The `7206343` Views regression also covers repeated native button selection
+  and checkbox-triggered redraws while retaining the selected native page.
+- The remaining Qt/shared deltas were compared through PUI `7206343`:
   reused Table adapter resets (`df4cbac`), guarded queued quit (`675e831`), and
   native teardown through virtual subviews (`9d24163`) already have C++
   equivalents. Optional binding clears (`fd69ff0`) preserve empty `OptionalText`

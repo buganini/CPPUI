@@ -229,6 +229,34 @@ namespace {
             require(!root && declarations == 0, "select could not safely destroy its owning view");
         }
     }
+    void selectionAfterRedraw() {
+        std::vector<int> seen;
+        Root root;
+        root.external = true;
+        root.pages = {{"alpha", "Alpha"}, {"", "Beta"}};
+        root.first = CPPUI::OptionalText("alpha");
+        root.sync();
+        auto native = root.native();
+        auto listener = QObject::connect(native, &QTabWidget::currentChanged, native,
+            [&seen](int index) { seen.push_back(index); });
+        for(int repeat = 0; repeat < 8; ++repeat) {
+            // Retire declarations before using the retained native signal source.
+            root.sync(); settle();
+            root.checkSinglePages();
+            const int index = (repeat + 1) % 2;
+            const std::string key = index ? "Beta" : "alpha";
+            native->setCurrentIndex(index); settle();
+            const auto selected = static_cast<CPPUI::OptionalText>(root.first);
+            require(selected && *selected == key
+                && root.writes == repeat + 1, "native selection lost its current receiver or wrote more than once after redraw");
+            root.sync(); settle();
+            require(root.native() == native && native->currentIndex() == index,
+                "native selection after redraw did not persist in the bound model");
+            require(seen.size() == static_cast<std::size_t>(repeat + 1) && seen.back() == index,
+                "redraw disconnected or duplicated an external selection listener");
+        }
+        QObject::disconnect(listener);
+    }
     void virtualPages() {
         int removed = 0;
         {
@@ -284,6 +312,7 @@ int main(int argc, char ** argv) {
         ordinaryTabs();
         virtualPages();
         optionalSelection();
+        selectionAfterRedraw();
     } catch(const std::exception & error) {
         std::cerr << error.what() << '\n';
         return 1;

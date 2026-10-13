@@ -1,4 +1,5 @@
 2026-10-14
+    * Qt: sync PUI 7206343 Tabs/Views redraw regressions; verify current selection receivers, preserved external listeners and button/checkbox selection after declaration retirement
     * Docs: sync PUI automatic sizing guidance and audit through c84796f; Views additions already match, and the new redraw fix is Textual-specific
 
 2026-10-13
