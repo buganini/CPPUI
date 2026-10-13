@@ -8,17 +8,19 @@ class TextField: public Widget {
     std::shared_ptr<EditState> state;
     Binding<std::string> model;
     Optional<Binding<std::string>> editModel;
-    std::string value, editValue;
+    std::string value, editValue, placeholderText;
     std::function<void()> onInput, onChange;
 public:
     explicit TextField(Binding<std::string> model): model(model), value(model.get()) { expandX = 3; }
     TextField(Binding<std::string> model, Binding<std::string> edit): TextField(model) { editModel = edit; editValue = edit.get(); }
     TextField & input(std::function<void()> callback) { onInput = std::move(callback); return *this; }
     TextField & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
+    TextField & placeholder(const std::string & text) { placeholderText = text; return *this; }
     void updateWidget(Widget * previous) override {
         auto prev = static_cast<TextField *>(previous);
         state = prev ? prev->state : std::make_shared<EditState>();
         ui = prev ? prev->ui : new wxTextCtrl(parentWindow(), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        static_cast<wxTextCtrl *>(ui)->SetHint(wxString::FromUTF8(placeholderText));
         if(!state->editing && (!state->value || *state->value != value)) {
             static_cast<wxTextCtrl *>(ui)->ChangeValue(wxString::FromUTF8(value)); state->value = value;
         }

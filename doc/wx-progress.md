@@ -33,6 +33,14 @@ in rows and columns, window resizing and explicit dimension reset. The remaining
 
 ## Ownership and established contracts
 
+Button/ComboBox `.enabled(bool)` follows PUI `020ef46`; TextField
+`.placeholder(text)` follows `184ffcd` through native `SetHint`, including the
+shared cookbook hint. Omission on a fresh declaration restores enabled/empty
+defaults. Native regressions cover reactive toggles, identity and editable-mode
+preservation, programmatic updates while disabled, and hint changes/clears
+without altering the active draft, cursor or callbacks. Audited through PUI
+`a4c6840`; its release metadata does not change the CPPUI version.
+
 Factory results are borrowed construction references. Applications retain State
 and IDs, not declarations across redraws. Native window pointers are observers;
 wx parents own child windows and attached sizers own nested sizers. Transfer

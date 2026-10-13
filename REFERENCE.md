@@ -115,6 +115,28 @@ keeps the mounted UI and the view can retry on a later request; failures after
 native reconciliation starts still need a recovery contract. Removing a view
 cancels its queued work. Core and LVGL redraws remain synchronous.
 
+## Optional arguments
+
+Independent widget options use named fluent setters in C++11, corresponding to
+PUI's keyword arguments: `Button("Save").enabled(false)` and
+`TextField(model).placeholder("Enter text")`. Required values and model bindings
+remain constructor arguments. Existing calls keep their defaults without adding
+positional placeholders or overloads for every combination of options.
+
+Setters copy their values into the current declaration and apply them during
+reconciliation. A fresh declaration that omits a setter restores its default;
+repeated calls on one declaration use the last value. Reading a State in a
+setter, such as `.enabled(canSave)`, tracks the view's reactive dependency.
+Call widget-specific setters before common modifiers such as `.id()` or
+`.layout()`, which return `Node&` rather than the concrete widget type.
+The terminal `.click(callback)` call returns void and goes last.
+
+Use `Optional<T>` when absence has its own meaning, such as an unset dimension,
+an unselected page or a cancelled dialog. A defaulted option does not itself
+need `Optional<T>`: `enabled` defaults to true, and an omitted or empty
+placeholder both mean no hint. Existing positional layout/style modifiers keep
+their `Optional<T>` arguments and `{}` omission syntax below.
+
 ## PUI modifiers
 
 Nodes expose PUI's `.layout(...)`, `.style(...)` and `.qt(...)` APIs. These are
@@ -472,6 +494,15 @@ reactive State in the getter. Change subscriptions, explicit notification and
 text conversion helpers remain pending; this adapter does not change State's
 copy/move semantics.
 
+## Button
+
+Include `cppui/qt/button.hpp`, `cppui/wx/button.hpp` or `cppui/lvgl/button.hpp`.
+`Button(text).click(callback)` owns its text and invokes the current callback.
+`.enabled(bool)` controls native user interaction and defaults to true. Disabling
+and re-enabling reuse the native button; omitting the setter on a fresh
+declaration restores enabled state. This follows PUI `020ef46`, with LVGL using
+its native disabled state.
+
 ## TextField
 
 Include `cppui/qt/textfield.hpp`, `cppui/wx/textfield.hpp` or
@@ -482,6 +513,13 @@ the model and calls `.change(callback)`. These callbacks take no arguments;
 typed event payloads remain deferred. Redraw/rebinding preserves an active draft,
 and commit uses the current binding. A successful commit reads the model back,
 so an adapter that rejects or normalizes input controls the displayed value.
+
+`.placeholder(text)` sets the native empty-field hint on Qt, wx and LVGL,
+following PUI `184ffcd`. It owns the string, updates on redraw and clears when
+given an empty string or omitted on a fresh declaration. Changing the hint
+preserves the model, active draft and cursor and emits no input/change callbacks.
+Visibility while focused follows the native toolkit. The shared cookbook's
+State Model field uses `"Enter text"`.
 
 Programmatic updates suppress input/change feedback. The draft is synchronized
 when idle only if its value differs, avoiding repeated queued redraws. Callback
@@ -543,12 +581,18 @@ sidebar; the full Scroll recipe is still Qt-only.
 
 ## ComboBox
 
-Include `cppui/qt/combobox.hpp`. `ComboBox(editable, model)` accepts an integer
-index binding or a string value binding; `ComboBox(editable, index, text)` accepts
-both. State values adapt automatically. Its children are
+Include `cppui/qt/combobox.hpp` or `cppui/wx/combobox.hpp`.
+`ComboBox(editable, model)` accepts an integer index binding or a string value
+binding; `ComboBox(editable, index, text)` accepts both. State values adapt
+automatically. Its children are
 `ComboBoxItem(label, value)`; value defaults to label and may explicitly be empty.
 Labels and values are owned strings, with labels used as default node IDs.
 Use explicit IDs to distinguish duplicate labels or retain a renamed item.
+
+`.enabled(bool)` defaults to true and follows PUI `020ef46`. Disabling preserves
+selection, editable/read-only mode and native identity; programmatic model
+updates still apply without change callbacks. Omitting it on a fresh declaration
+restores enabled state. The LVGL ComboBox wrapper remains unported.
 
 Index binding takes precedence for displayed selection. Negative/out-of-range
 indices produce no selection; an index-change callback for -1 writes empty text,

@@ -19,6 +19,9 @@ namespace {
         std::function<void()> onInput, onCommit, onSet, onDraft;
         std::weak_ptr<int> capture;
         std::string seen;
+        std::string placeholder = "Enter text";
+        bool setPlaceholder = true, setEnabled = true;
+        CPPUI::State<bool> enabled{true};
         void content() override {
             for(auto window: CPPUI::Window()) for(auto column: CPPUI::VBox()) {
                 if(show) {
@@ -43,13 +46,16 @@ namespace {
                         });
                     const auto current = version;
                     auto & field = withDraft ? CPPUI::TextField(binding, edit) : CPPUI::TextField(binding);
+                    if(setPlaceholder) field.placeholder(std::string(placeholder));
                     field.input([this, current]() {
                         inputs += current; auto invoke = onInput; if(invoke) invoke();
                     }).change([this, current]() {
                         changes += current; auto invoke = onCommit; if(invoke) invoke();
                     }).id("field");
                 }
-                CPPUI::Button("read model").click([this]() { seen = static_cast<std::string>(other ? second : first); });
+                auto & button = CPPUI::Button("read model");
+                if(setEnabled) button.enabled(enabled);
+                button.click([this]() { seen = static_cast<std::string>(other ? second : first); });
             }
         }
         CPPUI::LVGL::TextField * field() { return static_cast<CPPUI::LVGL::TextField *>(children->front()->children->front()->children->front()); }
@@ -78,6 +84,15 @@ int main() {
         {
             Root root; root.redraw(); settle();
             auto editor = root.editor();
+            require(std::string(lv_textarea_get_placeholder_text(editor)) == "Enter text", "TextField lost its placeholder");
+            auto button = root.button();
+            for(int i = 0; i < 4; ++i) {
+                root.setEnabled = i != 3;
+                root.enabled = i == 1; settle();
+                require(root.button() == button
+                    && lv_obj_has_state(button, LV_STATE_DISABLED) == (root.setEnabled && !static_cast<bool>(root.enabled)),
+                    "Button enabled update/default reset remounted it or left stale native state");
+            }
             require(lv_textarea_get_one_line(editor) && text(editor) == "first" && static_cast<std::string>(root.draft) == "first"
                 && root.draftWrites == 1 && root.writes == 0 && root.inputs == 0, "initial model/draft sync emitted input or repeated writes");
             auto capture = root.capture;
@@ -87,6 +102,18 @@ int main() {
                 && static_cast<std::string>(root.draft) == "first!" && root.inputs == 1 && root.writes == 0 && capture.expired(),
                 "keyboard input did not update only the draft or retire old callbacks");
             const auto cursor = lv_textarea_get_cursor_pos(editor);
+            for(int i = 0; i < 4; ++i) {
+                root.placeholder = i == 1 ? "" : "Updated hint";
+                root.setPlaceholder = i != 3;
+                root.redraw(); settle();
+                const auto hint = lv_textarea_get_placeholder_text(editor);
+                require(root.editor() == editor && std::string(hint ? hint : "") == (root.setPlaceholder ? root.placeholder : "")
+                    && text(editor) == "first!" && lv_textarea_get_cursor_pos(editor) == cursor,
+                    "placeholder update/default reset changed native identity, draft or cursor");
+                require(static_cast<std::string>(root.first) == "first" && static_cast<std::string>(root.draft) == "first!"
+                    && root.inputs == 1 && root.writes == 0 && root.changes == 0,
+                    "placeholder update changed the model or emitted feedback");
+            }
             root.first = std::string("outside"); root.version = 2; root.redraw(); settle();
             require(root.editor() == editor && text(editor) == "first!" && lv_textarea_get_cursor_pos(editor) == cursor,
                 "redraw overwrote an active draft/cursor");

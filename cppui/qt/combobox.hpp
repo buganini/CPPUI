@@ -22,6 +22,7 @@ namespace CPPUI { namespace Qt {
     };
     class ComboBox: public BaseWidget {
         bool editable;
+        bool isEnabled = true;
         Optional<Binding<int>> indexModel;
         Optional<Binding<std::string>> textModel;
         int indexValue = -1;
@@ -34,10 +35,12 @@ namespace CPPUI { namespace Qt {
             if(textModel) textValue = textModel->get();
         }
         ComboBox & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
+        ComboBox & enabled(bool value) { isEnabled = value; return *this; }
         void update(BaseWidget * prev) override {
             ui = prev && prev->ui ? prev->ui : new ComboBoxWidget();
             QSignalBlocker block(ui);
             static_cast<QComboBox *>(ui)->setEditable(editable);
+            ui->setEnabled(isEnabled);
         }
         void addChild(int index, Node * child) override;
         void removeChild(int index, Node *) override {

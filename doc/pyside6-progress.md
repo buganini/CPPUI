@@ -29,6 +29,11 @@ Pin any subsequently adopted reference changes by component and commit here.
 
 Adopted reference updates beyond the original baseline:
 
+- Button/ComboBox enabled state follows PUI `020ef46`; TextField placeholders
+  follow `184ffcd`, including the shared TextField recipe. C++ uses `.enabled(bool)`
+  and `.placeholder(text)` setters with defaults restored by omission on a fresh
+  declaration. Native reuse, reactive enabled updates, disabled model updates,
+  draft/cursor preservation and silent property changes have regression coverage.
 - Window content sizing follows PUI `7d8655e`: the top-level native layout uses
   `SetNoConstraint`, preserving declared and user-set sizes as content grows.
 - Tabs follows PUI `65f2c02` (including placement from `b9e3ad5`): one physical
@@ -50,7 +55,7 @@ Adopted reference updates beyond the original baseline:
   state-selection labels, so the shared example already matches that update.
   The `7206343` Views regression also covers repeated native button selection
   and checkbox-triggered redraws while retaining the selected native page.
-- The remaining Qt/shared deltas were compared through PUI `7206343`:
+- The remaining Qt/shared deltas were compared through PUI `a4c6840`:
   reused Table adapter resets (`df4cbac`), guarded queued quit (`675e831`), and
   native teardown through virtual subviews (`9d24163`) already have C++
   equivalents. Optional binding clears (`fd69ff0`) preserve empty `OptionalText`
@@ -65,6 +70,7 @@ Adopted reference updates beyond the original baseline:
   backend mappings. The Textual-only redraw fix (`4b78b2a`) has no backend to
   port here; Qt/wx already queue redraws, while LVGL TextField defers draft
   synchronization until reconciliation has finished.
+  PUI's 1.0/1.1 version metadata does not change CPPUI's release version.
 
 ### C++ ownership and reclamation requirements
 

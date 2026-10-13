@@ -50,7 +50,7 @@ namespace CPPUI { namespace LVGL {
         std::shared_ptr<Runtime> runtime;
         Binding<std::string> model;
         Optional<Binding<std::string>> editModel;
-        std::string value, editValue;
+        std::string value, editValue, placeholderText;
         std::function<void()> onInput, onChange;
         void retire() {
             if(runtime && runtime->current == this) {
@@ -82,6 +82,7 @@ namespace CPPUI { namespace LVGL {
         }
         TextField & input(std::function<void()> callback) { onInput = std::move(callback); return *this; }
         TextField & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
+        TextField & placeholder(const std::string & text) { placeholderText = text; return *this; }
         ~TextField() override { retire(); }
         void destroy(bool direct) override { retire(); Node::destroy(direct); }
         void update(Node * previous) override {
@@ -97,6 +98,7 @@ namespace CPPUI { namespace LVGL {
                 lv_obj_add_event_cb(runtime->object, Runtime::deleted, LV_EVENT_DELETE, runtime.get());
             }
             runtime->current = this;
+            lv_textarea_set_placeholder_text(runtime->object, placeholderText.c_str());
             if(!runtime->editing && !runtime->committing) {
                 if(!runtime->modelValue || *runtime->modelValue != value) {
                     runtime->setText(value);

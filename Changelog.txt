@@ -1,4 +1,5 @@
 2026-10-14
+    * Controls/Cookbook: sync PUI a4c6840 with fluent Button/ComboBox enabled and TextField placeholder options; support Qt/wx and existing LVGL controls, reset omitted defaults, and add the shared TextField hint
     * Qt: sync PUI 7206343 Tabs/Views redraw regressions; verify current selection receivers, preserved external listeners and button/checkbox selection after declaration retirement
     * Docs: sync PUI automatic sizing guidance and audit through c84796f; Views additions already match, and the new redraw fix is Textual-specific
 

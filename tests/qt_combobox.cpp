@@ -12,6 +12,8 @@ namespace {
         CPPUI::State<int> index{-1};
         CPPUI::State<std::string> text{std::string()};
         bool editable = false, useIndex = true, useText = true, show = true, reverse = false;
+        CPPUI::State<bool> enabled{true};
+        bool setEnabled = true;
         int count = 3, writes = 0, changes = 0;
         std::string caption = "First";
         std::function<void()> action;
@@ -26,6 +28,7 @@ namespace {
                     ? (useText ? CPPUI::ComboBox(editable, index, binding) : CPPUI::ComboBox(editable, index))
                     : (useText ? CPPUI::ComboBox(editable, binding) : CPPUI::ComboBox(editable));
                 combo.change([this]() { ++changes; });
+                if(setEnabled) combo.enabled(enabled);
                 for(auto scope: combo) {
                     if(reverse) for(int i = count - 1; i >= 0; --i) item(i);
                     else for(int i = 0; i < count; ++i) item(i);
@@ -68,6 +71,21 @@ namespace {
 int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
+        for(bool editable: {false, true}) {
+            Root root(argc, argv); root.editable = editable; root.sync();
+            auto combo = root.native();
+            for(int i = 0; i < 4; ++i) {
+                root.setEnabled = i != 3;
+                root.enabled = i == 1; settle();
+                require(combo->isEnabled() == (!root.setEnabled || static_cast<bool>(root.enabled)),
+                    "reactive ComboBox enabled update/default reset was not applied");
+                root.index = i % 3; root.text = std::to_string(i % 3); settle();
+                require(root.native() == combo && combo->isEditable() == editable
+                    && combo->currentIndex() == i % 3 && combo->currentText() == combo->itemText(i % 3),
+                    "disabled ComboBox lost identity, editable mode or model updates");
+                require(root.writes == 0 && root.changes == 0, "ComboBox option/model updates emitted feedback");
+            }
+        }
         {
             Root root(argc, argv); root.sync();
             auto combo = root.native();

@@ -50,6 +50,66 @@ public:
         }
     }
 };
+class OptionsRoot: public CPPUI::Application {
+public:
+    using Application::Application;
+    CPPUI::State<bool> enabled{true};
+    CPPUI::State<int> index{0};
+    CPPUI::State<std::string> selected{std::string("one")}, text{std::string()}, draft{std::string()};
+    bool setEnabled=true, setPlaceholder=true;
+    std::string placeholder="Enter text";
+    int inputs=0, changes=0, comboChanges=0;
+    void content() override {
+        for(auto w: CPPUI::Window().size(400,300)) for(auto v: CPPUI::VBox()) {
+            auto & button=CPPUI::Button("Run");
+            if(setEnabled) button.enabled(enabled);
+            button.id("button");
+            for(bool editable: {false,true}) {
+                auto & combo=CPPUI::ComboBox(editable,index,selected);
+                if(setEnabled) combo.enabled(enabled);
+                for(auto c: combo.change([this](){++comboChanges;}).id(editable ? "editable" : "readonly")) {
+                    CPPUI::ComboBoxItem("One","one"); CPPUI::ComboBoxItem("Two","two");
+                }
+            }
+            auto & field=CPPUI::TextField(text,draft);
+            if(setPlaceholder) field.placeholder(std::string(placeholder));
+            field.input([this](){++inputs;}).change([this](){++changes;}).id("field");
+        }
+    }
+};
+static void options(int argc,char **argv) {
+    OptionsRoot root(argc,argv);root.sync();pump();
+    auto button=ui<wxButton>(root,"button");
+    auto editable=ui<wxComboBox>(root,"editable"), readonly=ui<wxComboBox>(root,"readonly");
+    auto field=ui<wxTextCtrl>(root,"field");
+    require(button->IsEnabled() && editable->IsEnabled() && readonly->IsEnabled()
+        && field->GetHint()=="Enter text" && field->GetValue().empty() && root.inputs==0, "initial optional properties were not applied silently");
+    for(int i=0;i<4;++i) {
+        root.setEnabled=i!=3;root.enabled=i==1;pump();
+        const bool enabled=!root.setEnabled || static_cast<bool>(root.enabled);
+        require(button->IsEnabled()==enabled && editable->IsEnabled()==enabled && readonly->IsEnabled()==enabled,
+            "reactive enabled update/default reset was not applied");
+        root.index=i%2;root.selected=std::string(i%2 ? "two" : "one");pump();
+        require(ui<wxButton>(root,"button")==button && ui<wxComboBox>(root,"editable")==editable
+            && ui<wxComboBox>(root,"readonly")==readonly && editable->IsEditable() && !readonly->IsEditable(),
+            "enabled update changed native identity or editable mode");
+        require(editable->GetSelection()==i%2 && readonly->GetSelection()==i%2
+            && editable->GetValue()==(i%2 ? "Two" : "One") && readonly->GetValue()==editable->GetValue()
+            && root.comboChanges==0, "disabled ComboBox lost model updates or emitted feedback");
+    }
+    field->SetFocus();pump();field->SetValue("typed");field->SetInsertionPoint(2);pump();
+    for(int i=0;i<4;++i) {
+        root.placeholder=i==1 ? "" : "Updated hint";root.setPlaceholder=i!=3;root.sync();pump();
+        require(ui<wxTextCtrl>(root,"field")==field && field->GetHint()==wxString::FromUTF8(root.setPlaceholder ? root.placeholder : "")
+            && field->GetValue()=="typed" && field->GetInsertionPoint()==2,
+            "placeholder update/default reset changed identity, draft or cursor");
+        require(static_cast<std::string>(root.text).empty() && static_cast<std::string>(root.draft)=="typed"
+            && root.inputs==1 && root.changes==0, "placeholder update changed the model or emitted feedback");
+    }
+    command(field,wxEVT_TEXT_ENTER);pump();
+    require(static_cast<std::string>(root.text)=="typed" && root.inputs==1 && root.changes==1,
+        "placeholder updates broke draft commit");
+}
 class HtmlSizingRoot: public CPPUI::Application {
 public:
     using Application::Application;
@@ -164,5 +224,6 @@ int main(int argc,char **argv) {
         root.show=false;root.sync();pump();root.redraw();
         htmlSizing(argc,argv);
         textFieldSizing(argc,argv);
+        options(argc,argv);
     } catch(const std::exception & e) {std::cerr<<e.what()<<'\n';return 1;}
 }

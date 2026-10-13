@@ -16,6 +16,8 @@ namespace {
     class Root: public CPPUI::Qt::QtView {
         public:
         bool selectable = true;
+        bool enabled = true, setEnabled = true;
+        int clicks = 0;
         double progress = 0.125;
         double maximum = 0.25;
         std::string caption = std::string(100, 'x');
@@ -28,7 +30,10 @@ namespace {
 
         void content() override {
             // Both arguments die before native reconciliation starts.
-            CPPUI::Button(std::string(caption)).id(std::string(100, 'b'));
+            auto & button = CPPUI::Button(std::string(caption));
+            if(setEnabled) button.enabled(enabled);
+            button.id(std::string(100, 'b'));
+            button.click([this]() { ++clicks; });
             CPPUI::Label("No <b>HTML</b>", selectable);
             CPPUI::ProgressBar(progress, maximum);
             CPPUI::Text(caption, selectable);
@@ -47,6 +52,17 @@ int main(int argc, char ** argv) {
         require(label->textFormat() == Qt::PlainText, "Label interpreted markup as HTML");
         auto button = static_cast<QPushButton *>(root.children->front()->outer());
         require(button->text().toStdString() == root.caption, "temporary button text was lost");
+        for(int i = 0; i < 4; ++i) {
+            root.enabled = i == 1;
+            root.setEnabled = i != 3;
+            root.sync();
+            const bool enabled = !root.setEnabled || root.enabled;
+            require(root.children->front()->outer() == button && button->isEnabled() == enabled,
+                "Button enabled update/default reset replaced the native widget or left stale state");
+            const int clicks = root.clicks;
+            button->click();
+            require(root.clicks == clicks + (enabled ? 1 : 0), "disabled Button clicked or enabled Button lost its callback");
+        }
         require(label->textInteractionFlags() == Qt::TextSelectableByMouse, "Label selection was not enabled");
         auto text = static_cast<QLabel *>(root.children->at(3)->outer());
         auto html = static_cast<QLabel *>(root.children->at(4)->outer());

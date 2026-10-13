@@ -11,7 +11,7 @@ namespace Cookbook {
             }
             CPPUI::Label("State Model");
             CPPUI::Label("State:" + static_cast<std::string>(model.fieldText));
-            CPPUI::TextField(model.fieldText).id("field-model");
+            CPPUI::TextField(model.fieldText).placeholder("Enter text").id("field-model");
             CPPUI::Label("Editing Buffer Model");
             CPPUI::Label("State:" + static_cast<std::string>(model.fieldText));
             CPPUI::Label("Editing:" + static_cast<std::string>(model.fieldEditing));

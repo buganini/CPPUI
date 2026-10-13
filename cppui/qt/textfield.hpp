@@ -17,7 +17,7 @@ namespace CPPUI { namespace Qt {
     class TextField: public BaseWidget {
         Binding<std::string> model;
         Optional<Binding<std::string>> editModel;
-        std::string value, editValue;
+        std::string value, editValue, placeholderText;
         std::function<void()> onInput, onChange;
         public:
         explicit TextField(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; }
@@ -25,9 +25,11 @@ namespace CPPUI { namespace Qt {
             : TextField(model) { this->editModel = editModel; editValue = editModel.get(); }
         TextField & input(std::function<void()> callback) { onInput = std::move(callback); return *this; }
         TextField & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
+        TextField & placeholder(const std::string & text) { placeholderText = text; return *this; }
         void update(BaseWidget * prev) override {
             ui = prev && prev->ui ? prev->ui : new TextFieldWidget();
             auto editor = static_cast<TextFieldWidget *>(ui);
+            editor->setPlaceholderText(QString::fromStdString(placeholderText));
             editor->setFocusPolicy(::Qt::ClickFocus);
             if(!editor->editing && (!editor->modelValue || *editor->modelValue != value)) {
                 QSignalBlocker block(editor);
