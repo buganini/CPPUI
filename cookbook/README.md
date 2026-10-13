@@ -130,15 +130,18 @@ Both interactive and `--smoke` runs use `DISPLAY`. On CI, an Xvfb server can
 supply that display, for example `xvfb-run -a ctest --test-dir
 build-cookbook-lvgl_x11 --output-on-failure`.
 
-The X11 driver hides the desktop cursor, so startup supplies an arrow image.
-LVGL keeps it on the display's system layer, above recipe content; page changes
-leave it intact and display teardown releases it.
+The X11 build uses a native arrow cursor, so pointer movement is independent of
+LVGL rendering and remote desktop frame delivery. Both LVGL backends refresh
+the display and sample input every 16 ms (about 60 Hz). X11 startup installs a
+`std::chrono::steady_clock` tick callback to track elapsed time accurately;
+SDL2 uses `SDL_GetTicks`.
 
 LVGL v9.6.0's X11 driver stops its tick thread only when the window manager
-closes the window. `x11-lifetime.cmake` builds a corrected copy that also joins
-the thread on programmatic display deletion and makes its stop flag atomic.
-The supplied LVGL checkout is unchanged; updating LVGL requires reviewing this
-version-specific fix.
+closes the window. `x11-driver.cmake` builds a corrected copy that supplies the
+native cursor, joins the thread on programmatic display deletion, and makes
+its stop flag atomic. The tick callback supersedes the thread's simulated ticks.
+The supplied LVGL checkout is unchanged; updating LVGL requires reviewing these
+version-specific fixes.
 
 ### Shared startup and cleanup
 

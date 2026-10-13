@@ -4,6 +4,8 @@
 // Individual allocations let ASan and Valgrind observe LVGL-owned resources.
 #define LV_USE_STDLIB_MALLOC LV_STDLIB_CLIB
 #define LV_USE_LOG 0
+// Desktop display refresh and input sampling should run at about 60 Hz.
+#define LV_DEF_REFR_PERIOD 16
 #define LV_FONT_MONTSERRAT_28 1
 #define LV_USE_SDL CPPUI_LVGL_SDL2
 #define LV_USE_X11 CPPUI_LVGL_X11

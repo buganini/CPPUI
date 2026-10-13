@@ -133,8 +133,9 @@ ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
 Both LVGL executables use their selected driver for interactive runs and
 `--smoke`. CTest runs SDL2 with its dummy video/software-renderer drivers;
 X11 tests use `DISPLAY` (a desktop X server or Xvfb). All four cookbook projects
-accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. The X11 build applies
-a display-thread cleanup fix to a build copy of the v9.6.0 driver. See the
+accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. Both LVGL backends use
+16 ms display/input timers. X11 uses a monotonic clock and applies native-cursor
+and display-thread cleanup fixes to a build copy of the v9.6.0 driver. See the
 [cookbook documentation](cookbook/README.md) for capabilities and validation limits.
 Remaining implementation work is tracked in the [Qt plan](doc/pyside6-progress.md)
 and [LVGL plan](doc/lvgl-progress.md).

@@ -3,7 +3,6 @@
 #include <iostream>
 #if LV_USE_X11
 #include <X11/Xlib.h>
-#include "cursor.hpp"
 #include <chrono>
 #include <thread>
 #endif
@@ -34,6 +33,15 @@ int main(int argc, char ** argv) {
     XCloseDisplay(connection);
 #endif
     lv_init();
+#if LV_USE_X11
+    // Account for actual elapsed time, including scheduler delays. The driver's
+    // tick thread assumes each sleep lasts exactly 5 ms and drifts behind.
+    lv_tick_set_cb([]() -> uint32_t {
+        static const auto start = std::chrono::steady_clock::now();
+        return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - start).count());
+    });
+#endif
 #if LV_USE_SDL
     {
         auto display = lv_sdl_window_create(800, 600);
@@ -51,7 +59,8 @@ int main(int argc, char ** argv) {
         shutdown();
         return 1;
     }
-    lv_x11_inputs_create(display, Cookbook::Backend::mouseCursor());
+    // The patched driver supplies a native X11 cursor, independent of rendering.
+    lv_x11_inputs_create(display, nullptr);
     lv_delay_set_cb([](uint32_t milliseconds) {
         std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     });

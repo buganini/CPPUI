@@ -46,7 +46,7 @@ namespace Cookbook { namespace Backend {
         // Finish layout before waiting so size/style changes cannot postpone the frame.
         lv_obj_update_layout(lv_screen_active());
         const auto start = lv_tick_get();
-        // X11 ticks in 5 ms increments; elapsed wall time can exceed LVGL time.
+        // Wait for the next refresh using the backend's elapsed-time clock.
         lv_delay_ms(LV_DEF_REFR_PERIOD + 1);
         while(lv_tick_elaps(start) <= LV_DEF_REFR_PERIOD) lv_delay_ms(1);
         lv_timer_handler();
@@ -100,13 +100,12 @@ namespace Cookbook { namespace Backend {
     inline void checkLayout(CPPUI::Node & root) {
         lv_obj_update_layout(lv_screen_active());
 #if LV_USE_X11
-        lv_obj_t * cursor = nullptr;
+        lv_indev_t * pointer = nullptr;
         for(auto input = lv_indev_get_next(nullptr); input; input = lv_indev_get_next(input)) {
-            if(lv_indev_get_type(input) == LV_INDEV_TYPE_POINTER) cursor = lv_indev_get_cursor(input);
+            if(lv_indev_get_type(input) == LV_INDEV_TYPE_POINTER) pointer = input;
         }
-        if(!cursor || !lv_obj_is_visible(cursor) || lv_obj_get_parent(cursor) != lv_layer_sys()
-           || lv_obj_get_width(cursor) <= 0 || lv_obj_get_height(cursor) <= 0) {
-            throw std::runtime_error("X11 must retain a visible mouse cursor above recipe content");
+        if(!pointer || lv_indev_get_cursor(pointer)) {
+            throw std::runtime_error("X11 must retain pointer input without an LVGL software cursor");
         }
 #endif
         auto sidebar = static_cast<lv_obj_t *>(find(root, "menu-container")->outer());
