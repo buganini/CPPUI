@@ -5,4 +5,5 @@ target_sources(${target} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../canvas.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../timeline.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../views.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../textfield.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../text.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tab.cpp")

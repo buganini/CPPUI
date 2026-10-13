@@ -8,11 +8,11 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView
-and Tab share their recipe implementations across all three backends.
+Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,
+Text and Tab share their recipe implementations across all three backends.
 Views also shares internal and bound selection examples across all backends.
 Its TextField and Change text button demonstrate retained local state.
-Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Text, Image, MDI, Splitter, Modal and Dialog recipes through
+Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Image, MDI, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. All backends have a
 partial TextField recipe with separate string model/draft bindings; dynamic
@@ -21,6 +21,10 @@ The wx Text page demonstrates plain multiline text and HTML. Its Markdown
 example displays the raw source, matching PUI/wx. Calling the wx MarkDown factory
 emits a compile-time warning that Markdown formatting is not rendered; the page
 remains partial.
+The LVGL Text page uses the same shared recipe: plain multiline text plus raw
+HTML and Markdown source, with a visible formatting notice. Both fallback
+factories warn at compile time; formatting and interactive selection remain
+unimplemented, so the page is partial on SDL2 and X11.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources and input callbacks remain pending. See the [Canvas reference](../REFERENCE.md#canvas)

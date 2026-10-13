@@ -2,6 +2,7 @@
 #define CPPUI_LVGL_TEXT
 
 #include "base.hpp"
+#include "../diagnostics.hpp"
 #include <stdexcept>
 
 namespace CPPUI {
@@ -25,5 +26,9 @@ namespace CPPUI {
         };
     }
     inline LVGL::Text & Text(const std::string & text, bool selectable = false) { return *new LVGL::Text(text, selectable); }
+    CPPUI_UNSUPPORTED("CPPUI/LVGL Html has no HTML renderer; displaying raw text")
+    inline LVGL::Text & Html(const std::string & text, bool selectable = false) { return *new LVGL::Text(text, selectable); }
+    CPPUI_UNSUPPORTED("CPPUI/LVGL MarkDown has no Markdown renderer; displaying raw text")
+    inline LVGL::Text & MarkDown(const std::string & text, bool selectable = false) { return *new LVGL::Text(text, selectable); }
 }
 #endif

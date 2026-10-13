@@ -11,6 +11,7 @@
 #include "cppui/lvgl/tab.hpp"
 #include "cppui/lvgl/views.hpp"
 #include "cppui/lvgl/textfield.hpp"
+#include "cppui/lvgl/text.hpp"
 #include "cppui/lvgl/checkbox.hpp"
 #include "cppui/lvgl/radiobutton.hpp"
 #include "cppui/lvgl/progressbar.hpp"
@@ -65,6 +66,12 @@ namespace Cookbook { namespace Backend {
         } else if(std::string(page.key) == "textfield") {
             page.render = textfield;
             page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";
+        } else if(std::string(page.key) == "text") {
+            page.render = [](Model & model) {
+                CPPUI::Text("HTML and Markdown formatting is not yet implemented; raw source is shown below.");
+                text(model);
+            };
+            page.remaining = "Plain multiline text implemented; HTML and Markdown display raw source; selection not yet implemented";
         } else if(std::string(page.key) == "checkbox") {
             page.render = checkbox;
             page.remaining = "";
@@ -101,7 +108,9 @@ namespace Cookbook { namespace Backend {
     }
     inline bool labelHasText(CPPUI::Node & node, const std::string & text) {
         auto label = dynamic_cast<CPPUI::LVGL::Label *>(&node);
-        return label && text == lv_label_get_text(static_cast<lv_obj_t *>(label->outer()));
+        auto multiline = dynamic_cast<CPPUI::LVGL::Text *>(&node);
+        return (label || multiline) && node.outer()
+            && text == lv_label_get_text(static_cast<lv_obj_t *>(node.outer()));
     }
     inline bool selectTab(CPPUI::Node & node, int index, const std::string & text) {
         auto tabs = dynamic_cast<CPPUI::LVGL::Tabs *>(&node);

@@ -34,8 +34,9 @@ must name the choice; it must not be reported as toolkit non-support. Call work
 dependency. Routine implementation choices remain part of the porting work.
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Checkbox, RadioButton, TextField, Spacer, Divider, plain Text, basic Scroll,
-Tabs/Tab, Views, ProgressBar, TimelineView and Canvas drawing. Shared recipes use the
+Button, Checkbox, RadioButton, TextField, Spacer, Divider, plain Text with raw-source
+Html/MarkDown fallbacks, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
+and Canvas drawing. Shared recipes use the
 public PUI layout/style modifiers; see the
 [component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
 
@@ -46,7 +47,7 @@ public PUI layout/style modifiers; see the
 | Application and native drivers | Loop returns when the last display closes; LVGL delay callback; separate SDL2/X11 startup and cleanup | Define explicit quit/host-driven pumping and borrowed-runtime ownership; handle SDL2 direct exit (2) |
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
 | Grid/Stack | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
-| ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
+| ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text and raw Html/MarkDown fallbacks in the shared cookbook | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
 | Bound controls | Boolean Checkbox, typed RadioButton and string TextField with Binding/State; cookbook membership/draft examples | ComboBox value selection remains to port; shared text conversion and event payloads remain deferred (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Views | Retained native pages, internal/optional bound selection, keyed reuse and shared cookbook | Real-display input/layout checks remain part of general validation |
@@ -133,9 +134,11 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
 
 ### Phase 4 — Text, progress, images and bound controls
 
-- [ ] Decide interactive text selection and rich-text/Markdown capability before
-  enabling the complete `text.cpp` page. Plain Text wraps, but a plain label must
-  not silently stand in for formatted text.
+- [ ] Implement interactive text selection and choose rich-text/Markdown
+  renderers. The shared `text.cpp` page is enabled on SDL2/X11 with plain wrapping
+  Text and raw-source Html/MarkDown fallbacks. Fallback calls warn at compile
+  time, the page displays a formatting notice, and `--list` marks it partial.
+  This does not implement formatted rendering or selection.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
 - [ ] Using the shared `Binding<T>`/State adapters, add ComboBox/item equivalents.

@@ -23,7 +23,7 @@ are described in the component sections and backend plans.
 |[RadioButton](#radiobutton)|QRadioButton|checkbox (radio mode)|wxRadioButton|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
 |[ProgressBar](#progressbar)|QProgressBar|bar / busy animation|wxGauge|
-|[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / raw text fallback|
+|[Text / Html / MarkDown](#text)|QLabel|wrapping label / raw markup fallbacks|wxStaticText / wxHtmlWindow / raw text fallback|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|wxPanel / wxGraphicsContext|
 |[Image](#image)|QLabel / QPixmap|—|wxStaticBitmap / wxImage|
 |[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)|
@@ -939,8 +939,12 @@ For LVGL, include `cppui/lvgl/text.hpp` and use `Text(text)`. It owns literal
 text, wraps to its available width and recalculates its content height. Native
 reuse updates the text. `selectable=true` throws `std::invalid_argument` because
 interactive selection is not yet implemented in CPPUI's LVGL backend.
-Html/MarkDown rendering is also not yet implemented; a renderer must be chosen
-before enabling the full shared Text recipe. These are remaining porting tasks.
+`Html` and `MarkDown` are raw-source fallbacks using the same wrapping Text widget.
+Their factories emit call-site compiler warnings through `CPPUI_UNSUPPORTED`;
+including the header alone is quiet. Their `selectable` argument has the same
+restriction as Text. Formatted rendering remains unimplemented. The shared Text
+cookbook page is enabled on SDL2/X11, marked partial, and displays a notice above
+the examples identifying these fallbacks.
 
 ## Splitter
 

@@ -20,6 +20,8 @@ namespace {
     class Root: public CPPUI::LVGL::View {
         public:
         std::string text = "<b>literal text</b> and some more words that will wrap across multiple lines";
+        std::string html = "<i>HTML</i>\n<span style=\"color:red\">support</span>";
+        std::string markdown = "# Heading\n**bold** <i>literal</i>";
         bool show = true, handler = true, selectable = false;
         int value = 1, clicked = 0;
         std::weak_ptr<int> capture;
@@ -39,6 +41,8 @@ namespace {
                     CPPUI::Label("right");
                 }
                 CPPUI::Text(text, selectable).id("text");
+                CPPUI::Html(html).id("html");
+                CPPUI::MarkDown(markdown).id("markdown");
             }
         }
         lv_obj_t * object(const char * id) { return static_cast<lv_obj_t *>(find(*this, id)->ui); }
@@ -58,6 +62,9 @@ int main() {
             lv_obj_update_layout(lv_screen_active());
             require(root.text == lv_label_get_text(text), "Text interpreted markup or lost its owned string");
             require(lv_obj_get_height(text) > 2 * lv_font_get_line_height(LV_FONT_DEFAULT), "Text did not wrap");
+            auto html = root.object("html"), markdown = root.object("markdown");
+            require(root.html == lv_label_get_text(html) && root.markdown == lv_label_get_text(markdown),
+                "HTML or Markdown fallback changed the literal source");
             require(lv_obj_get_height(divider) == 1 && lv_obj_get_width(divider) > 1, "column divider is not horizontal");
             auto vertical = root.object("virtual-divider");
             require(lv_obj_get_width(vertical) == 1 && lv_obj_get_height(vertical) > 1, "virtual row divider is not vertical");
@@ -67,10 +74,15 @@ int main() {
             auto capture = root.capture;
             root.value = 2;
             root.text = "short";
+            root.html = "<b>updated</b>";
+            root.markdown = "* updated";
             root.redraw();
             lv_obj_update_layout(lv_screen_active());
             require(root.object("text") == text && root.object("horizontal") == divider, "widgets were not reused");
             require(std::string(lv_label_get_text(text)) == "short" && lv_obj_get_height(text) == lv_font_get_line_height(LV_FONT_DEFAULT), "wrapped text did not shrink");
+            require(root.object("html") == html && root.object("markdown") == markdown
+                && root.html == lv_label_get_text(html) && root.markdown == lv_label_get_text(markdown),
+                "HTML or Markdown fallback update lost native identity or raw source");
             require(capture.expired(), "label retained retired callback");
             lv_obj_send_event(click, LV_EVENT_CLICKED, nullptr);
             require(root.clicked == 2 && external == 1, "label click used old data or removed external listener");
