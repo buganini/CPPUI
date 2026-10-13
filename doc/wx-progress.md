@@ -14,6 +14,11 @@ Internal and external models share `select()` and blank/unknown-key behavior.
 The common cookbook demonstrates both forms. As with Qt, imperative selection
 uses the current C++ declaration, not a factory reference saved across redraws.
 
+The Text cookbook page follows PUI's wx-enabled page at `f9c22fa`: plain
+multiline Text and Html are available. CPPUI marks only the Markdown example as
+unfinished instead of hiding the entire page. PUI/wx's MarkDown inherits plain
+Text and is marked `pui_supported = False`; this is not Markdown rendering.
+
 ## Ownership and established contracts
 
 Factory results are borrowed construction references. Applications retain State
@@ -60,9 +65,9 @@ separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 - Input payloads, observable collections, retained-view inputs, arbitrary data
   values and native embedding share the existing deferred CPPUI contracts.
 - **Markdown:** not yet implemented in CPPUI/wx or the PUI/wx reference;
-  choose and integrate a Markdown renderer/dependency
-  before enabling the complete shared Text cookbook page. Plain Text and Html
-  already have native APIs.
+  choose and integrate a Markdown renderer/dependency. The shared Text cookbook
+  page already demonstrates plain multiline Text and Html, with an explicit
+  notice for the remaining Markdown example.
 - **Splitter:** not yet ported in CPPUI/wx. PUI `d3f0679` supplies nested native
   two-pane splitters for arbitrary child counts. Port that implementation and
   verify that sash positions survive keyed insertion/reordering.

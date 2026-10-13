@@ -50,6 +50,9 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "textfield") {
                 page.render = textfield;
                 page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";
+            } else if(std::string(page.key) == "text") {
+                page.render = text;
+                page.remaining = "Plain multiline text and HTML implemented; Markdown rendering not yet ported";
             } else if(std::string(page.key) == "grid") {
                 page.render = grid;
                 page.remaining = "";
@@ -57,7 +60,6 @@ namespace Cookbook { namespace Backend {
                 page.render = image;
                 page.remaining = "";
             }
-            if(std::string(page.key)=="text") page.remaining="Plain/HTML text supported; Markdown renderer not selected";
             if(std::string(page.key)=="splitter") page.remaining="wx has two-pane splitters; shared API permits multiple panes";
             if(std::string(page.key)=="modal") page.remaining="Nonblocking application-modal ownership policy needed";
             if(std::string(page.key)=="mdi") page.remaining="MDI requires a native MDI parent frame";

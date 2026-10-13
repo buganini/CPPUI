@@ -17,6 +17,9 @@ its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. All backends have a
 partial TextField recipe with separate string model/draft bindings; dynamic
 numeric conversion and typed input/change payloads remain pending.
+The wx Text page demonstrates plain multiline text and HTML. Its Markdown
+example shows an unfinished notice; missing Markdown rendering does not disable
+the other text examples.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources and input callbacks remain pending. See the [Canvas reference](../REFERENCE.md#canvas)

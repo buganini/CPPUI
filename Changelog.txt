@@ -1,4 +1,5 @@
 2026-10-13
+    * wx/Cookbook: enable the shared Text page with multiline text and HTML; limit the unfinished notice to Markdown, matching PUI's available text capabilities
     * LVGL: port TextField with model/draft bindings, Enter/focus commits, retained edits and safe callback teardown; enable the shared TextField/Views editors and wire SDL2 keyboard focus
     * LVGL: port Views with retained pages, internal/optional bound selection and safe synchronous selection callbacks; enable shared SDL2/X11 cookbook examples and lifetime regressions
     * wx: port Views with retained wxSimplebook pages, optional selection models and shared cookbook examples; rebind layout mounts before independently redrawn subviews retire declarations

@@ -51,6 +51,9 @@ int main(int argc,char **argv) {
     wxSetAssertHandler([](const wxString &,int,const wxString &,const wxString &c,const wxString &m){std::cerr<<c<<": "<<m<<'\n';std::abort();});
     try {
         Root root(argc,argv);root.sync();pump();
+        auto multiline=ui<wxTextCtrl>(root,"text");
+        require(multiline->IsMultiLine() && !multiline->IsEditable() && multiline->GetValue()=="a\nb"
+            && multiline->GetNumberOfLines()==2, "selectable Text did not retain native multiline/read-only behavior");
         require(static_cast<std::string>(root.draft)=="initial", "draft not initialized");
         auto field=ui<wxTextCtrl>(root,"field");field->SetValue("typed");pump();
         require(root.inputs==1 && static_cast<std::string>(root.text)=="initial" && static_cast<std::string>(root.draft)=="typed", "typing committed model or lost draft");

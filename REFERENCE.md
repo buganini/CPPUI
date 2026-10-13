@@ -966,7 +966,9 @@ one, matching PUI/wx rather than promising a busy indicator.
 Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
 HTML subset; its selection behavior is native. Markdown explicitly throws because
 CPPUI/wx has no Markdown renderer yet. Choosing and integrating one remains work
-to do; the reference PUI/wx implementation also omits it.
+to do; the reference PUI/wx implementation also omits it. The wx Text cookbook
+page is enabled with its multiline and HTML examples; only Markdown shows an
+unfinished notice.
 
 wx Scroll retains manual offsets and end-relative anchors when content changes.
 Tabs uses wxNotebook with a physical wxPanel per Tab, following PUI/wx; each

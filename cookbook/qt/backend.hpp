@@ -29,6 +29,7 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline void markdownExample(const std::string & text) { CPPUI::MarkDown(text); }
     using View = CPPUI::Qt::QtView;
     using Views = CPPUI::Qt::Views;
     inline bool viewSelected(CPPUI::Node & node, const std::string & key) {
