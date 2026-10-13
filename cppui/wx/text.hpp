@@ -4,6 +4,18 @@
 #include "../diagnostics.hpp"
 #include <wx/html/htmlwin.h>
 namespace CPPUI { namespace Wx {
+namespace detail {
+class HtmlWindow: public wxHtmlWindow {
+public:
+    explicit HtmlWindow(wxWindow * parent): wxHtmlWindow(parent) {}
+protected:
+    wxSize DoGetBestClientSize() const override {
+        auto content = GetInternalRepresentation();
+        return content ? wxSize(content->GetWidth(), content->GetHeight())
+                       : wxHtmlWindow::DoGetBestClientSize();
+    }
+};
+}
 class Text: public Label {
 public:
     Text(const std::string & text, bool selectable): Label(text, selectable) {}
@@ -18,10 +30,11 @@ public:
 class Html: public Widget {
     std::string text;
 public:
-    Html(const std::string & text, bool): text(text) {}
+    Html(const std::string & text, bool): text(text) { expandX = expandY = 3; }
     void updateWidget(Widget * prev) override {
-        ui = prev ? prev->ui : new wxHtmlWindow(parentWindow());
+        ui = prev ? prev->ui : new detail::HtmlWindow(parentWindow());
         static_cast<wxHtmlWindow *>(ui)->SetPage(wxString::FromUTF8(text));
+        ui->InvalidateBestSize();
     }
 };
 }

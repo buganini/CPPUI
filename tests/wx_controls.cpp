@@ -50,6 +50,44 @@ public:
         }
     }
 };
+class HtmlSizingRoot: public CPPUI::Application {
+public:
+    using Application::Application;
+    int lines=1, width=320;
+    bool spacer=true;
+    void content() override {
+        std::string text;
+        for(int i=0;i<lines;++i) {
+            if(i) text+="<br>";
+            text+="<i>HTML</i> <span style=\"color:red\">support</span>";
+        }
+        for(auto w: CPPUI::Window().size(width,240)) for(auto v: CPPUI::VBox()) {
+            CPPUI::Html(text).id("html");
+            if(spacer) CPPUI::Spacer();
+        }
+    }
+};
+static void htmlSizing(int argc,char **argv) {
+    HtmlSizingRoot root(argc,argv);root.sync();pump();
+    auto html=ui<wxHtmlWindow>(root,"html");
+    require(html->ToText().Strip(wxString::both)=="HTML support", "HTML sample did not render its text");
+    require(html->GetInternalRepresentation()->GetHeight()>0
+        && html->GetClientSize().GetHeight()>=html->GetInternalRepresentation()->GetHeight(),
+        "HTML layout clipped its initial content");
+    const auto initialBest=html->GetBestSize();
+    const auto initialClient=html->GetClientSize();
+    root.lines=3;root.sync();pump();
+    require(ui<wxHtmlWindow>(root,"html")==html, "HTML content update replaced the native window");
+    require(html->GetBestSize().GetHeight()>initialBest.GetHeight()
+        && html->GetClientSize().GetHeight()>=html->GetInternalRepresentation()->GetHeight(),
+        "HTML best size or layout did not grow with content");
+    root.lines=1;root.width=480;root.sync();pump();
+    require(html->GetBestSize().GetHeight()==initialBest.GetHeight(), "HTML best size stayed stale after content shrank");
+    require(html->GetClientSize().GetWidth()>initialClient.GetWidth(), "HTML did not expand horizontally with its layout");
+    const int compactHeight=html->GetClientSize().GetHeight();
+    root.spacer=false;root.sync();pump();
+    require(html->GetClientSize().GetHeight()>compactHeight, "HTML did not use available vertical layout space");
+}
 int main(int argc,char **argv) {
     wxSetAssertHandler([](const wxString &,int,const wxString &,const wxString &c,const wxString &m){std::cerr<<c<<": "<<m<<'\n';std::abort();});
     try {
@@ -83,5 +121,6 @@ int main(int argc,char **argv) {
         auto grid=static_cast<CPPUI::Wx::Grid *>(find(root,"grid"));auto item=static_cast<wxGBSizerItem *>(grid->mounts.at(0).item);require(item->GetPos().GetCol()==3&&item->GetSpan().GetColspan()==2,"grid placement failed");
         wxWeakRef<wxWindow> old(combo);root.editable=false;root.sync();pump();require(!old,"combo creation style change did not remount");
         root.show=false;root.sync();pump();root.redraw();
+        htmlSizing(argc,argv);
     } catch(const std::exception & e) {std::cerr<<e.what()<<'\n';return 1;}
 }

@@ -42,7 +42,7 @@ Adopted reference updates beyond the original baseline:
   pages and subviews, keyed moves, blank/unknown selection, and pre-mount ID
   validation. C++ `select()` requires the current declaration under the borrowed
   return contract below; Python's old-handle forwarding is not copied.
-- The remaining Qt/shared deltas were compared through PUI `a4641a8`:
+- The remaining Qt/shared deltas were compared through PUI `9aec567`:
   reused Table adapter resets (`df4cbac`), guarded queued quit (`675e831`), and
   native teardown through virtual subviews (`9d24163`) already have C++
   equivalents. Optional binding clears (`fd69ff0`) preserve empty `OptionalText`
@@ -50,6 +50,8 @@ Adopted reference updates beyond the original baseline:
   Python decorator deprecation, signatures, Python 3.9 dependencies, and Textual
   tooling do not change the C++ API. The class-based C++ construction API stays
   in place. This delta sync does not complete the remaining parity work below.
+  Subsequent changes add no Qt runtime delta: the shared Text sample uses a
+  styled `span`, and wx HTML content sizing is tracked in the wx plan.
 
 ### C++ ownership and reclamation requirements
 

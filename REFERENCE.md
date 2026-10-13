@@ -964,9 +964,12 @@ uses integer hundredths, clamps to its range and treats a zero maximum as range
 one, matching PUI/wx rather than promising a busy indicator.
 
 Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
-HTML subset; its selection behavior is native. MarkDown displays the original
-source as plain multiline text, following PUI/wx. Its optional `selectable` flag
-uses a read-only multiline text control. Markdown formatting remains unimplemented.
+HTML subset; its selection behavior is native. Its best client size follows the
+parsed content and refreshes when that content changes; it expands on both
+layout axes, subject to sibling expansion priorities. MarkDown displays the
+original source as plain multiline text, following PUI/wx. Its optional
+`selectable` flag uses a read-only multiline text control. Markdown formatting
+remains unimplemented.
 The shared Text cookbook calls all three public factories directly.
 
 The wx MarkDown factory has a `CPPUI_UNSUPPORTED` annotation from

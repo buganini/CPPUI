@@ -19,6 +19,12 @@ multiline Text and Html are available. MarkDown displays its source as plain Tex
 matching PUI/wx's fallback (`pui_supported = False`), and warns at compile-time
 when called. The page remains partial because Markdown formatting is unfinished.
 
+Html sizing follows PUI `9aec567`: derive the native best client size from parsed
+content, invalidate it after content updates, and expand along both layout axes.
+Native regressions cover initial visibility, retained-window content growth and
+shrinkage, and expansion when the available layout space changes. The shared
+HTML sample uses `span` for its styled text, matching that reference update.
+
 ## Ownership and established contracts
 
 Factory results are borrowed construction references. Applications retain State
