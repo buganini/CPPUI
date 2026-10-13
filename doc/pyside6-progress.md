@@ -27,6 +27,11 @@ case and chosen behavior before implementing it. Python decorators, dynamic
 attributes, and garbage collection need C++ equivalents, not literal ports.
 Pin any subsequently adopted reference changes by component and commit here.
 
+Adopted reference updates beyond the original baseline:
+
+- Window content sizing follows PUI `7d8655e`: the top-level native layout uses
+  `SetNoConstraint`, preserving declared and user-set sizes as content grows.
+
 ### C++ ownership and reclamation requirements
 
 C++ does not provide Python's automatic reference counting and cyclic garbage

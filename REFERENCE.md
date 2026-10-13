@@ -428,7 +428,9 @@ inside a Window or native container, and release views before deinitializing LVG
 ## Window
 
 Qt `Window().title(text).icon(path).size(width, height)` updates a retained native
-window. Text and paths are owned strings. Omitted title/icon preserve their
+window. Its native layout uses `SetNoConstraint`, so growing content stays within
+the window instead of forcing it to expand beyond the declared or user-set size.
+Text and paths are owned strings. Omitted title/icon preserve their
 current values, following PUI; an empty icon path also leaves the icon alone.
 An unchanged declared size preserves user resizing; changing it, or declaring it
 again after omission, resizes the window. `.maximize()` and `.fullscreen()` apply

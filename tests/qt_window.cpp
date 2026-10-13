@@ -1,6 +1,7 @@
 #include "cppui/qt/application.hpp"
 #include "cppui/qt/window.hpp"
 #include "cppui/qt/label.hpp"
+#include "cppui/qt/layout.hpp"
 #include <QMouseEvent>
 #include <QKeyEvent>
 #include <QTemporaryDir>
@@ -12,7 +13,7 @@ namespace {
     class Root: public CPPUI::Application {
         public:
         bool title = true, size = true, icon = true, maximized = false, fullscreen = false;
-        std::string caption = "First", path;
+        std::string caption = "First", path, text = "content";
         int width = 320;
         using Application::Application;
         void content() override {
@@ -20,7 +21,7 @@ namespace {
             if(title) window.title(caption);
             if(size) window.size(width, 240);
             if(icon) window.icon(path);
-            for(auto scope: window) CPPUI::Label("content");
+            for(auto scope: window) for(auto column: CPPUI::VBox()) CPPUI::Label(text);
         }
         CPPUI::Qt::Window * declaration() { return static_cast<CPPUI::Qt::Window *>(children->front()); }
         QMainWindow * native() { return static_cast<QMainWindow *>(declaration()->ui); }
@@ -70,6 +71,23 @@ int main(int argc, char ** argv) {
                 ::Qt::LeftButton, ::Qt::LeftButton, ::Qt::NoModifier);
             QCoreApplication::sendEvent(window, &event);
             require(QApplication::focusWidget() != &editor && committed == 1, "window press did not commit focused editor");
+        }
+        {
+            Root root(argc, argv); root.sync();
+            QCoreApplication::processEvents();
+            auto window = root.native();
+            require(window->size() == QSize(320, 240), "initial content changed declared window size");
+            root.text = std::string(1000, 'x'); root.sync();
+            QCoreApplication::processEvents(); QCoreApplication::processEvents();
+            require(window->centralWidget()->minimumSizeHint().width() > 320
+                && window->size() == QSize(320, 240), "growing content forced the top-level window to resize");
+            root.text = "short"; root.sync();
+            QCoreApplication::processEvents();
+            require(root.native() == window && window->size() == QSize(320, 240), "shrinking content changed window size or identity");
+            window->resize(460, 300);
+            root.text = std::string(1000, 'x'); root.sync();
+            QCoreApplication::processEvents(); QCoreApplication::processEvents();
+            require(window->size() == QSize(460, 300), "growing content overwrote the user's resized window");
         }
         {
             Root root(argc, argv); root.maximized = true; root.sync();

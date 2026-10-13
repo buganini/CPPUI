@@ -15,6 +15,11 @@
 namespace CPPUI {
     namespace Qt {
         class WindowWidget: public Widget<QMainWindow> {
+            public:
+            WindowWidget() {
+                // Content size hints must not force the top-level window to grow.
+                layout()->setSizeConstraint(QLayout::SetNoConstraint);
+            }
             protected:
             void mousePressEvent(QMouseEvent * event) override {
                 QPointer<WindowWidget> alive(this);
