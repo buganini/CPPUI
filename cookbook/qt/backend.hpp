@@ -31,7 +31,6 @@
 namespace Cookbook { namespace Backend {
     using View = CPPUI::Qt::QtView;
     using Views = CPPUI::Qt::Views;
-    inline void viewsEditor(CPPUI::State<std::string> & text) { CPPUI::TextField(text).id("views-editor-field"); }
     inline bool viewSelected(CPPUI::Node & node, const std::string & key) {
         auto views = dynamic_cast<Views *>(&node);
         if(!views || !views->ui) return false;

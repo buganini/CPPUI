@@ -10,6 +10,7 @@
 #include "cppui/lvgl/divider.hpp"
 #include "cppui/lvgl/tab.hpp"
 #include "cppui/lvgl/views.hpp"
+#include "cppui/lvgl/textfield.hpp"
 #include "cppui/lvgl/checkbox.hpp"
 #include "cppui/lvgl/radiobutton.hpp"
 #include "cppui/lvgl/progressbar.hpp"
@@ -20,7 +21,6 @@
 namespace Cookbook { namespace Backend {
     using View = CPPUI::LVGL::View;
     using Views = CPPUI::LVGL::Views;
-    inline void viewsEditor(CPPUI::State<std::string> & text) { CPPUI::Label(static_cast<std::string>(text)).id("views-editor-field"); }
     inline bool viewSelected(CPPUI::Node & node, const std::string & key) {
         auto views = dynamic_cast<Views *>(&node);
         if(!views || !views->ui) return false;
@@ -40,7 +40,17 @@ namespace Cookbook { namespace Backend {
     inline bool editTable(CPPUI::Node &, int, int, const std::string &) { return false; }
     inline bool atScrollEnd(CPPUI::Node &) { return false; }
     inline bool selectCombo(CPPUI::Node &, int) { return false; }
-    inline bool editTextField(CPPUI::Node &, const std::string &, bool) { return false; }
+    inline bool editTextField(CPPUI::Node & node, const std::string & text, bool commit) {
+        auto field = dynamic_cast<CPPUI::LVGL::TextField *>(&node);
+        if(!field || !field->ui) return false;
+        auto object = static_cast<lv_obj_t *>(field->ui);
+        auto group = static_cast<lv_group_t *>(lv_obj_get_group(object));
+        if(!group) return false;
+        lv_group_focus_obj(object);
+        lv_textarea_set_text(object, text.c_str());
+        if(commit) lv_group_send_data(group, LV_KEY_ENTER);
+        return true;
+    }
     inline void mount(CPPUI::Application & app) { app.redraw(); }
     inline void configureRecipes(std::vector<Recipe> & pages) {
         for(auto & page: pages) if(std::string(page.key) == "canvas") {
@@ -52,6 +62,9 @@ namespace Cookbook { namespace Backend {
         } else if(std::string(page.key) == "views") {
             page.render = views;
             page.remaining = "";
+        } else if(std::string(page.key) == "textfield") {
+            page.render = textfield;
+            page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";
         } else if(std::string(page.key) == "checkbox") {
             page.render = checkbox;
             page.remaining = "";
@@ -136,6 +149,12 @@ namespace Cookbook { namespace Backend {
     }
     inline void checkLayout(CPPUI::Node & root) {
         lv_obj_update_layout(lv_screen_active());
+        bool keyboardReady = false;
+        for(auto input = lv_indev_get_next(nullptr); input; input = lv_indev_get_next(input)) {
+            if(lv_indev_get_type(input) == LV_INDEV_TYPE_KEYPAD && lv_group_get_default()
+               && lv_indev_get_group(input) == lv_group_get_default()) keyboardReady = true;
+        }
+        if(!keyboardReady) throw std::runtime_error("cookbook keyboard must be attached to the default focus group");
 #if LV_USE_X11
         lv_indev_t * pointer = nullptr;
         for(auto input = lv_indev_get_next(nullptr); input; input = lv_indev_get_next(input)) {

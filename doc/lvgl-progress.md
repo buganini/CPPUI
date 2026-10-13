@@ -34,7 +34,7 @@ must name the choice; it must not be reported as toolkit non-support. Call work
 dependency. Routine implementation choices remain part of the porting work.
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Checkbox, RadioButton, Spacer, Divider, plain Text, basic Scroll,
+Button, Checkbox, RadioButton, TextField, Spacer, Divider, plain Text, basic Scroll,
 Tabs/Tab, Views, ProgressBar, TimelineView and Canvas drawing. Shared recipes use the
 public PUI layout/style modifiers; see the
 [component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
@@ -47,7 +47,7 @@ public PUI layout/style modifiers; see the
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
 | Grid/Stack | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
 | ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
-| Bound controls | Boolean Checkbox and typed RadioButton with Binding/State; cookbook membership adapters | TextField edit/commit and ComboBox value selection remain to port (4) |
+| Bound controls | Boolean Checkbox, typed RadioButton and string TextField with Binding/State; cookbook membership/draft examples | ComboBox value selection remains to port; shared text conversion and event payloads remain deferred (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Views | Retained native pages, internal/optional bound selection, keyed reuse and shared cookbook | Real-display input/layout checks remain part of general validation |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
@@ -104,7 +104,10 @@ no-display entry, last-display close and multiple-display loop ownership.
 - [ ] Route SDL2 direct exit through application cleanup and define borrowed
   display/runtime close ownership. Test pending work, repeated quit and teardown
   from an active callback; verify the host's runtime survives borrowed use.
-- [ ] Specify focus-group and keyboard/encoder ownership. Exercise SDL2/X11 pointer,
+- [ ] Extend host-facing focus-group and keyboard/encoder ownership contracts.
+  The SDL2 cookbook owns its default pointer/keyboard group, and X11 uses the
+  driver's group; TextField borrows these through native object membership.
+  Exercise SDL2/X11 pointer,
   wheel and keyboard input through the native driver, including scrolling to
   clipped sidebar pages and focus after page changes.
 - [ ] Verify real-display rendering/input at multiple sizes and on an embedded
@@ -135,9 +138,9 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   not silently stand in for formatted text.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
-- [ ] Using the shared `Binding<T>`/State adapters, add TextField
-  and ComboBox/item equivalents. Preserve in-progress edits, distinct
-  labels/values, empty selections and current callbacks through redraw. Keep
+- [ ] Using the shared `Binding<T>`/State adapters, add ComboBox/item equivalents.
+  Preserve distinct labels/values, empty selections and current callbacks
+  through redraw. Keep
   automatic collection observation and value-based Checkbox overloads tied to
   the shared collection contract; explicit boolean membership adapters work now.
 
@@ -154,8 +157,8 @@ state, and blank content for cleared or unknown keys without rewriting the model
 Each page is an LVGL VBox; hidden pages remain mounted and can redraw independently.
 Selection dispatch follows the current declaration across synchronous redraws,
 and stops safely if a model setter removes the container or destroys its owner.
-The shared cookbook uses a Change text button and Label to exercise retained state;
-LVGL TextField remains a separate unfinished port.
+The shared cookbook uses TextField and a Change text button to exercise retained
+state and native editor reuse.
 
 - [ ] Extend basic Scroll with `.scrollX()`/`.scrollY()`, the shared signed-zero
   end anchor and position retention through resize, growth, shrinkage and content
@@ -226,12 +229,12 @@ and their cookbook recipes are excluded from CPPUI.
 - **Screen ownership:** active-screen content is currently exclusive. Choose
   scoped content roots, screen switching, multiple displays and external-delete
   remount behavior before broadening Window or interop.
-- **Editor commits:** [PUI TextField](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/textfield.py)
-  preserves an editing draft and writes `edit_model` during native updates as well
-  as typing. Its Qt backend queues redraws. LVGL currently redraws synchronously;
-  choose its scheduling/focus-group contract before publishing an editor that
-  can reenter reconciliation on an edit-model write. Shared text conversion and
-  input/change payloads also remain unresolved.
+- **Editor commits:** TextField preserves active drafts and commits on Enter or
+  focus loss, with adapter readback for rejected/normalized values. Idle draft
+  synchronization uses a cancellable LVGL async task after reconciliation;
+  native events keep lifetime state across synchronous redraws and stop after
+  removal. The shared string model/draft API is ported. Shared numeric conversion
+  and typed input/change payloads remain deferred across backends.
 - **Capability differences:** decide rich text and
   selection, font/image resources, custom splitters/trees, and desktop features
   independently. State verified native limits separately from unfinished wrappers;

@@ -8,11 +8,16 @@
 #endif
 
 namespace {
+#if LV_USE_SDL
+    lv_group_t * inputGroup = nullptr;
+#endif
     void shutdown() {
         // Dispose native handles while their driver runtime is still live.
         while(auto input = lv_indev_get_next(nullptr)) lv_indev_delete(input);
         while(auto display = lv_display_get_next(nullptr)) lv_display_delete(display);
 #if LV_USE_SDL
+        if(inputGroup) lv_group_delete(inputGroup);
+        inputGroup = nullptr;
         lv_sdl_quit();
 #endif
         lv_deinit();
@@ -45,12 +50,18 @@ int main(int argc, char ** argv) {
 #if LV_USE_SDL
     {
         auto display = lv_sdl_window_create(800, 600);
+        auto pointer = lv_sdl_mouse_create();
+        auto keyboard = lv_sdl_keyboard_create();
         if(!display || !lv_sdl_window_get_renderer(display)
-           || !lv_sdl_mouse_create() || !lv_sdl_keyboard_create()) {
+           || !pointer || !keyboard) {
             std::cerr << "Failed to initialize the SDL display/input devices\n";
             shutdown();
             return 1;
         }
+        inputGroup = lv_group_create();
+        lv_group_set_default(inputGroup);
+        lv_indev_set_group(pointer, inputGroup);
+        lv_indev_set_group(keyboard, inputGroup);
     }
 #elif LV_USE_X11
     auto display = lv_x11_window_create("CPPUI Cookbook", 800, 600);

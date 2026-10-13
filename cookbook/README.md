@@ -11,11 +11,10 @@ Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView
 and Tab share their recipe implementations across all three backends.
 Views also shares internal and bound selection examples across all backends.
-Its Change text button demonstrates retained local state; Qt and wx provide a
-TextField too, while LVGL displays the value in a Label pending the TextField port.
+Its TextField and Change text button demonstrate retained local state.
 Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Text, Image, MDI, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
-Binding adapters and explicit State assignment across backends. Qt also has a
+Binding adapters and explicit State assignment across backends. All backends have a
 partial TextField recipe with separate string model/draft bindings; dynamic
 numeric conversion and typed input/change payloads remain pending.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
@@ -204,6 +203,13 @@ teardown, with an optional Valgrind variant.
 `lvgl.checkbox` checks binding writes, mirrored controls, dependency rebinding,
 feedback suppression, exceptions, callback removal and native cleanup; the
 cookbook checks boolean and collection membership interactions.
+`lvgl.textfield` checks separate model/draft bindings, keyboard-group input,
+Enter/focus commits, normalization and rejection, callback replacement,
+unfinished drafts across redraw/page switches, exceptions, callback-driven
+removal, deferred draft synchronization and native/display teardown. The SDL2
+cookbook owns a keyboard/pointer focus group; X11 uses its driver's group.
+Cookbook smoke checks assert that keyboard devices use the default group and
+exercise both the TextField and Views recipes through it.
 `lvgl.radiobutton` checks exclusive selection, independent groups, binding and
 callback replacement, repeated clicks, keyboard selection, unmatched values,
 exceptions and cleanup. Both cookbooks exercise the shared A/B recipe.

@@ -18,7 +18,7 @@ are described in the component sections and backend plans.
 |[Splitter](#splitter)|QSplitter|—|—|
 |[Label](#label)|QLabel|label|wxStaticText / read-only wxTextCtrl|
 |[Button](#button)|QPushButton|button|wxButton|
-|[TextField](#textfield)|QLineEdit|—|wxTextCtrl|
+|[TextField](#textfield)|QLineEdit|single-line lv_textarea|wxTextCtrl|
 |[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|wxComboBox|
 |[RadioButton](#radiobutton)|QRadioButton|checkbox (radio mode)|wxRadioButton|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
@@ -463,7 +463,8 @@ copy/move semantics.
 
 ## TextField
 
-Include `cppui/qt/textfield.hpp` for `TextField(model, editModel)`. Both arguments
+Include `cppui/qt/textfield.hpp`, `cppui/wx/textfield.hpp` or
+`cppui/lvgl/textfield.hpp` for `TextField(model, editModel)`. Both arguments
 use `Binding<std::string>` or `State<std::string>&`; the draft binding is optional.
 Typing updates the draft and `.input(callback)`, while focus loss/Enter commits
 the model and calls `.change(callback)`. These callbacks take no arguments;
@@ -477,6 +478,19 @@ and setter failures report to stderr; a throwing setter leaves the draft visible
 Adapters own validation/conversion policy; generic numeric conversion and change
 subscriptions remain undecided. The shared recipe currently demonstrates string
 models and is marked partial for PUI's dynamic numeric conversion/event payloads.
+
+LVGL uses a single-line `lv_textarea`. Enter (`LV_EVENT_READY`) or focus loss
+commits an edited value once; Enter followed by focus loss does not commit it
+again. Idle draft synchronization runs on LVGL's next timer pass, avoiding
+reentrant reconciliation. Pending synchronization is cancelled when the field
+is removed or its native object is deleted. Active drafts survive page hiding,
+redraw and binding replacement. Setters and callbacks may remove their field or
+destroy its owning view.
+
+The SDL2/X11 cookbooks attach keyboard input to the default LVGL focus group.
+Applications hosting LVGL must likewise create a default group before mounting
+controls and attach their keypad input device to it; the TextField does not own
+the host's input devices or group.
 
 ## Scroll
 
@@ -821,10 +835,8 @@ Unlike Python's retained handles, CPPUI factory references are borrowed and
 must not be saved across redraws. Keep state or resolve the current declaration
 from the owning view when invoking `select()`. The cookbook demonstrates both
 internal selection and an optional State model with retained editor subviews.
-The Views cookbook page is enabled for Qt, wx, SDL2 and X11. Its Change text
-button updates retained local state on every backend. Qt and wx also provide an
-editable TextField; LVGL displays the value as a Label while TextField remains
-unported.
+The Views cookbook page is enabled for Qt, wx, SDL2 and X11. Its TextField and
+Change text button update retained local state on every backend.
 
 ## Canvas
 

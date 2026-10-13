@@ -8,7 +8,7 @@ namespace Cookbook {
             void content() override {
                 for(auto column: CPPUI::VBox()) {
                     CPPUI::Label("Editor");
-                    Backend::viewsEditor(text);
+                    CPPUI::TextField(text).id("views-editor-field");
                     CPPUI::Button("Change text").click([this]() { text = std::string("retained draft"); });
                     CPPUI::Label("Saved text: " + static_cast<std::string>(text));
                     CPPUI::Spacer();
