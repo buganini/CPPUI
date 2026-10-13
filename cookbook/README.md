@@ -8,8 +8,9 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton and Tab share their recipe implementations across all three backends.
-Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, ProgressBar, Text, Image, MDI, TimelineView, Splitter, Modal and Dialog recipes through
+Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView
+and Tab share their recipe implementations across all three backends.
+Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Text, Image, MDI, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. Qt also has a
 partial TextField recipe with separate string model/draft bindings; dynamic
@@ -203,6 +204,12 @@ cookbook checks boolean and collection membership interactions.
 `lvgl.radiobutton` checks exclusive selection, independent groups, binding and
 callback replacement, repeated clicks, keyboard selection, unmatched values,
 exceptions and cleanup. Both cookbooks exercise the shared A/B recipe.
+`lvgl.progressbar` checks fractional values, range clamping, invalid declarations,
+state updates, busy animation continuity and cleanup. `lvgl.timeline` checks
+timing, native reuse, keyed moves, fixed mounted intervals, exceptions and timer
+cancellation during removal, native deletion and display teardown. Both tests
+advance a deterministic LVGL clock; the cookbook smoke test also exercises the
+progress buttons and mounts/removes the clock recipe.
 `lvgl.tab` covers virtual pages, explicit grouping, empty tabs, keyed moves,
 selection, label updates, independent subviews and native/declaration teardown.
 The cookbook smoke test switches both shared Tab pages.
@@ -216,8 +223,8 @@ and continued operation while another display remains. SDL2's direct-exit path
 and an explicit quit/host-driven loop contract still need work; see the
 [LVGL plan](../doc/lvgl-progress.md).
 
-The shared MDI and TimelineView recipes are enabled on Qt; the timer stops when
-its recipe is removed.
+The shared MDI recipe is enabled on Qt. TimelineView is enabled on all three
+backends; its timer stops when the recipe is removed.
 
 Qt smoke startup uses immediate `sync()`; interaction checks process Qt events to
 settle queued redraws and lifecycle notifications. LVGL startup remains immediate.

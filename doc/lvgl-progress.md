@@ -35,7 +35,8 @@ dependency. Routine implementation choices remain part of the porting work.
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
 Button, Checkbox, RadioButton, Spacer, Divider, plain Text, basic Scroll,
-Tabs/Tab and Canvas drawing. Shared recipes use the public PUI layout/style modifiers; see the
+Tabs/Tab, ProgressBar, TimelineView and Canvas drawing. Shared recipes use the
+public PUI layout/style modifiers; see the
 [component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
 
 | Area | Current basis | Remaining acceptance / phase |
@@ -45,11 +46,11 @@ Tabs/Tab and Canvas drawing. Shared recipes use the public PUI layout/style modi
 | Application and native drivers | Loop returns when the last display closes; LVGL delay callback; separate SDL2/X11 startup and cleanup | Define explicit quit/host-driven pumping and borrowed-runtime ownership; handle SDL2 direct exit (2) |
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
 | Grid/Stack | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
-| ProgressBar/Text/Image | Plain wrapping Text | Numeric range conversion, selection, formatted text, image replacement and resource lifetime need explicit contracts (4) |
+| ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
 | Bound controls | Boolean Checkbox and typed RadioButton with Binding/State; cookbook membership adapters | TextField edit/commit and ComboBox value selection remain to port (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
-| Timeline/Canvas/resources | Basic Canvas primitives, text and native-resolution buffers | Add Timeline, image resources, font/density capabilities and deferred input support (6) |
+| Timeline/Canvas/resources | Cancellable TimelineView timers; basic Canvas primitives, text and native-resolution buffers | Add image resources, font/density capabilities and deferred input support (6) |
 | Table/Tree/adapters/interop | Shared typed adapter interfaces; LVGL wrappers not yet ported | Map the public interfaces to LVGL models or custom widgets and define interop borrowing (6) |
 | Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand component/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (2–6) |
 
@@ -128,8 +129,6 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
 
 ### Phase 4 — Text, progress, images and bound controls
 
-- [ ] Add ProgressBar using LVGL's bar after defining range/precision/busy-state
-  mapping. Enable the shared `progressbar.cpp` recipe through the LVGL manifest.
 - [ ] Decide interactive text selection and rich-text/Markdown capability before
   enabling the complete `text.cpp` page. Plain Text wraps, but a plain label must
   not silently stand in for formatted text.
@@ -141,8 +140,7 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   automatic collection observation and value-based Checkbox overloads tied to
   the shared collection contract; explicit boolean membership adapters work now.
 
-Acceptance: port [progressbar.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/progressbar.py),
-[text.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/text.py),
+Acceptance: port [text.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/text.py),
 [image.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py)
 and the binding/control pages. Assert one commit per edit, no feedback loop,
 native reuse, valid model retention after invalid input, and resource reclamation.
@@ -167,9 +165,6 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
 
 ### Phase 6 — Timers, drawing, data widgets and embedding
 
-- [ ] Add cancellable TimelineView timers after LVGL scheduling is agreed;
-  no redraw after removal/shutdown. PUI TimelineView is a virtual Node wrapper,
-  not a retained View, so changed subview-input contracts do not block it.
 - [ ] Add LVGL ImageResource/loadImage/drawImage after agreeing source ownership,
   decoder availability and file access; test crop/scale, source regions, opacity,
   replacement and missing images.
@@ -183,8 +178,7 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
 - [ ] Define native-object/display embedding and external owner deletion before
   exposing interop. Support shared-screen content only under an explicit scope.
 
-Acceptance: use the reference [timeline regression](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/timeline_regression.py),
-[Canvas](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py),
+Acceptance: use the reference [Canvas](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py),
 [ragged table](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py)
 and [tree sync](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/tree_sync.py)
 cases where the agreed LVGL capability supports them. **Won't do — Shapely and
@@ -228,11 +222,7 @@ and their cookbook recipes are excluded from CPPUI.
   choose its scheduling/focus-group contract before publishing an editor that
   can reenter reconciliation on an edit-model write. Shared text conversion and
   input/change payloads also remain unresolved.
-- **Progress range:** PUI/Qt use integer hundredths and treat maximum zero as a
-  busy indicator. LVGL's [bar](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/widgets/bar/lv_bar.c)
-  exposes bounded integer ranges rather than that busy mode. Choose busy and
-  invalid/out-of-range behavior before claiming the same ProgressBar API.
-- **Capability differences:** decide progress busy/range behavior, rich text and
+- **Capability differences:** decide rich text and
   selection, font/image resources, custom splitters/trees, and desktop features
   independently. State verified native limits separately from unfinished wrappers;
   pixel-identical desktop rendering is not implied by sharing recipe source.

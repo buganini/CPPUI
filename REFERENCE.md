@@ -22,13 +22,13 @@ are described in the component sections and backend plans.
 |[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|wxComboBox|
 |[RadioButton](#radiobutton)|QRadioButton|checkbox (radio mode)|wxRadioButton|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
-|[ProgressBar](#progressbar)|QProgressBar|—|wxGauge|
+|[ProgressBar](#progressbar)|QProgressBar|bar / busy animation|wxGauge|
 |[Text / Html / MarkDown](#text)|QLabel|plain wrapping label|wxStaticText / wxHtmlWindow / not yet implemented|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|wxPanel / wxGraphicsContext|
 |[Image](#image)|QLabel / QPixmap|—|wxStaticBitmap / wxImage|
 |[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)|
 |[MDI](#mdi)|QMdiArea / QMdiSubWindow|—|—|
-|[TimelineView](#timelineview)|QTimer / virtual node|—|wxTimer / virtual node|
+|[TimelineView](#timelineview)|QTimer / virtual node|timer / virtual node|wxTimer / virtual node|
 |[ImageResource](#canvas)|QImage|—|wxImage|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|wxNotebook / wxPanel|
 |[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|wxGrid / wxGridTableBase|
@@ -416,6 +416,15 @@ passes a different value; use a new identity to restart it. Intervals are finite
 nonnegative seconds rounded up to Qt milliseconds; zero runs when the event loop
 is idle. The timer and view remain on the GUI thread.
 
+LVGL uses the same `TimelineView(ttlSeconds)` scope via `cppui/lvgl/timeline.hpp`.
+Its LVGL timer redraws the owning View synchronously on the UI thread. The
+mounted interval is retained across redraws and keyed moves; a new identity
+restarts it. Intervals round up to milliseconds, with a minimum of 1 ms for zero,
+and must fit a signed 32-bit millisecond count. Removal, view teardown and native
+parent/display deletion cancel the timer. Render exceptions are reported to
+stderr without escaping into LVGL; subsequent ticks can retry. Mount the scope
+inside a Window or native container, and release views before deinitializing LVGL.
+
 ## Window
 
 Qt `Window().title(text).icon(path).size(width, height)` updates a retained native
@@ -563,13 +572,22 @@ collection observation and a third value argument remain pending.
 
 ## ProgressBar
 
-Include `cppui/qt/progressbar.hpp` and use `ProgressBar(progress, maximum = 1.0)`.
+Include `cppui/qt/progressbar.hpp` or `cppui/lvgl/progressbar.hpp` and use
+`ProgressBar(progress, maximum = 1.0)`.
 Both numbers are multiplied by 100 and truncated toward zero to match PUI:
 `ProgressBar(0.125, 0.25)` sets native value 12 and maximum 25. Redraw updates
 retained widgets. A zero maximum uses Qt's busy indicator; other range behavior
 follows `QProgressBar`. Non-finite or unrepresentable values throw
 `std::out_of_range` during construction. A state read passed as an argument
 subscribes the surrounding view; this component does not require a writable binding.
+
+LVGL also uses integer hundredths. With a positive scaled maximum, its native bar
+clamps progress to `[0, maximum]`. A maximum that truncates to zero runs a moving
+segment animation; unchanged redraws preserve its position. Returning to a
+positive maximum stops the animation and applies the declared progress. Native
+deletion also cancels it. Negative maxima and non-finite or unrepresentable
+numbers throw `std::out_of_range` before changing mounted UI. The bar uses the
+LVGL theme and does not draw a percentage label.
 
 ## Box layouts
 

@@ -11,6 +11,8 @@
 #include "cppui/lvgl/tab.hpp"
 #include "cppui/lvgl/checkbox.hpp"
 #include "cppui/lvgl/radiobutton.hpp"
+#include "cppui/lvgl/progressbar.hpp"
+#include "cppui/lvgl/timeline.hpp"
 #include "../recipes.hpp"
 #include <stdexcept>
 
@@ -37,6 +39,12 @@ namespace Cookbook { namespace Backend {
             page.remaining = "";
         } else if(std::string(page.key) == "radiobutton") {
             page.render = radiobutton;
+            page.remaining = "";
+        } else if(std::string(page.key) == "progressbar") {
+            page.render = progressbar;
+            page.remaining = "";
+        } else if(std::string(page.key) == "timeline") {
+            page.render = timeline;
             page.remaining = "";
         }
     }
