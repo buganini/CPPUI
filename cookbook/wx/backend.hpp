@@ -23,6 +23,7 @@
 #include "../recipes.hpp"
 #include <wx/stopwatch.h>
 namespace Cookbook { namespace Backend {
+    inline bool viewSelected(CPPUI::Node &, const std::string &) { return false; }
     const char * const name="wxWidgets";
     inline void configureWindow(CPPUI::Context * node){static_cast<CPPUI::Wx::Window *>(node)->title("CPPUI Cookbook").maximize();}
     inline void menus(){

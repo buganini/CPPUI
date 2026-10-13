@@ -35,6 +35,11 @@ Adopted reference updates beyond the original baseline:
 - ComboBox follows PUI `9a3b142` and its shared `combobox_get`/set helpers:
   retain editable buffers, clear the index for free text, display selected labels,
   and preserve unbound selection by item identity across keyed moves.
+- Views follows PUI `e5927cb`, the selection contract in `65f2c02`, and cookbook
+  updates through `44c7fa4`: optional internal/external models, retained native
+  pages and subviews, keyed moves, blank/unknown selection, and pre-mount ID
+  validation. C++ `select()` requires the current declaration under the borrowed
+  return contract below; Python's old-handle forwarding is not copied.
 
 ### C++ ownership and reclamation requirements
 

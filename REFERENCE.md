@@ -31,6 +31,7 @@ are described in the component sections and backend plans.
 |[TimelineView](#timelineview)|QTimer / virtual node|timer / virtual node|wxTimer / virtual node|
 |[ImageResource](#canvas)|QImage|—|wxImage|
 |[Tabs / Tab](#tabs)|QTabWidget / virtual node|tabview / virtual node|wxNotebook / wxPanel|
+|[Views](#views)|QStackedWidget|Not yet ported|Not yet ported|
 |[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|wxGrid / wxGridTableBase|
 |[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|wxDataViewCtrl / wxDataViewModel|
 |[Modal](#modal)|QDialog|—|—|
@@ -789,6 +790,27 @@ by direct Tab declaration index. With two physical children in Tab("A") followed
 by one in Tab("B"), page labels become A, B, B; an empty first Tab can similarly
 overwrite the next page's label. Use one physical child per Tab for matching
 page/title pairs. The cookbook follows that convention.
+
+## Views
+
+Include `cppui/qt/views.hpp`. `Views()` owns an internal selection, initially
+empty; `Views(Binding<OptionalText>)` or `Views(State<OptionalText>&)` uses an
+external model. Every direct child must have a unique, non-empty `.id()`.
+Each child receives a native page, including virtual subviews that render zero
+or multiple controls. Switching pages preserves native controls, view instances,
+and local state. Keyed reordering retains pages; removal destroys them.
+
+Set the binding or call `.select("editor")` on the current mounted Views
+declaration. `.select()` or an empty `OptionalText` clears the selection.
+Unknown keys display an empty page without changing the model; adding the
+matching page later shows it. Empty strings are rejected. Validation and page
+grouping happen before native reconciliation, so invalid IDs preserve the
+mounted content.
+
+Unlike Python's retained handles, CPPUI factory references are borrowed and
+must not be saved across redraws. Keep state or resolve the current declaration
+from the owning view when invoking `select()`. The cookbook demonstrates both
+internal selection and an optional State model with retained editor subviews.
 
 ## Canvas
 

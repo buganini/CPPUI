@@ -105,6 +105,29 @@ namespace Cookbook {
                     require(find(gallery, "menu-scroller")->outer() == sidebar, "page selection replaced the sidebar");
                     require(Backend::pageVisible(gallery, recipes()[i].key), "selected sidebar link is clipped or lost its scroll position");
                     Backend::checkLayout(gallery);
+                    if(std::string(recipes()[i].key) == "views" && recipes()[i].render) {
+                        require(Backend::viewSelected(*find(gallery, "internal-views"), "")
+                            && Backend::viewSelected(*find(gallery, "bound-views"), "editor"), "Views initial selection is wrong");
+                        for(const auto & suffix: {std::string(), std::string(" (state)")}) {
+                            const auto id = suffix.empty() ? "internal-views" : "bound-views";
+                            require(click(gallery, "Editor" + suffix), "Views Editor button is missing");
+                            Backend::settle();
+                            auto field = find(*find(gallery, id), "views-editor-field");
+                            auto native = field->outer();
+                            require(Backend::editTextField(*field, "retained draft", true), "Views editor is missing");
+                            Backend::settle();
+                            require(click(gallery, "Settings" + suffix), "Views Settings button is missing");
+                            Backend::settle();
+                            require(Backend::viewSelected(*find(gallery, id), "settings"), "Views did not show Settings");
+                            require(click(gallery, "Editor" + suffix), "Views Editor button was lost");
+                            Backend::settle();
+                            require(Backend::viewSelected(*find(gallery, id), "editor")
+                                && find(*find(gallery, id), "views-editor-field")->outer() == native, "Views replaced the hidden editor");
+                            require(click(gallery, "Clear" + suffix), "Views Clear button is missing");
+                            Backend::settle();
+                            require(Backend::viewSelected(*find(gallery, id), ""), "Views did not clear its selection");
+                        }
+                    }
                     if(std::string(recipes()[i].key) == "text" && recipes()[i].render) {
                         require(hasText(gallery, "Multiple\nLines\nText"), "text recipe did not render");
                     }

@@ -12,6 +12,7 @@
 #include "cppui/qt/splitter.hpp"
 #include "cppui/qt/canvas.hpp"
 #include "cppui/qt/tab.hpp"
+#include "cppui/qt/views.hpp"
 #include "cppui/qt/table.hpp"
 #include "cppui/qt/tree.hpp"
 #include "cppui/qt/dialog.hpp"
@@ -28,6 +29,14 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    using View = CPPUI::Qt::QtView;
+    using Views = CPPUI::Qt::Views;
+    inline bool viewSelected(CPPUI::Node & node, const std::string & key) {
+        auto views = dynamic_cast<Views *>(&node);
+        if(!views || !views->ui) return false;
+        const int index = static_cast<QStackedWidget *>(views->ui)->currentIndex();
+        return key.empty() ? index == 0 : index > 0 && views->children->at(index - 1)->_id == key;
+    }
     inline void configureWindow(CPPUI::Context * node) { static_cast<CPPUI::Qt::Window *>(node)->title("CPPUI Cookbook").maximize(); }
     inline void menus() {
         for(auto bar: CPPUI::MenuBar()) {

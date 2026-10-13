@@ -17,6 +17,7 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    inline bool viewSelected(CPPUI::Node &, const std::string &) { return false; }
     inline void configureWindow(CPPUI::Context *) {}
     inline void menus() {}
     inline int treeChildCount(CPPUI::Node &, const std::vector<int> &) { return -1; }

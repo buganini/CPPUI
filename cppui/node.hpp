@@ -72,6 +72,10 @@ namespace CPPUI {
         }
     }
 
+    inline void Node::prepare(void) {
+        for(auto child: *children) child->prepare();
+    }
+
     inline void Node::releaseRetiredRefs(void) {
         cppui_root = nullptr;
         parent = nullptr;

@@ -103,6 +103,7 @@ namespace CPPUI {
         virtual void exit(void);
 
         virtual void update(Node * prev);
+        virtual void prepare(void);
         virtual void releaseRetiredRefs(void);
         virtual void postUpdate(void);
         virtual void preSync(void);

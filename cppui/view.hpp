@@ -67,8 +67,12 @@ namespace CPPUI {
         const auto originalSize = children->size();
         statesReadDuringBuild.clear();
         try {
-            auto scope = begin();
-            content();
+            {
+                auto scope = begin();
+                content();
+            }
+            // Validate and normalize declarations before changing native UI.
+            for(std::size_t i = originalSize; i < children->size(); ++i) children->at(i)->prepare();
         } catch(...) {
             // content() only constructs declarations; native mounting follows
             // later in sync(). Restore the declaration list on builder failure.

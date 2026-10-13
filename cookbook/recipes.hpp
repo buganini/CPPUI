@@ -63,6 +63,7 @@ namespace Cookbook {
     void splitter(Model &);
     void canvas(Model &);
     void tab(Model &);
+    void views(Model &);
     void dialog(Model &);
     void modal(Model &);
     const std::vector<Recipe> & recipes();

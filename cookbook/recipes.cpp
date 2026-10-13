@@ -70,6 +70,7 @@ namespace Cookbook {
             {"canvas", "Canvas", nullptr, "Painter and input APIs"},
             {"image", "Image", nullptr, "Image and size options"},
             {"tab", "Tab", nullptr, "Tabs and Tab"},
+            {"views", "Views", nullptr, "Retained pages and optional selection"},
             {"table", "Table", nullptr, "Table data/identity API"},
             {"table_adapter", "Table(Adapter)", nullptr, "Table adapter API"},
             {"tree", "Tree", nullptr, "Tree data/identity API"},
