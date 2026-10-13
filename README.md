@@ -28,7 +28,7 @@ both existing examples, and automated offscreen regressions:
 
 ```sh
 cmake -S . -B build-qt -DCPPUI_BUILD_QT=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build build-qt
+cmake --build build-qt -j "$(nproc)"
 ctest --test-dir build-qt --output-on-failure
 ```
 
@@ -38,6 +38,10 @@ The interactive examples are `cppui_minimal_qt` and `cppui_virtual_nodes` in the
 build directory. Both accept `--smoke` and run as CTest regressions, including
 Valgrind variants when enabled. Their original CMake projects under `example/`
 remain usable.
+
+Qt [Views](REFERENCE.md#views) and [Tabs](REFERENCE.md#tabs) support internal
+selection or a `State<OptionalText>` binding. Pages retain their controls and
+subview state across selection changes; the cookbook demonstrates both forms.
 
 With wxWidgets 3.2 development packages and a display available:
 

@@ -85,6 +85,23 @@ namespace {
         }
         require(QCoreApplication::instance() == &qt && !qt.windowIcon().isNull(), "icon application changed borrowed native ownership");
     }
+    void destroyedQueuedQuit(int argc, char ** argv, QApplication & qt) {
+        Root survivor(argc, argv); survivor.sync();
+        Root removed(argc, argv); removed.sync();
+        // Keep QApplication running while the other root loses its content.
+        const bool oldQuitOnClose = qt.quitOnLastWindowClosed();
+        qt.setQuitOnLastWindowClosed(false);
+        bool nextTurnRan = false;
+        QTimer::singleShot(0, &qt, [&]() {
+            removed.quit();
+            removed.clearChildren();
+            removed.quit(); // Already destroyed: must not enqueue another quit.
+            QTimer::singleShot(25, &qt, [&]() { nextTurnRan = true; survivor.quit(); });
+        });
+        Watchdog watchdog; survivor.start();
+        qt.setQuitOnLastWindowClosed(oldQuitOnClose);
+        require(!watchdog.expired && nextTurnRan, "queued quit ignored logical destruction before dispatch");
+    }
     void applicationOptions(int argc, char ** argv, QApplication & qt) {
         const auto originalSheet = qt.styleSheet();
         qt.setStyleSheet("color:#123456;");
@@ -141,6 +158,7 @@ int main(int argc, char ** argv) {
             applicationOptions(argc, argv, qt);
             queuedQuit(argc, argv, qt);
             cancelledQuit(argc, argv, qt);
+            destroyedQueuedQuit(argc, argv, qt);
             require(QCoreApplication::instance() == &qt, "quit destroyed the borrowed QApplication");
         }
     } catch(const std::exception & error) {

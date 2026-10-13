@@ -42,6 +42,14 @@ Adopted reference updates beyond the original baseline:
   pages and subviews, keyed moves, blank/unknown selection, and pre-mount ID
   validation. C++ `select()` requires the current declaration under the borrowed
   return contract below; Python's old-handle forwarding is not copied.
+- The remaining Qt/shared deltas were compared through PUI `a4641a8`:
+  reused Table adapter resets (`df4cbac`), guarded queued quit (`675e831`), and
+  native teardown through virtual subviews (`9d24163`) already have C++
+  equivalents. Optional binding clears (`fd69ff0`) preserve empty `OptionalText`
+  directly. The Splitter cookbook follows `d3f0679` with three horizontal panes.
+  Python decorator deprecation, signatures, Python 3.9 dependencies, and Textual
+  tooling do not change the C++ API. The class-based C++ construction API stays
+  in place. This delta sync does not complete the remaining parity work below.
 
 ### C++ ownership and reclamation requirements
 
@@ -417,15 +425,14 @@ Test development packages:
 
 ```sh
 cmake -S . -B build-qt -DCPPUI_BUILD_QT=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build build-qt
+cmake --build build-qt -j "$(nproc)"
 ctest --test-dir build-qt --output-on-failure
 ```
 
 Omit `CPPUI_BUILD_QT` to test the C++11 core without a toolkit. CTest sets the Qt
-offscreen platform automatically. The local temporary toolchain is under
-`/tmp/cppui-tools/root/usr`; use that prefix for `CMAKE_PREFIX_PATH`, its
-`lib/x86_64-linux-gnu` for `LD_LIBRARY_PATH`, and its
-`lib/x86_64-linux-gnu/qt6/plugins` for `QT_PLUGIN_PATH`. LeakSanitizer execution
+offscreen platform automatically. CMake can use an installed Qt 6 development
+package directly; set `CMAKE_PREFIX_PATH` if using a separate Qt installation.
+LeakSanitizer execution
 requires an environment without ptrace tracing. Enable `CPPUI_VALGRIND_TESTS`
 in a separate non-sanitized build to run the regressions with Memcheck; use
 `ctest -L valgrind --output-on-failure`. All new regression and cookbook smoke

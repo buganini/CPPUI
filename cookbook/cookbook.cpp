@@ -133,7 +133,7 @@ namespace Cookbook {
                     }
                     if(std::string(recipes()[i].key) == "splitter" && recipes()[i].render) {
                         require(hasText(gallery, "item 1") && hasText(gallery, "item 4")
-                            && hasText(gallery, "pane") && hasText(gallery, "blah blah"),
+                            && hasText(gallery, "pane 2") && hasText(gallery, "pane 3") && hasText(gallery, "blah blah"),
                             "splitter recipe did not render its panes");
                     }
                     if(std::string(recipes()[i].key) == "canvas" && recipes()[i].render) {

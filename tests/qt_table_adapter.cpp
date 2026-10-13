@@ -10,6 +10,36 @@ namespace {
     void require(bool value, const char * message) { if(!value) throw std::runtime_error(message); }
     void settle() { QCoreApplication::processEvents(); QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); }
     using Matrix = std::vector<std::vector<int>>;
+    struct MutableAdapter: CPPUI::BaseTableAdapter<int> {
+        Matrix values{{1}};
+        int data(int row, int column) const override { return values.at(row).at(column); }
+        int rowCount() const override { return static_cast<int>(values.size()); }
+        int columnCount() const override { return values.empty() ? 0 : static_cast<int>(values.front().size()); }
+    };
+    struct MutableRoot: CPPUI::Qt::QtView {
+        std::shared_ptr<MutableAdapter> source = std::make_shared<MutableAdapter>();
+        void content() override { CPPUI::Table(source); }
+        CPPUI::Qt::Table * table() { return static_cast<CPPUI::Qt::Table *>(children->front()); }
+    };
+    void mutableAdapterRefresh() {
+        MutableRoot root; root.sync();
+        auto native = static_cast<QTableView *>(root.table()->ui);
+        auto model = native->model();
+        QAbstractItemModelTester tester(model, QAbstractItemModelTester::FailureReportingMode::Fatal);
+        int resets = 0;
+        auto connection = QObject::connect(model, &QAbstractItemModel::modelReset, [&]() { ++resets; });
+        QPersistentModelIndex oldIndex(model->index(0, 0));
+        // The adapter and backing object are reused; there is no State notification.
+        root.source->values = {{2, 3}, {4, 5}}; root.sync();
+        require(root.table()->ui == native && native->model() == model && model->rowCount() == 2 && model->columnCount() == 2
+            && model->index(1, 1).data() == 5 && resets == 1 && !oldIndex.isValid(), "same-adapter growth did not reset the native model once");
+        root.source->values = {{9}}; root.sync();
+        require(model->rowCount() == 1 && model->columnCount() == 1 && model->index(0, 0).data() == 9 && resets == 2,
+            "same-adapter shrink left stale dimensions or data");
+        root.source->values.clear(); root.sync();
+        require(model->rowCount() == 0 && model->columnCount() == 0 && resets == 3, "empty same-adapter refresh left native rows");
+        QObject::disconnect(connection);
+    }
     struct Adapter: CPPUI::BaseTableAdapter<int> {
         std::shared_ptr<CPPUI::State<Matrix>> values{new CPPUI::State<Matrix>({{4, 9}, {3, 2}})};
         bool failRead = false, failWrite = false, failCount = false, headings = false;
@@ -53,6 +83,7 @@ namespace {
 int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
+        mutableAdapterRefresh(); settle();
         {
             Root root(argc, argv); root.sync();
             auto native = static_cast<QTableView *>(root.table()->ui); auto model = native->model();
