@@ -1,9 +1,11 @@
-# Warning!
-Pre-alpha status, not ready for use
-
 # What is CPPUI
 CPPUI is a declarative UI framework with two-way data binding.
 CPPUI doesn't do UI itself, it turns imperative UI libraries into declarative flavor with virtual DOM and aims to maintain interoperability.
+
+Backends are available for Qt, wxWidgets and LVGL. The project is under active
+development, and APIs may evolve. See the [component reference](REFERENCE.md)
+and [cookbook](cookbook/README.md) for supported features and examples in your
+chosen backend.
 
 [Slides for SciWork 2023](https://speakerdeck.com/buganini/pui-declarative-ui-framework-for-python)
 
