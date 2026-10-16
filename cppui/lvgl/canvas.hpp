@@ -469,7 +469,7 @@ namespace CPPUI {
                 native->owner = this;
                 native->painter = painter;
                 native->moved=moved; native->wheeled=wheeled; native->left=left;
-                lv_obj_set_clickable(native->object, bool(moved) || bool(wheeled) || bool(left) || bool(onClicked));
+                lv_obj_set_clickable(native->object, bool(moved) || bool(wheeled) || bool(left));
                 native->attachInputs();
                 native->request();
             }

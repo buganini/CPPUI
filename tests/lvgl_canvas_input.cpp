@@ -77,6 +77,7 @@ int main(int argc,char **argv) {
         require(root.moves==before+root.version,"window entry did not restore hover");
         root.callbacks=false;root.redraw();before=root.wheels;pointer.read(45,50,-1);
         require(root.wheels==before && lv_indev_get_event_count(pointer.device)==base-1,"omission retained input dispatch");
+        require(!lv_obj_has_flag(canvas,LV_OBJ_FLAG_CLICKABLE),"Canvas without handlers intercepted input");
         root.callbacks=true;root.redraw();
         { Driver temporary(LV_INDEV_TYPE_POINTER);root.redraw();temporary.read(40,40); }
         root.redraw(); // Device deletion must remove its borrowed observer.
