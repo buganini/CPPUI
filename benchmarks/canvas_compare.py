@@ -17,6 +17,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--base', default='0889cf3')
 parser.add_argument('--rounds', type=int, default=3)
 parser.add_argument('--samples', type=int, default=7)
+parser.add_argument('--no-antialias', action='store_true', help='Qt diagnostic only; default matches Canvas antialiasing')
 parser.add_argument('--cpu', type=int, help='Optional Linux CPU affinity')
 parser.add_argument('--heavy-count', type=int, default=30000)
 parser.add_argument('--results', type=Path, default=Path('canvas-results.json'))
@@ -61,6 +62,8 @@ with tempfile.TemporaryDirectory(prefix='cppui-canvas-bench-') as directory:
     def build(pair):
         backend, variant = pair
         flags = qt_flags if backend == 'qt' else ['-DCPPUI_BENCH_WX', *wx_flags]
+        if args.no_antialias and backend == 'qt':
+            flags = ['-DCPPUI_BENCH_NO_AA', *flags]
         subprocess.run([os.environ.get('CXX', 'c++'), '-O2', '-DNDEBUG',
                         '-std=c++17' if backend == 'qt' else '-std=c++11',
                         '-I' + str(root / variant), str(repo / 'benchmarks/canvas.cpp'),
@@ -72,7 +75,8 @@ with tempfile.TemporaryDirectory(prefix='cppui-canvas-bench-') as directory:
     rows = []
     metadata = dict(base=output(['git', 'rev-parse', args.base]).decode().strip(),
                     qt=output(['pkg-config', '--modversion', 'Qt6Widgets']).decode().strip(),
-                    wx=output(['wx-config', '--version']).decode().strip(), cpu=args.cpu)
+                    wx=output(['wx-config', '--version']).decode().strip(), cpu=args.cpu,
+                    qt_antialias=not args.no_antialias)
     for backend in ('qt', 'wx'):
         for workload, count in (('same', 200000), ('mixed', 200000), ('heavy', args.heavy_count)):
             for pair in range(args.rounds):

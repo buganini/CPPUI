@@ -75,7 +75,11 @@ int main(int argc,char ** argv){
 #else
             QImage image(width,height,QImage::Format_ARGB32_Premultiplied);image.fill(Qt::white);
             auto begin=Clock::now();
-            {QPainter native(&image);CPPUI::CanvasPainter painter(native,width,height,1);draw(painter,workload,count,data.get());}
+            {QPainter native(&image);
+#ifndef CPPUI_BENCH_NO_AA
+             native.setRenderHint(QPainter::Antialiasing);
+#endif
+             CPPUI::CanvasPainter painter(native,width,height,1);draw(painter,workload,count,data.get());}
             auto end=Clock::now();
             if(round==repeats-1)for(int y=0;y<height;++y)for(int x=0;x<width;++x){const auto pixel=image.pixel(x,y);hashByte(hash,qRed(pixel));hashByte(hash,qGreen(pixel));hashByte(hash,qBlue(pixel));}
 #endif
