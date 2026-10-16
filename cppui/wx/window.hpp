@@ -12,8 +12,8 @@ namespace CPPUI { namespace Wx {
         Window & title(const std::string & text) { caption = text; return *this; }
         Window & icon(const std::string & path) { iconPath = path; return *this; }
         Window & size(int w, int h) { dimensions = wxSize(w, h); return *this; }
-        Window & maximize(bool value = true) { if(ui) static_cast<wxFrame *>(ui)->Maximize(value); else initialMaximized = value; return *this; }
-        Window & fullscreen(bool value = true) { if(ui) static_cast<wxFrame *>(ui)->ShowFullScreen(value); else initialFullscreen = value; return *this; }
+        Window & maximize(bool value = true) { initialMaximized = value; return *this; }
+        Window & fullscreen(bool value = true) { initialFullscreen = value; return *this; }
         void addChild(int index, ::CPPUI::Node * child) override {
             if(auto bar=dynamic_cast<MenuBar *>(child)){static_cast<wxFrame *>(ui)->SetMenuBar(bar->ui);return;}
             SingleChild::addChild(index,child);

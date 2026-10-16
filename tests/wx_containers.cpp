@@ -20,7 +20,7 @@ public:
     double offset=CPPUI::ScrollEnd;
     void content() override {
         ++builds;
-        for(auto w:CPPUI::Window().size(420,240)) {
+        for(auto w:CPPUI::Window().size(420,240).maximize(false).fullscreen(true).id("window")) {
             if(showMenu)for(auto bar:CPPUI::MenuBar())for(auto menu:CPPUI::Menu("Menu")) {
                 int v=version;CPPUI::MenuAction("Action").trigger([this,v](){calls+=v;showMenu=false;sync();}).id("action");
                 for(auto nested:CPPUI::Menu("Nested"))CPPUI::MenuAction("child");
@@ -50,6 +50,15 @@ int main(int argc,char **argv){
     wxSetAssertHandler([](const wxString &,int,const wxString &,const wxString &c,const wxString &m){std::cerr<<c<<": "<<m<<'\n';std::abort();});
     try {
         Root root(argc,argv);root.sync();pump();
+        auto window=static_cast<CPPUI::Wx::Window *>(find(root,"window"));
+        auto frame=static_cast<wxFrame *>(window->ui);
+        require(frame->IsFullScreen(),"initial fullscreen flag was lost");
+        window->fullscreen(false).maximize();
+        require(frame->IsFullScreen()&&!frame->IsMaximized(),"late window setters changed native state");
+        frame->ShowFullScreen(false);root.sync();pump();
+        require(find(root,"window")->outer()==frame&&!frame->IsFullScreen(),"redraw reset native state or window identity");
+        static_cast<CPPUI::Wx::Window *>(find(root,"window"))->fullscreen();
+        require(!frame->IsFullScreen(),"late setter reapplied fullscreen");
         auto scroll=static_cast<CPPUI::Wx::Scroll *>(find(root,"scroll"));
         require(scroll->maximum(1)>0 && static_cast<wxScrolledWindow *>(scroll->ui)->GetViewStart().y==scroll->maximum(1),"scroll did not anchor to end");
         root.rows=70;root.sync();pump();scroll=static_cast<CPPUI::Wx::Scroll *>(find(root,"scroll"));

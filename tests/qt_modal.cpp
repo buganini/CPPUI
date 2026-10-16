@@ -211,8 +211,13 @@ int main(int argc, char ** argv) {
             require(root.native()->isMaximized(), "initial maximized state was omitted");
             root.modal()->maximize(false);
             root.modal()->fullscreen(true);
-            require(root.native()->isFullScreen(), "imperative fullscreen did not apply");
+            require(root.native()->isMaximized() && !root.native()->isFullScreen(),
+                    "late modal setters changed native state");
+            root.native()->setWindowState(::Qt::WindowFullScreen);
             root.modal()->fullscreen(false);
+            root.sync();
+            require(root.native()->isFullScreen(), "redraw or late modal setter reset fullscreen");
+            root.native()->setWindowState(::Qt::WindowNoState);
             root.sync();
             require(!root.native()->isMaximized() && !root.native()->isFullScreen(),
                     "redraw reapplied initial window flags");

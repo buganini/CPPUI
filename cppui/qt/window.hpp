@@ -40,13 +40,11 @@ namespace CPPUI {
             Window & icon(const std::string & path) { iconPath = path.empty() ? OptionalText() : OptionalText(path); return *this; }
             Window & size(int width, int height) { dimensions = QSize(width, height); return *this; }
             Window & maximize(bool value = true) {
-                if(ui) windowFlag(ui, ::Qt::WindowMaximized, value);
-                else initialMaximized = value;
+                initialMaximized = value;
                 return *this;
             }
             Window & fullscreen(bool value = true) {
-                if(ui) windowFlag(ui, ::Qt::WindowFullScreen, value);
-                else initialFullscreen = value;
+                initialFullscreen = value;
                 return *this;
             }
 

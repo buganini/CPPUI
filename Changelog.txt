@@ -1,4 +1,5 @@
 2026-10-17
+    * Window/Modal: sync PUI 77d996b; maximize/fullscreen are initial-only declarations, including when called after mounting; preserve native state on redraw
     * Canvas: sync PUI 8d3fa8d/4d77b90 with per-frame Qt pen/brush and wx graphics pen/brush/font caches; preserve independent draw styles and restore native state on frame teardown
 
 2026-10-16

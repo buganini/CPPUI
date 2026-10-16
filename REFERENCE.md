@@ -86,7 +86,7 @@ remount remains outside the supported contract. HBox/VBox use native sizers,
 PUI expansion priorities, four-sided padding and explicit weight overrides.
 Omitted dimensions, colors and fonts reset on redraw. Label supports selectable
 read-only text; changing that native creation mode remounts it. Window supports
-one physical content child, title/icon/size and initial/imperative maximize and
+one physical content child, title/icon/size and initial maximize and
 fullscreen. Use a layout to group content. Only Linux/GTK is runtime-verified.
 
 LVGL views, including standalone views, release their owned declarations. Native
@@ -485,8 +485,9 @@ Application title, or preserves the current native title if neither is supplied.
 An explicit empty title clears it. Omitted/empty icons preserve the current icon.
 An unchanged declared size preserves user resizing; changing it, or declaring it
 again after omission, resizes the window. `.maximize()` and `.fullscreen()` apply
-only at creation when used in a builder. On a current mounted declaration they
-change the native state immediately, as for Modal. A window mouse press clears a
+only at native creation, including for Modal. Calling either setter on a
+mounted declaration stores a request without changing the live window.
+Redraws preserve native state; use explicit native interop for live changes. A window mouse press clears a
 focused line editor so it can commit. Keypress payloads remain deferred.
 
 ## Binding
@@ -845,8 +846,8 @@ State changes request a queued redraw.
 resizes only when the declared size changes, preserving a user's resize across
 unchanged redraws. Omitting and later restoring the size declares it anew.
 `.maximize(bool = true)` and `.fullscreen(bool = true)` set initial flags during
-construction and change flags immediately on a currently mounted declaration.
-Initial flags are not reapplied on redraw. Keep state, not borrowed node
+construction. Calls on mounted declarations do not change live native state.
+Initial flags are not reapplied on redraw; native interop can change live state. Keep state, not borrowed node
 references, between redraws. Window-manager behavior still needs real-display
 validation beyond the automated offscreen tests.
 

@@ -62,15 +62,19 @@ int main(int argc, char ** argv) {
             window->resize(420, 310);
             root.size = true; root.sync();
             require(window->size() == QSize(350, 240) && window->windowTitle() == QString::fromUtf8("第二個"), "size redeclaration or title omission diverged from PUI");
-            root.declaration()->maximize();
-            require(window->isMaximized(), "imperative maximize failed");
+            root.declaration()->maximize().fullscreen();
+            require(!window->isMaximized() && !window->isFullScreen(), "late setters changed native state");
+            window->setWindowState(::Qt::WindowMaximized);
             root.sync();
-            require(window->isMaximized(), "redraw reapplied initial maximize flag");
+            require(root.native() == window && window->isMaximized(), "redraw reset native maximize state");
             root.declaration()->maximize(false).fullscreen();
-            require(window->isFullScreen(), "imperative fullscreen failed");
+            require(window->isMaximized() && !window->isFullScreen(), "late setters changed maximized state");
+            window->setWindowState(::Qt::WindowFullScreen);
             root.sync();
-            require(window->isFullScreen(), "redraw reapplied initial fullscreen flag");
+            require(window->isFullScreen(), "redraw reset native fullscreen state");
             root.declaration()->fullscreen(false);
+            require(window->isFullScreen(), "late setter cleared fullscreen");
+            window->setWindowState(::Qt::WindowNoState);
             QLineEdit editor(window);
             editor.show(); window->activateWindow(); editor.setFocus();
             QCoreApplication::processEvents();
@@ -104,7 +108,9 @@ int main(int argc, char ** argv) {
         {
             Root root(argc, argv); root.maximized = true; root.sync();
             require(root.native()->isMaximized(), "initial maximized flag was lost");
-            root.declaration()->maximize(false); root.sync();
+            root.declaration()->maximize(false);
+            require(root.native()->isMaximized(), "late setter cleared initial maximization");
+            root.native()->setWindowState(::Qt::WindowNoState); root.sync();
             require(!root.native()->isMaximized(), "initial maximize repeated on redraw");
             auto declaration = root.declaration();
             delete root.native();
