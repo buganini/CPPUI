@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cstdint>
 #include <functional>
+#include <map>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -44,18 +46,37 @@ namespace CPPUI {
             explicit SavedState(QPainter & painter): painter(painter) { painter.save(); }
             ~SavedState() { painter.restore(); }
         };
+        SavedState frame;
+        const QPen defaultPen;
+        const QBrush defaultBrush;
+        using ColorKey = std::tuple<bool, bool, quint64>;
+        std::map<std::pair<ColorKey, int>, QPen> pens;
+        std::map<ColorKey, QBrush> brushes;
+        static ColorKey key(CanvasColor color) {
+            return std::make_tuple(color.present, color.color.isValid(), quint64(color.color.rgba64()));
+        }
         void pen(CanvasColor color, int width) {
-            auto value = painter.pen();
-            value.setStyle(color.present ? ::Qt::SolidLine : ::Qt::NoPen);
-            if(color.present) value.setColor(color.color);
-            value.setWidth(width);
-            painter.setPen(value);
+            const auto identity = std::make_pair(key(color), width);
+            auto found = pens.find(identity);
+            if(found == pens.end()) {
+                auto value = defaultPen;
+                value.setStyle(color.present ? ::Qt::SolidLine : ::Qt::NoPen);
+                if(color.present) value.setColor(color.color);
+                value.setWidth(width);
+                found = pens.emplace(identity, value).first;
+            }
+            painter.setPen(found->second);
         }
         void brush(CanvasColor color) {
-            auto value = painter.brush();
-            value.setStyle(color.present ? ::Qt::SolidPattern : ::Qt::NoBrush);
-            if(color.present) value.setColor(color.color);
-            painter.setBrush(value);
+            const auto identity = key(color);
+            auto found = brushes.find(identity);
+            if(found == brushes.end()) {
+                auto value = defaultBrush;
+                value.setStyle(color.present ? ::Qt::SolidPattern : ::Qt::NoBrush);
+                if(color.present) value.setColor(color.color);
+                found = brushes.emplace(identity, value).first;
+            }
+            painter.setBrush(found->second);
         }
         static QPolygonF points(const std::vector<CanvasPoint> & coordinates) {
             QPolygonF result;
@@ -68,7 +89,8 @@ namespace CPPUI {
         const int height;
         const double pixel_density;
         CanvasPainter(QPainter & painter, int width, int height, double density)
-            : painter(painter), width(width), height(height), pixel_density(density) {}
+            : painter(painter), frame(painter), defaultPen(painter.pen()), defaultBrush(painter.brush()),
+              width(width), height(height), pixel_density(density) {}
         CanvasPainter(const CanvasPainter &) = delete;
         CanvasPainter & operator=(const CanvasPainter &) = delete;
 
@@ -77,6 +99,7 @@ namespace CPPUI {
             SavedState saved(painter);
             if(w < 0) w = width;
             if(h < 0) h = height;
+            painter.setPen(defaultPen);
             const auto string = QString::fromStdString(text);
             // Match PUI: anchor selects the rotation pivot within the text box.
             const auto bounds = painter.boundingRect(QRect(0, 0, w, h), 0, string);
@@ -96,18 +119,15 @@ namespace CPPUI {
             painter.drawText(QRect(0, 0, w, h), 0, string);
         }
         void drawLine(double x1, double y1, double x2, double y2, CanvasColor color = {}, int width = 1) {
-            SavedState saved(painter);
             pen(color, width);
             painter.drawLine(QPointF(x1, y1), QPointF(x2, y2));
         }
         void drawPolyline(const std::vector<CanvasPoint> & coordinates, CanvasColor color = {}, int width = 1) {
-            SavedState saved(painter);
             pen(color, width);
             painter.drawPolyline(points(coordinates));
         }
         void drawCubicBezier(CanvasPoint start, CanvasPoint control1, CanvasPoint control2, CanvasPoint end,
                              CanvasColor color = {}, int width = 1) {
-            SavedState saved(painter);
             brush({});
             pen(color, width);
             QPainterPath path(QPointF(start.x, start.y));
@@ -116,21 +136,18 @@ namespace CPPUI {
         }
         void drawPolygon(const std::vector<CanvasPoint> & coordinates, CanvasColor fill = {},
                          CanvasColor stroke = {}, int width = 1) {
-            SavedState saved(painter);
             brush(fill);
             pen(stroke, width);
             painter.drawPolygon(points(coordinates));
         }
         void drawRect(double x1, double y1, double x2, double y2, CanvasColor fill = {},
                       CanvasColor stroke = {}, int width = 1) {
-            SavedState saved(painter);
             brush(fill);
             pen(stroke, width);
             painter.drawRect(QRectF(QPointF(x1, y1), QPointF(x2, y2)).normalized());
         }
         void drawEllipse(double x, double y, double rx, double ry, CanvasColor fill = {},
                          CanvasColor stroke = {}, int width = 1) {
-            SavedState saved(painter);
             brush(fill);
             pen(stroke, width);
             painter.drawEllipse(QPointF(x, y), rx, ry);

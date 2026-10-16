@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cstdint>
 #include <type_traits>
+#include <map>
 namespace CPPUI {
 enum class Anchor { LEFT_TOP,LEFT_CENTER,LEFT_BOTTOM,CENTER_TOP,CENTER,CENTER_BOTTOM,RIGHT_TOP,RIGHT_CENTER,RIGHT_BOTTOM };
 class CanvasColor {
@@ -31,35 +32,58 @@ class CanvasPainter {
         explicit SavedState(wxGraphicsContext & p):painter(p){p.PushState();}
         ~SavedState(){painter.PopState();}
     };
-    void pen(CanvasColor color,int width){painter.SetPen(color.present?wxPen(color.color,std::max(1,width)):*wxTRANSPARENT_PEN);}
-    void brush(CanvasColor color){painter.SetBrush(color.present?wxBrush(color.color):*wxTRANSPARENT_BRUSH);}
+    SavedState frame;
+    std::map<std::pair<unsigned long,int>,wxGraphicsPen> pens;
+    std::map<unsigned long,wxGraphicsBrush> brushes;
+    std::map<std::pair<int,unsigned long>,wxGraphicsFont> fonts;
+    void pen(CanvasColor color,int width){
+        if(!color.present){painter.SetPen(wxNullGraphicsPen);return;}
+        auto key=std::make_pair(color.color.GetRGBA(),std::max(1,width));
+        auto found=pens.find(key);
+        if(found==pens.end())found=pens.emplace(key,painter.CreatePen(wxPen(color.color,key.second))).first;
+        painter.SetPen(found->second);
+    }
+    void brush(CanvasColor color){
+        if(!color.present){painter.SetBrush(wxNullGraphicsBrush);return;}
+        auto key=color.color.GetRGBA();auto found=brushes.find(key);
+        if(found==brushes.end())found=brushes.emplace(key,painter.CreateBrush(wxBrush(color.color))).first;
+        painter.SetBrush(found->second);
+    }
+    void textFont(int size,const wxColour & color){
+        auto key=std::make_pair(size,color.GetRGBA());auto found=fonts.find(key);
+        if(found==fonts.end()){
+            auto value=font;if(size>0)value.SetPointSize(size);
+            found=fonts.emplace(key,painter.CreateFont(value,color)).first;
+        }
+        painter.SetFont(found->second);
+    }
 public:
     const int width,height;
     const double pixel_density;
     CanvasPainter(wxGraphicsContext & painter,int width,int height,double density,wxFont font=*wxNORMAL_FONT,wxColour foreground=*wxBLACK)
-        :painter(painter),font(font),foreground(foreground),width(width),height(height),pixel_density(density){}
+        :painter(painter),font(font),foreground(foreground),frame(painter),width(width),height(height),pixel_density(density){}
     CanvasPainter(const CanvasPainter &)=delete;
     CanvasPainter & operator=(const CanvasPainter &)=delete;
     void drawText(double x,double y,const std::string & text,int w=-1,int h=-1,int size=12,CanvasColor color={},double rotate=0,Anchor anchor=Anchor::LEFT_TOP){
         (void)w;(void)h;SavedState saved(painter);
         auto lines=wxSplit(wxString::FromUTF8(text),'\n');double tw=0,th=0,lineHeight=0;
-        painter.SetFont(font,foreground);
+        textFont(-1,foreground);
         for(auto & line:lines){double lw,lh;painter.GetTextExtent(line.empty()?wxString(" "):line,&lw,&lh);tw=std::max(tw,lw);lineHeight=std::max(lineHeight,lh);}
         th=lineHeight*lines.size();double dx=tw*(int(anchor)/3)/2,dy=th*(int(anchor)%3)/2;
         painter.Translate(x+dx,y+dy);painter.Rotate(rotate*std::acos(-1.0)/180);painter.Translate(-dx,-dy);
-        auto drawFont=font;if(size>0)drawFont.SetPointSize(size);painter.SetFont(drawFont,color.present?color.color:foreground);
+        textFont(size,color.present?color.color:foreground);
         double yy=0;for(auto & line:lines){painter.DrawText(line,0,yy);yy+=lineHeight;}
     }
-    void drawLine(double x1,double y1,double x2,double y2,CanvasColor color={},int width=1){SavedState saved(painter);pen(color,width);painter.StrokeLine(x1,y1,x2,y2);}
+    void drawLine(double x1,double y1,double x2,double y2,CanvasColor color={},int width=1){pen(color,width);painter.StrokeLine(x1,y1,x2,y2);}
     void drawPolyline(const std::vector<CanvasPoint> & points,CanvasColor color={},int width=1){
-        if(points.empty())return;SavedState saved(painter);pen(color,width);auto path=painter.CreatePath();path.MoveToPoint(points[0].x,points[0].y);for(std::size_t i=1;i<points.size();++i)path.AddLineToPoint(points[i].x,points[i].y);painter.StrokePath(path);
+        if(points.empty())return;pen(color,width);auto path=painter.CreatePath();path.MoveToPoint(points[0].x,points[0].y);for(std::size_t i=1;i<points.size();++i)path.AddLineToPoint(points[i].x,points[i].y);painter.StrokePath(path);
     }
-    void drawCubicBezier(CanvasPoint start,CanvasPoint c1,CanvasPoint c2,CanvasPoint end,CanvasColor color={},int width=1){SavedState saved(painter);pen(color,width);auto path=painter.CreatePath();path.MoveToPoint(start.x,start.y);path.AddCurveToPoint(c1.x,c1.y,c2.x,c2.y,end.x,end.y);painter.StrokePath(path);}
+    void drawCubicBezier(CanvasPoint start,CanvasPoint c1,CanvasPoint c2,CanvasPoint end,CanvasColor color={},int width=1){pen(color,width);auto path=painter.CreatePath();path.MoveToPoint(start.x,start.y);path.AddCurveToPoint(c1.x,c1.y,c2.x,c2.y,end.x,end.y);painter.StrokePath(path);}
     void drawPolygon(const std::vector<CanvasPoint> & points,CanvasColor fill={},CanvasColor stroke={},int width=1){
-        if(points.empty())return;SavedState saved(painter);pen(stroke,width);brush(fill);auto path=painter.CreatePath();path.MoveToPoint(points[0].x,points[0].y);for(std::size_t i=1;i<points.size();++i)path.AddLineToPoint(points[i].x,points[i].y);path.CloseSubpath();painter.DrawPath(path);
+        if(points.empty())return;pen(stroke,width);brush(fill);auto path=painter.CreatePath();path.MoveToPoint(points[0].x,points[0].y);for(std::size_t i=1;i<points.size();++i)path.AddLineToPoint(points[i].x,points[i].y);path.CloseSubpath();painter.DrawPath(path);
     }
-    void drawRect(double x1,double y1,double x2,double y2,CanvasColor fill={},CanvasColor stroke={},int width=1){SavedState saved(painter);pen(stroke,width);brush(fill);painter.DrawRectangle(std::min(x1,x2),std::min(y1,y2),std::abs(x2-x1),std::abs(y2-y1));}
-    void drawEllipse(double x,double y,double rx,double ry,CanvasColor fill={},CanvasColor stroke={},int width=1){SavedState saved(painter);pen(stroke,width);brush(fill);painter.DrawEllipse(x-rx,y-ry,rx*2,ry*2);}
+    void drawRect(double x1,double y1,double x2,double y2,CanvasColor fill={},CanvasColor stroke={},int width=1){pen(stroke,width);brush(fill);painter.DrawRectangle(std::min(x1,x2),std::min(y1,y2),std::abs(x2-x1),std::abs(y2-y1));}
+    void drawEllipse(double x,double y,double rx,double ry,CanvasColor fill={},CanvasColor stroke={},int width=1){pen(stroke,width);brush(fill);painter.DrawEllipse(x-rx,y-ry,rx*2,ry*2);}
     ImageResource loadImage(const std::string & path) const {return ImageResource::load(path);}
     void drawImage(const ImageResource & image,int x=0,int y=0,int width=-1,int height=-1,int sx=0,int sy=0,int sw=-1,int sh=-1,double opacity=1){
         if(image.isNull())return;

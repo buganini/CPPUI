@@ -33,10 +33,29 @@ public:
         }
     }
 };
+static void frameStyles(){
+    auto render=[](bool isolate,const wxColour & foreground){
+        wxBitmap bitmap(240,150,32);wxMemoryDC dc(bitmap);dc.SetBackground(*wxWHITE_BRUSH);dc.Clear();
+        {std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+        CPPUI::CanvasPainter c(*gc,240,150,1,*wxNORMAL_FONT,foreground);
+        std::vector<std::function<void()>> operations{
+            [&](){c.drawRect(4,4,40,30,0xff0000,0x224466,3);},
+            [&](){c.drawLine(45,15,90,20,0x00ff00,4);},
+            [&](){c.drawRect(100,4,130,30);},
+            [&](){c.drawText(10,40,"Default after NoPen",-1,-1,-1);},
+            [&](){c.drawText(10,80,"Rotated",-1,-1,12,0xff0000,15);},
+            [&](){c.drawText(10,110,"Default again",-1,-1,-1);}};
+        for(const auto & op:operations){if(isolate)gc->PushState();op();if(isolate)gc->PopState();}}
+        dc.SelectObject(wxNullBitmap);auto image=bitmap.ConvertToImage();
+        return std::vector<unsigned char>(image.GetData(),image.GetData()+240*150*3);
+    };
+    for(auto foreground:{*wxBLACK,*wxBLUE})require(render(false,foreground)==render(true,foreground),"mixed Canvas styles affected later operations");
+    require(render(false,*wxBLACK)!=render(false,*wxBLUE),"Canvas cached a prior frame's default text color");
+}
 int main(int argc,char ** argv){
     wxSetAssertHandler([](const wxString &,int,const wxString &,const wxString &c,const wxString &m){std::cerr<<c<<": "<<m<<'\n';std::abort();});
     try{
-        Root root(argc,argv);root.sync();root.path=wxFileName::CreateTempFileName("cppui-wx-image-").ToStdString(wxConvUTF8);
+        Root root(argc,argv);root.sync();frameStyles();root.path=wxFileName::CreateTempFileName("cppui-wx-image-").ToStdString(wxConvUTF8);
         wxImage input(8,4);input.SetRGB(wxRect(0,0,8,4),0,255,0);wxInitAllImageHandlers();require(input.SaveFile(wxString::FromUTF8(root.path),wxBITMAP_TYPE_PNG),"image fixture write failed");
         auto source=CPPUI::ImageResource::load(root.path);require(source.width()==8&&source.height()==4,"resource load");require(source.scale(16,16).height()==8,"aspect ratio");require(source.crop(1,1,2,2).width()==2&&source.crop(-1,0,2,2).isNull(),"crop bounds");require(CPPUI::ImageResource::load(root.path+"missing").isNull(),"missing resource");
         wxBitmap bitmap(100,100,32);wxMemoryDC dc(bitmap);dc.SetBackground(*wxWHITE_BRUSH);dc.Clear();

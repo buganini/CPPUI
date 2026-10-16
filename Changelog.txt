@@ -1,3 +1,6 @@
+2026-10-17
+    * Canvas: sync PUI 8d3fa8d/4d77b90 with per-frame Qt pen/brush and wx graphics pen/brush/font caches; preserve independent draw styles and restore native state on frame teardown
+
 2026-10-16
     * LVGL Cookbook: enable shared HeavyCanvas on SDL2/X11 with 1000-30000 sessions, hover/zoom and reset/regenerate controls; enable SDL pointer wheel delivery, use native rectangle fills and exercise both native driver queues
     * LVGL ComboBox: add read-only/editable selection, index/value bindings, prefix suggestions and retained keyed items; enable the shared SDL2/X11 cookbook and lifecycle tests

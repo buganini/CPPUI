@@ -952,11 +952,17 @@ copied before invocation, and queued painting becomes inert on removal.
 
 All three backends include `drawText`, `drawLine`, `drawPolyline`, `drawCubicBezier`,
 `drawPolygon`, `drawRect` and `drawEllipse`; Qt and wx also have `drawImage`. Coordinates are logical
-pixels; each operation restores painter state. Colors accept `0xRRGGBB`, color
-names or strings such as `"#ff0000"`. Use `{}` for an absent color: shape fill and
-stroke are disabled when absent; text keeps the current pen. Rectangles take
+pixels. Colors accept `0xRRGGBB`, color names or strings such as `"#ff0000"`.
+Use `{}` for an absent color: shape fill and stroke are disabled when absent;
+text uses the frame's default foreground. Rectangles take
 two corners, ellipses take center/radii, and coordinate sequences use
 `std::vector<CanvasPoint>` or initializer lists.
+
+Qt caches pens/brushes and wx caches graphics pens/brushes/fonts within each
+paint invocation. Each primitive chooses its own styles; text and images restore
+their temporary transform, font and opacity changes. The native painter state is
+restored when the `CanvasPainter` is destroyed, including during exception
+unwinding. Caches do not retain resources across frames or widgets.
 
 `drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0,
 anchor = Anchor::LEFT_TOP)` uses canvas dimensions for negative w/h and keeps

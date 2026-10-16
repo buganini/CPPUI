@@ -41,6 +41,7 @@ namespace {
             const auto initialBrush = native.brush();
             const auto initialFont = native.font();
             const auto initialTransform = native.transform();
+            {
             CPPUI::CanvasPainter canvas(native, pixels.width(), pixels.height(), 1);
             canvas.drawRect(30, 30, 10, 10, 0xFF0000);
             canvas.drawLine(40, 10, 80, 10, "#00ff00", 2);
@@ -59,9 +60,10 @@ namespace {
             canvas.drawRect(130, 20, 150, 40); // Missing fill/stroke means no paint.
             canvas.drawPolyline({}, 0xFF0000);
             canvas.drawPolygon({}, 0xFF0000);
+            }
             require(native.pen() == initialPen && native.brush() == initialBrush
                 && native.font() == initialFont && native.transform() == initialTransform
-                && native.opacity() == 1, "a drawing method leaked painter state");
+                && native.opacity() == 1, "paint context did not restore native state");
         }
         require(pixels.pixelColor(20, 20) == QColor(Qt::red), "reversed rectangle corners did not normalize");
         require(pixels.pixelColor(60, 10) == QColor(Qt::green), "line color or position is wrong");
@@ -82,6 +84,38 @@ namespace {
             if(pixels.pixelColor(x, y).value() < 128) ++textPixels;
         }
         require(textPixels > 20, "text did not render");
+    }
+
+    void frameStyles() {
+        using Draw = std::function<void(CPPUI::CanvasPainter &)>;
+        const std::vector<Draw> operations{
+            [](CPPUI::CanvasPainter & c){c.drawRect(4,4,40,30,0xff0000,0x224466,3);},
+            [](CPPUI::CanvasPainter & c){c.drawLine(45,15,90,20,0x00ff00,4);},
+            [](CPPUI::CanvasPainter & c){c.drawRect(100,4,130,30);},
+            [](CPPUI::CanvasPainter & c){c.drawText(10,40,"Default after NoPen",-1,-1,-1);},
+            [](CPPUI::CanvasPainter & c){c.drawText(10,80,"Rotated",-1,-1,12,0xff0000,15);},
+            [](CPPUI::CanvasPainter & c){c.drawText(10,110,"Default again",-1,-1,-1);}
+        };
+        auto render = [&](bool isolate, QColor foreground) {
+            QImage image(240,150,QImage::Format_ARGB32);image.fill(Qt::white);
+            QPainter painter(&image);QPen pen(foreground,2);pen.setCapStyle(Qt::RoundCap);pen.setJoinStyle(Qt::RoundJoin);
+            painter.setPen(pen);painter.setBrush(Qt::cyan);
+            { CPPUI::CanvasPainter canvas(painter,240,150,1);
+              for(const auto & op:operations) {
+                  if(isolate) painter.save();
+                  op(canvas);
+                  if(isolate) painter.restore();
+              }
+            }
+            painter.end();return image;
+        };
+        for(auto foreground:{QColor(Qt::black),QColor(Qt::blue)})
+            require(render(false,foreground)==render(true,foreground),"primitive styles leaked into later text/shapes");
+        require(render(false,Qt::black)!=render(false,Qt::blue),"new frame retained the previous default pen");
+        QImage image(20,20,QImage::Format_ARGB32);QPainter painter(&image);const auto before=painter.pen();
+        try {CPPUI::CanvasPainter canvas(painter,20,20,1);canvas.drawLine(0,0,10,10,0xff0000);throw std::runtime_error("expected");}
+        catch(const std::runtime_error &) {}
+        require(painter.pen()==before,"failed frame did not restore native state");
     }
 
     int captures = 0;
@@ -251,6 +285,7 @@ int main(int argc, char ** argv) {
     QApplication app(argc, argv);
     try {
         drawingAndImages();
+        frameStyles();
         pointerInput();
         nativeLifetime(app);
         require(captures == 0, "root teardown retained a paint capture");
