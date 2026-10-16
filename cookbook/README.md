@@ -8,8 +8,10 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are synced through PUI `0c160e8` (2026-10-17); Web/Pyodide
-changes are excluded from this sync. MaskedField runs on Qt, wx and LVGL with
+Native additions are audited through PUI `f0c1cf5` (2026-10-17); Web/Pyodide
+changes are excluded from this sync. Native performance changes are evaluated
+separately; see the [Canvas benchmark decision](../doc/canvas-performance.md).
+MaskedField runs on Qt, wx and LVGL with
 single/buffered passwords and length labels. All backends include the airport
 autocomplete ComboBox and HeavyCanvas. Qt/wx also include decorated Table price
 editors. HeavyCanvas offers fourteen presets from 1,000 to 1,000,000 synthetic sessions,

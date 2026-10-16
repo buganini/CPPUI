@@ -970,7 +970,10 @@ their temporary transforms and opacity changes. Qt restores native painter state
 when the `CanvasPainter` is destroyed, including during exception unwinding.
 wx uses a fresh graphics context for each widget paint; its graphics pen, brush
 and font wrapper objects are not part of the native graphics-state stack.
-Caches do not retain resources across frames or widgets.
+Caches do not retain resources across frames or widgets. The newer PUI guards
+that skip repeated pen/brush setters were measured separately in C++; they are
+not adopted because the native gains were small or inconsistent.
+See the [benchmark decision](doc/canvas-performance.md).
 
 All three `CanvasPainter` implementations expose `push()` and `pop()` inside the
 paint callback. Qt saves/restores full native state (pen, brush, font, transform,

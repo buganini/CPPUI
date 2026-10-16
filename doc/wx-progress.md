@@ -1,12 +1,19 @@
 # wxWidgets alignment with PUI/wx
 
-Latest native delta audit: PUI `0c160e8` (2026-10-17). Shared controls use
+Latest native delta audit: PUI `f0c1cf5` (2026-10-17). Shared controls use
 `disabled` (`d7dc23a`) and HeavyCanvas includes fourteen presets through
 1,000,000 (`18d1c5e`), with index labels above 500,000. Canvas styles are cached
 within each frame (`8d3fa8d`/`4d77b90`); window state setters only store initial
 flags (`77d996b`) and preserve live native state on redraw. Web/Pyodide changes
 remain excluded. Flet/Tkinter-only caches and PUI release-note consolidation
 require no CPPUI implementation changes. Older gaps below remain open.
+
+Canvas scopes follow PUI `cae7713`/`10fe513`/`f0c1cf5`: Qt restores native
+state, wx restores CPPUI pen/brush choices, and LVGL provides compatibility
+no-ops. The new redundant-setter guards were evaluated in native C++ and are
+intentionally not adopted: benefits were small or inconsistent. See the
+[measurement and decision](canvas-performance.md). Browser event/command
+changes remain excluded.
 
 Prepared on 2026-10-13 against CPPUI `07271a3` and
 [PUI 2e4f0eb](https://github.com/buganini/PUI/tree/2e4f0eb82996e271bb3f4bc1f7511ea8b4c966bd/PUI/wx).

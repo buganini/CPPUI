@@ -1,10 +1,17 @@
 # LVGL implementation progress and remaining work
 
-Latest native delta audit: PUI `0c160e8` (2026-10-17). Shared controls use
+Latest native delta audit: PUI `f0c1cf5` (2026-10-17). Shared controls use
 `disabled` (`d7dc23a`) and HeavyCanvas includes fourteen presets through
 1,000,000 (`18d1c5e`), with index labels above 500,000. Web/Pyodide changes
 remain excluded. Flet/Tkinter-only caches and PUI release-note consolidation
 require no CPPUI implementation changes. Older gaps below remain open.
+
+Canvas scopes follow PUI `cae7713`/`10fe513`/`f0c1cf5`: Qt restores native
+state, wx restores CPPUI pen/brush choices, and LVGL provides compatibility
+no-ops. The new redundant-setter guards were evaluated in native C++ and are
+intentionally not adopted: benefits were small or inconsistent. See the
+[measurement and decision](canvas-performance.md). Browser event/command
+changes remain excluded.
 
 ## Baseline and scope
 
