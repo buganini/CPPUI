@@ -208,7 +208,33 @@ namespace CPPUI {
                       CanvasColor stroke = {}, int width = 1) {
             if(x1 > x2) std::swap(x1, x2);
             if(y1 > y2) std::swap(y1, y2);
-            drawPolygon({{x1,y1}, {x2,y1}, {x2,y2}, {x1,y2}}, fill, stroke, width);
+            if(!fill.present && !stroke.present) return;
+            const int canvasWidth = this->width, canvasHeight = this->height;
+            commands.push_back([=](lv_obj_t * object) {
+                LVGL::detail::CanvasLayer layer(object);
+                if(fill.present) {
+                    // Keep the polygon fill's pixel-center coverage while
+                    // submitting one native rectangle instead of scanning the
+                    // whole canvas for every bar in a large chart.
+                    lv_area_t area{
+                        int(std::min(double(canvasWidth), std::max(0.0, std::ceil(x1 - .5)))),
+                        int(std::min(double(canvasHeight), std::max(0.0, std::ceil(y1 - .5)))),
+                        int(std::max(-1.0, std::min(double(canvasWidth - 1), std::ceil(x2 - .5) - 1))),
+                        int(std::max(-1.0, std::min(double(canvasHeight - 1), std::ceil(y2 - .5) - 1)))
+                    };
+                    if(area.x1 <= area.x2 && area.y1 <= area.y2) {
+                        lv_draw_rect_dsc_t dsc; lv_draw_rect_dsc_init(&dsc);
+                        dsc.bg_color = fill.color; dsc.bg_opa = fill.opacity;
+                        lv_draw_rect(&layer.layer, &dsc, &area);
+                    }
+                }
+                if(stroke.present) {
+                    line(layer.layer, {x1,y2}, {x1,y1}, stroke, width);
+                    line(layer.layer, {x1,y1}, {x2,y1}, stroke, width);
+                    line(layer.layer, {x2,y1}, {x2,y2}, stroke, width);
+                    line(layer.layer, {x2,y2}, {x1,y2}, stroke, width);
+                }
+            });
         }
         void drawEllipse(double x, double y, double rx, double ry, CanvasColor fill = {},
                          CanvasColor stroke = {}, int width = 1) {

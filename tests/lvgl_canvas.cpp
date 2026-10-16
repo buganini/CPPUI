@@ -152,6 +152,21 @@ namespace {
         root.draw = [](CPPUI::CanvasPainter & c) { c.drawText(40,40,"clipped text",5,5,24,0xffffff); };
         root.redraw(); step(2);
         require(painted(object,46,40,160,150) == 0, "text ignored its width limit");
+        // Rectangle fast path must preserve polygon coverage at fractional
+        // boundaries, outside the buffer, and with translucent fill/stroke.
+        root.draw = [](CPPUI::CanvasPainter & c) {
+            c.drawRect(-2.5, 20.2, 50.5, 45.8, "#80ff0000", "blue", 2);
+            c.drawRect(88.5, 81.5, 70.5, 60.5, "#80ffffff");
+            c.drawRect(160.5, 5, 200, 20, "red");
+        };
+        root.redraw(); step(2); const auto rectangles = pixels(object);
+        root.draw = [](CPPUI::CanvasPainter & c) {
+            c.drawPolygon({{-2.5,20.2},{50.5,20.2},{50.5,45.8},{-2.5,45.8}}, "#80ff0000", "blue", 2);
+            c.drawPolygon({{70.5,60.5},{88.5,60.5},{88.5,81.5},{70.5,81.5}}, "#80ffffff");
+            c.drawPolygon({{160.5,5},{200,5},{200,20},{160.5,20}}, "red");
+        };
+        root.redraw(); step(2);
+        require(rectangles == pixels(object), "rectangle fast path changed fill/stroke coverage");
         lv_obj_set_size(object,80,60); step(2);
         require(root.width == 80 && root.height == 60 && lv_canvas_get_draw_buf(object)->header.w == 80,
                 "native resize failed to replace the backing buffer");
