@@ -5,13 +5,14 @@
 namespace CPPUI { namespace Wx {
 class Checkbox: public Widget {
     Binding<bool> model;
-    bool checked;
+    bool checked, isDisabled = false;
 public:
     std::string text;
     Checkbox(const std::string & text, Binding<bool> model): model(model), checked(model.get()), text(text) {}
+    Checkbox & disabled(bool value = true) { isDisabled = value; return *this; }
     void updateWidget(Widget * prev) override {
         ui = prev ? prev->ui : new wxCheckBox(parentWindow(), wxID_ANY, wxString::FromUTF8(text));
-        ui->SetLabel(wxString::FromUTF8(text)); static_cast<wxCheckBox *>(ui)->SetValue(checked);
+        ui->SetLabel(wxString::FromUTF8(text)); static_cast<wxCheckBox *>(ui)->SetValue(checked); ui->Enable(!isDisabled);
     }
     void bindEvents() override { ui->Bind(wxEVT_CHECKBOX, &Native::clicked, native.get()); }
     void updateEvents() override {

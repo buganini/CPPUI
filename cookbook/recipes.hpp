@@ -25,11 +25,11 @@ namespace Cookbook {
         CPPUI::State<std::string> tablePrice{std::string()};
         CPPUI::State<int> scrollRows{100};
         CPPUI::State<int> comboIndex{-1};
-        CPPUI::State<std::string> comboText{std::string()}, destination{std::string()};
+        CPPUI::State<std::string> comboText{std::string()}, destination{std::string()}, comboDisabledText{std::string("Value 2")};
         CPPUI::State<std::string> password{std::string()}, bufferedPassword{std::string()}, passwordEditing{std::string()};
         CPPUI::State<std::string> radioValue{std::string()};
         CPPUI::State<std::string> fieldText{std::string("1.23")}, fieldEditing{std::string()};
-        CPPUI::State<bool> checkboxOne{true}, checkboxTwo{true};
+        CPPUI::State<bool> checkboxOne{true}, checkboxTwo{true}, checkboxDisabled{false};
         CPPUI::State<std::vector<std::string>> checkboxList{std::vector<std::string>()};
         CPPUI::State<std::map<std::string, bool>> checkboxMap{std::map<std::string, bool>()};
         CPPUI::State<int> progress{50};

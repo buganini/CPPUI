@@ -16,7 +16,7 @@ namespace {
     class Root: public CPPUI::Qt::QtView {
         public:
         bool selectable = true;
-        bool enabled = true, setEnabled = true;
+        bool disabled = false, setDisabled = true;
         int clicks = 0;
         double progress = 0.125;
         double maximum = 0.25;
@@ -31,7 +31,7 @@ namespace {
         void content() override {
             // Both arguments die before native reconciliation starts.
             auto & button = CPPUI::Button(std::string(caption));
-            if(setEnabled) button.enabled(enabled);
+            if(setDisabled) button.disabled(disabled);
             button.id(std::string(100, 'b'));
             button.click([this]() { ++clicks; });
             CPPUI::Label("No <b>HTML</b>", selectable);
@@ -53,12 +53,12 @@ int main(int argc, char ** argv) {
         auto button = static_cast<QPushButton *>(root.children->front()->outer());
         require(button->text().toStdString() == root.caption, "temporary button text was lost");
         for(int i = 0; i < 4; ++i) {
-            root.enabled = i == 1;
-            root.setEnabled = i != 3;
+            root.disabled = i != 1;
+            root.setDisabled = i != 3;
             root.sync();
-            const bool enabled = !root.setEnabled || root.enabled;
+            const bool enabled = !root.setDisabled || !root.disabled;
             require(root.children->front()->outer() == button && button->isEnabled() == enabled,
-                "Button enabled update/default reset replaced the native widget or left stale state");
+                "Button disabled update/default reset replaced the native widget or left stale state");
             const int clicks = root.clicks;
             button->click();
             require(root.clicks == clicks + (enabled ? 1 : 0), "disabled Button clicked or enabled Button lost its callback");

@@ -40,9 +40,10 @@ and Canvas drawing. Shared recipes use the
 public PUI layout/style modifiers; see the
 [component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
 
-Shared options from PUI `020ef46`/`184ffcd` map to Button `.enabled(bool)` using
-`LV_STATE_DISABLED` and TextField `.placeholder(text)` using the native textarea
-hint. Omission on a fresh declaration restores enabled/empty defaults. Both
+Shared options from PUI `d7dc23a`/`184ffcd` map to Button, Checkbox, RadioButton
+and ComboBox `.disabled(bool = true)` (default false) using `LV_STATE_DISABLED`,
+and TextField `.placeholder(text)` using the native textarea hint. The former
+enabled setter is removed. Omission on a fresh declaration restores enabled/empty defaults. Both
 SDL2/X11 cookbooks include the TextField hint; regressions cover native reuse,
 reactive button state, hint clearing and active draft/cursor preservation.
 ComboBox now supports index/value bindings, editable prefix suggestions, retained

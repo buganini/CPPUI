@@ -11,12 +11,13 @@ namespace CPPUI {
     namespace Qt {
         class Checkbox: public BaseWidget {
             Binding<bool> model;
-            bool checked;
+            bool checked, isDisabled = false;
             public:
             std::string text;
             Checkbox(const std::string & text, Binding<bool> model): model(model), checked(model.get()), text(text) {
                 is_terminal = true;
             }
+            Checkbox & disabled(bool value = true) { isDisabled = value; return *this; }
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new Widget<QCheckBox>();
                 auto checkbox = static_cast<QCheckBox *>(ui);
@@ -24,6 +25,7 @@ namespace CPPUI {
                     QSignalBlocker block(checkbox);
                     checkbox->setText(QString::fromStdString(text));
                     checkbox->setChecked(checked);
+                    checkbox->setDisabled(isDisabled);
                 }
                 auto binding = model;
                 connectSignal(QObject::connect(checkbox, &QCheckBox::toggled, checkbox, [binding](bool value) {

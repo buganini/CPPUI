@@ -41,7 +41,7 @@ namespace {
                 if(boundText) texts = CPPUI::Binding<std::string>([this](){ return static_cast<std::string>(text); },
                     [this](const std::string & value){ ++textWrites; text=value; });
                 auto combo = new CPPUI::LVGL::ComboBox(editable, indices, texts);
-                if(disabled) combo->enabled(false);
+                if(disabled) combo->disabled();
                 const auto current=version; auto token=capture;
                 combo->change([this,current,token](){changes+=current;});
                 for(auto scope:*combo) {
@@ -72,7 +72,7 @@ int main() {
             root.reversed=true;root.redraw();
             require(root.native()==object && lv_dropdown_get_selected(object)==1,"keyed reorder lost selection");
             root.disabled=true;root.redraw();require(lv_obj_has_state(object,LV_STATE_DISABLED),"disable omitted");
-            root.disabled=false;root.redraw();require(!lv_obj_has_state(object,LV_STATE_DISABLED),"omitted enabled did not reset");
+            root.disabled=false;root.redraw();require(!lv_obj_has_state(object,LV_STATE_DISABLED),"omitted disabled did not reset");
             root.boundText=true;root.text=std::string();root.redraw();
             require(lv_dropdown_get_selected(object)==1 && root.changes==2,"empty raw value lost duplicate identity or emitted change");
             root.text=std::string("missing");require(selected(object).empty(),"unknown readonly value selected an item");

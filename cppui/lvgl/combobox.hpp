@@ -47,7 +47,7 @@ namespace CPPUI { namespace LVGL {
                     if(target == self->editor) self->editor = nullptr;
                     return;
                 }
-                if(self->applying || !self->current || !self->current->isEnabled) return;
+                if(self->applying || !self->current || self->current->isDisabled) return;
                 try {
                     if(code == LV_EVENT_READY && target == self->dropdown && !self->openingSuggestions) {
                         self->filtering = false;
@@ -66,7 +66,7 @@ namespace CPPUI { namespace LVGL {
             }
         };
         std::shared_ptr<Runtime> runtime;
-        bool editable, isEnabled = true;
+        bool editable, isDisabled = false;
         Optional<Binding<int>> indexModel;
         Optional<Binding<std::string>> textModel;
         int indexValue = -1;
@@ -150,12 +150,12 @@ namespace CPPUI { namespace LVGL {
             lv_dropdown_set_selected(state->dropdown, nativeIndex);
             lv_dropdown_set_selected_highlight(state->dropdown, selected >= 0);
             lv_dropdown_set_text(state->dropdown, editable || selected < 0 ? "" : nullptr);
-            lv_obj_set_state(state->dropdown, LV_STATE_DISABLED, !isEnabled || state->items.empty());
+            lv_obj_set_state(state->dropdown, LV_STATE_DISABLED, isDisabled || state->items.empty());
             if(state->editor) {
-                lv_obj_set_state(state->editor, LV_STATE_DISABLED, !isEnabled);
+                lv_obj_set_state(state->editor, LV_STATE_DISABLED, isDisabled);
                 if(text != lv_textarea_get_text(state->editor)) lv_textarea_set_text(state->editor, text.c_str());
             }
-            if(!isEnabled || state->visible.empty()) lv_dropdown_close(state->dropdown);
+            if(isDisabled || state->visible.empty()) lv_dropdown_close(state->dropdown);
             else if(lv_dropdown_is_open(state->dropdown)) lv_dropdown_open(state->dropdown);
             state->applying = false;
         }
@@ -167,7 +167,7 @@ namespace CPPUI { namespace LVGL {
         }
         std::size_t typecode() const override { return Node::typecode() ^ (editable ? 0x7123U : 0U); }
         ComboBox & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
-        ComboBox & enabled(bool value) { isEnabled = value; return *this; }
+        ComboBox & disabled(bool value = true) { isDisabled = value; return *this; }
         ~ComboBox() override { retire(); }
         void destroy(bool direct) override { retire(); Node::destroy(direct); }
         void update(Node * previous) override {

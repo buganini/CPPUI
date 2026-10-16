@@ -52,6 +52,8 @@ namespace Cookbook {
             CPPUI::Checkbox("checkbox 1-1", model.checkboxOne).id("checkbox-1");
             CPPUI::Checkbox("checkbox 1-2", model.checkboxOne).id("checkbox-1-mirror");
             CPPUI::Checkbox("checkbox 2", model.checkboxTwo).id("checkbox-2");
+            CPPUI::Checkbox("Disabled (mirrors value 1)", model.checkboxOne).disabled().id("checkbox-disabled-mirror");
+            CPPUI::Checkbox("Disabled (unchecked)", model.checkboxDisabled).disabled().id("checkbox-disabled");
             CPPUI::Divider();
             CPPUI::Label("List value: " + listText(model.checkboxList));
             for(int i = 3; i <= 5; ++i) CPPUI::Checkbox("checkbox " + std::to_string(i),

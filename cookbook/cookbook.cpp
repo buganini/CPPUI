@@ -269,6 +269,8 @@ namespace Cookbook {
                         Backend::settle(); require(hasText(gallery, "Model value: a"), "radio A did not commit");
                         require(Backend::selectRadio(*find(gallery, "radio-b")), "radio B missing");
                         Backend::settle(); require(hasText(gallery, "Model value: b"), "radio B did not commit");
+                        require(find(gallery, "radio-disabled") && click(gallery, "Select disabled option"), "disabled radio example missing");
+                        Backend::settle(); require(hasText(gallery, "Model value: disabled"), "disabled radio model update failed");
                     }
                     if(std::string(recipes()[i].key) == "textfield" && recipes()[i].render) {
                         require(click(gallery, "Clear"), "textfield recipe is missing Clear");

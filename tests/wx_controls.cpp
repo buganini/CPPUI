@@ -53,10 +53,12 @@ public:
 class OptionsRoot: public CPPUI::Application {
 public:
     using Application::Application;
-    CPPUI::State<bool> enabled{true};
+    CPPUI::State<bool> disabled{false};
     CPPUI::State<int> index{0};
+    CPPUI::State<bool> checked{false};
+    CPPUI::State<int> radio{1};
     CPPUI::State<std::string> selected{std::string("one")}, text{std::string()}, draft{std::string()};
-    bool setEnabled=true, setPlaceholder=true, masked=false;
+    bool setDisabled=true, setPlaceholder=true, masked=false;
     std::string placeholder="Enter text";
     CPPUI::OptionalText windowCaption;
     int inputs=0, changes=0, comboChanges=0;
@@ -65,11 +67,16 @@ public:
         if(windowCaption)window.title(*windowCaption);
         for(auto w: window) for(auto v: CPPUI::VBox()) {
             auto & button=CPPUI::Button("Run");
-            if(setEnabled) button.enabled(enabled);
+            if(setDisabled) button.disabled(disabled);
             button.id("button");
+            auto & check=CPPUI::Checkbox("Check",checked);
+            auto & choice=CPPUI::RadioButton("Choice",2,radio);
+            if(setDisabled){check.disabled(disabled);choice.disabled(disabled);}
+            check.id("check").click([this](){++comboChanges;});
+            choice.id("choice").click([this](){++comboChanges;});
             for(bool editable: {false,true}) {
                 auto & combo=CPPUI::ComboBox(editable,index,selected);
-                if(setEnabled) combo.enabled(enabled);
+                if(setDisabled) combo.disabled(disabled);
                 for(auto c: combo.change([this](){++comboChanges;}).id(editable ? "editable" : "readonly")) {
                     CPPUI::ComboBoxItem("One","one"); CPPUI::ComboBoxItem("Two","two");
                 }
@@ -92,19 +99,24 @@ static void options(int argc,char **argv,bool masked) {
     }
     auto button=ui<wxButton>(root,"button");
     auto editable=ui<wxComboBox>(root,"editable"), readonly=ui<wxComboBox>(root,"readonly");
+    auto check=ui<wxCheckBox>(root,"check");auto choice=ui<wxRadioButton>(root,"choice");
     auto field=ui<wxTextCtrl>(root,"field");
     require(bool(field->GetWindowStyleFlag() & wxTE_PASSWORD)==masked, "wrong masking mode");
     require(button->IsEnabled() && editable->IsEnabled() && readonly->IsEnabled()
         && field->GetHint()=="Enter text" && field->GetValue().empty() && root.inputs==0, "initial optional properties were not applied silently");
     for(int i=0;i<4;++i) {
-        root.setEnabled=i!=3;root.enabled=i==1;pump();
-        const bool enabled=!root.setEnabled || static_cast<bool>(root.enabled);
-        require(button->IsEnabled()==enabled && editable->IsEnabled()==enabled && readonly->IsEnabled()==enabled,
-            "reactive enabled update/default reset was not applied");
+        root.setDisabled=i!=3;root.disabled=i!=1;pump();
+        const bool enabled=!root.setDisabled || !static_cast<bool>(root.disabled);
+        require(button->IsEnabled()==enabled && editable->IsEnabled()==enabled && readonly->IsEnabled()==enabled && check->IsEnabled()==enabled && choice->IsEnabled()==enabled,
+            "reactive disabled update/default reset was not applied");
+        root.checked=bool(i%2);root.radio=i%2+1;pump();
+        require(ui<wxCheckBox>(root,"check")==check&&ui<wxRadioButton>(root,"choice")==choice
+            &&check->GetValue()==bool(i%2)&&choice->GetValue()==bool(i%2)&&root.comboChanges==0,
+            "disabled selection lost identity or programmatic updates emitted feedback");
         root.index=i%2;root.selected=std::string(i%2 ? "two" : "one");pump();
         require(ui<wxButton>(root,"button")==button && ui<wxComboBox>(root,"editable")==editable
             && ui<wxComboBox>(root,"readonly")==readonly && editable->IsEditable() && !readonly->IsEditable(),
-            "enabled update changed native identity or editable mode");
+            "disabled update changed native identity or editable mode");
         require(editable->GetSelection()==i%2 && readonly->GetSelection()==i%2
             && editable->GetValue()==(i%2 ? "Two" : "One") && readonly->GetValue()==editable->GetValue()
             && root.comboChanges==0, "disabled ComboBox lost model updates or emitted feedback");

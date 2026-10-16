@@ -11,6 +11,7 @@ namespace {
         public:
         CPPUI::State<bool> first{false}, second{true};
         bool useSecond = false, show = true, fail = false;
+        bool disable = false, setDisabled = true;
         int writes = 0, clicks = 0;
         std::string text = "First";
         std::function<void()> action;
@@ -30,7 +31,9 @@ namespace {
                     if(invoke) invoke();
                     require(*token == 1, "active setter lost its captures");
                 });
-                CPPUI::Checkbox(text, binding).click([this, state]() {
+                auto & control = CPPUI::Checkbox(text, binding);
+                if(setDisabled) control.disabled(disable);
+                control.click([this, state]() {
                     ++clicks;
                     require(static_cast<bool>(*state), "click ran before checkbox commit");
                 });
@@ -52,6 +55,17 @@ int main() {
             root.redraw();
             auto object = root.widget();
             require(!lv_obj_has_state(object, LV_STATE_CHECKED), "initial binding value was ignored");
+            root.disable = true; root.redraw();
+            require(lv_obj_has_state(object, LV_STATE_DISABLED), "disabled control remained interactive");
+            root.first = true; root.redraw();
+            require(bool(lv_obj_has_state(object, LV_STATE_CHECKED)) == true && root.writes == 0 && root.clicks == 0,
+                "disabled selection did not follow model silently");
+            root.disable = false; root.redraw();
+            require(!(lv_obj_has_state(object, LV_STATE_DISABLED)), "disabled(false) did not restore interaction");
+            root.disable = true; root.redraw();
+            root.setDisabled = false; root.first = false; root.redraw();
+            require(root.widget() == object && !(lv_obj_has_state(object, LV_STATE_DISABLED)) && root.writes == 0,
+                "omitting disabled lost identity or retained disabled state");
             lv_obj_add_event_cb(object, count, LV_EVENT_VALUE_CHANGED, &external);
             lv_obj_add_event_cb(object, count, LV_EVENT_DELETE, &deleted);
             auto capture = root.capture;

@@ -10,7 +10,7 @@ namespace CPPUI { namespace LVGL {
         std::string text;
         T value;
         Binding<T> model;
-        bool checked;
+        bool checked, isDisabled = false;
         protected:
         void nativeEvent(lv_event_t * event) override {
             const auto code = lv_event_get_code(event);
@@ -33,6 +33,7 @@ namespace CPPUI { namespace LVGL {
             is_terminal = true;
             clickable = true;
         }
+        RadioButton & disabled(bool value = true) { isDisabled = value; return *this; }
         void update(Node * prev) override {
             ui = prev && prev->ui ? prev->ui : lv_checkbox_create(static_cast<lv_obj_t *>(parent->inner()));
             auto object = static_cast<lv_obj_t *>(ui);
@@ -41,6 +42,7 @@ namespace CPPUI { namespace LVGL {
             lv_obj_set_style_bg_image_src(object, nullptr, LV_PART_INDICATOR | LV_STATE_CHECKED);
             lv_checkbox_set_text(object, text.c_str());
             lv_obj_set_checked(object, checked);
+            lv_obj_set_state(object, LV_STATE_DISABLED, isDisabled);
         }
     };
 }}

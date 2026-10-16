@@ -20,8 +20,8 @@ namespace {
         std::weak_ptr<int> capture;
         std::string seen;
         std::string placeholder = "Enter text";
-        bool setPlaceholder = true, setEnabled = true, masked = false;
-        CPPUI::State<bool> enabled{true};
+        bool setPlaceholder = true, setDisabled = true, masked = false;
+        CPPUI::State<bool> disabled{false};
         void content() override {
             for(auto window: CPPUI::Window()) for(auto column: CPPUI::VBox()) {
                 if(show) {
@@ -56,7 +56,7 @@ namespace {
                     }).id("field");
                 }
                 auto & button = CPPUI::Button("read model");
-                if(setEnabled) button.enabled(enabled);
+                if(setDisabled) button.disabled(disabled);
                 button.click([this]() { seen = static_cast<std::string>(other ? second : first); });
             }
         }
@@ -90,11 +90,11 @@ int main() {
             require(std::string(lv_textarea_get_placeholder_text(editor)) == "Enter text", "TextField lost its placeholder");
             auto button = root.button();
             for(int i = 0; i < 4; ++i) {
-                root.setEnabled = i != 3;
-                root.enabled = i == 1; settle();
+                root.setDisabled = i != 3;
+                root.disabled = i != 1; settle();
                 require(root.button() == button
-                    && lv_obj_has_state(button, LV_STATE_DISABLED) == (root.setEnabled && !static_cast<bool>(root.enabled)),
-                    "Button enabled update/default reset remounted it or left stale native state");
+                    && lv_obj_has_state(button, LV_STATE_DISABLED) == (root.setDisabled && static_cast<bool>(root.disabled)),
+                    "Button disabled update/default reset remounted it or left stale native state");
             }
             require(lv_textarea_get_one_line(editor) && text(editor) == "first" && static_cast<std::string>(root.draft) == "first"
                 && root.draftWrites == 1 && root.writes == 0 && root.inputs == 0, "initial model/draft sync emitted input or repeated writes");

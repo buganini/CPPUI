@@ -16,6 +16,7 @@ namespace {
         public:
         CPPUI::State<int> first{1}, second{2}, separate{1};
         bool other = false, show = true, fail = false;
+        bool disable = false, setDisabled = true;
         int writes = 0, clicks = 0, version = 1;
         std::string text = "A";
         std::function<void()> action;
@@ -36,7 +37,9 @@ namespace {
                     require(*token == 1, "active setter lost its captures");
                 });
                 const auto current = version;
-                CPPUI::RadioButton(text, 1, binding).click([this, state, current]() {
+                auto & control = CPPUI::RadioButton(text, 1, binding);
+                if(setDisabled) control.disabled(disable);
+                control.click([this, state, current]() {
                     require(static_cast<int>(*state) == 1, "click ran before radio commit");
                     clicks += current;
                 });
@@ -63,6 +66,17 @@ int main() {
             root.redraw();
             auto first = root.button(0), second = root.button(1);
             require(checked(first) && !checked(second) && checked(root.separateButton()), "initial value selection failed");
+            root.disable = true; root.redraw();
+            require(lv_obj_has_state(first, LV_STATE_DISABLED), "disabled control remained interactive");
+            root.first = 2; root.redraw();
+            require(bool(lv_obj_has_state(first, LV_STATE_CHECKED)) == false && root.writes == 0 && root.clicks == 0,
+                "disabled selection did not follow model silently");
+            root.disable = false; root.redraw();
+            require(!(lv_obj_has_state(first, LV_STATE_DISABLED)), "disabled(false) did not restore interaction");
+            root.disable = true; root.redraw();
+            root.setDisabled = false; root.first = 1; root.redraw();
+            require(root.button(0) == first && !(lv_obj_has_state(first, LV_STATE_DISABLED)) && root.writes == 0,
+                "omitting disabled lost identity or retained disabled state");
             lv_obj_add_event_cb(second, count, LV_EVENT_CLICKED, &external);
             lv_obj_add_event_cb(first, count, LV_EVENT_DELETE, &deleted);
             auto capture = root.capture;

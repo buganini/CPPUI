@@ -15,7 +15,7 @@ class ComboBox: public Widget {
     struct Selection { OptionalText key; std::string text; std::vector<Choice> items; bool applying = false; };
     std::shared_ptr<Selection> selection;
     bool editable;
-    bool isEnabled = true;
+    bool isDisabled = false;
     Optional<Binding<int>> indexModel;
     Optional<Binding<std::string>> textModel;
     int indexValue = -1;
@@ -34,12 +34,12 @@ public:
     }
     std::size_t typecode() const override { return Widget::typecode() ^ (editable ? 0x7123U : 0U); }
     ComboBox & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
-    ComboBox & enabled(bool value) { isEnabled = value; return *this; }
+    ComboBox & disabled(bool value = true) { isDisabled = value; return *this; }
     void updateWidget(Widget * previous) override {
         auto prev = static_cast<ComboBox *>(previous);
         selection = prev ? prev->selection : std::make_shared<Selection>();
         ui = prev ? prev->ui : new wxComboBox(parentWindow(), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, 0, nullptr, editable ? 0 : wxCB_READONLY);
-        ui->Enable(isEnabled);
+        ui->Enable(!isDisabled);
     }
     void bindEvents() override {
         ui->Bind(wxEVT_COMBOBOX, &Native::clicked, native.get());

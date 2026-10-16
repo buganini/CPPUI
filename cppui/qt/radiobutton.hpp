@@ -13,11 +13,12 @@ namespace CPPUI { namespace Qt {
         std::string text;
         T value;
         Binding<T> model;
-        bool checked;
+        bool checked, isDisabled = false;
         public:
         using Value = T;
         RadioButton(const std::string & text, const T & value, Binding<T> model)
             : text(text), value(value), model(model), checked(model.get() == value) { is_terminal = true; }
+        RadioButton & disabled(bool value = true) { isDisabled = value; return *this; }
         void update(BaseWidget * prev) override {
             ui = prev && prev->ui ? prev->ui : new Widget<QRadioButton>();
             auto button = static_cast<QRadioButton *>(ui);
@@ -25,6 +26,7 @@ namespace CPPUI { namespace Qt {
                 QSignalBlocker block(button);
                 button->setText(QString::fromStdString(text));
                 button->setChecked(checked);
+                button->setDisabled(isDisabled);
             }
             auto binding = model;
             auto selected = value;

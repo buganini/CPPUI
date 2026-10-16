@@ -119,7 +119,7 @@ cancels its queued work. Core and LVGL redraws remain synchronous.
 ## Optional arguments
 
 Independent widget options use named fluent setters in C++11, corresponding to
-PUI's keyword arguments: `Button("Save").enabled(false)` and
+PUI's keyword arguments: `Button("Save").disabled()` and
 `TextField(model).placeholder("Enter text")`. Required values and model bindings
 remain constructor arguments. Existing calls keep their defaults without adding
 positional placeholders or overloads for every combination of options.
@@ -127,14 +127,19 @@ positional placeholders or overloads for every combination of options.
 Setters copy their values into the current declaration and apply them during
 reconciliation. A fresh declaration that omits a setter restores its default;
 repeated calls on one declaration use the last value. Reading a State in a
-setter, such as `.enabled(canSave)`, tracks the view's reactive dependency.
+setter, such as `.disabled(!canSave)`, tracks the view's reactive dependency.
 Call widget-specific setters before common modifiers such as `.id()` or
 `.layout()`, which return `Node&` rather than the concrete widget type.
 The terminal `.click(callback)` call returns void and goes last.
 
+Button, Checkbox, RadioButton and ComboBox all use `.disabled(bool = true)` on
+Qt, wx and LVGL. The previous `.enabled(...)` setter has been removed; migrate
+`.enabled(value)` to `.disabled(!value)`. Disabled selection controls still
+follow bound model changes without firing click/change callbacks.
+
 Use `Optional<T>` when absence has its own meaning, such as an unset dimension,
 an unselected page or a cancelled dialog. A defaulted option does not itself
-need `Optional<T>`: `enabled` defaults to true, and an omitted or empty
+need `Optional<T>`: `disabled` defaults to false, and an omitted or empty
 placeholder both mean no hint. Existing positional layout/style modifiers keep
 their `Optional<T>` arguments and `{}` omission syntax below.
 
@@ -516,9 +521,9 @@ copy/move semantics.
 
 Include `cppui/qt/button.hpp`, `cppui/wx/button.hpp` or `cppui/lvgl/button.hpp`.
 `Button(text).click(callback)` owns its text and invokes the current callback.
-`.enabled(bool)` controls native user interaction and defaults to true. Disabling
+`.disabled(bool = true)` controls native user interaction; the default is false. Disabling
 and re-enabling reuse the native button; omitting the setter on a fresh
-declaration restores enabled state. This follows PUI `020ef46`, with LVGL using
+declaration restores enabled state. This follows PUI `d7dc23a`, with LVGL using
 its native disabled state.
 
 ## TextField
@@ -617,8 +622,8 @@ automatically. Its children are
 Labels and values are owned strings, with labels used as default node IDs.
 Use explicit IDs to distinguish duplicate labels or retain a renamed item.
 
-`.enabled(bool)` defaults to true and follows PUI `020ef46`. Disabling preserves
-selection, editable/read-only mode and native identity; programmatic model
+`.disabled(bool = true)` defaults to false and follows PUI `d7dc23a`. Disabling preserves
+selection, editable/non-editable mode and native identity; programmatic model
 updates still apply without change callbacks. Omitting it on a fresh declaration
 restores enabled state.
 
@@ -630,7 +635,7 @@ to -1 and writes the text binding; with no text binding, the native widget retai
 the edit buffer. Unbound selection follows the selected item's key through
 reorders and label changes, including items in independently redrawn subviews.
 
-LVGL uses a dropdown for read-only selection and a textarea with a dropdown for
+LVGL uses a dropdown for non-editable selection and a textarea with a dropdown for
 editable input. Typing filters suggestions by label prefix (ASCII case-insensitive)
 while retaining original indices/raw values. Opening the arrow restores the full
 list. Empty lists disable the selector, leaving the editor usable. Labels

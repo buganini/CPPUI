@@ -1,4 +1,5 @@
 2026-10-17
+    * Controls/Cookbook: sync PUI d7dc23a with disabled options and examples for Button, Checkbox, RadioButton and ComboBox on Qt/wx/LVGL; remove enabled setters
     * Window/Modal: sync PUI 77d996b; maximize/fullscreen are initial-only declarations, including when called after mounting; preserve native state on redraw
     * Canvas: sync PUI 8d3fa8d/4d77b90 with per-frame Qt pen/brush and wx graphics pen/brush/font caches; preserve independent draw styles and restore native state on frame teardown
 

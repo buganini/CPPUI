@@ -33,7 +33,8 @@ in rows and columns, window resizing and explicit dimension reset. The remaining
 
 ## Ownership and established contracts
 
-Button/ComboBox `.enabled(bool)` follows PUI `020ef46`; TextField
+Button/Checkbox/RadioButton/ComboBox `.disabled(bool = true)` follows PUI
+`d7dc23a` (default false); the former enabled setter is removed. TextField
 `.placeholder(text)` follows `184ffcd` through native `SetHint`, including the
 shared cookbook hint. Omission on a fresh declaration restores enabled/empty
 defaults. Native regressions cover reactive toggles, identity and editable-mode

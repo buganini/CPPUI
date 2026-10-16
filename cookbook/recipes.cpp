@@ -11,6 +11,7 @@ namespace Cookbook {
                     CPPUI::Label(static_cast<std::string>(model.buttonValue));
                     Button("A").click([&model]() { model.buttonValue = std::string("A"); });
                     Button("B").click([&model]() { model.buttonValue = std::string("B"); });
+                    Button("Disabled").disabled().click([&model]() { model.buttonValue = std::string("Disabled"); });
                     CPPUI::Button("Styled").style(0xff0000, {}, 20);
                     CPPUI::Spacer();
                 }

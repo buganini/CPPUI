@@ -12,6 +12,7 @@ namespace {
         public:
         CPPUI::State<int> first{1}, second{2};
         bool other = false, show = true;
+        bool disable = false, setDisabled = true;
         int writes = 0, clicks = 0, version = 1;
         std::function<void()> action;
         using Application::Application;
@@ -22,7 +23,9 @@ namespace {
                     ++writes; auto invoke = action; *state = value; if(invoke) invoke();
                 });
                 const auto current = version;
-                CPPUI::RadioButton("A", 1, binding).click([this, current]() { clicks += current; });
+                auto & control = CPPUI::RadioButton("A", 1, binding);
+                if(setDisabled) control.disabled(disable);
+                control.click([this, current]() { clicks += current; });
                 CPPUI::RadioButton("B", 2, binding).click([this, current]() { clicks += current; });
             }
         }
@@ -36,6 +39,19 @@ int main(int argc, char ** argv) {
             Root root(argc, argv); root.sync();
             auto first = root.button(0), second = root.button(1);
             require(first->isChecked() && !second->isChecked(), "initial value selection failed");
+            root.disable = true; root.sync(); QCoreApplication::processEvents();
+            require(!first->isEnabled(), "disabled control remained interactive");
+            first->click();
+            require(root.writes == 0 && root.clicks == 0, "disabled click wrote the model or invoked callback");
+            root.first = 2; root.sync(); QCoreApplication::processEvents();
+            require(bool(first->isChecked()) == false && root.writes == 0 && root.clicks == 0,
+                "disabled selection did not follow model silently");
+            root.disable = false; root.sync(); QCoreApplication::processEvents();
+            require(first->isEnabled(), "disabled(false) did not restore interaction");
+            root.disable = true; root.sync(); QCoreApplication::processEvents();
+            root.setDisabled = false; root.first = 1; root.sync(); QCoreApplication::processEvents();
+            require(root.button(0) == first && first->isEnabled() && root.writes == 0,
+                "omitting disabled lost identity or retained disabled state");
             int external = 0;
             QObject::connect(second, &QRadioButton::clicked, [&]() { ++external; });
             second->click(); settle();

@@ -7,7 +7,7 @@ namespace Cookbook {
             CPPUI::Label("Index: " + std::to_string(static_cast<int>(model.comboIndex)));
             CPPUI::Label("Text: " + static_cast<std::string>(model.comboText));
             for(auto row: CPPUI::HBox()) {
-                CPPUI::Label("Readonly");
+                CPPUI::Label("Non-editable");
                 for(auto combo: CPPUI::ComboBox(false, model.comboText).id("combo-readonly")) {
                     CPPUI::ComboBoxItem("Item 1", "Value 1");
                     CPPUI::ComboBoxItem("Item 2", "Value 2");
@@ -20,6 +20,16 @@ namespace Cookbook {
                 for(auto combo: CPPUI::ComboBox(true, model.comboIndex, model.comboText).id("combo-editable")) {
                     CPPUI::ComboBoxItem("Item 1");
                     CPPUI::ComboBoxItem("Item 2");
+                    CPPUI::ComboBoxItem("Item 3", "Value 3");
+                }
+                CPPUI::Spacer();
+            }
+            CPPUI::Divider();
+            for(bool editable: {false, true}) for(auto row: CPPUI::HBox()) {
+                CPPUI::Label(editable ? "Disabled (editable)" : "Disabled (non-editable)");
+                for(auto combo: CPPUI::ComboBox(editable, model.comboDisabledText).disabled().id(editable ? "combo-disabled-editable" : "combo-disabled")) {
+                    CPPUI::ComboBoxItem("Item 1", "Value 1");
+                    CPPUI::ComboBoxItem("Item 2", "Value 2");
                     CPPUI::ComboBoxItem("Item 3", "Value 3");
                 }
                 CPPUI::Spacer();

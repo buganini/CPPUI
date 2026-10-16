@@ -3,15 +3,15 @@
 #include "base.hpp"
 namespace CPPUI { namespace Wx {
     class Button: public Widget {
-        bool isEnabled = true;
+        bool isDisabled = false;
         public:
         std::string text;
         explicit Button(const std::string & text): text(text) {}
-        Button & enabled(bool value) { isEnabled = value; return *this; }
+        Button & disabled(bool value = true) { isDisabled = value; return *this; }
         void updateWidget(Widget * prev) override {
             ui = prev ? prev->ui : new wxButton(parentWindow(), wxID_ANY, wxString::FromUTF8(text));
             ui->SetLabel(wxString::FromUTF8(text));
-            ui->Enable(isEnabled);
+            ui->Enable(!isDisabled);
         }
         void bindEvents() override { ui->Bind(wxEVT_BUTTON, &Native::clicked, native.get()); }
         void updateEvents() override {

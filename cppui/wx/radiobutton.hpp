@@ -7,13 +7,14 @@ template<class T> class RadioButton: public Widget {
     std::string text;
     T value;
     Binding<T> model;
-    bool checked;
+    bool checked, isDisabled = false;
 public:
     using Value = T;
     RadioButton(const std::string & text, const T & value, Binding<T> model): text(text), value(value), model(model), checked(model.get() == value) {}
+    RadioButton & disabled(bool value = true) { isDisabled = value; return *this; }
     void updateWidget(Widget * prev) override {
         ui = prev ? prev->ui : new wxRadioButton(parentWindow(), wxID_ANY, wxString::FromUTF8(text), wxDefaultPosition, wxDefaultSize, wxRB_SINGLE);
-        ui->SetLabel(wxString::FromUTF8(text)); static_cast<wxRadioButton *>(ui)->SetValue(checked);
+        ui->SetLabel(wxString::FromUTF8(text)); static_cast<wxRadioButton *>(ui)->SetValue(checked); ui->Enable(!isDisabled);
     }
     void bindEvents() override { ui->Bind(wxEVT_RADIOBUTTON, &Native::clicked, native.get()); }
     void updateEvents() override {

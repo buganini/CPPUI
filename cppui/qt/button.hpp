@@ -9,12 +9,12 @@
 namespace CPPUI {
     namespace Qt {
         class Button: public BaseWidget {
-            bool isEnabled = true;
+            bool isDisabled = false;
             public:
             std::string text;
 
             explicit Button(const std::string & text): text(text) {}
-            Button & enabled(bool value) { isEnabled = value; return *this; }
+            Button & disabled(bool value = true) { isDisabled = value; return *this; }
             void update(BaseWidget * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
@@ -22,7 +22,7 @@ namespace CPPUI {
                 } else {
                     ui = new Widget<QPushButton>(QString::fromStdString(text));
                 }
-                ui->setEnabled(isEnabled);
+                ui->setDisabled(isDisabled);
                 // Copy before invoking user code: it may redraw or remove this
                 // declaration and disconnect the currently executing connection.
                 auto callback = onClicked;

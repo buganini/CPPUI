@@ -12,6 +12,7 @@ namespace {
         public:
         CPPUI::State<bool> first{false}, second{true};
         bool useSecond = false, show = true, fail = false;
+        bool disable = false, setDisabled = true;
         int writes = 0, clicks = 0;
         std::string text = "First";
         std::function<void()> action;
@@ -31,7 +32,9 @@ namespace {
                     if(invoke) invoke();
                     require(*token == 1, "active setter lost its captures");
                 });
-                CPPUI::Checkbox(text, binding).click([this, state]() {
+                auto & control = CPPUI::Checkbox(text, binding);
+                if(setDisabled) control.disabled(disable);
+                control.click([this, state]() {
                     ++clicks;
                     require(static_cast<bool>(*state), "click ran before checkbox commit");
                 });
@@ -52,6 +55,19 @@ int main(int argc, char ** argv) {
             root.sync();
             auto object = root.widget();
             require(!object->isChecked(), "initial binding value was ignored");
+            root.disable = true; root.sync(); QCoreApplication::processEvents();
+            require(!object->isEnabled(), "disabled control remained interactive");
+            object->click();
+            require(root.writes == 0 && root.clicks == 0, "disabled click wrote the model or invoked callback");
+            root.first = true; root.sync(); QCoreApplication::processEvents();
+            require(bool(object->isChecked()) == true && root.writes == 0 && root.clicks == 0,
+                "disabled selection did not follow model silently");
+            root.disable = false; root.sync(); QCoreApplication::processEvents();
+            require(object->isEnabled(), "disabled(false) did not restore interaction");
+            root.disable = true; root.sync(); QCoreApplication::processEvents();
+            root.setDisabled = false; root.first = false; root.sync(); QCoreApplication::processEvents();
+            require(root.widget() == object && object->isEnabled() && root.writes == 0,
+                "omitting disabled lost identity or retained disabled state");
             QObject::connect(object, &QCheckBox::toggled, [&external]() { ++external; });
             QObject::connect(object, &QObject::destroyed, [&deleted]() { ++deleted; });
             auto capture = root.capture;

@@ -40,10 +40,11 @@ Adopted reference updates beyond the original baseline:
   Web/Pyodide, their collection/binding changes and browser scheduling are
   excluded at the user's request. Other Python-only backends and release/tooling
   changes require no CPPUI port. This audit does not complete older parity tasks.
-- Button/ComboBox enabled state follows PUI `020ef46`; TextField placeholders
-  follow `184ffcd`, including the shared TextField recipe. C++ uses `.enabled(bool)`
-  and `.placeholder(text)` setters with defaults restored by omission on a fresh
-  declaration. Native reuse, reactive enabled updates, disabled model updates,
+- Button/Checkbox/RadioButton/ComboBox disabled state follows PUI `d7dc23a`;
+  TextField placeholders follow `184ffcd`, including the shared recipes. C++
+  uses `.disabled(bool = true)` (default false) and `.placeholder(text)` setters
+  with defaults restored by omission on a fresh declaration. The former enabled
+  setter is removed. Native reuse, reactive disabled updates, model updates,
   draft/cursor preservation and silent property changes have regression coverage.
 - Window content sizing follows PUI `7d8655e`: the top-level native layout uses
   `SetNoConstraint`, preserving declared and user-set sizes as content grows.
