@@ -68,7 +68,7 @@ namespace Cookbook {
             {"maskedfield", "MaskedField", nullptr, "Password editor"},
             {"textfield", "TextField", nullptr, "Binding and text conversion"},
             {"scroll", "Scroll", nullptr, "Scroll and offset API"},
-            {"heavycanvas", "HeavyCanvas", nullptr, "ComboBox and Canvas pointer input are not yet ported to this backend"},
+            {"heavycanvas", "HeavyCanvas", nullptr, "HeavyCanvas recipe is not yet enabled for this backend"},
             {"canvas", "Canvas", nullptr, "Painter and input APIs"},
             {"image", "Image", nullptr, "Image and size options"},
             {"tab", "Tab", nullptr, "Tabs and Tab"},

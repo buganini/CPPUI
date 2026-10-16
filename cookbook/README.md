@@ -10,11 +10,12 @@ Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b
 
 Native additions are synced through PUI `8a8ef99` (2026-10-16); Web/Pyodide
 changes are excluded from this sync. MaskedField runs on Qt, wx and LVGL with
-single/buffered passwords and length labels. All backends include the airport autocomplete ComboBox. Qt/wx also include the
-decorated Table price editor and HeavyCanvas. HeavyCanvas
-offers nine presets from 1,000 to 30,000 synthetic sessions, indicator panels,
-hover details, wheel zoom, regeneration and zoom reset. Its LVGL dependencies are implemented; the recipe integration remains. This does not change the separately listed
-gaps in other recipes.
+single/buffered passwords and length labels. All backends include the airport
+autocomplete ComboBox and HeavyCanvas. Qt/wx also include decorated Table price
+editors. HeavyCanvas offers nine presets from 1,000 to 30,000 synthetic sessions,
+indicator panels, hover details, wheel zoom, regeneration and zoom reset.
+SDL2/X11 use the same recipe and native Canvas input. Image resources and custom
+font loading remain separate LVGL Canvas work.
 
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,
 Text and Tab share their recipe implementations across all three backends.
@@ -210,7 +211,11 @@ application teardown through `lvgl.lifetime` and its optional Valgrind variant.
 `lvgl.canvas` verifies rendered primitives, clipping, text rotation/size/anchors,
 resize, repeat painting, callback replacement, exceptions, self-removal, native
 deletion, parent deletion and capture cleanup. Its Valgrind variant checks the
-same cases. The cookbook smoke test also checks Canvas size and rendered pixels.
+same cases. `lvgl.canvas_input` checks local move/leave/wheel events, hit testing,
+window exit and callback/device teardown. `lvgl.combobox` checks binding precedence,
+editable suggestions, duplicate/empty values, scoped keyed items and self-removal.
+The cookbook smoke test checks Canvas size and rendered pixels and drives
+HeavyCanvas zoom through actual SDL2/X11 input queues.
 `lvgl.modifiers` checks explicit/omitted/zero dimensions, padding, weights,
 colors, compiled font selection, scrolling and cleanup. The root Qt build's
 `qt.modifiers` also covers size policies, layout constraints, stylesheet

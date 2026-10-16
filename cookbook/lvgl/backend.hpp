@@ -19,6 +19,11 @@
 #include "cppui/lvgl/timeline.hpp"
 #include "../recipes.hpp"
 #include <stdexcept>
+#if LV_USE_SDL
+#include <SDL.h>
+#elif LV_USE_X11
+#include <X11/Xlib.h>
+#endif
 
 namespace Cookbook { namespace Backend {
     using View = CPPUI::LVGL::View;
@@ -53,7 +58,40 @@ namespace Cookbook { namespace Backend {
         lv_obj_send_event(dropdown, LV_EVENT_VALUE_CHANGED, nullptr);
         return true;
     }
-    inline bool wheelCanvas(CPPUI::Node &, int) { return false; }
+    inline void settle();
+    inline bool wheelCanvas(CPPUI::Node & node, int delta) {
+        auto canvas = dynamic_cast<CPPUI::LVGL::Canvas *>(&node);
+        if(!canvas || !canvas->ui) return false;
+        auto object = static_cast<lv_obj_t *>(canvas->ui);
+        lv_obj_update_layout(object);
+        lv_area_t area; lv_obj_get_coords(object, &area);
+        const int x = (area.x1 + area.x2)/2, y = area.y1 + 40;
+        auto display = lv_obj_get_display(object);
+        // Feed the actual driver queue so smoke tests cover SDL's pointer wheel
+        // and X11's separate encoder, including the native input bridge.
+#if LV_USE_SDL
+        const auto window = SDL_GetWindowID(lv_sdl_window_get_window(display));
+        SDL_Event event{}; event.type = SDL_WINDOWEVENT;
+        event.window.windowID = window; event.window.event = SDL_WINDOWEVENT_ENTER;
+        SDL_PushEvent(&event);
+        event = SDL_Event{}; event.type = SDL_MOUSEMOTION;
+        event.motion.windowID = window; event.motion.x = x; event.motion.y = y;
+        SDL_PushEvent(&event); settle();
+        event = SDL_Event{}; event.type = SDL_MOUSEWHEEL;
+        event.wheel.windowID = window; event.wheel.y = delta/120;
+        SDL_PushEvent(&event);
+#elif LV_USE_X11
+        auto connection = static_cast<_x11_user_hdr_t *>(lv_display_get_driver_data(display))->display;
+        XEvent event{}; event.type = MotionNotify; event.xmotion.x = x; event.xmotion.y = y;
+        XPutBackEvent(connection, &event);
+        event = XEvent{}; event.type = EnterNotify; XPutBackEvent(connection, &event);
+        settle(); settle(); // Publish motion before the independent wheel device reads.
+        event = XEvent{}; event.type = ButtonPress; event.xbutton.button = delta > 0 ? Button4 : Button5;
+        XPutBackEvent(connection, &event);
+#endif
+        settle(); settle();
+        return true;
+    }
     inline bool editTextField(CPPUI::Node & node, const std::string & text, bool commit) {
         auto field = dynamic_cast<CPPUI::LVGL::TextField *>(&node);
         if(!field || !field->ui) return false;
@@ -80,6 +118,8 @@ namespace Cookbook { namespace Backend {
             page.render = maskedfield; page.remaining = "";
         } else if(std::string(page.key) == "combobox") {
             page.render = combobox; page.remaining = "";
+        } else if(std::string(page.key) == "heavycanvas") {
+            page.render = heavycanvas; page.remaining = "";
         } else if(std::string(page.key) == "textfield") {
             page.render = textfield;
             page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";
@@ -235,6 +275,14 @@ namespace Cookbook { namespace Backend {
             if(pixel.alpha != 255 || pixel.red != 0xcc || pixel.green != 0xcc || pixel.blue != 0xcc) {
                 throw std::runtime_error("canvas recipe did not paint its rectangle");
             }
+        }
+        if(auto canvas = find(root, "heavy-canvas")) {
+            auto object = static_cast<lv_obj_t *>(canvas->outer());
+            auto buffer = lv_canvas_get_draw_buf(object);
+            if(!buffer || buffer->header.w < 320 || buffer->header.h != 720)
+                throw std::runtime_error("HeavyCanvas must paint a usable chart at its requested height");
+            if(lv_canvas_get_px(object, 70, 24).alpha == 0)
+                throw std::runtime_error("HeavyCanvas did not render its price grid");
         }
     }
 }}

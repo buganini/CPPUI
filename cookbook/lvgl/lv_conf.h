@@ -8,6 +8,8 @@
 #define LV_DEF_REFR_PERIOD 16
 #define LV_FONT_MONTSERRAT_28 1
 #define LV_USE_SDL CPPUI_LVGL_SDL2
+// Deliver wheel steps through the pointer device used by the cookbook.
+#define LV_SDL_MOUSEWHEEL_MODE LV_SDL_MOUSEWHEEL_MODE_CROWN
 #define LV_USE_X11 CPPUI_LVGL_X11
 // Allow startup to perform ordered shutdown after deleting an X11 display.
 #define LV_X11_DIRECT_EXIT 0

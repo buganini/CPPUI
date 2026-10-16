@@ -52,9 +52,10 @@ drivers.
 The native PUI delta audit through `8a8ef99` (2026-10-16) adds MaskedField
 (`139d070`) through native textarea password mode. It shares TextField's string
 model/draft, placeholder, callback and lifetime behavior. Both SDL2/X11 enable
-the shared password cookbook. HeavyCanvas still needs recipe integration; its component dependencies are
-implemented. Canvas now handles
-move, leave and wheel input on SDL2/X11 through the bundled LVGL input bridge.
+the shared password and HeavyCanvas cookbooks. HeavyCanvas includes 1,000–30,000
+synthetic sessions, hover details, wheel zoom and regenerate/reset controls.
+Canvas handles move, leave and wheel input on SDL2/X11 through the bundled LVGL
+input bridge. SDL2 enables pointer wheel delivery; X11 uses its encoder device.
 Application display-name/title fallback and native Table decorations belong to
 the desktop wrappers; LVGL host titles/Table remain tracked below. Web/Pyodide
 changes are excluded at the user's request.

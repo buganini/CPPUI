@@ -1,4 +1,5 @@
 2026-10-16
+    * LVGL Cookbook: enable shared HeavyCanvas on SDL2/X11 with 1000-30000 sessions, hover/zoom and reset/regenerate controls; enable SDL pointer wheel delivery, use native rectangle fills and exercise both native driver queues
     * LVGL ComboBox: add read-only/editable selection, index/value bindings, prefix suggestions and retained keyed items; enable the shared SDL2/X11 cookbook and lifecycle tests
     * LVGL Canvas: add move/leave/wheel callbacks on SDL2/X11, native hit testing and input teardown regressions; compile the LVGL input bridge without changing the SDK checkout
     * Native PUI sync through 8a8ef99; exclude Web/Pyodide changes from this update

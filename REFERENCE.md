@@ -1017,7 +1017,8 @@ one, native scrolling can handle it. Other pointer events, modifiers and drag/dr
 remain to port.
 
 LVGL input uses native hit testing, including clipping and overlays. SDL2 pointer
-wheel samples and X11 encoder samples map one vertical step to 120 angle units;
+wheel samples (`LV_SDL_MOUSEWHEEL_MODE_CROWN`) and X11 encoder samples map one
+vertical step to 120 angle units;
 window exit clears hover. The cookbook installs the LVGL 9.6 input bridge through
 `cmake/CPPUILVGLInput.cmake`. Other hosts must include that file and call
 `cppui_lvgl_input_bridge(lvgl "${LVGL_SOURCE_DIR}")`
@@ -1027,12 +1028,12 @@ before mounting Canvas, or redraw after adding devices. Input callbacks run on
 the UI thread; they may redraw/remove Canvas, but must not destroy the input
 device, display or LVGL runtime during native input dispatch.
 
-The Qt/wx HeavyCanvas cookbook uses these callbacks for hover inspection and
+The Qt/wx/LVGL HeavyCanvas cookbook uses these callbacks for hover inspection and
 cursor-anchored wheel zoom over 1,000–30,000 synthetic sessions. It draws OHLCV,
 Bollinger bands, K/D and RSI and provides regenerate/reset controls. Data is
 repeatable for a seed within the C++ implementation; its random sequence is not
-identical to Python's. The LVGL dependencies are implemented; enabling its HeavyCanvas recipe is the
-remaining integration step.
+identical to Python's. SDL2 and X11 use the same recipe and exercise their native
+input queues in the cookbook smoke test.
 **Won't do — Shapely and Matplotlib:** Python-only `Canvas.drawShapely` and
 `MatplotlibCanvas` integrations are excluded from CPPUI and its cookbook.
 

@@ -15,9 +15,9 @@ function(cppui_add_test name target)
             "LSAN_OPTIONS=string_append::suppressions=${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tests/wx/lsan.supp")
     endif()
     set(native_timeout 20)
-    if(name STREQUAL "cookbook.wx")
+    if(name MATCHES "^cookbook\\.(wx|lvgl_sdl2|lvgl_x11)$")
         # Three gallery cycles include the 30000-session chart; sanitizer
-        # builds need more time for GTK painting and deferred cleanup.
+        # builds need more time for software painting and deferred cleanup.
         set(native_timeout 60)
     endif()
     set_tests_properties("${name}" PROPERTIES
@@ -25,7 +25,7 @@ function(cppui_add_test name target)
         TIMEOUT ${native_timeout})
     if(CPPUI_VALGRIND_TESTS)
         set(memory_timeout 120)
-        if(name STREQUAL "cookbook.wx")
+        if(name MATCHES "^cookbook\\.(wx|lvgl_sdl2|lvgl_x11)$")
             # Three complete native gallery cycles are slow under Memcheck.
             set(memory_timeout 300)
         endif()
