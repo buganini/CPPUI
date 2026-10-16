@@ -20,7 +20,7 @@ are described in the component sections and backend plans.
 |[Button](#button)|QPushButton|button|wxButton|
 |[TextField](#textfield)|QLineEdit|single-line lv_textarea|wxTextCtrl|
 |[MaskedField](#maskedfield)|QLineEdit password mode|lv_textarea password mode|wxTextCtrl password style|
-|[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|wxComboBox|
+|[ComboBox / ComboBoxItem](#combobox)|QComboBox|dropdown / textarea|wxComboBox|
 |[RadioButton](#radiobutton)|QRadioButton|checkbox (radio mode)|wxRadioButton|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
 |[ProgressBar](#progressbar)|QProgressBar|bar / busy animation|wxGauge|
@@ -608,7 +608,7 @@ sidebar; the full Scroll recipe is still Qt-only.
 
 ## ComboBox
 
-Include `cppui/qt/combobox.hpp` or `cppui/wx/combobox.hpp`.
+Include `cppui/qt/combobox.hpp`, `cppui/lvgl/combobox.hpp` or `cppui/wx/combobox.hpp`.
 `ComboBox(editable, model)` accepts an integer index binding or a string value
 binding; `ComboBox(editable, index, text)` accepts both. State values adapt
 automatically. Its children are
@@ -619,7 +619,7 @@ Use explicit IDs to distinguish duplicate labels or retain a renamed item.
 `.enabled(bool)` defaults to true and follows PUI `020ef46`. Disabling preserves
 selection, editable/read-only mode and native identity; programmatic model
 updates still apply without change callbacks. Omitting it on a fresh declaration
-restores enabled state. The LVGL ComboBox wrapper remains unported.
+restores enabled state.
 
 Index binding takes precedence for displayed selection. Negative/out-of-range
 indices produce no selection; an index-change callback for -1 writes empty text,
@@ -628,6 +628,15 @@ selection displays the item's label. Typing free text clears the index binding
 to -1 and writes the text binding; with no text binding, the native widget retains
 the edit buffer. Unbound selection follows the selected item's key through
 reorders and label changes, including items in independently redrawn subviews.
+
+LVGL uses a dropdown for read-only selection and a textarea with a dropdown for
+editable input. Typing filters suggestions by label prefix (ASCII case-insensitive)
+while retaining original indices/raw values. Opening the arrow restores the full
+list. Empty lists disable the selector, leaving the editor usable. Labels
+containing newlines display on one
+line because LVGL uses newlines as option separators. Switching editable mode
+remounts the native control. Create a default LVGL focus group before mounting
+controls to enable keyboard navigation.
 `.change(callback)` has no arguments. A selected item's label-change signal is
 ignored, so selection writes the stored value and calls the callback once.
 
@@ -1022,7 +1031,8 @@ The Qt/wx HeavyCanvas cookbook uses these callbacks for hover inspection and
 cursor-anchored wheel zoom over 1,000–30,000 synthetic sessions. It draws OHLCV,
 Bollinger bands, K/D and RSI and provides regenerate/reset controls. Data is
 repeatable for a seed within the C++ implementation; its random sequence is not
-identical to Python's. LVGL still needs ComboBox before this recipe can be enabled.
+identical to Python's. The LVGL dependencies are implemented; enabling its HeavyCanvas recipe is the
+remaining integration step.
 **Won't do — Shapely and Matplotlib:** Python-only `Canvas.drawShapely` and
 `MatplotlibCanvas` integrations are excluded from CPPUI and its cookbook.
 

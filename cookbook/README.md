@@ -10,11 +10,10 @@ Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b
 
 Native additions are synced through PUI `8a8ef99` (2026-10-16); Web/Pyodide
 changes are excluded from this sync. MaskedField runs on Qt, wx and LVGL with
-single/buffered passwords and length labels. Qt/wx also include the airport
-autocomplete ComboBox, decorated Table price editor and HeavyCanvas. HeavyCanvas
+single/buffered passwords and length labels. All backends include the airport autocomplete ComboBox. Qt/wx also include the
+decorated Table price editor and HeavyCanvas. HeavyCanvas
 offers nine presets from 1,000 to 30,000 synthetic sessions, indicator panels,
-hover details, wheel zoom, regeneration and zoom reset. Its LVGL port still needs
-the ComboBox wrapper. This does not change the separately listed
+hover details, wheel zoom, regeneration and zoom reset. Its LVGL dependencies are implemented; the recipe integration remains. This does not change the separately listed
 gaps in other recipes.
 
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,

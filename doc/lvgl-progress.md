@@ -34,7 +34,7 @@ must name the choice; it must not be reported as toolkit non-support. Call work
 dependency. Routine implementation choices remain part of the porting work.
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Checkbox, RadioButton, TextField, MaskedField, Spacer, Divider, plain Text with raw-source
+Button, Checkbox, RadioButton, TextField, MaskedField, ComboBox, Spacer, Divider, plain Text with raw-source
 Html/MarkDown fallbacks, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
 and Canvas drawing. Shared recipes use the
 public PUI layout/style modifiers; see the
@@ -45,13 +45,15 @@ Shared options from PUI `020ef46`/`184ffcd` map to Button `.enabled(bool)` using
 hint. Omission on a fresh declaration restores enabled/empty defaults. Both
 SDL2/X11 cookbooks include the TextField hint; regressions cover native reuse,
 reactive button state, hint clearing and active draft/cursor preservation.
-ComboBox remains a separate unported wrapper.
+ComboBox now supports index/value bindings, editable prefix suggestions, retained
+keyed selection and independently redrawn items. The shared recipe runs on both
+drivers.
 
 The native PUI delta audit through `8a8ef99` (2026-10-16) adds MaskedField
 (`139d070`) through native textarea password mode. It shares TextField's string
 model/draft, placeholder, callback and lifetime behavior. Both SDL2/X11 enable
-the shared password cookbook. HeavyCanvas remains not yet ported here because
-the ComboBox wrapper is missing; Qt/wx implement the recipe. Canvas now handles
+the shared password cookbook. HeavyCanvas still needs recipe integration; its component dependencies are
+implemented. Canvas now handles
 move, leave and wheel input on SDL2/X11 through the bundled LVGL input bridge.
 Application display-name/title fallback and native Table decorations belong to
 the desktop wrappers; LVGL host titles/Table remain tracked below. Web/Pyodide
@@ -65,7 +67,7 @@ changes are excluded at the user's request.
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
 | Grid/Stack | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
 | ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text and raw Html/MarkDown fallbacks in the shared cookbook | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
-| Bound controls | Boolean Checkbox, typed RadioButton and string TextField with Binding/State; cookbook membership/draft examples | ComboBox value selection remains to port; shared text conversion and event payloads remain deferred (4) |
+| Bound controls | Boolean Checkbox, typed RadioButton, string TextField and editable/read-only ComboBox with Binding/State | Shared text conversion and event payloads remain deferred (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Views | Retained native pages, internal/optional bound selection, keyed reuse and shared cookbook | Real-display input/layout checks remain part of general validation |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
@@ -158,11 +160,9 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   This does not implement formatted rendering or selection.
 - [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
   declared dimensions and replacement cleanup.
-- [ ] Using the shared `Binding<T>`/State adapters, add ComboBox/item equivalents.
-  Preserve distinct labels/values, empty selections and current callbacks
-  through redraw. Keep
-  automatic collection observation and value-based Checkbox overloads tied to
-  the shared collection contract; explicit boolean membership adapters work now.
+- [ ] Automatic collection observation and value-based Checkbox overloads remain
+  tied to the shared collection contract; explicit boolean membership adapters
+  work now.
 
 Acceptance: port [text.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/text.py),
 [image.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py)

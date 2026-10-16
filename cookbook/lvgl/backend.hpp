@@ -13,6 +13,7 @@
 #include "cppui/lvgl/textfield.hpp"
 #include "cppui/lvgl/text.hpp"
 #include "cppui/lvgl/checkbox.hpp"
+#include "cppui/lvgl/combobox.hpp"
 #include "cppui/lvgl/radiobutton.hpp"
 #include "cppui/lvgl/progressbar.hpp"
 #include "cppui/lvgl/timeline.hpp"
@@ -40,7 +41,18 @@ namespace Cookbook { namespace Backend {
     inline std::string tableText(CPPUI::Node &, int, int) { return {}; }
     inline bool editTable(CPPUI::Node &, int, int, const std::string &) { return false; }
     inline bool atScrollEnd(CPPUI::Node &) { return false; }
-    inline bool selectCombo(CPPUI::Node &, int) { return false; }
+    inline bool selectCombo(CPPUI::Node & node, int index) {
+        auto combo = dynamic_cast<CPPUI::LVGL::ComboBox *>(&node);
+        if(!combo || !combo->ui || index < 0) return false;
+        auto object = static_cast<lv_obj_t *>(combo->ui);
+        auto dropdown = lv_obj_check_type(object, &lv_dropdown_class) ? object : lv_obj_get_child(object, 1);
+        if(dropdown) lv_dropdown_open(dropdown);
+        if(!dropdown || static_cast<unsigned>(index) >= lv_dropdown_get_option_count(dropdown)) return false;
+        lv_dropdown_set_selected(dropdown, index);
+        lv_dropdown_close(dropdown);
+        lv_obj_send_event(dropdown, LV_EVENT_VALUE_CHANGED, nullptr);
+        return true;
+    }
     inline bool wheelCanvas(CPPUI::Node &, int) { return false; }
     inline bool editTextField(CPPUI::Node & node, const std::string & text, bool commit) {
         auto field = dynamic_cast<CPPUI::LVGL::TextField *>(&node);
@@ -66,6 +78,8 @@ namespace Cookbook { namespace Backend {
             page.remaining = "";
         } else if(std::string(page.key) == "maskedfield") {
             page.render = maskedfield; page.remaining = "";
+        } else if(std::string(page.key) == "combobox") {
+            page.render = combobox; page.remaining = "";
         } else if(std::string(page.key) == "textfield") {
             page.render = textfield;
             page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";
