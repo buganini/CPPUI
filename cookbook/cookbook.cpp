@@ -72,7 +72,7 @@ namespace Cookbook {
 
     int run(int argc, char ** argv) {
         try {
-            bool smoke = false;
+            bool smoke = false, heavySmoke = false;
             for(int i = 1; i < argc; ++i) {
                 if(std::string(argv[i]) == "--list") {
                     for(const auto & page: recipes()) {
@@ -82,15 +82,31 @@ namespace Cookbook {
                     return 0;
                 }
                 if(std::string(argv[i]) == "--smoke") smoke = true;
+                if(std::string(argv[i]) == "--heavy-smoke") heavySmoke = true;
             }
             Gallery gallery(argc, argv);
-            if(!smoke) {
+            if(!smoke && !heavySmoke) {
                 gallery.run();
                 return 0;
             }
             Backend::mount(gallery);
             Backend::settle();
             Backend::prepareLayoutCheck(gallery);
+            if(heavySmoke) {
+                require(Backend::selectPage(*find(gallery, "page:heavycanvas")), "HeavyCanvas page missing");
+                Backend::settle();
+                auto samples = find(gallery, "heavy-samples");
+                require(samples && samples->children->size() == 14, "large native presets missing");
+                require(Backend::selectCombo(*samples, 13), "million-session preset missing");
+                Backend::settle();
+                require(hasText(gallery, "Visible: 1000000 / 1000000 sessions | Zoom 1.00x"), "million-session range failed");
+                require(find(gallery, "heavy-canvas"), "million-session chart missing");
+                require(Backend::selectCombo(*find(gallery, "heavy-samples"), 0), "preset reset failed");
+                Backend::settle();
+                require(hasText(gallery, "Visible: 1000 / 1000 sessions | Zoom 1.00x"), "large chart retained stale range");
+                std::cout << Backend::name << " million-session HeavyCanvas smoke passed\n";
+                return 0;
+            }
             auto sidebar = find(gallery, "menu-scroller")->outer();
             Backend::checkLayout(gallery);
             // Revisit pages to exercise replacement and retired callback cleanup.
@@ -245,8 +261,8 @@ namespace Cookbook {
                         require(click(gallery, "Reset zoom"), "HeavyCanvas reset missing");
                         Backend::settle(); require(hasText(gallery, "Visible: 1000 / 1000 sessions | Zoom 1.00x"), "HeavyCanvas reset did not restore the range");
                         Backend::wheelCanvas(*find(gallery, "heavy-canvas"), 120); Backend::settle();
-                        require(Backend::selectCombo(*find(gallery, "heavy-samples"), 8), "HeavyCanvas largest preset missing");
-                        Backend::settle(); require(hasText(gallery, "Visible: 30000 / 30000 sessions | Zoom 1.00x"), "HeavyCanvas largest preset failed");
+                        require(Backend::selectCombo(*find(gallery, "heavy-samples"), 8), "HeavyCanvas 30000-session preset missing");
+                        Backend::settle(); require(hasText(gallery, "Visible: 30000 / 30000 sessions | Zoom 1.00x"), "HeavyCanvas 30000-session preset failed");
                         Backend::selectCombo(*find(gallery, "heavy-samples"), 0); Backend::settle();
                         require(hasText(gallery, "Visible: 1000 / 1000 sessions | Zoom 1.00x"), "HeavyCanvas restored obsolete zoom after changing presets");
                         require(Backend::selectCombo(*find(gallery, "heavy-samples"), 1), "HeavyCanvas sample selector missing");

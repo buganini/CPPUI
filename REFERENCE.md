@@ -1041,11 +1041,14 @@ the UI thread; they may redraw/remove Canvas, but must not destroy the input
 device, display or LVGL runtime during native input dispatch.
 
 The Qt/wx/LVGL HeavyCanvas cookbook uses these callbacks for hover inspection and
-cursor-anchored wheel zoom over 1,000–30,000 synthetic sessions. It draws OHLCV,
+cursor-anchored wheel zoom over 1,000–1,000,000 synthetic sessions. It draws OHLCV,
 Bollinger bands, K/D and RSI and provides regenerate/reset controls. Data is
 repeatable for a seed within the C++ implementation; its random sequence is not
 identical to Python's. SDL2 and X11 use the same recipe and exercise their native
-input queues in the cookbook smoke test.
+input queues in the cookbook smoke test. Date labels are retained through
+500,000 sessions; larger datasets use zero-based indices with thousands
+separators (for example `999,999`). Every session is drawn: the largest presets
+are deliberate rendering stress workloads.
 **Won't do — Shapely and Matplotlib:** Python-only `Canvas.drawShapely` and
 `MatplotlibCanvas` integrations are excluded from CPPUI and its cookbook.
 

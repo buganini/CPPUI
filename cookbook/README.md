@@ -8,12 +8,18 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are synced through PUI `8a8ef99` (2026-10-16); Web/Pyodide
+Native additions are synced through PUI `0c160e8` (2026-10-17); Web/Pyodide
 changes are excluded from this sync. MaskedField runs on Qt, wx and LVGL with
 single/buffered passwords and length labels. All backends include the airport
 autocomplete ComboBox and HeavyCanvas. Qt/wx also include decorated Table price
-editors. HeavyCanvas offers nine presets from 1,000 to 30,000 synthetic sessions,
+editors. HeavyCanvas offers fourteen presets from 1,000 to 1,000,000 synthetic sessions,
 indicator panels, hover details, wheel zoom, regeneration and zoom reset.
+Datasets above 500,000 use zero-based grouped index labels instead of dates.
+These presets draw every session and intentionally stress native rendering.
+Run an executable with `--heavy-smoke` to render 1,000,000 sessions and switch
+back to 1,000; the regular `--smoke` retains its faster 30,000-session coverage.
+The `cookbook.heavycanvas_data` test checks full million-row generation.
+Button, Checkbox, RadioButton and ComboBox include disabled examples matching PUI.
 SDL2/X11 use the same recipe and native Canvas input. Image resources and custom
 font loading remain separate LVGL Canvas work.
 

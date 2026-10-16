@@ -1,4 +1,6 @@
 2026-10-17
+    * HeavyCanvas: sync PUI 18d1c5e with fourteen presets through 1,000,000 sessions and zero-based grouped index labels above 500,000; add data and opt-in native stress checks
+    * Native PUI sync audited through 0c160e8; exclude Web/Pyodide and Python-only backend/release changes
     * Controls/Cookbook: sync PUI d7dc23a with disabled options and examples for Button, Checkbox, RadioButton and ComboBox on Qt/wx/LVGL; remove enabled setters
     * Window/Modal: sync PUI 77d996b; maximize/fullscreen are initial-only declarations, including when called after mounting; preserve native state on redraw
     * Canvas: sync PUI 8d3fa8d/4d77b90 with per-frame Qt pen/brush and wx graphics pen/brush/font caches; preserve independent draw styles and restore native state on frame teardown

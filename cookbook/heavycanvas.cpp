@@ -1,9 +1,9 @@
 #include "backend.hpp"
 #include "recipes.hpp"
+#include "heavycanvas_data.hpp"
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
-#include <random>
 #include <sstream>
 
 namespace Cookbook {
@@ -13,55 +13,11 @@ namespace Cookbook {
         std::string number(double value, int digits=2) {
             std::ostringstream out; out << std::fixed << std::setprecision(digits) << value; return out.str();
         }
-        struct Row {
-            std::string date;
-            double open, high, low, close, volume, mid, upper, lower, k, d, rsi;
-        };
-        struct ChartData { std::vector<Row> rows; };
+        using HeavyCanvasData::Row;
+        using HeavyCanvasData::ChartData;
+        using HeavyCanvasData::generate;
         struct Viewport { int generation=0, start=0, stop=0; };
         struct Cursor { bool visible=false; double x=0, y=0; };
-        std::vector<std::string> dates(int count) {
-            std::vector<std::string> result;
-            int year=2026, month=10, day=13, weekday=1;
-            const int lengths[]={31,28,31,30,31,30,31,31,30,31,30,31};
-            while(int(result.size())<count) {
-                if(weekday<5) {
-                    std::ostringstream out; out << year << '-' << std::setfill('0') << std::setw(2) << month << '-' << std::setw(2) << day;
-                    result.push_back(out.str());
-                }
-                if(--day==0) {
-                    if(--month==0) { month=12; --year; }
-                    day=lengths[month-1]+(month==2 && year%4==0 && (year%100!=0 || year%400==0));
-                }
-                weekday=(weekday+6)%7;
-            }
-            std::reverse(result.begin(),result.end()); return result;
-        }
-        std::shared_ptr<ChartData> generate(int count,int seed) {
-            auto data=std::make_shared<ChartData>(); data->rows.reserve(count+20);
-            std::mt19937 rng(seed); std::normal_distribution<double> normal(0,1);
-            std::uniform_real_distribution<double> range(.001,.012);
-            std::lognormal_distribution<double> volume(17,.45);
-            double close=320,k=50,d=50,gain=0,loss=0;
-            for(const auto & date:dates(count+20)) {
-                Row row{}; row.date=date; row.open=close*std::exp(normal(rng)*.003);
-                row.close=row.open*std::exp(1.7/count+normal(rng)*.014);
-                row.high=std::max(row.open,row.close)*(1+range(rng)); row.low=std::min(row.open,row.close)*(1-range(rng));
-                row.volume=std::floor(volume(rng)); data->rows.push_back(row);
-                int i=int(data->rows.size())-1, first=std::max(0,i-19); double mid=0,sigma=0;
-                for(int j=first;j<=i;++j) mid+=data->rows[j].close;
-                mid/=i-first+1;
-                for(int j=first;j<=i;++j) sigma+=std::pow(data->rows[j].close-mid,2);
-                sigma=std::sqrt(sigma/(i-first+1)); double low=row.low,high=row.high;
-                for(int j=std::max(0,i-8);j<i;++j) { low=std::min(low,data->rows[j].low); high=std::max(high,data->rows[j].high); }
-                k=(2*k+100*(row.close-low)/(high-low))/3; d=(2*d+k)/3;
-                if(i) { double change=row.close-close; int period=std::min(i,14); gain+=(std::max(change,0.0)-gain)/period; loss+=(std::max(-change,0.0)-loss)/period; }
-                auto & current=data->rows.back(); current.mid=mid; current.upper=mid+2*sigma; current.lower=mid-2*sigma;
-                current.k=k; current.d=d; current.rsi=gain+loss ? 100*gain/(gain+loss) : 50;
-                close=row.close;
-            }
-            data->rows.erase(data->rows.begin(),data->rows.begin()+20); return data;
-        }
     }
     struct HeavyChart {
         CPPUI::State<std::string> samples{std::string("1000")};
@@ -100,14 +56,14 @@ namespace Cookbook {
             for(auto row:CPPUI::HBox()) {
                 CPPUI::Label("Sessions");
                 for(auto combo:CPPUI::ComboBox(false,chart->samples).id("heavy-samples"))
-                    for(int n:{1000,3000,5000,7500,10000,15000,20000,25000,30000}) CPPUI::ComboBoxItem(std::to_string(n));
+                    for(int n:HeavyCanvasData::sampleCounts()) CPPUI::ComboBoxItem(std::to_string(n));
                 CPPUI::Button("Regenerate").click([chart](){chart->seed+=1;});
                 CPPUI::Button("Reset zoom").click([chart](){chart->viewport=Viewport();});
             }
             CPPUI::Label(std::to_string(count)+" sessions | Seed "+std::to_string(seed)+" | ~"+std::to_string(9*size)+" draw calls");
             CPPUI::Label("Visible: "+std::to_string(size)+" / "+std::to_string(count)+" sessions | Zoom "+number(double(count)/size)+"x");
             CPPUI::Label("Synthetic data / Hover to inspect / Wheel up to zoom in, down to zoom out");
-            CPPUI::Label(data->rows[start].date+" - "+data->rows[stop-1].date+" | Last "+number(data->rows[stop-1].close));
+            CPPUI::Label(data->rows[start].label+" - "+data->rows[stop-1].label+" | Last "+number(data->rows[stop-1].close));
             for(auto scroll:CPPUI::Scroll().layout({}, {}, 1)) {
                 CPPUI::Canvas([chart,data,start,stop,size,cursor](CPPUI::CanvasPainter & canvas) {
                     chart->width=canvas.width; chart->height=canvas.height;
@@ -129,7 +85,7 @@ namespace Cookbook {
                             canvas.drawLine(left,y,right,y,gridColor); label(3,y-8,number(p==1?value/1e6:value,1)+(p==1?"M":""),muted);
                         }
                         std::vector<int> ticks{start,stop-1}; if(canvas.width>=430) ticks.insert(ticks.begin()+1,start+size/2);
-                        for(int i:ticks) label(std::max(left,std::min(x(i)-34,right-72)),panel.bottom+7,data->rows[i].date,muted);
+                        for(int i:ticks) label(std::max(left,std::min(x(i)-34,right-72)),panel.bottom+7,data->rows[i].label,muted);
                         top=panel.bottom+44;
                     }
                     auto y=[&](double value,int p){auto panel=panels[p];return panel.bottom-(value-panel.low)/(panel.high-panel.low)*(panel.bottom-panel.top);};
@@ -150,7 +106,7 @@ namespace Cookbook {
                         for(const auto & p:panels) if(cursor.y>=p.top && cursor.y<=p.bottom) canvas.drawLine(left,cursor.y,right,cursor.y,muted);
                         const double boxWidth=std::min(330,canvas.width-20),bx=cx+16+boxWidth>right?std::max(10.,cx-boxWidth-16):cx+16,by=panels[0].top+6;
                         canvas.drawRect(bx,by,bx+boxWidth,by+144,0x25374E);
-                        std::vector<std::string> lines{r.date+" | Synthetic OHLCV","Open "+number(r.open)+"   High "+number(r.high),
+                        std::vector<std::string> lines{r.label+" | Synthetic OHLCV","Open "+number(r.open)+"   High "+number(r.high),
                             "Low "+number(r.low)+"   Close "+number(r.close),"Volume "+number(r.volume,0),"Band mid "+number(r.mid),
                             "Upper "+number(r.upper)+"   Lower "+number(r.lower),"K / D "+number(r.k)+" / "+number(r.d)+"   RSI "+number(r.rsi)};
                         for(std::size_t i=0;i<lines.size();++i) label(bx+10,by+8+i*18,lines[i]);

@@ -1,5 +1,11 @@
 # LVGL implementation progress and remaining work
 
+Latest native delta audit: PUI `0c160e8` (2026-10-17). Shared controls use
+`disabled` (`d7dc23a`) and HeavyCanvas includes fourteen presets through
+1,000,000 (`18d1c5e`), with index labels above 500,000. Web/Pyodide changes
+remain excluded. Flet/Tkinter-only caches and PUI release-note consolidation
+require no CPPUI implementation changes. Older gaps below remain open.
+
 ## Baseline and scope
 
 Plan prepared on 2026-10-12 against:
@@ -50,10 +56,10 @@ ComboBox now supports index/value bindings, editable prefix suggestions, retaine
 keyed selection and independently redrawn items. The shared recipe runs on both
 drivers.
 
-The native PUI delta audit through `8a8ef99` (2026-10-16) adds MaskedField
+The previous native PUI delta audit through `8a8ef99` (2026-10-16) adds MaskedField
 (`139d070`) through native textarea password mode. It shares TextField's string
 model/draft, placeholder, callback and lifetime behavior. Both SDL2/X11 enable
-the shared password and HeavyCanvas cookbooks. HeavyCanvas includes 1,000–30,000
+the shared password and HeavyCanvas cookbooks. HeavyCanvas includes 1,000–1,000,000
 synthetic sessions, hover details, wheel zoom and regenerate/reset controls.
 Canvas handles move, leave and wheel input on SDL2/X11 through the bundled LVGL
 input bridge. SDL2 enables pointer wheel delivery; X11 uses its encoder device.

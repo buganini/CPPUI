@@ -1,5 +1,13 @@
 # Qt implementation alignment with PUI/PySide6
 
+Latest native delta audit: PUI `0c160e8` (2026-10-17). Shared controls use
+`disabled` (`d7dc23a`) and HeavyCanvas includes fourteen presets through
+1,000,000 (`18d1c5e`), with index labels above 500,000. Canvas styles are cached
+within each frame (`8d3fa8d`/`4d77b90`); window state setters only store initial
+flags (`77d996b`) and preserve live native state on redraw. Web/Pyodide changes
+remain excluded. Flet/Tkinter-only caches and PUI release-note consolidation
+require no CPPUI implementation changes. Older gaps below remain open.
+
 ## Baseline and scope
 
 Plan prepared on 2026-10-12 from these repository baselines:
@@ -29,7 +37,7 @@ Pin any subsequently adopted reference changes by component and commit here.
 
 Adopted reference updates beyond the original baseline:
 
-- Native delta audit through PUI `8a8ef99` (2026-10-16): MaskedField (`139d070`),
+- Previous native delta audit through PUI `8a8ef99` (2026-10-16): MaskedField (`139d070`),
   Application/default Window titles (`417eaa7`), Table decorations (`fb5ecf8`),
   autocomplete (`f9487be`) and HeavyCanvas through `8a8ef99` are ported. The new
   Canvas move/leave/wheel callbacks use owned C++ callables and an explicit
