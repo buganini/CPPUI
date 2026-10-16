@@ -67,6 +67,17 @@ namespace {
         }
         return result;
     }
+    void scopes(int argc,char ** argv) {
+        Root root(argc,argv);
+        root.draw=[](CPPUI::CanvasPainter & c){
+            c.push();c.drawRect(40,10,60,30,0x00ff00);
+            c.push();c.drawLine(40,35,60,35,0x0000ff);c.pop();c.pop();
+        };
+        root.redraw();step(2);const auto scoped=pixels(root.native());
+        root.draw=[](CPPUI::CanvasPainter & c){c.drawRect(40,10,60,30,0x00ff00);c.drawLine(40,35,60,35,0x0000ff);};
+        root.redraw();step(2);
+        require(scoped==pixels(root.native()),"compatibility scopes changed LVGL commands");
+    }
     void drawing(int argc, char ** argv) {
         Root root(argc, argv);
         root.draw = [](CPPUI::CanvasPainter & c) {
@@ -222,6 +233,7 @@ int main(int argc, char ** argv) {
     lv_display_create(200,160);
     int result = 0;
     try {
+        scopes(argc,argv);
         drawing(argc,argv);
         require(captures == 0, "drawing teardown retained captures");
         lifetime(argc,argv);

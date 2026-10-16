@@ -1,4 +1,5 @@
 2026-10-17
+    * Canvas: sync PUI cae7713/10fe513/f0c1cf5 scopes; add nested Qt native-state and wx CPPUI pen/brush push/pop, plus LVGL compatibility no-ops; validate unmatched pop and unwind Qt scopes on exceptions
     * HeavyCanvas: sync PUI 18d1c5e with fourteen presets through 1,000,000 sessions and zero-based grouped index labels above 500,000; add data and opt-in native stress checks
     * Native PUI sync audited through 0c160e8; exclude Web/Pyodide and Python-only backend/release changes
     * Controls/Cookbook: sync PUI d7dc23a with disabled options and examples for Button, Checkbox, RadioButton and ComboBox on Qt/wx/LVGL; remove enabled setters

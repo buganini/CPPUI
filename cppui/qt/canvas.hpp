@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <stdexcept>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -47,6 +48,7 @@ namespace CPPUI {
             ~SavedState() { painter.restore(); }
         };
         SavedState frame;
+        std::size_t scopeDepth = 0;
         const QPen defaultPen;
         const QBrush defaultBrush;
         using ColorKey = std::tuple<bool, bool, quint64>;
@@ -91,6 +93,12 @@ namespace CPPUI {
         CanvasPainter(QPainter & painter, int width, int height, double density)
             : painter(painter), frame(painter), defaultPen(painter.pen()), defaultBrush(painter.brush()),
               width(width), height(height), pixel_density(density) {}
+        ~CanvasPainter() { while(scopeDepth) { painter.restore(); --scopeDepth; } }
+        void push() { painter.save(); ++scopeDepth; }
+        void pop() {
+            if(!scopeDepth) throw std::logic_error("Canvas.pop() has no matching push()");
+            painter.restore(); --scopeDepth;
+        }
         CanvasPainter(const CanvasPainter &) = delete;
         CanvasPainter & operator=(const CanvasPainter &) = delete;
 

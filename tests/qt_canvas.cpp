@@ -118,6 +118,45 @@ namespace {
         require(painter.pen()==before,"failed frame did not restore native state");
     }
 
+    void scopes() {
+        auto render=[](bool raw) {
+            QImage image(180,110,QImage::Format_ARGB32);image.fill(Qt::white);
+            QPainter native(&image);
+            {
+                CPPUI::CanvasPainter c(native,180,110,1);
+                c.drawRect(5,5,30,30,0xff0000,0x0000ff);
+                c.push();
+                c.drawRect(40,5,65,30,0x00ff00,0xff0000);
+                c.push();
+                if(raw) {
+                    native.setPen(Qt::yellow);native.setBrush(Qt::cyan);
+                    native.translate(150,100);native.setClipRect(0,0,1,1);native.setOpacity(.1);
+                    QFont font=native.font();font.setPointSize(25);native.setFont(font);
+                } else c.drawRect(-40,-40,-20,-20,0xffff00,0x00ffff);
+                c.pop();
+                // Native drawing verifies restoration independently of helper setters.
+                native.drawRect(75,5,25,25);
+                c.drawRect(75,40,100,65,0x00ff00,0xff0000);
+                c.pop();
+                native.drawRect(110,5,25,25);
+                c.drawText(5,80,"Restored");
+                c.drawRect(110,40,135,65,0xff0000,0x0000ff);
+                bool threw=false;try{c.pop();}catch(const std::logic_error &){threw=true;}
+                require(threw,"unmatched Canvas pop did not fail");
+            }
+            native.end();return image;
+        };
+        require(render(false)==render(true),"nested scope failed to restore native state and helper styles");
+        QImage image(20,20,QImage::Format_ARGB32);QPainter native(&image);
+        const auto pen=native.pen();const auto transform=native.transform();
+        try {
+            CPPUI::CanvasPainter c(native,20,20,1);c.push();c.push();
+            native.setPen(Qt::red);native.translate(10,10);
+            throw std::runtime_error("expected scoped failure");
+        }catch(const std::runtime_error &){}
+        require(native.pen()==pen&&native.transform()==transform,"unfinished scopes leaked native state on frame teardown");
+    }
+
     int captures = 0;
     class InputRoot: public CPPUI::Qt::QtView {
         public:
@@ -286,6 +325,7 @@ int main(int argc, char ** argv) {
     try {
         drawingAndImages();
         frameStyles();
+        scopes();
         pointerInput();
         nativeLifetime(app);
         require(captures == 0, "root teardown retained a paint capture");

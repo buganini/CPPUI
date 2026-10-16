@@ -966,9 +966,26 @@ two corners, ellipses take center/radii, and coordinate sequences use
 
 Qt caches pens/brushes and wx caches graphics pens/brushes/fonts within each
 paint invocation. Each primitive chooses its own styles; text and images restore
-their temporary transform, font and opacity changes. The native painter state is
-restored when the `CanvasPainter` is destroyed, including during exception
-unwinding. Caches do not retain resources across frames or widgets.
+their temporary transforms and opacity changes. Qt restores native painter state
+when the `CanvasPainter` is destroyed, including during exception unwinding.
+wx uses a fresh graphics context for each widget paint; its graphics pen, brush
+and font wrapper objects are not part of the native graphics-state stack.
+Caches do not retain resources across frames or widgets.
+
+All three `CanvasPainter` implementations expose `push()` and `pop()` inside the
+paint callback. Qt saves/restores full native state (pen, brush, font, transform,
+clip and opacity), including nested scopes. wx saves/restores the most recently
+selected CPPUI graphics pen and brush, initially null; it does not save transforms,
+clipping or fonts. When constructing a painter around a preconfigured borrowed wx
+graphics context, choose its styles through CPPUI before pushing: wx provides no
+getters for arbitrary existing graphics pens/brushes. LVGL scopes are compatibility
+no-ops because every recorded command owns its style.
+
+Balance scopes within the callback; Qt/wx throw `std::logic_error` for an unmatched
+`pop()`. Qt unwinds any still-open native scopes at frame teardown, including on
+exceptions. Native access is not intercepted: finish raw drawing and pop before
+resuming CPPUI helpers. A native operation should set its own styles explicitly.
+CPPUI painter objects remain borrowed for this invocation only.
 
 `drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0,
 anchor = Anchor::LEFT_TOP)` uses canvas dimensions for negative w/h and keeps

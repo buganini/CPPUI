@@ -142,6 +142,9 @@ namespace CPPUI {
         const double pixel_density = 1.0;
         CanvasPainter(int width, int height, const lv_font_t * font = LV_FONT_DEFAULT)
             : font(font), width(width), height(height) {}
+        // Each recorded command owns its styles; there is no shared native state.
+        void push() {}
+        void pop() {}
         CanvasPainter(const CanvasPainter &) = delete;
         CanvasPainter & operator=(const CanvasPainter &) = delete;
 

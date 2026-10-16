@@ -52,10 +52,31 @@ static void frameStyles(){
     for(auto foreground:{*wxBLACK,*wxBLUE})require(render(false,foreground)==render(true,foreground),"mixed Canvas styles affected later operations");
     require(render(false,*wxBLACK)!=render(false,*wxBLUE),"Canvas cached a prior frame's default text color");
 }
+static void scopes(){
+    auto render=[](bool raw){
+        wxBitmap bitmap(180,110,32);wxMemoryDC dc(bitmap);dc.SetBackground(*wxWHITE_BRUSH);dc.Clear();
+        {std::unique_ptr<wxGraphicsContext> native(wxGraphicsContext::Create(dc));
+         CPPUI::CanvasPainter c(*native,180,110,1);
+         c.drawRect(5,5,30,30,0xff0000,0x0000ff);
+         c.push();c.drawRect(40,5,65,30,0x00ff00,0xff0000);
+         c.push();
+         if(raw){native->SetPen(wxPen(*wxYELLOW));native->SetBrush(wxBrush(*wxCYAN));}
+         else c.drawRect(-40,-40,-20,-20,0xffff00,0x00ffff);
+         c.pop();native->DrawRectangle(75,5,25,25);
+         c.drawRect(75,40,100,65,0x00ff00,0xff0000);
+         c.pop();native->DrawRectangle(110,5,25,25);
+         c.drawText(5,80,"Restored");c.drawRect(110,40,135,65,0xff0000,0x0000ff);
+         bool threw=false;try{c.pop();}catch(const std::logic_error &){threw=true;}
+         require(threw,"unmatched Canvas pop did not fail");}
+        dc.SelectObject(wxNullBitmap);auto image=bitmap.ConvertToImage();
+        return std::vector<unsigned char>(image.GetData(),image.GetData()+180*110*3);
+    };
+    require(render(false)==render(true),"nested wx scope failed to restore pen/brush and helper styles");
+}
 int main(int argc,char ** argv){
     wxSetAssertHandler([](const wxString &,int,const wxString &,const wxString &c,const wxString &m){std::cerr<<c<<": "<<m<<'\n';std::abort();});
     try{
-        Root root(argc,argv);root.sync();frameStyles();root.path=wxFileName::CreateTempFileName("cppui-wx-image-").ToStdString(wxConvUTF8);
+        Root root(argc,argv);root.sync();frameStyles();scopes();root.path=wxFileName::CreateTempFileName("cppui-wx-image-").ToStdString(wxConvUTF8);
         wxImage input(8,4);input.SetRGB(wxRect(0,0,8,4),0,255,0);wxInitAllImageHandlers();require(input.SaveFile(wxString::FromUTF8(root.path),wxBITMAP_TYPE_PNG),"image fixture write failed");
         auto source=CPPUI::ImageResource::load(root.path);require(source.width()==8&&source.height()==4,"resource load");require(source.scale(16,16).height()==8,"aspect ratio");require(source.crop(1,1,2,2).width()==2&&source.crop(-1,0,2,2).isNull(),"crop bounds");require(CPPUI::ImageResource::load(root.path+"missing").isNull(),"missing resource");
         wxBitmap bitmap(100,100,32);wxMemoryDC dc(bitmap);dc.SetBackground(*wxWHITE_BRUSH);dc.Clear();

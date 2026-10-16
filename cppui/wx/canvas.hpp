@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <type_traits>
 #include <map>
+#include <stdexcept>
+#include <vector>
 namespace CPPUI {
 enum class Anchor { LEFT_TOP,LEFT_CENTER,LEFT_BOTTOM,CENTER_TOP,CENTER,CENTER_BOTTOM,RIGHT_TOP,RIGHT_CENTER,RIGHT_BOTTOM };
 class CanvasColor {
@@ -33,21 +35,26 @@ class CanvasPainter {
         ~SavedState(){painter.PopState();}
     };
     SavedState frame;
+    // wxGraphicsContext has no pen/brush getters, and its native state stack
+    // does not restore these wrapper objects. Track the CPPUI styles explicitly.
+    using Styles = std::pair<const wxGraphicsPen *, const wxGraphicsBrush *>;
+    Styles styles{&wxNullGraphicsPen,&wxNullGraphicsBrush};
+    std::vector<Styles> scopes;
     std::map<std::pair<unsigned long,int>,wxGraphicsPen> pens;
     std::map<unsigned long,wxGraphicsBrush> brushes;
     std::map<std::pair<int,unsigned long>,wxGraphicsFont> fonts;
     void pen(CanvasColor color,int width){
-        if(!color.present){painter.SetPen(wxNullGraphicsPen);return;}
+        if(!color.present){painter.SetPen(wxNullGraphicsPen);styles.first=&wxNullGraphicsPen;return;}
         auto key=std::make_pair(color.color.GetRGBA(),std::max(1,width));
         auto found=pens.find(key);
         if(found==pens.end())found=pens.emplace(key,painter.CreatePen(wxPen(color.color,key.second))).first;
-        painter.SetPen(found->second);
+        painter.SetPen(found->second);styles.first=&found->second;
     }
     void brush(CanvasColor color){
-        if(!color.present){painter.SetBrush(wxNullGraphicsBrush);return;}
+        if(!color.present){painter.SetBrush(wxNullGraphicsBrush);styles.second=&wxNullGraphicsBrush;return;}
         auto key=color.color.GetRGBA();auto found=brushes.find(key);
         if(found==brushes.end())found=brushes.emplace(key,painter.CreateBrush(wxBrush(color.color))).first;
-        painter.SetBrush(found->second);
+        painter.SetBrush(found->second);styles.second=&found->second;
     }
     void textFont(int size,const wxColour & color){
         auto key=std::make_pair(size,color.GetRGBA());auto found=fonts.find(key);
@@ -62,6 +69,12 @@ public:
     const double pixel_density;
     CanvasPainter(wxGraphicsContext & painter,int width,int height,double density,wxFont font=*wxNORMAL_FONT,wxColour foreground=*wxBLACK)
         :painter(painter),font(font),foreground(foreground),frame(painter),width(width),height(height),pixel_density(density){}
+    void push(){scopes.push_back(styles);}
+    void pop(){
+        if(scopes.empty())throw std::logic_error("Canvas.pop() has no matching push()");
+        styles=scopes.back();scopes.pop_back();
+        painter.SetPen(*styles.first);painter.SetBrush(*styles.second);
+    }
     CanvasPainter(const CanvasPainter &)=delete;
     CanvasPainter & operator=(const CanvasPainter &)=delete;
     void drawText(double x,double y,const std::string & text,int w=-1,int h=-1,int size=12,CanvasColor color={},double rotate=0,Anchor anchor=Anchor::LEFT_TOP){
