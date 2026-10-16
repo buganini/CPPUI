@@ -210,6 +210,9 @@ namespace Cookbook {
                         require(gallery.model.tableSides == 8 && hasText(gallery, "Sides: 8"), "table choice lost its integer value");
                         require(Backend::editTable(*find(gallery, "example-table"), 1, 3, "CCW"), "table mapped choice did not commit");
                         Backend::settle(); require(hasText(gallery, "Direction: CCW"), "table mapped choice lost its raw value");
+                        require(Backend::editTable(*find(gallery, "example-table"), 2, 0, "12"), "decorated price cell did not commit");
+                        Backend::settle(); require(hasText(gallery, "Price: $12 USD")
+                            && Backend::tableText(*find(gallery, "example-table"), 2, 0)=="Price: $12 USD", "table price decoration altered the raw model");
                     }
                     if(std::string(recipes()[i].key) == "scroll" && recipes()[i].render) {
                         require(Backend::atScrollEnd(*find(gallery, "scroller")), "scroll recipe did not start at the end");
@@ -224,6 +227,42 @@ namespace Cookbook {
                         Backend::settle(); require(hasText(gallery, "Text: Value 2"), "combo label/value binding failed");
                         require(Backend::selectCombo(*find(gallery, "combo-editable"), 2), "editable combo missing");
                         Backend::settle(); require(hasText(gallery, "Index: 2"), "editable combo did not commit its index");
+                        require(Backend::selectCombo(*find(gallery, "combo-autocomplete"), 5), "autocomplete combo missing");
+                        Backend::settle(); require(hasText(gallery, "Autocomplete value: TPE"), "autocomplete stored its label instead of the code");
+                        require(click(gallery, "Clear autocomplete"), "autocomplete clear missing");
+                        Backend::settle(); require(hasText(gallery, "Autocomplete value: (empty)"), "autocomplete clear failed");
+                    }
+                    if(std::string(recipes()[i].key) == "heavycanvas" && recipes()[i].render) {
+                        require(find(gallery, "heavy-canvas"), "HeavyCanvas is missing its chart");
+                        require(Backend::selectCombo(*find(gallery, "heavy-samples"), 0), "HeavyCanvas sample selector missing");
+                        Backend::settle();
+                        require(hasText(gallery, "Visible: 1000 / 1000 sessions | Zoom 1.00x"), "HeavyCanvas initial range differs");
+                        require(Backend::wheelCanvas(*find(gallery, "heavy-canvas"), 120), "HeavyCanvas wheel input missing");
+                        Backend::settle(); require(hasText(gallery, "Visible: 800 / 1000 sessions | Zoom 1.25x"), "HeavyCanvas did not zoom in");
+                        Backend::wheelCanvas(*find(gallery, "heavy-canvas"), -120);
+                        Backend::settle(); require(hasText(gallery, "Visible: 1000 / 1000 sessions | Zoom 1.00x"), "HeavyCanvas did not zoom out");
+                        Backend::wheelCanvas(*find(gallery, "heavy-canvas"), 120); Backend::settle();
+                        require(click(gallery, "Reset zoom"), "HeavyCanvas reset missing");
+                        Backend::settle(); require(hasText(gallery, "Visible: 1000 / 1000 sessions | Zoom 1.00x"), "HeavyCanvas reset did not restore the range");
+                        Backend::wheelCanvas(*find(gallery, "heavy-canvas"), 120); Backend::settle();
+                        require(Backend::selectCombo(*find(gallery, "heavy-samples"), 8), "HeavyCanvas largest preset missing");
+                        Backend::settle(); require(hasText(gallery, "Visible: 30000 / 30000 sessions | Zoom 1.00x"), "HeavyCanvas largest preset failed");
+                        Backend::selectCombo(*find(gallery, "heavy-samples"), 0); Backend::settle();
+                        require(hasText(gallery, "Visible: 1000 / 1000 sessions | Zoom 1.00x"), "HeavyCanvas restored obsolete zoom after changing presets");
+                        require(Backend::selectCombo(*find(gallery, "heavy-samples"), 1), "HeavyCanvas sample selector missing");
+                        Backend::settle(); require(hasText(gallery, "Visible: 3000 / 3000 sessions | Zoom 1.00x"), "HeavyCanvas sample count did not update");
+                        require(click(gallery, "Regenerate") && click(gallery, "Reset zoom"), "HeavyCanvas controls missing");
+                        Backend::settle();
+                    }
+                    if(std::string(recipes()[i].key) == "maskedfield" && recipes()[i].render) {
+                        require(Backend::editTextField(*find(gallery, "buffered-password"), "secret", false), "masked input missing");
+                        Backend::settle();
+                        require(static_cast<std::string>(gallery.model.bufferedPassword).empty()
+                            && static_cast<std::string>(gallery.model.passwordEditing)=="secret", "masked draft committed too early");
+                        require(Backend::editTextField(*find(gallery, "buffered-password"), "secret", true), "masked commit failed");
+                        Backend::settle(); require(hasText(gallery, "Committed length: 6"), "masked model did not commit");
+                        require(click(gallery, "Clear passwords"), "masked clear missing"); Backend::settle();
+                        require(static_cast<std::string>(gallery.model.bufferedPassword).empty(), "masked clear failed");
                     }
                     if(std::string(recipes()[i].key) == "radiobutton" && recipes()[i].render) {
                         require(Backend::selectRadio(*find(gallery, "radio-a")), "radio A missing");

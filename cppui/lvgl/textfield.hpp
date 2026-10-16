@@ -51,6 +51,9 @@ namespace CPPUI { namespace LVGL {
         Binding<std::string> model;
         Optional<Binding<std::string>> editModel;
         std::string value, editValue, placeholderText;
+        protected:
+        bool masked = false;
+        private:
         std::function<void()> onInput, onChange;
         void retire() {
             if(runtime && runtime->current == this) {
@@ -93,6 +96,7 @@ namespace CPPUI { namespace LVGL {
             } else {
                 ui = lv_textarea_create(static_cast<lv_obj_t *>(parent->inner()));
                 lv_textarea_set_one_line(static_cast<lv_obj_t *>(ui), true);
+                lv_textarea_set_password_mode(static_cast<lv_obj_t *>(ui), masked);
                 runtime = std::make_shared<Runtime>();
                 runtime->object = static_cast<lv_obj_t *>(ui);
                 lv_obj_add_event_cb(runtime->object, Runtime::deleted, LV_EVENT_DELETE, runtime.get());
@@ -134,11 +138,18 @@ namespace CPPUI { namespace LVGL {
             state->committing = false;
         }
     };
+    class MaskedField: public TextField {
+        public:
+        explicit MaskedField(Binding<std::string> model): TextField(model) { masked = true; }
+        MaskedField(Binding<std::string> model, Binding<std::string> edit): TextField(model, edit) { masked = true; }
+    };
 }}
 namespace CPPUI {
     inline LVGL::TextField & TextField(Binding<std::string> model) { return *new LVGL::TextField(model); }
     inline LVGL::TextField & TextField(Binding<std::string> model, Binding<std::string> editModel) {
         return *new LVGL::TextField(model, editModel);
     }
+    inline LVGL::MaskedField & MaskedField(Binding<std::string> model) { return *new LVGL::MaskedField(model); }
+    inline LVGL::MaskedField & MaskedField(Binding<std::string> model, Binding<std::string> edit) { return *new LVGL::MaskedField(model, edit); }
 }
 #endif

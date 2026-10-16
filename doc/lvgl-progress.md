@@ -34,7 +34,7 @@ must name the choice; it must not be reported as toolkit non-support. Call work
 dependency. Routine implementation choices remain part of the porting work.
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
-Button, Checkbox, RadioButton, TextField, Spacer, Divider, plain Text with raw-source
+Button, Checkbox, RadioButton, TextField, MaskedField, Spacer, Divider, plain Text with raw-source
 Html/MarkDown fallbacks, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
 and Canvas drawing. Shared recipes use the
 public PUI layout/style modifiers; see the
@@ -46,6 +46,15 @@ hint. Omission on a fresh declaration restores enabled/empty defaults. Both
 SDL2/X11 cookbooks include the TextField hint; regressions cover native reuse,
 reactive button state, hint clearing and active draft/cursor preservation.
 ComboBox remains a separate unported wrapper.
+
+The native PUI delta audit through `8a8ef99` (2026-10-16) adds MaskedField
+(`139d070`) through native textarea password mode. It shares TextField's string
+model/draft, placeholder, callback and lifetime behavior. Both SDL2/X11 enable
+the shared password cookbook. HeavyCanvas remains not yet ported here because
+ComboBox and Canvas pointer callbacks are missing; Qt/wx implement the recipe.
+Application display-name/title fallback and native Table decorations belong to
+the desktop wrappers; LVGL host titles/Table remain tracked below. Web/Pyodide
+changes are excluded at the user's request.
 
 | Area | Current basis | Remaining acceptance / phase |
 | --- | --- | --- |

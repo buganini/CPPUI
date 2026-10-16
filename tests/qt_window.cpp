@@ -30,6 +30,18 @@ namespace {
 int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
+        {
+            Root root(argc, argv); root.CPPUI::Application::title("Application title");
+            QMainWindow * previous = nullptr;
+            for(int i = 0; i < 4; ++i) {
+                root.title = i == 1 || i == 2; root.caption = i == 1 ? "Document" : "";
+                root.sync();
+                require(!previous || root.native() == previous, "title update remounted the window");
+                require(root.native()->windowTitle() == (root.title ? QString::fromStdString(root.caption) : "Application title")
+                    && qt.applicationDisplayName() == "Application title", "application title inheritance or explicit empty override failed");
+                previous = root.native();
+            }
+        }
         QTemporaryDir directory;
         const auto path = directory.filePath("icon.png");
         QPixmap icon(16, 16); icon.fill(::Qt::red);

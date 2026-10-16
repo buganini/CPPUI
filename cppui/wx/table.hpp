@@ -24,6 +24,7 @@ namespace detail {
     struct TableCell {
         std::string value;
         OptionalText display;
+        std::string prefix, suffix, placeholder;
         Optional<std::vector<std::pair<std::string,std::string>>> choices;
         std::function<std::string()> read,displayRead;
         std::function<std::string(const std::string &)> validate;
@@ -46,6 +47,9 @@ namespace detail {
             cell.read = [model]() { return detail::TableValue<T>::encode(model.get()); };
             cell.write = [model](const std::string & value) { model.set(detail::TableValue<T>::decode(value)); };
         }
+        TableNode & prefix(const std::string & value) { cell.prefix = value; return *this; }
+        TableNode & suffix(const std::string & value) { cell.suffix = value; return *this; }
+        TableNode & placeholder(const std::string & value) { cell.placeholder = value; return *this; }
         TableNode & display(const std::string & value) { cell.display = value; return *this; }
         TableNode & display(Binding<std::string> value) { return display(value.get()); }
         TableNode & set(std::function<void(const T &)> callback) {
@@ -84,7 +88,14 @@ public:
     bool IsEmptyCell(int r,int c) override{return GetValue(r,c).empty();}
     wxString GetValue(int r,int c) override {
         auto found=cell(r,c);if(!found)return {};auto entry=*found;
-        try {if(entry.display)return wxString::FromUTF8(*entry.display);if(entry.displayRead)return wxString::FromUTF8(entry.displayRead());auto value=entry.current();if(entry.choices)for(auto & choice:*entry.choices)if(choice.first==value)return wxString::FromUTF8(choice.second);return wxString::FromUTF8(value);}catch(...){reportException("Table read");return {};}
+        try {
+            std::string value;
+            if(entry.display) value=*entry.display;
+            else if(entry.displayRead) value=entry.displayRead();
+            else { value=entry.current(); if(entry.choices)for(auto & choice:*entry.choices)if(choice.first==value){value=choice.second;break;} }
+            return wxString::FromUTF8(entry.prefix+value+entry.suffix);
+        } catch(...){reportException("Table read");return {};}
+
     }
     bool edit(int r,int c,const std::string & value){auto found=cell(r,c);if(!found||!found->write)return false;auto entry=*found;try{auto converted=entry.validate?entry.validate(value):value;entry.write(converted);return true;}catch(...){reportException("Table edit");return false;}}
     void SetValue(int r,int c,const wxString & value) override {edit(r,c,value.ToStdString(wxConvUTF8));}
@@ -103,31 +114,49 @@ class TableEditor:public wxGridCellEditor {
     std::vector<std::pair<std::string,std::string>> items;
     bool valid() const{return model&&model->active&&generation==model->generation&&model->cell(row,column);}
 public:
-    explicit TableEditor(bool choice):choice(choice){}
-    wxGridCellEditor * Clone() const override{return new TableEditor(choice);}
+    wxWindow * field = nullptr;
+    std::string prefix, suffix, hint;
+    explicit TableEditor(bool choice, const std::string & prefix={}, const std::string & suffix={}, const std::string & hint={})
+        :choice(choice),prefix(prefix),suffix(suffix),hint(hint){}
+    wxGridCellEditor * Clone() const override{return new TableEditor(choice,prefix,suffix,hint);}
     void Create(wxWindow * parent,wxWindowID id,wxEvtHandler * handler) override {
-        m_control=choice?static_cast<wxControl *>(new wxChoice(parent,id)):static_cast<wxControl *>(new wxTextCtrl(parent,id,"",wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER));
-        if(choice)m_control->Bind(wxEVT_CHOICE,[this](wxCommandEvent &){if(valid()){auto grid=model->GetView();grid->SaveEditControlValue();grid->DisableCellEditControl();}});
+        const bool decorated=!prefix.empty() || !suffix.empty();
+        auto panel=decorated ? new wxPanel(parent,id) : nullptr;
+        auto owner=panel ? panel : parent;
+        field=choice?static_cast<wxWindow *>(new wxChoice(owner,panel?wxID_ANY:id))
+            :static_cast<wxWindow *>(new wxTextCtrl(owner,panel?wxID_ANY:id,"",wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER));
+        if(!choice)static_cast<wxTextCtrl *>(field)->SetHint(wxString::FromUTF8(hint));
+        m_control=panel ? static_cast<wxWindow *>(panel) : field;
+        if(panel){
+            auto box=new wxBoxSizer(wxHORIZONTAL);
+            if(!prefix.empty())box->Add(new wxStaticText(panel,wxID_ANY,wxString::FromUTF8(prefix)),0,wxALIGN_CENTER_VERTICAL);
+            box->Add(field,1,wxEXPAND);
+            if(!suffix.empty())box->Add(new wxStaticText(panel,wxID_ANY,wxString::FromUTF8(suffix)),0,wxALIGN_CENTER_VERTICAL);
+            panel->SetSizer(box);
+            field->Bind(wxEVT_KEY_DOWN,[panel](wxKeyEvent & event){panel->GetEventHandler()->ProcessEvent(event);});
+            field->Bind(wxEVT_KILL_FOCUS,[panel](wxFocusEvent & event){panel->GetEventHandler()->ProcessEvent(event);});
+        }
+        if(choice)field->Bind(wxEVT_CHOICE,[this](wxCommandEvent &){if(valid()){auto grid=model->GetView();grid->SaveEditControlValue();grid->DisableCellEditControl();}});
         wxGridCellEditor::Create(parent,id,handler);
     }
     void SetSize(const wxRect & rect) override {m_control->SetSize(rect);}
     void BeginEdit(int r,int c,wxGrid * grid) override {
         model=static_cast<TableModel *>(grid->GetTable());generation=model->generation;row=r;column=c;auto found=model->cell(r,c);if(!found)return;auto cell=*found;
         original=cell.current();pending=original;
-        if(choice){items=cell.choices.valueOr({});auto control=static_cast<wxChoice *>(m_control);control->Clear();for(auto & item:items)control->Append(wxString::FromUTF8(item.second));}
-        Reset();m_control->SetFocus();if(!choice)static_cast<wxTextCtrl *>(m_control)->SelectAll();
+        if(choice){items=cell.choices.valueOr({});auto control=static_cast<wxChoice *>(field);control->Clear();for(auto & item:items)control->Append(wxString::FromUTF8(item.second));}
+        Reset();field->SetFocus();if(!choice)static_cast<wxTextCtrl *>(field)->SelectAll();
     }
     bool EndEdit(int,int,const wxGrid *,const wxString &,wxString * value) override {
         if(!valid())return false;
-        if(choice){int index=static_cast<wxChoice *>(m_control)->GetSelection();if(index<0||index>=int(items.size()))return false;pending=items[index].first;}
-        else pending=static_cast<wxTextCtrl *>(m_control)->GetValue().ToStdString(wxConvUTF8);
+        if(choice){int index=static_cast<wxChoice *>(field)->GetSelection();if(index<0||index>=int(items.size()))return false;pending=items[index].first;}
+        else pending=static_cast<wxTextCtrl *>(field)->GetValue().ToStdString(wxConvUTF8);
         auto cell=*model->cell(row,column);try{if(cell.validate)pending=cell.validate(pending);}catch(...){return false;}
         if(original==pending)return false;*value=wxString::FromUTF8(pending);return true;
     }
     void ApplyEdit(int,int,wxGrid *) override {if(valid()){auto value=pending;original=value;model->edit(row,column,value);}}
-    void Reset() override {if(choice){auto control=static_cast<wxChoice *>(m_control);int selected=wxNOT_FOUND;for(std::size_t i=0;i<items.size();++i)if(items[i].first==original)selected=i;control->SetSelection(selected);}else static_cast<wxTextCtrl *>(m_control)->ChangeValue(wxString::FromUTF8(original));}
-    wxString GetValue() const override {return choice?static_cast<wxChoice *>(m_control)->GetStringSelection():static_cast<wxTextCtrl *>(m_control)->GetValue();}
-    void StartingKey(wxKeyEvent & event) override {if(!choice&&event.GetUnicodeKey()>=32){auto control=static_cast<wxTextCtrl *>(m_control);control->ChangeValue(wxString(wxUniChar(event.GetUnicodeKey())));control->SetInsertionPointEnd();}else event.Skip();}
+    void Reset() override {if(choice){auto control=static_cast<wxChoice *>(field);int selected=wxNOT_FOUND;for(std::size_t i=0;i<items.size();++i)if(items[i].first==original)selected=i;control->SetSelection(selected);}else static_cast<wxTextCtrl *>(field)->ChangeValue(wxString::FromUTF8(original));}
+    wxString GetValue() const override {return choice?static_cast<wxChoice *>(field)->GetStringSelection():static_cast<wxTextCtrl *>(field)->GetValue();}
+    void StartingKey(wxKeyEvent & event) override {if(!choice&&event.GetUnicodeKey()>=32){auto control=static_cast<wxTextCtrl *>(field);control->ChangeValue(wxString(wxUniChar(event.GetUnicodeKey())));control->SetInsertionPointEnd();}else event.Skip();}
 };
 class Table:public Widget {
         bool autofit;
@@ -201,7 +230,7 @@ class Table:public Widget {
             if(nr<oldr){wxGridTableMessage message(model,wxGRIDTABLE_NOTIFY_ROWS_DELETED,nr,oldr-nr);grid->ProcessTableMessage(message);}
             if(nc>oldc){wxGridTableMessage message(model,wxGRIDTABLE_NOTIFY_COLS_APPENDED,nc-oldc);grid->ProcessTableMessage(message);}
             if(nc<oldc){wxGridTableMessage message(model,wxGRIDTABLE_NOTIFY_COLS_DELETED,nc,oldc-nc);grid->ProcessTableMessage(message);}
-            for(int r=0;r<nr;++r)for(int c=0;c<nc;++c){auto cell=model->cell(r,c);grid->SetReadOnly(r,c,!cell||!cell->write);if(cell&&cell->write)grid->SetCellEditor(r,c,new TableEditor(bool(cell->choices)));}
+            for(int r=0;r<nr;++r)for(int c=0;c<nc;++c){auto cell=model->cell(r,c);grid->SetReadOnly(r,c,!cell||!cell->write);if(cell&&cell->write)grid->SetCellEditor(r,c,new TableEditor(bool(cell->choices),cell->prefix,cell->suffix,cell->placeholder));}
             grid->SetColLabelSize(colLabels?grid->GetDefaultColLabelSize():0);grid->SetRowLabelSize(rowLabels?grid->GetDefaultRowLabelSize():0);
             if(autofit&&nr&&nc)grid->AutoSizeColumns(false);grid->EndBatch();grid->ForceRefresh();
         }

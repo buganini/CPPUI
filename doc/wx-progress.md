@@ -41,6 +41,19 @@ preservation, programmatic updates while disabled, and hint changes/clears
 without altering the active draft, cursor or callbacks. Audited through PUI
 `a4c6840`; its release metadata does not change the CPPUI version.
 
+The native delta audit now reaches PUI `8a8ef99` (2026-10-16). MaskedField
+(`139d070`) uses wxTE_PASSWORD with the existing model/draft contract.
+Application title fallback (`417eaa7`) and Table prefix/suffix/placeholder
+(`fb5ecf8`) use native display names and owned composite editors. wxChoice lacks
+an empty-field hint; text editors use SetHint. HBox compact children center
+vertically and VBox compact children align left (`e534b8e`/`129068b`). Backgrounds
+preserve native inheritance until explicitly set, and reset with wxNullColour
+when removed (`a99e2cf`). Tabs already had the expansion priority in `9093d23`.
+The shared autocomplete and HeavyCanvas recipes are enabled; Canvas now exposes
+move/leave/wheel callbacks with local coordinates and native angular deltas.
+Callbacks are copied before invocation and refreshed/cleared on redraw/removal.
+Web/Pyodide changes are excluded at the user's request; older gaps remain below.
+
 Factory results are borrowed construction references. Applications retain State
 and IDs, not declarations across redraws. Native window pointers are observers;
 wx parents own child windows and attached sizers own nested sizers. Transfer
@@ -55,7 +68,7 @@ preserve the old UI for failures before reconciliation. Shared nested-failure
 recovery and retained-view inputs remain tracked in the
 [Qt plan](pyside6-progress.md). Use Binding/State adapters, reset omitted style
 and layout options, and preserve explicit zero. Dialog cancellation uses shared
-Optional results. Portable input payloads remain explicitly deferred. Shapely
+Optional results. Input payloads beyond Canvas move/wheel remain deferred. Shapely
 and Matplotlib are Python-only and will not be ported.
 
 ## Validation environment
@@ -66,7 +79,9 @@ queued failure recovery, callback self-removal and repeated teardown. The plain
 `wx.native_baseline` executable uses no CPPUI declarations. Linux memory checks
 use narrow suppressions for its fontconfig/Pango/GTK caches, worker TLS and
 wxRB_SINGLE GTK weak-notification metadata; no CPPUI or wx object allocation
-stack is suppressed. Validate other wx ports
+stack is suppressed. Pango 1.57's Cairo shaping path also reports a 27-byte
+possibly-lost language record in the unchanged native-only baseline; its narrow
+suppression requires the Pango/Cairo/HarfBuzz allocation stack. Validate other wx ports
 separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 
 ## Reference cases
@@ -82,7 +97,7 @@ separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
 
 ## Decisions and verification boundaries
 
-- Input payloads, observable collections, retained-view inputs, arbitrary data
+- Remaining input payloads, observable collections, retained-view inputs, arbitrary data
   values and native embedding share the existing deferred CPPUI contracts.
 - **Markdown:** not yet implemented in CPPUI/wx or the PUI/wx reference;
   choose and integrate a Markdown renderer/dependency. The shared Text cookbook

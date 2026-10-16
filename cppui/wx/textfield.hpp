@@ -9,6 +9,9 @@ class TextField: public Widget {
     Binding<std::string> model;
     Optional<Binding<std::string>> editModel;
     std::string value, editValue, placeholderText;
+protected:
+    bool masked = false;
+private:
     std::function<void()> onInput, onChange;
 public:
     explicit TextField(Binding<std::string> model): model(model), value(model.get()) { expandX = 3; }
@@ -19,7 +22,7 @@ public:
     void updateWidget(Widget * previous) override {
         auto prev = static_cast<TextField *>(previous);
         state = prev ? prev->state : std::make_shared<EditState>();
-        ui = prev ? prev->ui : new wxTextCtrl(parentWindow(), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+        ui = prev ? prev->ui : new wxTextCtrl(parentWindow(), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER | (masked ? wxTE_PASSWORD : 0));
         static_cast<wxTextCtrl *>(ui)->SetHint(wxString::FromUTF8(placeholderText));
         if(!state->editing && (!state->value || *state->value != value)) {
             static_cast<wxTextCtrl *>(ui)->ChangeValue(wxString::FromUTF8(value)); state->value = value;
@@ -56,8 +59,15 @@ public:
     }
     void commit() override { auto keep = native; auto callback = keep ? keep->finish : std::function<void()>(); if(callback) callback(); }
 };
+class MaskedField: public TextField {
+public:
+    explicit MaskedField(Binding<std::string> model): TextField(model) { masked = true; }
+    MaskedField(Binding<std::string> model, Binding<std::string> edit): TextField(model, edit) { masked = true; }
+};
 }
 inline Wx::TextField & TextField(Binding<std::string> model) { return *new Wx::TextField(model); }
 inline Wx::TextField & TextField(Binding<std::string> model, Binding<std::string> edit) { return *new Wx::TextField(model, edit); }
+inline Wx::MaskedField & MaskedField(Binding<std::string> model) { return *new Wx::MaskedField(model); }
+inline Wx::MaskedField & MaskedField(Binding<std::string> model, Binding<std::string> edit) { return *new Wx::MaskedField(model, edit); }
 }
 #endif

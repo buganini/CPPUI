@@ -18,6 +18,9 @@ namespace CPPUI { namespace Qt {
         Binding<std::string> model;
         Optional<Binding<std::string>> editModel;
         std::string value, editValue, placeholderText;
+        protected:
+        bool masked = false;
+        private:
         std::function<void()> onInput, onChange;
         public:
         explicit TextField(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; }
@@ -29,6 +32,7 @@ namespace CPPUI { namespace Qt {
         void update(BaseWidget * prev) override {
             ui = prev && prev->ui ? prev->ui : new TextFieldWidget();
             auto editor = static_cast<TextFieldWidget *>(ui);
+            editor->setEchoMode(masked ? QLineEdit::Password : QLineEdit::Normal);
             editor->setPlaceholderText(QString::fromStdString(placeholderText));
             editor->setFocusPolicy(::Qt::ClickFocus);
             if(!editor->editing && (!editor->modelValue || *editor->modelValue != value)) {
@@ -83,9 +87,16 @@ namespace CPPUI { namespace Qt {
             }));
         }
     };
+    class MaskedField: public TextField {
+        public:
+        explicit MaskedField(Binding<std::string> model): TextField(model) { masked = true; }
+        MaskedField(Binding<std::string> model, Binding<std::string> edit): TextField(model, edit) { masked = true; }
+    };
 }}
 namespace CPPUI {
     inline Qt::TextField & TextField(Binding<std::string> model) { return *new Qt::TextField(model); }
     inline Qt::TextField & TextField(Binding<std::string> model, Binding<std::string> editModel) { return *new Qt::TextField(model, editModel); }
+    inline Qt::MaskedField & MaskedField(Binding<std::string> model) { return *new Qt::MaskedField(model); }
+    inline Qt::MaskedField & MaskedField(Binding<std::string> model, Binding<std::string> edit) { return *new Qt::MaskedField(model, edit); }
 }
 #endif

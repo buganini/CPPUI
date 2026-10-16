@@ -1,16 +1,20 @@
 #ifndef CPPUI_WX_APPLICATION
 #define CPPUI_WX_APPLICATION
 #include "base.hpp"
+#include "../application_title.hpp"
 namespace CPPUI {
     namespace Wx { class RuntimeApp: public wxApp { public: bool OnInit() override { return true; } }; }
-    class Application: public Wx::View {
+    class Application: public Wx::View, public ApplicationTitle {
         int argc;
         char ** argv;
         bool owned = false;
         wxApp * application = nullptr;
         wxEvtHandler quitContext;
+        std::string caption;
         public:
         Application(int argc, char ** argv): argc(argc), argv(argv) {}
+        Application & title(const std::string & text) { caption = text; return *this; }
+        const std::string & applicationTitle() const override { return caption; }
         ~Application() override {
             if(wxTheApp) wxTheApp->RemovePendingEventHandler(&quitContext);
             quitContext.DeletePendingEvents();
@@ -30,6 +34,7 @@ namespace CPPUI {
                     if(!application->CallOnInit()) throw std::runtime_error("wxWidgets application initialization failed");
                 }
             }
+            if(!caption.empty()) application->SetAppDisplayName(wxString::FromUTF8(caption));
             Wx::View::update(previous);
         }
         void addChild(int, Node * child) override {

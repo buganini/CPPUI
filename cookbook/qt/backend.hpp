@@ -56,6 +56,16 @@ namespace Cookbook { namespace Backend {
     }
 
     inline void mount(CPPUI::Application & app) { app.sync(); }
+    inline bool wheelCanvas(CPPUI::Node & node, int delta) {
+        auto canvas = dynamic_cast<CPPUI::Qt::Canvas *>(&node);
+        if(!canvas || !canvas->ui) return false;
+        auto widget = static_cast<QWidget *>(canvas->ui);
+        widget->grab(); // Paint once so the recipe has the current plot bounds.
+        const QPointF point(widget->width()/2.0, 100);
+        QWheelEvent event(point, widget->mapToGlobal(point), {}, QPoint(0, delta),
+                          ::Qt::NoButton, ::Qt::NoModifier, ::Qt::NoScrollPhase, false);
+        QCoreApplication::sendEvent(widget, &event); return true;
+    }
     void configureRecipes(std::vector<Recipe> & pages);
     const char * const name = "Qt";
     inline void settle() {

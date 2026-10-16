@@ -10,6 +10,9 @@
 #include <QHeaderView>
 #include <QStyledItemDelegate>
 #include <QComboBox>
+#include <QLineEdit>
+#include <QLabel>
+#include <QHBoxLayout>
 #include <QPointer>
 #include <QSignalBlocker>
 #include <type_traits>
@@ -32,6 +35,7 @@ namespace CPPUI { namespace Qt {
         struct TableCell {
             QVariant value;
             OptionalText display;
+            std::string prefix, suffix, placeholder;
             Optional<std::vector<std::pair<QVariant, QString>>> choices;
             std::function<QVariant()> read, displayRead;
             std::function<void(const QVariant &)> write;
@@ -59,6 +63,9 @@ namespace CPPUI { namespace Qt {
             cell.read = [model]() { return detail::TableValue<T>::encode(model.get()); };
             cell.write = [model](const QVariant & value) { model.set(detail::TableValue<T>::decode(value)); };
         }
+        TableNode & prefix(const std::string & value) { cell.prefix = value; return *this; }
+        TableNode & suffix(const std::string & value) { cell.suffix = value; return *this; }
+        TableNode & placeholder(const std::string & value) { cell.placeholder = value; return *this; }
         TableNode & display(const std::string & value) { cell.display = value; return *this; }
         TableNode & display(Binding<std::string> value) { return display(value.get()); }
         TableNode & set(std::function<void(const T &)> callback) {
@@ -106,11 +113,17 @@ namespace CPPUI { namespace Qt {
             // into storage that a synchronous redraw may replace.
             const auto entry = *found;
             try {
-                if(role == ::Qt::DisplayRole && entry.display) return QString::fromStdString(*entry.display);
-                if(role == ::Qt::DisplayRole && entry.displayRead) return entry.displayRead();
-                const auto value = entry.current();
-                if(role == ::Qt::DisplayRole && entry.choices)
-                    for(const auto & choice: *entry.choices) if(choice.first == value) return choice.second;
+                if(role == ::Qt::EditRole) return entry.current();
+                QVariant value;
+                if(entry.display) value = QString::fromStdString(*entry.display);
+                else if(entry.displayRead) value = entry.displayRead();
+                else {
+                    value = entry.current();
+                    if(entry.choices) for(const auto & choice: *entry.choices)
+                        if(choice.first == value) { value = choice.second; break; }
+                }
+                if(!entry.prefix.empty() || !entry.suffix.empty())
+                    return QString::fromStdString(entry.prefix) + value.toString() + QString::fromStdString(entry.suffix);
                 return value;
             } catch(...) { detail::tableError("read"); return {}; }
         }
@@ -158,34 +171,98 @@ namespace CPPUI { namespace Qt {
         public:
         explicit TableChoiceEditor(QWidget * owner): QComboBox(owner) {}
     };
-    class TableDelegate: public QStyledItemDelegate {
+    class TableDecoratedEditor: public QWidget {
         public:
-        explicit TableDelegate(QObject * owner): QStyledItemDelegate(owner) {}
+        QWidget * field;
+        bool closing = false;
+        TableDecoratedEditor(QWidget * field, const std::string & prefix, const std::string & suffix, QWidget * parent)
+            : QWidget(parent), field(field) {
+            auto layout = new QHBoxLayout(this);
+            layout->setContentsMargins(0, 0, 0, 0); layout->setSpacing(0);
+            auto label = [this, layout](const std::string & text) {
+                if(text.empty()) return;
+                auto widget = new QLabel(QString::fromStdString(text), this);
+                widget->setTextFormat(::Qt::PlainText); layout->addWidget(widget);
+            };
+            label(prefix); layout->addWidget(field, 1); label(suffix);
+            setFocusPolicy(::Qt::StrongFocus); setAutoFillBackground(true);
+            setFocusProxy(field);
+        }
+    };
+    class TableDelegate: public QStyledItemDelegate {
+        static QWidget * field(QWidget * editor) {
+            auto decorated = dynamic_cast<TableDecoratedEditor *>(editor);
+            return decorated ? decorated->field : editor;
+        }
+        public:
+        explicit TableDelegate(QObject * owner): QStyledItemDelegate(owner) {
+            // The view removes its filter from the outer editor when closing;
+            // stop forwarding the field's ensuing focus-out event as well.
+            auto closing = [](QWidget * editor) {
+                if(auto decorated = dynamic_cast<TableDecoratedEditor *>(editor)) decorated->closing = true;
+            };
+            QObject::connect(this, &QAbstractItemDelegate::commitData, this, closing);
+            QObject::connect(this, &QAbstractItemDelegate::closeEditor, this,
+                [closing](QWidget * editor, QAbstractItemDelegate::EndEditHint) { closing(editor); });
+        }
         QWidget * createEditor(QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index) const override {
             auto model = dynamic_cast<const TableModel *>(index.model());
-            const auto cell = model ? model->cell(index) : nullptr;
-            if(!cell || !cell->choices) return QStyledItemDelegate::createEditor(parent, option, index);
-            auto editor = new TableChoiceEditor(parent);
-            editor->setAutoFillBackground(true);
-            for(const auto & choice: *cell->choices) editor->addItem(choice.second, choice.first);
-            QPointer<TableDelegate> delegate(const_cast<TableDelegate *>(this));
-            QPointer<QComboBox> alive(editor);
-            QObject::connect(editor, &QComboBox::activated, editor, [delegate, alive](int) {
-                if(!delegate || !alive) return;
-                emit delegate->commitData(alive);
-                if(delegate && alive) emit delegate->closeEditor(alive);
-            });
+            const auto found = model ? model->cell(index) : nullptr;
+            if(!found) return QStyledItemDelegate::createEditor(parent, option, index);
+            const auto cell = *found;
+            QWidget * input;
+            if(cell.choices) {
+                auto combo = new TableChoiceEditor(parent);
+                combo->setAutoFillBackground(true);
+                combo->setPlaceholderText(QString::fromStdString(cell.placeholder));
+                for(const auto & choice: *cell.choices) combo->addItem(choice.second, choice.first);
+                input = combo;
+            } else {
+                input = QStyledItemDelegate::createEditor(parent, option, index);
+                if(auto line = qobject_cast<QLineEdit *>(input)) line->setPlaceholderText(QString::fromStdString(cell.placeholder));
+            }
+            if(!input) return nullptr;
+            auto editor = input;
+            if(!cell.prefix.empty() || !cell.suffix.empty()) {
+                editor = new TableDecoratedEditor(input, cell.prefix, cell.suffix, parent);
+                input->installEventFilter(const_cast<TableDelegate *>(this));
+            }
+            if(auto combo = dynamic_cast<TableChoiceEditor *>(input)) {
+                QPointer<TableDelegate> delegate(const_cast<TableDelegate *>(this));
+                QPointer<QWidget> alive(editor);
+                QObject::connect(combo, &QComboBox::activated, editor, [delegate, alive](int) {
+                    if(!delegate || !alive) return;
+                    emit delegate->commitData(alive);
+                    if(delegate && alive) emit delegate->closeEditor(alive);
+                });
+            }
             return editor;
         }
+        bool eventFilter(QObject * object, QEvent * event) override {
+            if(auto widget = qobject_cast<QWidget *>(object)) {
+                auto decorated = dynamic_cast<TableDecoratedEditor *>(widget);
+                // Ignored key events bubble from the field to its wrapper. The
+                // field already forwarded them, so do not queue a second commit.
+                if(decorated && event->type() == QEvent::KeyPress) return false;
+                if(!decorated) decorated = dynamic_cast<TableDecoratedEditor *>(widget->parentWidget());
+                if(decorated) {
+                    if(decorated->closing) return false;
+                    if(decorated->field == widget) object = decorated;
+                }
+            }
+            return QStyledItemDelegate::eventFilter(object, event);
+        }
         void setEditorData(QWidget * editor, const QModelIndex & index) const override {
+            editor = field(editor);
             if(auto combo = dynamic_cast<TableChoiceEditor *>(editor)) {
                 QSignalBlocker blocked(combo);
                 const auto value = index.model()->data(index, ::Qt::EditRole);
                 combo->setCurrentIndex(combo->findData(value));
-                if(combo->currentIndex() < 0) combo->setPlaceholderText(value.toString());
+                if(combo->currentIndex() < 0 && combo->placeholderText().isEmpty()) combo->setPlaceholderText(value.toString());
             } else QStyledItemDelegate::setEditorData(editor, index);
         }
         void setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const override {
+            editor = field(editor);
             if(auto combo = dynamic_cast<TableChoiceEditor *>(editor)) {
                 if(combo->currentIndex() >= 0) model->setData(index, combo->currentData(), ::Qt::EditRole);
             } else QStyledItemDelegate::setModelData(editor, model, index);

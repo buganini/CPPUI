@@ -41,6 +41,7 @@ namespace Cookbook { namespace Backend {
     inline bool editTable(CPPUI::Node &, int, int, const std::string &) { return false; }
     inline bool atScrollEnd(CPPUI::Node &) { return false; }
     inline bool selectCombo(CPPUI::Node &, int) { return false; }
+    inline bool wheelCanvas(CPPUI::Node &, int) { return false; }
     inline bool editTextField(CPPUI::Node & node, const std::string & text, bool commit) {
         auto field = dynamic_cast<CPPUI::LVGL::TextField *>(&node);
         if(!field || !field->ui) return false;
@@ -63,6 +64,8 @@ namespace Cookbook { namespace Backend {
         } else if(std::string(page.key) == "views") {
             page.render = views;
             page.remaining = "";
+        } else if(std::string(page.key) == "maskedfield") {
+            page.render = maskedfield; page.remaining = "";
         } else if(std::string(page.key) == "textfield") {
             page.render = textfield;
             page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";

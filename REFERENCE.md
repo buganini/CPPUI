@@ -19,6 +19,7 @@ are described in the component sections and backend plans.
 |[Label](#label)|QLabel|label|wxStaticText / read-only wxTextCtrl|
 |[Button](#button)|QPushButton|button|wxButton|
 |[TextField](#textfield)|QLineEdit|single-line lv_textarea|wxTextCtrl|
+|[MaskedField](#maskedfield)|QLineEdit password mode|lv_textarea password mode|wxTextCtrl password style|
 |[ComboBox / ComboBoxItem](#combobox)|QComboBox|—|wxComboBox|
 |[RadioButton](#radiobutton)|QRadioButton|checkbox (radio mode)|wxRadioButton|
 |[Checkbox](#checkbox)|QCheckBox|checkbox|wxCheckBox|
@@ -224,6 +225,13 @@ omitted values to native defaults. `.qt()` is specific to the Qt backend.
 
 ## Application
 
+Qt and wx `Application::title(text)` set the native application display name
+when nonempty and supply the default title for Windows under that logical root.
+`Window().title(text)` takes precedence, including an explicit empty string.
+Without either title, a retained window keeps its native title. Like the other
+application-wide properties, the display name also affects a borrowed runtime
+and is not restored on teardown.
+
 Qt `Application(argc, argv, iconPath)` optionally copies an icon path and sets
 the application-wide default window icon once, during its first synchronization,
 following PUI. Omitting the path (or passing an empty string) preserves a borrowed
@@ -268,6 +276,14 @@ supplies separate labels in declaration order. Editors preserve value types and
 duplicate labels, commit once on activation, and leave unknown values unselected
 with a placeholder. No selection does not overwrite the model. `.click()` and
 `.dblclick()` use no-argument callbacks on each cell.
+
+Qt and wx cell declarations accept `.prefix(text)`, `.suffix(text)` and
+`.placeholder(text)`. Prefix/suffix surround the resolved display text or choice
+label, and appear beside the field while editing; the binding always stores the
+raw value. Placeholders are native empty-field hints (Qt line/choice editors and
+wx text editors; wxChoice has no hint). Omitted options reset to empty on a fresh
+declaration. Composite editor widgets own their labels and input, with keyboard
+commit/cancel and choice activation routed through the outer editor.
 
 Table's `.columnHeader(labels)` and `.rowHeader(labels)` show optional headers;
 omitting them hides the headers on redraw. `.columnCount(n)` and `.rowCount(n)`
@@ -464,8 +480,9 @@ inside a Window or native container, and release views before deinitializing LVG
 Qt `Window().title(text).icon(path).size(width, height)` updates a retained native
 window. Its native layout uses `SetNoConstraint`, so growing content stays within
 the window instead of forcing it to expand beyond the declared or user-set size.
-Text and paths are owned strings. Omitted title/icon preserve their
-current values, following PUI; an empty icon path also leaves the icon alone.
+Text and paths are owned strings. An omitted title uses the nonempty root
+Application title, or preserves the current native title if neither is supplied.
+An explicit empty title clears it. Omitted/empty icons preserve the current icon.
 An unchanged declared size preserves user resizing; changing it, or declaring it
 again after omission, resizes the window. `.maximize()` and `.fullscreen()` apply
 only at creation when used in a builder. On a current mounted declaration they
@@ -540,6 +557,16 @@ The SDL2/X11 cookbooks attach keyboard input to the default LVGL focus group.
 Applications hosting LVGL must likewise create a default group before mounting
 controls and attach their keypad input device to it; the TextField does not own
 the host's input devices or group.
+
+## MaskedField
+
+The same backend `textfield.hpp` headers provide `MaskedField(model, editModel)`.
+It accepts the string bindings, optional draft, placeholder, input/change
+callbacks and layout options of TextField. Qt uses QLineEdit password echo, wx
+uses wxTE_PASSWORD and LVGL uses textarea password mode. Models and draft
+bindings contain the original text; native rendering masks it. Switching between
+TextField and MaskedField replaces the native control. The shared cookbook shows
+single-model and buffered passwords, lengths and a clear button on all backends.
 
 ## Scroll
 
@@ -895,7 +922,7 @@ Change text button update retained local state on every backend.
 
 ## Canvas
 
-Include `cppui/qt/canvas.hpp` or `cppui/lvgl/canvas.hpp` for the selected backend.
+Include `cppui/qt/canvas.hpp`, `cppui/wx/canvas.hpp` or `cppui/lvgl/canvas.hpp` for the selected backend.
 A painter receives a `CanvasPainter&` valid for
 that invocation. It supplies drawing operations and the current logical `width`,
 `height`, and `pixel_density`; it is separate from the borrowed node declaration.
@@ -914,8 +941,8 @@ and capture its value in the painter so the surrounding view tracks the read.
 Redraw reuses the native widget and replaces its painter. Active callbacks are
 copied before invocation, and queued painting becomes inert on removal.
 
-Both backends include `drawText`, `drawLine`, `drawPolyline`, `drawCubicBezier`,
-`drawPolygon`, `drawRect` and `drawEllipse`; Qt also has `drawImage`. Coordinates are logical
+All three backends include `drawText`, `drawLine`, `drawPolyline`, `drawCubicBezier`,
+`drawPolygon`, `drawRect` and `drawEllipse`; Qt and wx also have `drawImage`. Coordinates are logical
 pixels; each operation restores painter state. Colors accept `0xRRGGBB`, color
 names or strings such as `"#ff0000"`. Use `{}` for an absent color: shape fill and
 stroke are disabled when absent; text keeps the current pen. Rectangles take
@@ -967,7 +994,25 @@ deletion, including when an ancestor owns that deletion. Run callbacks on the
 UI thread without nested event loops or display/runtime teardown.
 Use `.layout(width, height).style({}, backgroundColor)` for the canvas size and
 background; the shared cookbook uses `.layout(100, 100).style({}, 0x555555)`.
-Input/drag/drop events remain pending.
+Qt and wx provide `.mousemove(callback)`, `.mouseleave(callback)` and
+`.wheel(callback)`. Move/wheel callbacks receive `const CanvasPointerEvent&`
+from `cppui/canvas_input.hpp`; leave takes no arguments. `x`/`y` are local logical
+pixels. `angleX`/`angleY` preserve native wheel rotation units (normally 120 per
+notch); Qt also supplies native `pixelX`/`pixelY` when available, while wx leaves
+pixel deltas zero. Positive vertical deltas point up. These two delta units are
+separate; consumers may use direction when exact distance is unnecessary.
+Callbacks are replaced on redraw, omitted callbacks are cleared, and dispatch
+copies the callable before invocation so it may redraw/remove its own Canvas.
+Exceptions are reported to stderr. A wheel handler consumes the event; without
+one, native scrolling can handle it. LVGL input callbacks, other pointer events,
+modifiers and drag/drop remain to port.
+
+The Qt/wx HeavyCanvas cookbook uses these callbacks for hover inspection and
+cursor-anchored wheel zoom over 1,000–30,000 synthetic sessions. It draws OHLCV,
+Bollinger bands, K/D and RSI and provides regenerate/reset controls. Data is
+repeatable for a seed within the C++ implementation; its random sequence is not
+identical to Python's. LVGL needs ComboBox and Canvas input before this recipe
+can be enabled.
 **Won't do — Shapely and Matplotlib:** Python-only `Canvas.drawShapely` and
 `MatplotlibCanvas` integrations are excluded from CPPUI and its cookbook.
 
@@ -1011,6 +1056,12 @@ be inserted or removed, including flattened virtual subviews. Nested splitters
 are supported; removed panes follow the normal deferred-deletion lifecycle.
 
 ## wx controls
+
+wx HBox centers compact children vertically; VBox aligns compact children to
+the left. Children requesting cross-axis expansion still fill that axis.
+Omitted background colors preserve native defaults; removing an explicit
+background resets native inheritance with wxNullColour. Tabs retain expansion
+priority 2 on both axes, matching the current PUI/wx behavior.
 
 wx uses the shared Binding/State signatures for Checkbox, RadioButton, TextField
 and ComboBox. TextField preserves drafts during redraw, commits once on Enter

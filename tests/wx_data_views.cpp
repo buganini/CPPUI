@@ -27,14 +27,16 @@ class Root:public CPPUI::Application {
 public:
     using Application::Application;
     CPPUI::State<int> number{4};CPPUI::State<bool> flag{false};CPPUI::State<std::string> text{std::string("raw")};
+    bool decorated=false;
     bool reverse=false,show=true;int calls=0,version=1;bool remove=false;
     std::shared_ptr<TableAdapter> tableAdapter=std::make_shared<TableAdapter>();
     std::shared_ptr<TreeAdapter> treeAdapter=std::make_shared<TreeAdapter>();
     void content() override {
         for(auto w:CPPUI::Window().size(600,500))for(auto v:CPPUI::VBox())if(show){
             for(auto t:CPPUI::Table().columnHeader({"Number","Text","Bool"}).id("table"))for(auto row:CPPUI::TableNode()){
-                CPPUI::TableNode(number).choices(std::vector<std::pair<int,std::string>>{{4,"Four"},{5,"Five"}});
-                auto & cell=CPPUI::TableNode(text).display("Shown");int n=version;cell.click([this,n](){calls+=n;if(remove){show=false;sync();}});
+                auto & choice=CPPUI::TableNode(number).choices(std::vector<std::pair<int,std::string>>{{4,"Four"},{5,"Five"}});
+                if(decorated)choice.prefix("[").suffix("]");
+                auto & cell=CPPUI::TableNode(text).display("Shown");if(decorated)cell.prefix("Price: $").suffix(" USD").placeholder("Enter price");int n=version;cell.click([this,n](){calls+=n;if(remove){show=false;sync();}});
                 CPPUI::TableNode(flag);
             }
             CPPUI::Table(tableAdapter).id("adapter-table");
@@ -58,6 +60,22 @@ int main(int argc,char ** argv){
         table=root.table();require(table->model->edit(0,2,"True")&&bool(root.flag),"boolean edit");pump();
         auto grid=static_cast<wxGrid *>(root.table()->ui);grid->SetGridCursor(0,0);grid->EnableCellEditControl();auto editor=grid->GetCellEditor(0,0);auto choice=dynamic_cast<wxChoice *>(editor->GetControl());require(choice&&choice->GetStringSelection()=="Five","choice label/raw selection");choice->SetSelection(0);wxString next;require(editor->EndEdit(0,0,grid,"Five",&next)&&next=="4","choice raw conversion");editor->ApplyEdit(0,0,grid);editor->DecRef();pump();require(int(root.number)==4,"choice commit");
         grid=static_cast<wxGrid *>(root.table()->ui);grid->SetGridCursor(0,1);grid->EnableCellEditControl();editor=grid->GetCellEditor(0,1);auto input=dynamic_cast<wxTextCtrl *>(editor->GetControl());require(input&&input->GetValue()=="raw","editor shows display instead of raw");input->ChangeValue("draft");root.sync();require(!editor->EndEdit(0,1,grid,"Shown",&next),"stale editor committed");editor->DecRef();pump();require(std::string(root.text)=="raw","draft leaked across redraw");
+        root.decorated=true;root.sync();pump();grid=static_cast<wxGrid *>(root.table()->ui);
+        require(root.table()->model->GetValue(0,1)=="Price: $Shown USD", "decorations did not wrap display");
+        grid->SetGridCursor(0,1);grid->EnableCellEditControl();editor=grid->GetCellEditor(0,1);
+        auto decorated=dynamic_cast<CPPUI::Wx::TableEditor *>(editor);
+        input=decorated?dynamic_cast<wxTextCtrl *>(decorated->field):nullptr;
+        require(input && dynamic_cast<wxPanel *>(editor->GetWindow()) && input->GetValue()=="raw"
+            && input->GetHint()=="Enter price", "decorated editor lost raw value or hint");
+        input->ChangeValue("12");wxKeyEvent enter(wxEVT_KEY_DOWN);enter.m_keyCode=WXK_RETURN;enter.SetEventObject(input);
+        input->GetEventHandler()->ProcessEvent(enter);pump();editor->DecRef();
+        require(std::string(root.text)=="12", "decorated editor Enter did not commit raw value");
+        grid=static_cast<wxGrid *>(root.table()->ui);grid->SetGridCursor(0,0);grid->EnableCellEditControl();editor=grid->GetCellEditor(0,0);
+        decorated=dynamic_cast<CPPUI::Wx::TableEditor *>(editor);choice=decorated?dynamic_cast<wxChoice *>(decorated->field):nullptr;
+        require(choice && choice->GetStringSelection()=="Four", "decorated choice lost raw selection");
+        choice->SetSelection(1);wxCommandEvent selected(wxEVT_CHOICE,choice->GetId());selected.SetEventObject(choice);choice->ProcessWindowEvent(selected);
+        editor->DecRef();pump();require(int(root.number)==5, "decorated choice did not commit raw typed value");
+        root.decorated=false;root.sync();pump();require(root.table()->model->GetValue(0,1)=="Shown", "omitted decorations did not clear");
         auto tree=root.tree();auto native=static_cast<wxDataViewCtrl *>(tree->ui);auto item=wxDataViewItem(static_cast<CPPUI::Wx::TreeNode *>(find(root,"a"))->item.get());native->Expand(item);native->Select(item);pump();int callbacks=root.calls;
         root.reverse=true;root.sync();pump();tree=root.tree();require(tree->model->roots[1]==item.GetID()&&native->IsExpanded(item)&&native->GetSelection()==item,"keyed tree state lost");require(root.calls==callbacks,"restore emitted expand callback");
         auto adapterTree=root.tree("adapter-tree");auto adapterNative=static_cast<wxDataViewCtrl *>(adapterTree->ui);auto adapterItem=wxDataViewItem(adapterTree->model->roots[0]);adapterNative->Expand(adapterItem);adapterNative->Select(adapterItem);std::reverse(root.treeAdapter->roots.begin(),root.treeAdapter->roots.end());root.sync();pump();require(adapterNative->GetSelection()==adapterItem&&adapterNative->IsExpanded(adapterItem),"adapter identity lost");

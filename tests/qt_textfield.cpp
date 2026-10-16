@@ -20,7 +20,7 @@ namespace {
         std::function<void()> onInput, onCommit;
         std::string seen;
         std::string placeholder = "Enter text";
-        bool setPlaceholder = true;
+        bool setPlaceholder = true, masked = false;
         using Application::Application;
         void content() override {
             for(auto window: CPPUI::Window()) for(auto column: CPPUI::VBox()) {
@@ -35,7 +35,7 @@ namespace {
                         if(text != "reject") *state = text;
                     });
                     const auto current = version;
-                    auto & field = CPPUI::TextField(binding, draft);
+                    auto & field = masked ? CPPUI::MaskedField(binding, draft) : CPPUI::TextField(binding, draft);
                     if(setPlaceholder) field.placeholder(std::string(placeholder));
                     field.input([this, current]() {
                         inputs += current; auto invoke = onInput; if(invoke) invoke();
@@ -53,9 +53,10 @@ namespace {
 int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
-        {
-            Root root(argc, argv); root.sync(); settle();
+        for(bool masked: {false, true}) {
+            Root root(argc, argv); root.masked = masked; root.sync(); settle();
             auto editor = root.editor();
+            require(editor->echoMode() == (masked ? QLineEdit::Password : QLineEdit::Normal), "wrong masking mode");
             require(editor->placeholderText() == "Enter text", "TextField lost its declared placeholder");
             require(editor->text() == "first" && static_cast<std::string>(root.draft) == "first" && root.writes == 0 && root.inputs == 0, "initial model/draft synchronization produced feedback");
             int external = 0;

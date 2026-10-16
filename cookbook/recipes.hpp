@@ -11,7 +11,9 @@
 #include <memory>
 
 namespace Cookbook {
+    struct HeavyChart;
     struct Model {
+        std::shared_ptr<HeavyChart> heavyChart;
         CPPUI::State<int> treeItems{0};
         std::shared_ptr<AdapterTreeData> adapterTree{new AdapterTreeData()};
         std::shared_ptr<CPPUI::BaseTreeAdapter<AdapterTreeNode>> adapterTreeSource;
@@ -20,9 +22,11 @@ namespace Cookbook {
             {4, 9, 2}, {1, 0, 0}, {3, 5, 0}, {3, 3, 2}, {7, 8, 9}})};
         CPPUI::State<std::string> tableA1{std::string("A1")}, tableB1{std::string("B1")}, tableDirection{std::string("CW")};
         CPPUI::State<int> tableSides{4};
+        CPPUI::State<std::string> tablePrice{std::string()};
         CPPUI::State<int> scrollRows{100};
         CPPUI::State<int> comboIndex{-1};
-        CPPUI::State<std::string> comboText{std::string()};
+        CPPUI::State<std::string> comboText{std::string()}, destination{std::string()};
+        CPPUI::State<std::string> password{std::string()}, bufferedPassword{std::string()}, passwordEditing{std::string()};
         CPPUI::State<std::string> radioValue{std::string()};
         CPPUI::State<std::string> fieldText{std::string("1.23")}, fieldEditing{std::string()};
         CPPUI::State<bool> checkboxOne{true}, checkboxTwo{true};
@@ -52,6 +56,7 @@ namespace Cookbook {
     void combobox(Model &);
     void radiobutton(Model &);
     void textfield(Model &);
+    void maskedfield(Model &);
     void grid(Model &);
     void stack(Model &);
     void image(Model &);
@@ -62,6 +67,7 @@ namespace Cookbook {
     void text(Model &);
     void splitter(Model &);
     void canvas(Model &);
+    void heavycanvas(Model &);
     void tab(Model &);
     void views(Model &);
     void dialog(Model &);

@@ -2,6 +2,8 @@
 #define CPPUI_QT_CANVAS
 
 #include "base.hpp"
+#include "../canvas_input.hpp"
+#include <QWheelEvent>
 #include "image_resource.hpp"
 #include <QPainter>
 #include <QPainterPath>
@@ -152,10 +154,35 @@ namespace CPPUI {
         class CanvasWidget: public Widget<QWidget> {
             public:
             using Painter = std::function<bool(CanvasPainter &)>;
+            std::function<void(const CanvasPointerEvent &)> moved, wheeled;
+            std::function<void()> left;
             private:
             Painter painter;
             std::uint64_t generation = 0;
             protected:
+            void mouseMoveEvent(QMouseEvent * event) override {
+                auto invoke = moved;
+                if(!invoke) { Widget<QWidget>::mouseMoveEvent(event); return; }
+                CanvasPointerEvent value; value.x=event->position().x(); value.y=event->position().y();
+                try { invoke(value); } catch(const std::exception & error) { std::cerr << "CPPUI Canvas move: " << error.what() << '\n'; }
+                catch(...) { std::cerr << "CPPUI Canvas move failed\n"; }
+            }
+            void leaveEvent(QEvent * event) override {
+                auto invoke = left;
+                if(!invoke) { Widget<QWidget>::leaveEvent(event); return; }
+                try { invoke(); } catch(const std::exception & error) { std::cerr << "CPPUI Canvas leave: " << error.what() << '\n'; }
+                catch(...) { std::cerr << "CPPUI Canvas leave failed\n"; }
+            }
+            void wheelEvent(QWheelEvent * event) override {
+                auto invoke = wheeled;
+                if(!invoke) { Widget<QWidget>::wheelEvent(event); return; }
+                CanvasPointerEvent value; value.x=event->position().x(); value.y=event->position().y();
+                value.angleX=event->angleDelta().x(); value.angleY=event->angleDelta().y();
+                value.pixelX=event->pixelDelta().x(); value.pixelY=event->pixelDelta().y();
+                event->accept();
+                try { invoke(value); } catch(const std::exception & error) { std::cerr << "CPPUI Canvas wheel: " << error.what() << '\n'; }
+                catch(...) { std::cerr << "CPPUI Canvas wheel failed\n"; }
+            }
             void paintEvent(QPaintEvent *) override {
                 // A redraw can reclaim the declaration while its painter runs.
                 auto invoke = painter;
@@ -172,17 +199,25 @@ namespace CPPUI {
             }
             public:
             void setPainter(Painter callback) { painter = std::move(callback); ++generation; update(); }
-            void clearPainter() { painter = {}; ++generation; }
+            void clearPainter() { painter = {}; moved = {}; wheeled = {}; left = {}; ++generation; }
         };
 
         class Canvas: public BaseWidget {
             public:
             using Painter = CanvasWidget::Painter;
             Painter painter;
+            std::function<void(const CanvasPointerEvent &)> moved, wheeled;
+            std::function<void()> left;
+            Canvas & mousemove(std::function<void(const CanvasPointerEvent &)> callback) { moved=std::move(callback); return *this; }
+            Canvas & mouseleave(std::function<void()> callback) { left=std::move(callback); return *this; }
+            Canvas & wheel(std::function<void(const CanvasPointerEvent &)> callback) { wheeled=std::move(callback); return *this; }
             explicit Canvas(Painter painter): painter(std::move(painter)) { is_terminal = true; }
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new CanvasWidget();
-                static_cast<CanvasWidget *>(ui)->setPainter(painter);
+                auto canvas = static_cast<CanvasWidget *>(ui);
+                canvas->moved=moved; canvas->wheeled=wheeled; canvas->left=left;
+                canvas->setMouseTracking(bool(moved));
+                canvas->setPainter(painter);
             }
             void destroy(bool direct) override {
                 if(ui) static_cast<CanvasWidget *>(ui)->clearPainter();

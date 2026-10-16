@@ -46,6 +46,10 @@ remain usable.
 across selection changes; the shared cookbook demonstrates both forms.
 Qt [Tabs](REFERENCE.md#tabs) also supports these selection models.
 
+[MaskedField](REFERENCE.md#maskedfield) provides password input on all three
+backends. Qt/wx also support decorated Table cells and the HeavyCanvas cookbook
+with up to 30,000 synthetic sessions, hover inspection and wheel zoom.
+
 With wxWidgets 3.2 development packages and a display available:
 
 ```sh

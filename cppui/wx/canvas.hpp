@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_CANVAS
 #define CPPUI_WX_CANVAS
 #include "base.hpp"
+#include "../canvas_input.hpp"
 #include "image_resource.hpp"
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
@@ -72,6 +73,8 @@ namespace Wx {
 class CanvasWidget:public wxPanel {
 public:
     using Painter=std::function<bool(CanvasPainter &)>;
+    std::function<void(const CanvasPointerEvent &)> moved,wheeled;
+    std::function<void()> left;
 private:
     Painter painter;
     std::uint64_t generation=0;
@@ -84,16 +87,37 @@ private:
         if(again&&painter&&version==generation)Refresh(false);
     }
 public:
-    explicit CanvasWidget(wxWindow * parent):wxPanel(parent){SetBackgroundStyle(wxBG_STYLE_PAINT);Bind(wxEVT_PAINT,&CanvasWidget::paint,this);}
+    explicit CanvasWidget(wxWindow * parent):wxPanel(parent){SetBackgroundStyle(wxBG_STYLE_PAINT);Bind(wxEVT_PAINT,&CanvasWidget::paint,this);
+        Bind(wxEVT_MOTION,[this](wxMouseEvent & event){
+            auto invoke=moved;if(!invoke){event.Skip();return;}
+            CanvasPointerEvent value;value.x=event.GetX();value.y=event.GetY();
+            try{invoke(value);}catch(...){reportException("Canvas move");}
+        });
+        Bind(wxEVT_LEAVE_WINDOW,[this](wxMouseEvent & event){
+            auto invoke=left;event.Skip();if(invoke)try{invoke();}catch(...){reportException("Canvas leave");}
+        });
+        Bind(wxEVT_MOUSEWHEEL,[this](wxMouseEvent & event){
+            auto invoke=wheeled;if(!invoke){event.Skip();return;}
+            CanvasPointerEvent value;value.x=event.GetX();value.y=event.GetY();
+            if(event.GetWheelAxis()==wxMOUSE_WHEEL_HORIZONTAL)value.angleX=event.GetWheelRotation();
+            else value.angleY=event.GetWheelRotation();
+            try{invoke(value);}catch(...){reportException("Canvas wheel");}
+        });
+    }
     void setPainter(Painter value){painter=std::move(value);++generation;Refresh(false);}
-    void clearPainter(){painter={};++generation;}
+    void clearPainter(){painter={};moved={};wheeled={};left={};++generation;}
 };
 class Canvas:public Widget {
 public:
     using Painter=CanvasWidget::Painter;
     Painter painter;
+    std::function<void(const CanvasPointerEvent &)> moved,wheeled;
+    std::function<void()> left;
+    Canvas & mousemove(std::function<void(const CanvasPointerEvent &)> callback){moved=std::move(callback);return *this;}
+    Canvas & mouseleave(std::function<void()> callback){left=std::move(callback);return *this;}
+    Canvas & wheel(std::function<void(const CanvasPointerEvent &)> callback){wheeled=std::move(callback);return *this;}
     explicit Canvas(Painter painter):painter(std::move(painter)){expandX=expandY=3;}
-    void updateWidget(Widget * prev) override {ui=prev?prev->ui:new CanvasWidget(parentWindow());static_cast<CanvasWidget *>(ui)->setPainter(painter);}
+    void updateWidget(Widget * prev) override {ui=prev?prev->ui:new CanvasWidget(parentWindow());auto canvas=static_cast<CanvasWidget *>(ui);canvas->moved=moved;canvas->wheeled=wheeled;canvas->left=left;canvas->setPainter(painter);}
     void destroy(bool direct) override {if(ui)static_cast<CanvasWidget *>(ui)->clearPainter();Widget::destroy(direct);}
 };
 namespace detail {

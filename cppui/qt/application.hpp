@@ -2,6 +2,7 @@
 #define CPPUI_QT_APPLICATION
 
 #include "base.hpp"
+#include "../application_title.hpp"
 #include <QApplication>
 #include <QEvent>
 #include <QIcon>
@@ -9,10 +10,11 @@
 #include <stdexcept>
 
 namespace CPPUI {
-    class Application: public Qt::QtView {
+    class Application: public Qt::QtView, public ApplicationTitle {
         int argc;
         char ** argv;
         std::string iconPath;
+        std::string caption;
         std::unique_ptr<QApplication> ownedApplication;
         QApplication * application = nullptr;
         std::unique_ptr<QObject> quitContext{new QObject()};
@@ -24,6 +26,8 @@ namespace CPPUI {
         public:
         Application(int argc, char * argv[], const std::string & icon = {})
             : argc(argc), argv(argv), iconPath(icon) {}
+        Application & title(const std::string & text) { caption = text; return *this; }
+        const std::string & applicationTitle() const override { return caption; }
 
         Node & qt(const QtOptions & options) override {
             if(options.HorizontalPolicy || options.VerticalPolicy || options.SizeConstraint)
@@ -55,6 +59,7 @@ namespace CPPUI {
                 // leaves a borrowed application's existing default unchanged.
                 if(!iconPath.empty()) application->setWindowIcon(QIcon(QString::fromStdString(iconPath)));
             }
+            if(!caption.empty()) application->setApplicationDisplayName(QString::fromStdString(caption));
             QtView::update(prev);
             if(qtParams.Style && *qtParams.Style && *qtParams.Style != appliedStyle) {
                 appliedStyle = *qtParams.Style;

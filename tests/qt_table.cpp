@@ -2,6 +2,7 @@
 #include "cppui/qt/application.hpp"
 #include "cppui/qt/window.hpp"
 #include <QLineEdit>
+#include <QKeyEvent>
 #include <QPersistentModelIndex>
 #include <QSpinBox>
 #include <sstream>
@@ -15,6 +16,7 @@ namespace {
         CPPUI::State<int> number{4};
         CPPUI::State<bool> boolean{true};
         bool show = true, headers = true, empty = false, rebind = false, fail = false, selfRemove = false, immediate = false;
+        bool decorated = false;
         int limit = -1, clicks = 0, doubles = 0, writes = 0;
         std::shared_ptr<int> capture = std::make_shared<int>(1);
         using Application::Application;
@@ -25,17 +27,20 @@ namespace {
                 if(limit >= 0) table.rowCount(limit).columnCount(limit);
                 for(auto scope: table) if(!empty) {
                     for(auto row: CPPUI::TableNode()) {
-                        CPPUI::TableNode(rebind ? other : text).display(std::string("value:") + static_cast<std::string>(rebind ? other : text));
-                        CPPUI::TableNode(CPPUI::Binding<int>([this]() { return static_cast<int>(number); },
+                        auto & field = CPPUI::TableNode(rebind ? other : text).display(std::string("value:") + static_cast<std::string>(rebind ? other : text));
+                        if(decorated) field.prefix("Price: $").suffix(" USD").placeholder("Enter price");
+                        auto & choice = CPPUI::TableNode(CPPUI::Binding<int>([this]() { return static_cast<int>(number); },
                             [this](const int & value) { number = value; if(immediate) sync(); }))
                             .choices(std::vector<std::pair<int, std::string>>{{3, "same"}, {4, "same"}, {5, "five"}});
+                        if(decorated) choice.prefix("[").suffix("]").placeholder("Choose");
                         CPPUI::TableNode("raw").set([this](const std::string & value) {
                             ++writes;
                             if(fail) throw std::runtime_error("rejected edit");
                             text = value;
                             if(selfRemove) { show = false; sync(); }
                         });
-                        CPPUI::TableNode(number);
+                        auto & numeric = CPPUI::TableNode(number);
+                        if(decorated) numeric.prefix("Count: ");
                         CPPUI::TableNode(boolean);
                     }
                     for(auto row: CPPUI::TableNode()) {
@@ -53,6 +58,44 @@ namespace {
 int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
+        {
+            Root root(argc, argv); root.decorated = true; root.sync(); settle();
+            auto table = root.native(); auto model = table->model();
+            require(model->data(model->index(0, 0)) == "Price: $value:A USD"
+                && model->data(model->index(0, 1)) == "[same]", "decorations did not wrap display/choice labels");
+            int commits = 0, closes = 0;
+            QObject::connect(table->itemDelegate(), &QAbstractItemDelegate::commitData, table, [&](QWidget *) { ++commits; });
+            QObject::connect(table->itemDelegate(), &QAbstractItemDelegate::closeEditor, table,
+                [&](QWidget *, QAbstractItemDelegate::EndEditHint) { ++closes; });
+            table->edit(model->index(0, 0));
+            auto line = table->findChild<QLineEdit *>();
+            auto wrapper = line ? dynamic_cast<CPPUI::Qt::TableDecoratedEditor *>(line->parentWidget()) : nullptr;
+            require(wrapper && wrapper->findChildren<QLabel *>().size() == 2 && line->text() == "A"
+                && line->placeholderText() == "Enter price", "decorated editor lost raw text, labels or placeholder");
+            line->setText("12");
+            QKeyEvent enter(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+            QCoreApplication::sendEvent(line, &enter); settle(); settle();
+            require(static_cast<std::string>(root.text) == "12" && model->data(model->index(0, 0)) == "Price: $value:12 USD",
+                "decorated editor Enter failed to commit raw text");
+            require(commits == 1 && closes == 1, "decorated Enter committed or closed more than once");
+            table->edit(model->index(0, 0)); line = table->findChild<QLineEdit *>();
+            require(line, "decorated editor could not reopen"); line->setText("cancelled");
+            QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+            QCoreApplication::sendEvent(line, &escape); settle(); settle();
+            require(static_cast<std::string>(root.text) == "12" && commits == 1 && closes == 2,
+                "decorated Escape committed cancelled text");
+            table->edit(model->index(0, 3)); auto spin = table->findChild<QSpinBox *>();
+            require(spin, "decorated numeric editor lost its type"); spin->setValue(8);
+            QCoreApplication::sendEvent(spin, &enter); settle(); settle();
+            require(root.number == 8, "decorated numeric editor did not commit");
+            root.number = 17; root.immediate = true; root.sync(); settle(); table->edit(model->index(0, 1));
+            auto combo = table->findChild<QComboBox *>();
+            require(combo && combo->currentIndex() == -1 && combo->placeholderText() == "Choose", "decorated choice lost unknown value/hint");
+            combo->setCurrentIndex(0); emit combo->activated(0); settle();
+            require(root.number == 3, "decorated choice commit failed during synchronous redraw");
+            root.decorated = false; root.sync(); settle();
+            require(model->data(model->index(0, 0)) == "value:12", "omitted decorations did not clear");
+        }
         {
             Root root(argc, argv); root.sync(); settle();
             auto table = root.native(); auto model = table->model();

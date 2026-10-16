@@ -46,6 +46,13 @@ namespace Cookbook { namespace Backend {
     }
     void configureRecipes(std::vector<Recipe> & pages);
     inline void mount(CPPUI::Application & app){app.sync();}
+    inline bool wheelCanvas(CPPUI::Node & node,int delta){
+        auto canvas=dynamic_cast<CPPUI::Wx::Canvas *>(&node);if(!canvas||!canvas->ui)return false;
+        auto widget=canvas->ui;widget->Refresh();widget->Update();
+        wxMouseEvent event(wxEVT_MOUSEWHEEL);event.SetEventObject(widget);
+        event.SetPosition(wxPoint(widget->GetClientSize().x/2,100));event.m_wheelRotation=delta;event.m_wheelDelta=120;
+        widget->ProcessWindowEvent(event);return true;
+    }
     inline void settle(){wxStopWatch clock;do{wxTheApp->Yield(true);wxTheApp->ProcessPendingEvents();wxTheApp->ProcessIdle();wxMilliSleep(1);}while(clock.Time()<25);}
     inline void command(wxWindow * window,wxEventType type){wxCommandEvent e(type,window->GetId());e.SetEventObject(window);window->ProcessWindowEvent(e);}
     inline bool clickButton(CPPUI::Node & node,const std::string & text){auto button=dynamic_cast<CPPUI::Wx::Button *>(&node);if(!button||button->text!=text)return false;command(button->ui,wxEVT_BUTTON);return true;}

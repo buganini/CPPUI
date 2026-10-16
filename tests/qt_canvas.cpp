@@ -85,6 +85,44 @@ namespace {
     }
 
     int captures = 0;
+    class InputRoot: public CPPUI::Qt::QtView {
+        public:
+        bool show=true, enabled=true, remove=false;
+        int version=1, calls=0;
+        CPPUI::CanvasPointerEvent last;
+        void content() override {
+            if(!show) return;
+            auto & canvas=CPPUI::Canvas([](CPPUI::CanvasPainter &){});
+            if(enabled) {
+                const int current=version;
+                canvas.mousemove([this,current](const CPPUI::CanvasPointerEvent & event){calls+=current;last=event;})
+                    .mouseleave([this,current](){calls+=current;})
+                    .wheel([this,current](const CPPUI::CanvasPointerEvent & event){calls+=current;last=event;if(remove){show=false;sync();}});
+            }
+        }
+    };
+    void pointerInput() {
+        InputRoot root; root.sync(); auto widget=static_cast<QWidget *>(root.children->front()->outer());
+        for(int i=1;i<=3;++i) {
+            root.version=i;root.sync();require(root.children->front()->outer()==widget,"Canvas input redraw remounted native widget");
+            const int before=root.calls;
+            QMouseEvent move(QEvent::MouseMove,QPointF(12,34),QPointF(12,34),Qt::NoButton,Qt::NoButton,Qt::NoModifier);
+            QCoreApplication::sendEvent(widget,&move);
+            require(root.last.x==12 && root.last.y==34,"Canvas move lost local coordinates");
+            QWheelEvent wheel(QPointF(20,30),QPointF(20,30),QPoint(0,7),QPoint(0,120),Qt::NoButton,Qt::NoModifier,Qt::NoScrollPhase,false);
+            QCoreApplication::sendEvent(widget,&wheel);
+            require(root.last.angleY==120 && root.last.pixelY==7,"Canvas mixed wheel angle/pixel units");
+            QEvent leave(QEvent::Leave);QCoreApplication::sendEvent(widget,&leave);
+            require(root.calls==before+3*i,"Canvas dispatched stale/duplicate input callbacks");
+        }
+        root.enabled=false;root.sync();int before=root.calls;
+        QEvent leave(QEvent::Leave);QCoreApplication::sendEvent(widget,&leave);
+        require(root.calls==before && !widget->hasMouseTracking(),"omitted Canvas input callbacks retained dispatch");
+        root.enabled=true;root.remove=true;root.sync();
+        QWheelEvent wheel(QPointF(20,30),QPointF(20,30),QPoint(),QPoint(0,120),Qt::NoButton,Qt::NoModifier,Qt::NoScrollPhase,false);
+        QCoreApplication::sendEvent(widget,&wheel);require(root.children->empty(),"Canvas input self-removal failed");
+        QCoreApplication::sendPostedEvents(nullptr,QEvent::DeferredDelete);
+    }
     struct Capture { Capture() { ++captures; } ~Capture() { --captures; } };
     class VoidPainterRoot: public CPPUI::Qt::QtView {
         public:
@@ -213,6 +251,7 @@ int main(int argc, char ** argv) {
     QApplication app(argc, argv);
     try {
         drawingAndImages();
+        pointerInput();
         nativeLifetime(app);
         require(captures == 0, "root teardown retained a paint capture");
     } catch(const std::exception & error) {

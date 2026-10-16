@@ -20,7 +20,7 @@ namespace {
         std::weak_ptr<int> capture;
         std::string seen;
         std::string placeholder = "Enter text";
-        bool setPlaceholder = true, setEnabled = true;
+        bool setPlaceholder = true, setEnabled = true, masked = false;
         CPPUI::State<bool> enabled{true};
         void content() override {
             for(auto window: CPPUI::Window()) for(auto column: CPPUI::VBox()) {
@@ -45,7 +45,9 @@ namespace {
                             auto invoke = onDraft; draft = value; if(invoke) invoke();
                         });
                     const auto current = version;
-                    auto & field = withDraft ? CPPUI::TextField(binding, edit) : CPPUI::TextField(binding);
+                    auto & field = masked
+                        ? (withDraft ? CPPUI::MaskedField(binding, edit) : CPPUI::MaskedField(binding))
+                        : (withDraft ? CPPUI::TextField(binding, edit) : CPPUI::TextField(binding));
                     if(setPlaceholder) field.placeholder(std::string(placeholder));
                     field.input([this, current]() {
                         inputs += current; auto invoke = onInput; if(invoke) invoke();
@@ -81,9 +83,10 @@ int main() {
     auto group = lv_group_create(); lv_group_set_default(group);
     int result = 0;
     try {
-        {
-            Root root; root.redraw(); settle();
+        for(bool masked: {false, true}) {
+            Root root; root.masked = masked; root.redraw(); settle();
             auto editor = root.editor();
+            require(lv_textarea_get_password_mode(editor) == masked, "wrong masking mode");
             require(std::string(lv_textarea_get_placeholder_text(editor)) == "Enter text", "TextField lost its placeholder");
             auto button = root.button();
             for(int i = 0; i < 4; ++i) {

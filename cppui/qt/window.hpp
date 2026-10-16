@@ -2,6 +2,7 @@
 #define CPPUI_QT_WINDOW
 
 #include "base.hpp"
+#include "../application_title.hpp"
 #include "menu.hpp"
 #include "toolbar.hpp"
 #include "../optional.hpp"
@@ -54,7 +55,8 @@ namespace CPPUI {
                 const bool creating = !prev || !prev->ui;
                 ui = creating ? new WindowWidget() : prev->ui;
                 if(dimensions && (creating || !prev->dimensions || *dimensions != *prev->dimensions)) ui->resize(*dimensions);
-                if(caption) ui->setWindowTitle(QString::fromStdString(*caption));
+                auto title = windowTitle(this, caption);
+                if(title) ui->setWindowTitle(QString::fromStdString(*title));
                 if(iconPath) ui->setWindowIcon(QIcon(QString::fromStdString(*iconPath)));
                 if(creating) {
                     if(initialMaximized) windowFlag(ui, ::Qt::WindowMaximized, *initialMaximized);

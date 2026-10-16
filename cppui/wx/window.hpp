@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_WINDOW
 #define CPPUI_WX_WINDOW
 #include "base.hpp"
+#include "../application_title.hpp"
 #include "menu.hpp"
 namespace CPPUI { namespace Wx {
     class Window: public SingleChild {
@@ -29,7 +30,8 @@ namespace CPPUI { namespace Wx {
                 auto box = new wxBoxSizer(wxVERTICAL); box->Add(panel, 1, wxEXPAND); ui->SetSizer(box);
             }
             auto frame = static_cast<wxFrame *>(ui);
-            if(caption) frame->SetTitle(wxString::FromUTF8(*caption));
+            auto title = windowTitle(this, caption);
+            if(title) frame->SetTitle(wxString::FromUTF8(*title));
             if(iconPath && !iconPath->empty()) { wxIcon icon; if(icon.LoadFile(wxString::FromUTF8(*iconPath))) frame->SetIcon(icon); }
             if(dimensions && (!prev || (!prev->dimensions || *prev->dimensions != *dimensions))) frame->SetSize(*dimensions);
             if(!prev) {

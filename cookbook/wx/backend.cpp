@@ -23,6 +23,8 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "checkbox") {
                 page.render = checkbox;
                 page.remaining = "";
+            } else if(std::string(page.key) == "heavycanvas") {
+                page.render = heavycanvas; page.remaining = "";
             } else if(std::string(page.key) == "canvas") {
                 page.render = canvas;
                 page.remaining = "";
@@ -47,6 +49,8 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "radiobutton") {
                 page.render = radiobutton;
                 page.remaining = "";
+            } else if(std::string(page.key) == "maskedfield") {
+                page.render = maskedfield; page.remaining = "";
             } else if(std::string(page.key) == "textfield") {
                 page.render = textfield;
                 page.remaining = "String models; dynamic numeric conversion and typed input/change payloads pending";

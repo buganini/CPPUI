@@ -24,6 +24,20 @@
    fun:pango_language_from_string
    fun:pango_language_get_default
 }
+# Pango 1.57 also interns a 27-byte language record from its Cairo shaping
+# path. The unchanged native-only baseline reproduces this report.
+{
+   wxgtk-pangocairo-shaping-language
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   fun:g_malloc0
+   fun:pango_language_from_string
+   obj:*/libpangocairo-1.0.so.*
+   obj:*/libpangocairo-1.0.so.*
+   obj:*/libpango-1.0.so.*
+   obj:*/libharfbuzz.so.*
+}
 {
    wxgtk-pango-font-cache
    Memcheck:Leak

@@ -56,11 +56,14 @@ public:
     CPPUI::State<bool> enabled{true};
     CPPUI::State<int> index{0};
     CPPUI::State<std::string> selected{std::string("one")}, text{std::string()}, draft{std::string()};
-    bool setEnabled=true, setPlaceholder=true;
+    bool setEnabled=true, setPlaceholder=true, masked=false;
     std::string placeholder="Enter text";
+    CPPUI::OptionalText windowCaption;
     int inputs=0, changes=0, comboChanges=0;
     void content() override {
-        for(auto w: CPPUI::Window().size(400,300)) for(auto v: CPPUI::VBox()) {
+        auto & window=CPPUI::Window().size(400,300);
+        if(windowCaption)window.title(*windowCaption);
+        for(auto w: window) for(auto v: CPPUI::VBox()) {
             auto & button=CPPUI::Button("Run");
             if(setEnabled) button.enabled(enabled);
             button.id("button");
@@ -71,17 +74,26 @@ public:
                     CPPUI::ComboBoxItem("One","one"); CPPUI::ComboBoxItem("Two","two");
                 }
             }
-            auto & field=CPPUI::TextField(text,draft);
+            auto & field=masked ? CPPUI::MaskedField(text,draft) : CPPUI::TextField(text,draft);
             if(setPlaceholder) field.placeholder(std::string(placeholder));
             field.input([this](){++inputs;}).change([this](){++changes;}).id("field");
         }
     }
 };
-static void options(int argc,char **argv) {
-    OptionsRoot root(argc,argv);root.sync();pump();
+static void options(int argc,char **argv,bool masked) {
+    OptionsRoot root(argc,argv);root.masked=masked;root.sync();pump();
+    root.title("Application title");
+    auto frame=static_cast<wxFrame *>(root.children->front()->outer());
+    for(int i=0;i<4;++i) {
+        root.windowCaption=i==1 ? CPPUI::OptionalText("Document") : i==2 ? CPPUI::OptionalText("") : CPPUI::OptionalText();
+        root.sync();pump();
+        require(root.children->front()->outer()==frame && frame->GetTitle()==wxString::FromUTF8(root.windowCaption.valueOr("Application title"))
+            && wxTheApp->GetAppDisplayName()=="Application title", "application title inheritance/explicit empty override failed");
+    }
     auto button=ui<wxButton>(root,"button");
     auto editable=ui<wxComboBox>(root,"editable"), readonly=ui<wxComboBox>(root,"readonly");
     auto field=ui<wxTextCtrl>(root,"field");
+    require(bool(field->GetWindowStyleFlag() & wxTE_PASSWORD)==masked, "wrong masking mode");
     require(button->IsEnabled() && editable->IsEnabled() && readonly->IsEnabled()
         && field->GetHint()=="Enter text" && field->GetValue().empty() && root.inputs==0, "initial optional properties were not applied silently");
     for(int i=0;i<4;++i) {
@@ -138,7 +150,7 @@ public:
             auto & field=CPPUI::TextField(text).id("column-field");
             if(explicitSize) field.layout(160,44);
             for(auto row: CPPUI::HBox()) {
-                CPPUI::Label("Field");
+                CPPUI::Label("Field").id("row-label");
                 CPPUI::TextField(text).id("row-field");
             }
             CPPUI::Spacer();
@@ -154,6 +166,9 @@ static void textFieldSizing(int argc,char **argv) {
         require(field->GetSize().GetWidth()>field->GetBestSize().GetWidth(), "TextField did not expand horizontally");
         require(field->GetSize().GetHeight()==field->GetBestSize().GetHeight(), "TextField lost its native height");
     }
+    auto label=ui<wxStaticText>(root,"row-label");
+    require(std::abs((label->GetPosition().y*2+label->GetSize().y)-(row->GetPosition().y*2+row->GetSize().y))<=2,
+        "HBox did not center compact children vertically");
     const auto columnSize=column->GetSize(), rowSize=row->GetSize();
     root.width=640;root.sync();pump();
     require(ui<wxTextCtrl>(root,"column-field")==column && ui<wxTextCtrl>(root,"row-field")==row,
@@ -224,6 +239,7 @@ int main(int argc,char **argv) {
         root.show=false;root.sync();pump();root.redraw();
         htmlSizing(argc,argv);
         textFieldSizing(argc,argv);
-        options(argc,argv);
+        options(argc,argv,false);
+        options(argc,argv,true);
     } catch(const std::exception & e) {std::cerr<<e.what()<<'\n';return 1;}
 }

@@ -69,9 +69,12 @@ int main(int argc, char ** argv) {
             require(a->GetParent() == root.window()->panel, "controls have incorrect parent");
             auto & mount = root.box()->mounts.at(0);
             require(mount.item->GetProportion() == 2 && mount.padding[0]->GetMinSize().y == 1 && mount.padding[3]->GetMinSize().x == 4, "padding/weight ignored");
+            require(static_cast<CPPUI::Wx::Widget *>(root.box()->children->at(0))->native->backgroundCustomized, "custom background was not tracked");
+            require(!root.window()->native->backgroundCustomized, "default window background was customized");
             require(a->GetForegroundColour() == wxColour(0,0,0), "explicit black style ignored");
             root.order = {"c", "a"}; root.generation = 3; root.styled = false; root.sync(); pump();
             require(root.button(0) == c.get() && root.button(1) == a.get() && !b, "keyed reorder/removal lost native identity");
+            require(!static_cast<CPPUI::Wx::Widget *>(root.box()->children->at(0))->native->backgroundCustomized, "omitted custom background was not reset");
             require(a->GetFont() == originalFont && a->GetMinSize().x == -1, "omitted style/size did not reset");
             require(root.box()->mounts[0].item->GetProportion() == 0, "omitted weight did not reset");
             click(a); require(root.clicks == 3, "callback was duplicated or stale");

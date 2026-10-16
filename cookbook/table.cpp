@@ -14,6 +14,7 @@ namespace Cookbook {
             CPPUI::Label("B1: " + static_cast<std::string>(model.tableB1));
             CPPUI::Label("Sides: " + std::to_string(static_cast<int>(model.tableSides)));
             CPPUI::Label("Direction: " + static_cast<std::string>(model.tableDirection));
+            CPPUI::Label("Price: $" + static_cast<std::string>(model.tablePrice) + " USD");
             for(auto table: CPPUI::Table().columnHeader({"Col 1", "Col 2", "Col 3", "Choice"})
                     .rowHeader({"Row 1", "Row 2", "Row 3"}).id("example-table")) {
                 for(auto row: CPPUI::TableNode()) {
@@ -27,6 +28,10 @@ namespace Cookbook {
                     readonlyCell("B2"); readonlyCell("B3");
                     CPPUI::TableNode(model.tableDirection).choices(std::vector<std::pair<std::string, std::string>>{
                         {"CW", "Clockwise"}, {"CCW", "Counterclockwise"}});
+                }
+                for(auto row: CPPUI::TableNode()) {
+                    CPPUI::TableNode(model.tablePrice).prefix("Price: $").suffix(" USD").placeholder("Enter price");
+                    CPPUI::TableNode(""); CPPUI::TableNode(""); CPPUI::TableNode("");
                 }
             }
         }

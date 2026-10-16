@@ -8,6 +8,15 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
+Native additions are synced through PUI `8a8ef99` (2026-10-16); Web/Pyodide
+changes are excluded from this sync. MaskedField runs on Qt, wx and LVGL with
+single/buffered passwords and length labels. Qt/wx also include the airport
+autocomplete ComboBox, decorated Table price editor and HeavyCanvas. HeavyCanvas
+offers nine presets from 1,000 to 30,000 synthetic sessions, indicator panels,
+hover details, wheel zoom, regeneration and zoom reset. Its LVGL port still needs
+ComboBox and Canvas input callbacks. This does not change the separately listed
+gaps in other recipes.
+
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,
 Text and Tab share their recipe implementations across all three backends.
 Views also shares internal and bound selection examples across all backends.
@@ -175,6 +184,9 @@ used) and deinitializing LVGL.
 ## Tests and memory checks
 
 `CPPUI_COOKBOOK_TRACE=1` prints per-page smoke progress for diagnostics.
+The new native cases exercise masked drafts/commit/clear, decorated price cells,
+raw autocomplete codes and HeavyCanvas zoom/reset/preset changes up to 30,000
+sessions. wx's gallery timeout allows for the larger chart under sanitizers.
 `--smoke` clicks every sidebar page three times, checks the two-column geometry,
 scrollable list, Qt/wx menus, native label contents, bound controls, text editing,
 scroll anchoring, and A/B, progress and Canvas rotation buttons where supported.

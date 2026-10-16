@@ -24,6 +24,26 @@ namespace Cookbook {
                 }
                 CPPUI::Spacer();
             }
+            CPPUI::Divider();
+            CPPUI::Label("Autocomplete: type 'Tai' or 'Tok', then choose a suggestion.");
+            for(auto row: CPPUI::HBox()) {
+                CPPUI::Label("Destination");
+                for(auto combo: CPPUI::ComboBox(true, model.destination).id("combo-autocomplete")) {
+                    CPPUI::ComboBoxItem("Amsterdam (AMS)", "AMS");
+                    CPPUI::ComboBoxItem("London Heathrow (LHR)", "LHR");
+                    CPPUI::ComboBoxItem("Paris Charles de Gaulle (CDG)", "CDG");
+                    CPPUI::ComboBoxItem("Seoul Incheon (ICN)", "ICN");
+                    CPPUI::ComboBoxItem("Singapore Changi (SIN)", "SIN");
+                    CPPUI::ComboBoxItem("Taipei Taoyuan (TPE)", "TPE");
+                    CPPUI::ComboBoxItem("Taipei Songshan (TSA)", "TSA");
+                    CPPUI::ComboBoxItem("Tokyo Haneda (HND)", "HND");
+                    CPPUI::ComboBoxItem("Tokyo Narita (NRT)", "NRT");
+                }
+                CPPUI::Button("Clear autocomplete").click([&model]() { model.destination = std::string(); });
+                CPPUI::Spacer();
+            }
+            const auto destination = static_cast<std::string>(model.destination);
+            CPPUI::Label("Autocomplete value: " + (destination.empty() ? "(empty)" : destination));
             CPPUI::Spacer();
         }
     }

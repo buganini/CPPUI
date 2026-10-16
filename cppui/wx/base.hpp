@@ -81,6 +81,7 @@ namespace CPPUI { namespace Wx {
         wxSizer * sizer = nullptr;
         wxFont font;
         wxColour foreground, background;
+        bool backgroundCustomized = false;
         std::function<void()> command, input, finish, resize;
         void sized(wxSizeEvent & event) {
             auto keep=shared_from_this();auto callback=resize;event.Skip();
@@ -203,9 +204,14 @@ namespace CPPUI { namespace Wx {
             if(style_fontweight) font.SetWeight(*style_fontweight >= 600 ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
             if(ui->GetFont() != font) ui->SetFont(font);
             auto foreground = style_color ? colour(*style_color) : native->foreground;
-            auto background = style_bgcolor ? colour(*style_bgcolor) : native->background;
             if(ui->GetForegroundColour() != foreground) ui->SetForegroundColour(foreground);
-            if(ui->GetBackgroundColour() != background) ui->SetBackgroundColour(background);
+            if(style_bgcolor) {
+                ui->SetBackgroundColour(colour(*style_bgcolor));
+                native->backgroundCustomized = true;
+            } else if(native->backgroundCustomized) {
+                ui->SetBackgroundColour(wxNullColour);
+                native->backgroundCustomized = false;
+            }
             ui->SetMinSize(minSize());
             updateEvents();
         }
@@ -325,7 +331,7 @@ namespace CPPUI { namespace Wx {
                 auto child = mount.node;
                 const int main = child->expansion(horizontal), cross = child->expansion(!horizontal);
                 const int maximum = horizontal ? maxX : maxY;
-                mount.item->SetFlag(cross ? wxEXPAND : 0);
+                mount.item->SetFlag(cross ? int(wxEXPAND) : int(horizontal ? wxALIGN_CENTER_VERTICAL : wxALIGN_LEFT));
                 mount.item->SetProportion(child->layout_weight.valueOr(main == maximum && maximum > 0 ? 1 : 0));
             }
         }
