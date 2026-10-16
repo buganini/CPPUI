@@ -994,25 +994,35 @@ deletion, including when an ancestor owns that deletion. Run callbacks on the
 UI thread without nested event loops or display/runtime teardown.
 Use `.layout(width, height).style({}, backgroundColor)` for the canvas size and
 background; the shared cookbook uses `.layout(100, 100).style({}, 0x555555)`.
-Qt and wx provide `.mousemove(callback)`, `.mouseleave(callback)` and
+Qt, wx and LVGL provide `.mousemove(callback)`, `.mouseleave(callback)` and
 `.wheel(callback)`. Move/wheel callbacks receive `const CanvasPointerEvent&`
 from `cppui/canvas_input.hpp`; leave takes no arguments. `x`/`y` are local logical
 pixels. `angleX`/`angleY` preserve native wheel rotation units (normally 120 per
-notch); Qt also supplies native `pixelX`/`pixelY` when available, while wx leaves
+notch); Qt also supplies native `pixelX`/`pixelY` when available, while wx and LVGL leave
 pixel deltas zero. Positive vertical deltas point up. These two delta units are
 separate; consumers may use direction when exact distance is unnecessary.
 Callbacks are replaced on redraw, omitted callbacks are cleared, and dispatch
 copies the callable before invocation so it may redraw/remove its own Canvas.
 Exceptions are reported to stderr. A wheel handler consumes the event; without
-one, native scrolling can handle it. LVGL input callbacks, other pointer events,
-modifiers and drag/drop remain to port.
+one, native scrolling can handle it. Other pointer events, modifiers and drag/drop
+remain to port.
+
+LVGL input uses native hit testing, including clipping and overlays. SDL2 pointer
+wheel samples and X11 encoder samples map one vertical step to 120 angle units;
+window exit clears hover. The cookbook installs the LVGL 9.6 input bridge through
+`cmake/CPPUILVGLInput.cmake`. Other hosts must include that file and call
+`cppui_lvgl_input_bridge(lvgl "${LVGL_SOURCE_DIR}")`
+after creating their LVGL target. It builds corrected source copies without
+changing the SDK checkout or replacing driver callbacks. Create input devices
+before mounting Canvas, or redraw after adding devices. Input callbacks run on
+the UI thread; they may redraw/remove Canvas, but must not destroy the input
+device, display or LVGL runtime during native input dispatch.
 
 The Qt/wx HeavyCanvas cookbook uses these callbacks for hover inspection and
 cursor-anchored wheel zoom over 1,000–30,000 synthetic sessions. It draws OHLCV,
 Bollinger bands, K/D and RSI and provides regenerate/reset controls. Data is
 repeatable for a seed within the C++ implementation; its random sequence is not
-identical to Python's. LVGL needs ComboBox and Canvas input before this recipe
-can be enabled.
+identical to Python's. LVGL still needs ComboBox before this recipe can be enabled.
 **Won't do — Shapely and Matplotlib:** Python-only `Canvas.drawShapely` and
 `MatplotlibCanvas` integrations are excluded from CPPUI and its cookbook.
 

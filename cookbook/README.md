@@ -14,7 +14,7 @@ single/buffered passwords and length labels. Qt/wx also include the airport
 autocomplete ComboBox, decorated Table price editor and HeavyCanvas. HeavyCanvas
 offers nine presets from 1,000 to 30,000 synthetic sessions, indicator panels,
 hover details, wheel zoom, regeneration and zoom reset. Its LVGL port still needs
-ComboBox and Canvas input callbacks. This does not change the separately listed
+the ComboBox wrapper. This does not change the separately listed
 gaps in other recipes.
 
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,
@@ -36,7 +36,7 @@ factories warn at compile time; formatting and interactive selection remain
 unimplemented, so the page is partial on SDL2 and X11.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
-resources and input callbacks remain pending. See the [Canvas reference](../REFERENCE.md#canvas)
+resources remain pending. Move, leave and wheel callbacks work on SDL2 and X11. See the [Canvas reference](../REFERENCE.md#canvas)
 for font/color differences and callback ownership.
 The gallery preserves the reference's scrollable **Example** sidebar and expanding
 **Result** pane. Qt and wx also keep the nested example menus and initially maximized

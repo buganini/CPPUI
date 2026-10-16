@@ -1,0 +1,48 @@
+# Compile corrected copies; never modify the application's LVGL SDK checkout.
+function(_cppui_lvgl_input_source target source_dir relative old new)
+    get_filename_component(name "${relative}" NAME)
+    get_target_property(sources ${target} SOURCES)
+    set(source "")
+    foreach(candidate IN LISTS sources)
+        get_filename_component(candidate_name "${candidate}" NAME)
+        if(candidate_name STREQUAL name)
+            set(source "${candidate}")
+        endif()
+    endforeach()
+    if(NOT source)
+        message(FATAL_ERROR "Cannot find LVGL source ${name} for the CPPUI input bridge")
+    endif()
+    file(READ "${source}" code)
+    string(FIND "${code}" "${old}" position)
+    if(position EQUAL -1)
+        message(FATAL_ERROR "CPPUI input bridge expects LVGL 9.6; review ${name} before updating the SDK")
+    endif()
+    string(REPLACE "${old}" "${new}" code "${code}")
+    set(patched "${CMAKE_CURRENT_BINARY_DIR}/cppui_${name}")
+    file(WRITE "${patched}" "${code}")
+    list(REMOVE_ITEM sources "${source}")
+    list(APPEND sources "${patched}")
+    set_property(TARGET ${target} PROPERTY SOURCES "${sources}")
+    get_filename_component(include_dir "${source_dir}/${relative}" DIRECTORY)
+    target_include_directories(${target} PRIVATE "${include_dir}")
+endfunction()
+
+function(cppui_lvgl_input_bridge target source_dir)
+    get_target_property(installed ${target} CPPUI_INPUT_BRIDGE)
+    if(installed)
+        return()
+    endif()
+    # Publish every raw sample before LVGL consumes wheel steps. This preserves
+    # SDL's read-callback identity and X11's separate pointer/encoder devices.
+    set(site "        indev->read_cb(indev, data);")
+    _cppui_lvgl_input_source(${target} "${source_dir}" src/indev/lv_indev.c
+        "${site}" "${site}\n        lv_indev_send_event(indev, LV_EVENT_REFRESH, data);")
+    set(site "                indev_dev->left_button_down = false;\n            }\n            break;\n        case SDL_MOUSEBUTTONUP:")
+    _cppui_lvgl_input_source(${target} "${source_dir}" src/drivers/sdl/lv_sdl_mouse.c
+        "${site}" "                indev_dev->left_button_down = false;\n                lv_indev_send_event(indev, LV_EVENT_LEAVE, NULL);\n            } else if(event->window.event == SDL_WINDOWEVENT_ENTER) {\n                lv_indev_send_event(indev, LV_EVENT_HOVER_OVER, NULL);\n            }\n            break;\n        case SDL_MOUSEBUTTONUP:")
+    _cppui_lvgl_input_source(${target} "${source_dir}" src/drivers/x11/lv_x11_input.c
+        "            case MotionNotify:" "            case LeaveNotify:\n                lv_indev_send_event(xd->mousepointer, LV_EVENT_LEAVE, NULL);\n                break;\n            case EnterNotify:\n                lv_indev_send_event(xd->mousepointer, LV_EVENT_HOVER_OVER, NULL);\n                break;\n            case MotionNotify:")
+    _cppui_lvgl_input_source(${target} "${source_dir}" src/drivers/x11/lv_x11_display.c
+        "PointerMotionMask | ButtonPressMask" "EnterWindowMask | LeaveWindowMask | PointerMotionMask | ButtonPressMask")
+    set_property(TARGET ${target} PROPERTY CPPUI_INPUT_BRIDGE TRUE)
+endfunction()

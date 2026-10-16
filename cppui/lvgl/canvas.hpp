@@ -1,6 +1,8 @@
 #ifndef CPPUI_LVGL_CANVAS
 #define CPPUI_LVGL_CANVAS
 
+#include "../canvas_input.hpp"
+
 #include "base.hpp"
 #include <algorithm>
 #include <cmath>
@@ -279,6 +281,11 @@ namespace CPPUI {
             public:
             using Painter = std::function<bool(CanvasPainter &)>;
             Painter painter;
+            std::function<void(const CanvasPointerEvent &)> moved, wheeled;
+            std::function<void()> left;
+            Canvas & mousemove(std::function<void(const CanvasPointerEvent &)> callback) { moved=std::move(callback); return *this; }
+            Canvas & mouseleave(std::function<void()> callback) { left=std::move(callback); return *this; }
+            Canvas & wheel(std::function<void(const CanvasPointerEvent &)> callback) { wheeled=std::move(callback); return *this; }
             private:
             struct Native: std::enable_shared_from_this<Native> {
                 lv_obj_t * object = nullptr;
@@ -286,11 +293,114 @@ namespace CPPUI {
                 lv_timer_t * timer = nullptr;
                 detail::CanvasBuffer buffer;
                 Painter painter;
+                std::function<void(const CanvasPointerEvent &)> moved, wheeled;
+                std::function<void()> left;
+                struct Pointer {
+                    lv_indev_t * device;
+                    bool inside = false, known = false, windowInside = true;
+                    lv_point_t point{0,0};
+                    explicit Pointer(lv_indev_t * device): device(device) {}
+                };
+                std::vector<Pointer> inputs;
                 std::uint64_t generation = 0;
 
                 ~Native() { stop(); }
+                void detachInputs() {
+                    for(const auto & input: inputs)
+                        lv_indev_remove_event_cb_with_user_data(input.device, inputEvent, this);
+                    inputs.clear();
+                }
+                void attachInputs() {
+                    if(!moved && !wheeled && !left) { detachInputs(); return; }
+                    for(auto device=lv_indev_get_next(nullptr); device; device=lv_indev_get_next(device)) {
+                        const auto type=lv_indev_get_type(device);
+                        if((type!=LV_INDEV_TYPE_POINTER && type!=LV_INDEV_TYPE_ENCODER)
+                           || lv_indev_get_display(device)!=lv_obj_get_display(object)) continue;
+                        bool found=false;
+                        for(const auto & input:inputs) if(input.device==device) found=true;
+                        if(!found) {
+                            inputs.emplace_back(device);
+                            lv_indev_add_event_cb(device, inputEvent, LV_EVENT_ALL, this);
+                        }
+                    }
+                }
+                static void inputEvent(lv_event_t * event) {
+                    auto self=static_cast<Native *>(lv_event_get_user_data(event))->shared_from_this();
+                    auto device=static_cast<lv_indev_t *>(lv_event_get_target(event));
+                    if(lv_event_get_code(event)==LV_EVENT_DELETE) {
+                        self->inputs.erase(std::remove_if(self->inputs.begin(),self->inputs.end(),
+                            [device](const Pointer & input){return input.device==device;}),self->inputs.end());
+                        return;
+                    }
+                    if(lv_event_get_code(event)==LV_EVENT_LEAVE) {
+                        bool leave=false;
+                        for(auto & input:self->inputs) if(input.device==device) {
+                            leave=input.inside;input.inside=false;input.windowInside=false;
+                        }
+                        auto invoke=self->left;
+                        try { if(leave && invoke) invoke(); }
+                        catch(...) { std::fprintf(stderr,"CPPUI LVGL Canvas leave failed\n"); }
+                        return;
+                    }
+                    if(lv_event_get_code(event)==LV_EVENT_HOVER_OVER && !lv_event_get_param(event)) {
+                        for(auto & input:self->inputs) if(input.device==device) { input.windowInside=true;input.known=false; }
+                        return;
+                    }
+                    if(lv_event_get_code(event)!=LV_EVENT_REFRESH || !self->object) return;
+                    auto data=static_cast<lv_indev_data_t *>(lv_event_get_param(event));
+                    if(!data) return;
+                    try { self->input(device,*data); }
+                    catch(const std::exception & error) { std::fprintf(stderr,"CPPUI LVGL Canvas input failed: %s\n",error.what()); }
+                    catch(...) { std::fprintf(stderr,"CPPUI LVGL Canvas input failed: unknown exception\n"); }
+                }
+                void input(lv_indev_t * device, lv_indev_data_t & data) {
+                    const bool pointer=lv_indev_get_type(device)==LV_INDEV_TYPE_POINTER;
+                    auto display=lv_indev_get_display(device);
+                    lv_point_t point=data.point;
+                    if(pointer) {
+                        for(const auto & input:inputs) if(input.device==device && !input.windowInside) return;
+                        if(lv_indev_get_ccw(device)) lv_display_rotate_point_ccw(display,&point);
+                        else lv_display_rotate_point(display,&point);
+                    } else {
+                        // X11 exposes its mouse wheel as a separate encoder.
+                        if(!data.enc_diff) return;
+                        lv_indev_t * mouse=nullptr;
+                        for(const auto & input:inputs)
+                            if(lv_indev_get_type(input.device)==LV_INDEV_TYPE_POINTER && input.windowInside) { mouse=input.device; break; }
+                        if(!mouse) return;
+                        lv_indev_get_point(mouse,&point);
+                    }
+                    lv_obj_t * hit=nullptr;
+                    for(auto layer:{lv_display_get_layer_sys(display),lv_display_get_layer_top(display),
+                                    lv_display_get_screen_active(display),lv_display_get_layer_bottom(display)}) {
+                        if(!layer) continue;
+                        lv_obj_update_layout(layer);
+                        hit=lv_indev_search_obj(layer,&point);
+                        if(hit) break;
+                    }
+                    if(!object) return;
+                    const bool inside=hit==object && !lv_obj_has_state(object,LV_STATE_DISABLED);
+                    bool move=false,leave=false;
+                    if(pointer) for(auto & input:inputs) if(input.device==device) {
+                        move=inside && (!input.inside || !input.known || point.x!=input.point.x || point.y!=input.point.y);
+                        leave=input.inside && !inside;
+                        input.inside=inside; input.known=true; input.point=point;
+                        break;
+                    }
+                    lv_area_t area; lv_obj_get_coords(object,&area);
+                    CanvasPointerEvent value; value.x=point.x-area.x1; value.y=point.y-area.y1;
+                    auto motion=moved; auto exit=left; auto wheel=wheeled;
+                    value.angleY=-120.0*data.enc_diff;
+                    // Consume before application code can redraw or remove us.
+                    const bool rotate=inside && data.enc_diff && bool(wheel);
+                    if(rotate) data.enc_diff=0;
+                    if(leave && exit) exit();
+                    if(owner && object && move && motion) motion(value);
+                    if(owner && object && rotate && wheel) wheel(value);
+                }
                 void stop() {
                     painter = {};
+                    moved={}; wheeled={}; left={}; detachInputs();
                     ++generation;
                     if(timer) { lv_timer_delete(timer); timer = nullptr; }
                 }
@@ -358,6 +468,9 @@ namespace CPPUI {
                 ui = native->object;
                 native->owner = this;
                 native->painter = painter;
+                native->moved=moved; native->wheeled=wheeled; native->left=left;
+                lv_obj_set_clickable(native->object, bool(moved) || bool(wheeled) || bool(left) || bool(onClicked));
+                native->attachInputs();
                 native->request();
             }
             void destroy(bool direct) override {

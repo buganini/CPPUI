@@ -51,7 +51,8 @@ The native PUI delta audit through `8a8ef99` (2026-10-16) adds MaskedField
 (`139d070`) through native textarea password mode. It shares TextField's string
 model/draft, placeholder, callback and lifetime behavior. Both SDL2/X11 enable
 the shared password cookbook. HeavyCanvas remains not yet ported here because
-ComboBox and Canvas pointer callbacks are missing; Qt/wx implement the recipe.
+the ComboBox wrapper is missing; Qt/wx implement the recipe. Canvas now handles
+move, leave and wheel input on SDL2/X11 through the bundled LVGL input bridge.
 Application display-name/title fallback and native Table decorations belong to
 the desktop wrappers; LVGL host titles/Table remain tracked below. Web/Pyodide
 changes are excluded at the user's request.
@@ -68,7 +69,7 @@ changes are excluded at the user's request.
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
 | Views | Retained native pages, internal/optional bound selection, keyed reuse and shared cookbook | Real-display input/layout checks remain part of general validation |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
-| Timeline/Canvas/resources | Cancellable TimelineView timers; basic Canvas primitives, text and native-resolution buffers | Add image resources, font/density capabilities and deferred input support (6) |
+| Timeline/Canvas/resources | Cancellable TimelineView timers; Canvas primitives, text, native-resolution buffers and move/leave/wheel callbacks | Add image resources, font/density capabilities and remaining input events (6) |
 | Table/Tree/adapters/interop | Shared typed adapter interfaces; LVGL wrappers not yet ported | Map the public interfaces to LVGL models or custom widgets and define interop borrowing (6) |
 | Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand component/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (2–6) |
 
@@ -203,7 +204,8 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
 - [ ] Define Canvas font loading and display-density scaling. Basic text scales
   the object's bitmap font to a pixel line height; Qt uses font points. Verify
   device rendering/antialiasing expectations before promising equivalent output.
-  Pointer events remain tied to the explicitly deferred shared input contract.
+  Move/leave/wheel follow the shared Canvas input API; other pointer events
+  remain tied to the deferred shared input contract.
 - [ ] Implement Table/Tree against the public typed adapter interfaces;
   investigate custom tree behavior separately from LVGL's table widget. Preserve
   adapter/data ownership; arbitrary mixed/custom values remain a shared gap.

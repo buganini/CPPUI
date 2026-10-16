@@ -1,4 +1,5 @@
 2026-10-16
+    * LVGL Canvas: add move/leave/wheel callbacks on SDL2/X11, native hit testing and input teardown regressions; compile the LVGL input bridge without changing the SDK checkout
     * Native PUI sync through 8a8ef99; exclude Web/Pyodide changes from this update
     * Controls: add MaskedField for Qt/wx/LVGL, Application title fallback and Table prefix/suffix/placeholder options for Qt/wx
     * wx: align compact box children with PUI and preserve native backgrounds until explicitly customized; reset removed colors through native inheritance
