@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <stdexcept>
+#include <chrono>
+#include <thread>
 
 namespace Cookbook {
     class Gallery: public CPPUI::Application {
@@ -122,6 +124,17 @@ namespace Cookbook {
                     require(Backend::pageVisible(gallery, recipes()[i].key), "selected sidebar link is clipped or lost its scroll position");
                     Backend::checkLayout(gallery);
                     if(std::string(recipes()[i].key) == "refs") {
+                        const int before=gallery.model.postedCallbacks;
+                        const auto start=std::chrono::steady_clock::now();
+                        require(click(gallery,"Increment after 500 ms"),"Delayed poster button missing");
+                        require(static_cast<int>(gallery.model.postedCallbacks)==before,"Delayed cookbook callback ran synchronously");
+                        while(static_cast<int>(gallery.model.postedCallbacks)==before &&
+                              std::chrono::steady_clock::now()-start<std::chrono::seconds(3)) {
+                            Backend::settle();std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                        }
+                        require(static_cast<int>(gallery.model.postedCallbacks)==before+1 &&
+                                std::chrono::steady_clock::now()-start>=std::chrono::milliseconds(500),
+                                "Delayed cookbook callback failed or fired early");
                         require(click(gallery,"Select second"),"Refs selection button missing"); Backend::settle();
                         require(click(gallery,"Select first"),"Refs first button missing"); Backend::settle();
                     }
