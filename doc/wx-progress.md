@@ -1,5 +1,19 @@
 # wxWidgets alignment with PUI/wx
 
+Splitter follows PUI/wx `d3f0679`: arbitrary pane counts built from nested native
+two-pane splitters, widget/layout content, padding, both orientations and retained
+controls during keyed changes. Unchanged composition preserves sash positions;
+structural or orientation changes redistribute equally, as PUI does. Independent
+virtual-view redraws refresh the physical container. The shared Splitter recipe
+is enabled. See the [contract](../REFERENCE.md#splitter).
+
+Splitter verification (2026-10-18): build with `-j "$(nproc)"`, including C++11
+and independent-header checks; all 28 wx/core CTests and the standalone cookbook
+smoke test pass on GTK/Linux. The Splitter regression also passes the existing
+wx Valgrind configuration, covering native ownership, sash retention/resize,
+keyed reorder and editor drafts, independent views, external deletion and
+removal from a click callback. The rebuilt wx cookbook was launched.
+
 The latest follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
 and typed tab placement with the shared `Side` enum. Hidden content retains native
 state; callbacks run on the UI loop and stop executing after target removal. wx
@@ -143,9 +157,6 @@ separately. Root CMake: `-DCPPUI_BUILD_WX=ON`; tests require a display.
   choose and integrate a Markdown renderer/dependency. The shared Text cookbook
   page demonstrates plain multiline Text, Html and MarkDown's raw-source fallback.
   The fallback has a call-site compiler warning; header inclusion alone is quiet.
-- **Splitter:** not yet ported in CPPUI/wx. PUI `d3f0679` supplies nested native
-  two-pane splitters for arbitrary child counts. Port that implementation and
-  verify that sash positions survive keyed insertion/reordering.
 - **Modal:** the shared API opens application-modal content without blocking
   reconciliation. wxGTK's [ShowWindowModal fallback](https://github.com/wxWidgets/wxWidgets/blob/v3.2.9/src/common/dlgcmn.cpp#L450)
   calls blocking ShowModal. Choose a modeless dialog plus an application-wide

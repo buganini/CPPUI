@@ -119,10 +119,11 @@ Native wx controls require a display. Linux CI can use
 Add `-DCPPUI_VALGRIND_TESTS=ON` to a non-sanitized build for memory checks.
 The wx gallery memory test allows 300 seconds for three full navigation cycles.
 
-wx shares the controls, Grid, Stack, Scroll, Canvas, Image, Tab, Timeline, Dialog,
+wx shares the controls, Grid, Stack, Scroll, Splitter, Canvas, Image, Tab, Timeline, Dialog,
 Table/Tree and adapter recipes. The Text page needs a Markdown renderer;
-plain/HTML APIs are available separately. MDI, nonblocking Modal and multipane
-Splitter need native integration decisions. See the [wx plan](../doc/wx-progress.md).
+plain/HTML APIs are available separately. Splitter uses nested native two-pane
+controls for the same shared multipane recipe. MDI and nonblocking Modal need
+native integration decisions. See the [wx plan](../doc/wx-progress.md).
 Reference: [PUI/wx at 2e4f0eb](https://github.com/buganini/PUI/tree/2e4f0eb82996e271bb3f4bc1f7511ea8b4c966bd/PUI/wx).
 
 ## LVGL

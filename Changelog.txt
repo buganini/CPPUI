@@ -1,4 +1,5 @@
 2026-10-18
+    * wx Splitter: port PUI multipane/nested native splitters with sash retention, keyed pane/editor reuse, virtual-view updates and shared cookbook; fix pane descendant ownership and cleanup after external native deletion
     * LVGL Image: add cached owned PNG/baseline-JPEG sources, aspect-preserving sizing, weighted stretching, click/visibility and safe replacement/teardown; enable the shared SDL2/X11 windmill cookbook
     * LVGL Grid: add row/column spans, span-aware automatic sizing, equal allocated tracks, retained cells, margins and shared SDL2/X11 cookbook
     * LVGL Stack: add retained overlapping layers, native drawing/input order, automatic and allocated sizing, visibility, padding/margins and shared SDL2/X11 cookbook

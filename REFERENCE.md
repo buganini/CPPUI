@@ -15,7 +15,7 @@ are described in the component sections and backend plans.
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
 |[Scroll](#scroll)|QScrollArea|scrollable object (basic)|wxScrolledWindow|
-|[Splitter](#splitter)|QSplitter|—|—|
+|[Splitter](#splitter)|QSplitter|—|nested wxSplitterWindow|
 |[Label](#label)|QLabel|label|wxStaticText / read-only wxTextCtrl|
 |[Button](#button)|QPushButton|button|wxButton|
 |[TextField](#textfield)|QLineEdit|single-line lv_textarea|wxTextCtrl|
@@ -1171,6 +1171,19 @@ Redraw updates orientation while retaining the native splitter and its panes.
 Unchanged redraw preserves user-adjusted pane sizes. Keyed children can move,
 be inserted or removed, including flattened virtual subviews. Nested splitters
 are supported; removed panes follow the normal deferred-deletion lifecycle.
+
+For wx, include `cppui/wx/splitter.hpp` and use the same `Splitter(vertical = false)`
+scope. It follows PUI/wx's nested native two-pane splitters to support any number
+of children, including zero and one. Each child has a native pane panel; widgets,
+layouts and flattened virtual views are supported, with their padding and minimum
+size applied inside the pane. A hidden child hides its content but retains its pane.
+
+Unchanged composition preserves native sashes and user-adjusted positions.
+Keyed insertion/removal/reordering or orientation changes rebuild the native
+splitter chain and distribute space equally, matching PUI; retained panes and
+their controls keep identity and editor drafts. Native sash gravity shares later
+resize deltas across the panes. Independent virtual-view redraws also reconcile
+the physical container. Native MDI and nonblocking Modal remain separate wx work.
 
 ## wx controls
 
