@@ -1,6 +1,7 @@
 #include "backend.hpp"
 #include "recipes.hpp"
 
+#if !defined(CPPUI_COOKBOOK_LVGL)
 namespace Cookbook {
     namespace {
         std::string describe(const CPPUI::OptionalText & text) { return text ? "\"" + *text + "\"" : "None"; }
@@ -41,3 +42,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

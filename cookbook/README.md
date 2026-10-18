@@ -1,10 +1,19 @@
 # Shared C++ cookbook
 
-The main cookbook UI in `cookbook.cpp` and the recipes are shared by Qt, wxWidgets and LVGL. Each backend
-has its own include selection, startup, and native smoke-test helpers. Separate
-`qt`, `wx`, `lvgl_sdl2`, and `lvgl_x11` CMake projects select the toolkit and window
-driver. Recipe code has no backend conditionals. Each executable links exactly
-one toolkit. Qt corresponds to the Python reference's PySide6 backend.
+All cookbook C++ sources and headers live directly in `cookbook/` and are shared
+by Qt, wxWidgets and LVGL. Every executable compiles the same source list in
+`common.cmake`. Only CMake files remain in the backend directories.
+`backend.hpp` selects toolkit headers and exposes the common interface;
+`backend.cpp` holds recipe registration, window/menu setup and native smoke-test
+helpers. `main.cpp` contains shared startup and LVGL driver initialization.
+Qt corresponds to the Python reference's PySide6 backend.
+
+The separate `qt`, `wx`, `lvgl_sdl2` and `lvgl_x11` CMake projects define exactly
+one of `CPPUI_COOKBOOK_QT`, `CPPUI_COOKBOOK_WX` or `CPPUI_COOKBOOK_LVGL`.
+LVGL also selects exactly one of `CPPUI_LVGL_SDL2` and `CPPUI_LVGL_X11`.
+Preprocessor checks reject ambiguous selections. Conditional compilation in the
+shared sources handles native helpers, unsupported recipes and the extended Qt
+Tab example. Each executable links only its selected toolkit.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
@@ -40,8 +49,9 @@ LVGL Image uses the bundled PNG/baseline-JPEG decoders and preserves the windmil
 aspect ratio at its declared width. Canvas image resources remain separate work.
 Views also shares internal and bound selection examples across all backends.
 Its TextField and Change text button demonstrate retained local state.
-Qt also enables shared Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Image, MDI, Splitter, Modal and Dialog recipes through
-its source manifest. Checkbox's boolean, list and dictionary examples use
+Qt also enables shared Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Image,
+MDI, Splitter, Modal and Dialog recipes through the common registration table.
+Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. All backends have a
 partial TextField recipe with separate string model/draft bindings; dynamic
 numeric conversion and typed input/change payloads remain pending.
@@ -198,8 +208,10 @@ version-specific fixes.
 
 ### Shared startup and cleanup
 
-`cookbook/lvgl/` holds the common LVGL implementation. Both executables always
-create their selected native display and input devices. The configuration uses
+The LVGL branch of `cookbook/main.cpp` serves both desktop drivers, using
+`cookbook/lv_conf.h`; `cookbook/lvgl/` contains only CMake build helpers.
+Both executables create their selected native display and input devices when
+running the gallery; `--list` does not initialize a display. The configuration uses
 libc allocation so memory checkers can observe individual LVGL allocations.
 When the display is still open, application teardown preserves its active screen
 and releases its CPPUI content before `lv_deinit`. Closing the last X11 window

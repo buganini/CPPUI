@@ -366,10 +366,11 @@ and their cookbook recipes are excluded from CPPUI.
 
 ## Shared cookbook and verification
 
-Keep `cookbook/cookbook.cpp` and recipe sources shared. Select SDL2 or X11 in
-`cookbook/lvgl_sdl2/` or `cookbook/lvgl_x11/`, with shared LVGL sources, headers
-and build logic in `cookbook/lvgl/`; keep native APIs and conditional
-compilation out of recipe files. Preserve the Example sidebar, scrolling list,
+All cookbook source/header files live in `cookbook/`, with one source list for
+Qt, wx and both LVGL drivers. Select SDL2 or X11 through the CMake projects in
+`cookbook/lvgl_sdl2/` or `cookbook/lvgl_x11/`; `cookbook/lvgl/` contains only
+CMake helpers. Backend macros select toolkit headers, native helpers and
+supported recipes in the shared files. Preserve the cookbook sidebar, scrolling list,
 Result pane and recipe layouts. Only the reference's source-code pane is omitted;
 `--list` reports unfinished wrappers as `not ported` and enabled recipes with gaps
 as `partial`. Record any verified toolkit limitation separately in the docs.

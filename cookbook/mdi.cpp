@@ -1,6 +1,7 @@
 #include "backend.hpp"
 #include "recipes.hpp"
 
+#if defined(CPPUI_COOKBOOK_QT)
 namespace Cookbook {
     void mdi(Model &) {
         for(auto area: CPPUI::MdiArea()) {
@@ -15,3 +16,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

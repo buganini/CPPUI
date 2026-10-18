@@ -1,6 +1,7 @@
 #include "backend.hpp"
 #include "recipes.hpp"
 
+#if !defined(CPPUI_COOKBOOK_LVGL)
 namespace Cookbook {
     void splitter(Model &) {
         for(auto vertical: CPPUI::Splitter(true).id("example-splitter")) {
@@ -18,3 +19,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

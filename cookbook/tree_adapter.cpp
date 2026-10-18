@@ -1,6 +1,7 @@
 #include "backend.hpp"
 #include "recipes.hpp"
 
+#if !defined(CPPUI_COOKBOOK_LVGL)
 namespace Cookbook {
     namespace {
         class HierarchyAdapter: public CPPUI::BaseTreeAdapter<AdapterTreeNode> {
@@ -36,3 +37,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

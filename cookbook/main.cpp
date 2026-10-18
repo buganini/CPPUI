@@ -1,5 +1,4 @@
 #include "backend.hpp"
-#include "../recipes.hpp"
 #include <iostream>
 #if LV_USE_X11
 #include <X11/Xlib.h>
@@ -7,6 +6,7 @@
 #include <thread>
 #endif
 
+#if defined(CPPUI_COOKBOOK_LVGL)
 namespace {
 #if LV_USE_SDL
     lv_group_t * inputGroup = nullptr;
@@ -24,7 +24,10 @@ namespace {
     }
 }
 
+#endif
+
 int main(int argc, char ** argv) {
+#if defined(CPPUI_COOKBOOK_LVGL)
     for(int i = 1; i < argc; ++i) {
         if(std::string(argv[i]) == "--list") return Cookbook::run(argc, argv);
     }
@@ -87,4 +90,7 @@ int main(int argc, char ** argv) {
     }
     shutdown();
     return result;
+#else
+    return Cookbook::run(argc, argv);
+#endif
 }

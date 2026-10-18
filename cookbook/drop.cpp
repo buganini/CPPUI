@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 
+#if !defined(CPPUI_COOKBOOK_LVGL)
 namespace Cookbook {
     void drop(Model & model) {
         for(auto column:CPPUI::VBox()) {
@@ -33,3 +34,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

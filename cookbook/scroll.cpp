@@ -1,6 +1,7 @@
 #include "backend.hpp"
 #include "recipes.hpp"
 
+#if !defined(CPPUI_COOKBOOK_LVGL)
 namespace Cookbook {
     void scroll(Model & model) {
         for(auto column: CPPUI::VBox().layout({}, {}, 1).id("result-scroller-container")) {
@@ -17,3 +18,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

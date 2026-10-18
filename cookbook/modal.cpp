@@ -4,6 +4,7 @@
 
 using namespace CPPUI;
 
+#if defined(CPPUI_COOKBOOK_QT)
 namespace Cookbook {
     void modal(Model & model) {
         for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
@@ -18,3 +19,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

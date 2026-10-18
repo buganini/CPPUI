@@ -1,6 +1,7 @@
 #include "backend.hpp"
 #include "recipes.hpp"
 
+#if !defined(CPPUI_COOKBOOK_LVGL)
 namespace Cookbook {
     void tree(Model & model) {
         for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
@@ -29,3 +30,4 @@ namespace Cookbook {
         }
     }
 }
+#endif

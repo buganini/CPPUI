@@ -1,4 +1,5 @@
 2026-10-18
+    * Cookbook: merge backend headers/implementations, startup and Qt Tab into shared sources; compile one source list using backend/driver macros, leaving only CMake files in backend directories
     * Cookbook: sync PUI 97e442c backend names in window titles and sidebar headings; expose backendName constants in Qt/wx/LVGL base headers and distinguish the LVGL desktop drivers
     * Native PUI sync through 1c7b45c: exclude AI provider tooling; retain native ownership instead of Python editor-wrapper workarounds
     * Table: sync Qt decorated input validation/focus/filter cleanup and wx outer-control event forwarding; mark editable cookbook cells across backends
