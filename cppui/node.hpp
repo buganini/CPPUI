@@ -126,6 +126,7 @@ namespace CPPUI {
     }
 
     inline void Node::releaseRetiredRefs(void) {
+        domOffsetVersion.reset(); cachedDomOffsetVersion.reset();
         cppui_root = nullptr;
         parent = nullptr;
         dom_parent = nullptr;
@@ -180,6 +181,20 @@ namespace CPPUI {
     }
 
     inline bool Node::findDomOffsetForNode(Node * node, int * offset) {
+        if(node && domOffsetVersion && node->cachedDomOffsetVersion==domOffsetVersion) {
+            *offset=node->cachedDomOffset;
+            return true;
+        }
+        const bool found=findDomOffsetUncached(node,offset);
+        if(found) {
+            if(!domOffsetVersion) domOffsetVersion=std::make_shared<const char>(0);
+            node->cachedDomOffsetVersion=domOffsetVersion;
+            node->cachedDomOffset=*offset;
+        }
+        return found;
+    }
+
+    inline bool Node::findDomOffsetUncached(Node * node, int * offset) {
         if(this == node) {
             *offset = 0;
             return true;
@@ -193,7 +208,7 @@ namespace CPPUI {
             }
             if(child->is_virtual) {
                 int nested = 0;
-                bool found = child->findDomOffsetForNode(node, &nested);
+                bool found = child->findDomOffsetUncached(node, &nested);
                 current += nested;
                 if(found) {
                     *offset = current;

@@ -1,6 +1,8 @@
 #include "cppui/view.hpp"
 #include <functional>
 #include <set>
+#include <map>
+#include <random>
 #include <stdexcept>
 
 namespace {
@@ -158,6 +160,75 @@ namespace {
         require(root.native.outOfOrder.size() == 1 && *root.native.outOfOrder.begin() == menu,
                 "out-of-order child was lost during a virtual move");
     }
+    class OffsetInner: public CPPUI::View {
+        int & width;
+    public:
+        explicit OffsetInner(int & width):width(width) {}
+        void content() override {for(int i=0;i<width;++i) node(std::to_string(i).c_str());}
+        void destroy(bool) override {}
+    };
+    class OffsetFragment: public CPPUI::View {
+        int & width;
+    public:
+        explicit OffsetFragment(int & width):width(width) {}
+        void content() override {node("before");new OffsetInner(width);node("after");}
+        void destroy(bool) override {}
+    };
+    void offsetCache() {
+        std::weak_ptr<const char> token;
+        {
+            Root root;std::vector<int> keys;std::map<int,int> widths;
+            for(int i=0;i<20;++i) {keys.push_back(i);widths[i]=3;}
+            bool reversed=false;
+            root.build=[&]() {
+                auto & owner=node("owner");owner.is_reversed_order=reversed;
+                for(auto scope:owner) for(int key:keys) (new OffsetFragment(widths[key]))->id(std::to_string(key));
+            };
+            root.redraw();std::mt19937 random(42);
+            auto verify=[&]() {
+                auto owner=root.children->front();int expected=0;
+                for(auto fragment:*owner->children) {
+                    int offset=-1;
+                    require(owner->findDomOffsetForNode(fragment,&offset) && offset==expected,"cached fragment offset differs from native order");
+                    auto version=fragment->cachedDomOffsetVersion;
+                    require(version && owner->findDomOffsetForNode(fragment,&offset) && fragment->cachedDomOffsetVersion==version,"offset cache failed to retain a hit");
+                    auto inner=fragment->children->at(1);int direct=-1;
+                    require(owner->findDomOffsetForNode(inner,&offset) && offset==expected+1,"nested cached offset differs from native order");
+                    require(fragment->findDomOffsetForNode(fragment->children->back(),&direct)
+                        && direct==1+int(inner->children->size()),"virtual ancestor cache has stale child count");
+                    // A second owner's cache must never answer the first owner's query.
+                    require(fragment->findDomOffsetForNode(inner,&direct) && direct==1
+                        && owner->findDomOffsetForNode(inner,&offset) && offset==expected+1,"offset cache confused owners");
+                    expected+=2+int(inner->children->size());
+                }
+                require(expected==int(static_cast<Native *>(owner->ui)->ordered.size()),"cached offsets differ from flattened native size");
+            };
+            for(int step=0;step<200;++step) {
+                verify();auto owner=root.children->front();
+                if(step%4==0) {
+                    auto fragment=owner->children->at(random()%owner->children->size());
+                    widths[std::stoi(fragment->_id)]=random()%6;
+                    static_cast<CPPUI::View *>(fragment->children->at(1))->redraw();
+                } else if(step%4==1) {
+                    std::shuffle(keys.begin(),keys.end(),random);reversed=!reversed;root.redraw();
+                } else if(step%4==2) {
+                    int key=20+step;widths[key]=random()%6;keys.insert(keys.begin()+random()%(keys.size()+1),key);root.redraw();
+                } else {
+                    keys.erase(keys.begin()+random()%keys.size());root.redraw();
+                }
+                verify();
+            }
+            auto owner=root.children->front();auto fragment=owner->children->front();
+            auto old=fragment->children->front();int offset;
+            owner->findDomOffsetForNode(old,&offset);token=old->cachedDomOffsetVersion;
+            static_cast<CPPUI::View *>(fragment)->redraw();verify();
+            TestNode missing;require(!owner->findDomOffsetForNode(&missing,&offset),"failed lookup reused a successful cache");
+            require(!owner->findDomOffsetForNode(nullptr,&offset)
+                && offset==int(static_cast<Native *>(owner->ui)->ordered.size()),"null lookup lost its flattened size");
+        }
+        require(token.expired(),"offset token retained a removed tree");
+    }
+
 }
 int main() {
     try {
@@ -166,6 +237,7 @@ int main() {
         terminal();
         grid();
         outOfOrderMove();
+        offsetCache();
         require(declarations == 0 && natives == 0, "reconciliation teardown leaked resources");
     } catch(const std::exception & error) {
         std::cerr << error.what() << '\n';

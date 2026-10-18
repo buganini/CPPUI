@@ -29,6 +29,7 @@ namespace CPPUI {
     inline void recur_delete(Node * child, bool direct) {
         child->clearRef();
         child->destroyed = true;
+        child->domOffsetVersion.reset(); child->cachedDomOffsetVersion.reset();
         for(Node * subchild: *child->children) {
             if(subchild) {
                 // Virtual nodes have no native owner to delete descendants.
@@ -132,6 +133,20 @@ namespace CPPUI {
         dom->insert(dom->end(), outoforder.begin(), outoforder.end());
     }
 
+    inline void invalidate_dom_offsets(Node * owner,Node * scope) {
+        // Logical virtual ancestors may be skipped by dom_parent.
+        for(auto current=scope;current && current!=owner;) {
+            current->invalidateDomOffsets();
+            if(!current->is_virtual || current->parent==current) break;
+            current=current->parent;
+        }
+        while(owner) {
+            owner->invalidateDomOffsets();
+            if(!owner->is_virtual || owner->dom_parent==owner) break;
+            owner=owner->dom_parent;
+        }
+    }
+
     inline void sync(
         Node * node,
         Node * dom_parent,
@@ -149,6 +164,11 @@ namespace CPPUI {
         // The old DOM already records native mounting order from the last sync.
         // Reversing it again would make our offsets disagree with the backend.
         prepare_dom(node, newDOM);
+        const bool sameStructure=oldDOM->size()==newDOM->size()
+            && std::equal(oldDOM->begin(),oldDOM->end(),newDOM->begin(),[](Node * a,Node * b) {
+                return *a==*b && a->is_virtual==b->is_virtual && a->is_outoforder==b->is_outoforder;
+            });
+        if(!sameStructure) invalidate_dom_offsets(dom_parent,node);
 
 #if DEBUG_CPPUI_DOM > 0
         std::cout << std::string(depth * 4, ' ') << "sync " << typeid(*node).name()
@@ -219,6 +239,7 @@ namespace CPPUI {
                 while(childIdx < static_cast<int>(oldDOM->size()) &&
                       indexOfSince(newDOM, childIdx, oldDOM->at(childIdx)) == -1) {
                     Node * oldNode = oldDOM->at(childIdx);
+                    invalidate_dom_offsets(dom_parent,node);
                     oldDOM->erase(oldDOM->begin() + childIdx);
                     std::vector<Node *> nodes = dom_remove_node(
                         dom_parent, dom_offset + dom_children_curr, oldNode
@@ -262,17 +283,20 @@ namespace CPPUI {
                                  depth + 1, &num, &delta);
                         }
                     }
+                    invalidate_dom_offsets(dom_parent,node);
                     oldDOM->insert(oldDOM->begin() + childIdx, newNode);
                 } else {
                     if(matchedIdx == childIdx + 1 && oldDOM->at(childIdx)->is_movable) {
                         // Step 3-2-1: yield the next position by requeueing its blocker.
                         Node * toBeRequeued = oldDOM->at(childIdx);
+                        invalidate_dom_offsets(dom_parent,node);
                         oldDOM->erase(oldDOM->begin() + childIdx);
                         std::vector<Node *> nodes = dom_remove_node(
                             dom_parent, dom_offset + dom_children_curr, toBeRequeued
                         );
                         int n = count_ordered_nodes(nodes);
                         dom_add_nodes(dom_parent, dom_offset + dom_children_num - n, nodes);
+                        invalidate_dom_offsets(dom_parent,node);
                         oldDOM->push_back(toBeRequeued);
                     } else {
                         // Step 3-2-2: move the target into the current position.
@@ -282,9 +306,11 @@ namespace CPPUI {
                             std::vector<Node *> one(1, oldDOM->at(i));
                             offset += count_dom_children(&one);
                         }
+                        invalidate_dom_offsets(dom_parent,node);
                         oldDOM->erase(oldDOM->begin() + matchedIdx);
                         std::vector<Node *> nodes = dom_remove_node(dom_parent, offset, oldNode);
                         dom_add_nodes(dom_parent, dom_offset + dom_children_curr, nodes);
+                        invalidate_dom_offsets(dom_parent,node);
                         oldDOM->insert(oldDOM->begin() + childIdx, oldNode);
                     }
                     continue;
@@ -297,6 +323,7 @@ namespace CPPUI {
         int newLength = static_cast<int>(newDOM->size());
         while(static_cast<int>(oldDOM->size()) > newLength) {
             Node * oldNode = oldDOM->at(newLength);
+            invalidate_dom_offsets(dom_parent,node);
             oldDOM->erase(oldDOM->begin() + newLength);
             std::vector<Node *> nodes = dom_remove_node(
                 dom_parent, dom_offset + dom_children_curr, oldNode

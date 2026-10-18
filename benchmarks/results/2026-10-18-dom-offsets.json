@@ -1,0 +1,336 @@
+{
+  "date": "2026-10-18",
+  "baseline": "445002f",
+  "compiler": "g++ (Ubuntu 16-20260322-1ubuntu1) 16.0.1 20260322 (experimental) [trunk r16-8246-g569ace1fa50]",
+  "flags": "-O3 -DNDEBUG -std=c++11",
+  "platform": "x86_64",
+  "runs": {
+    "before": [
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0383,
+          "stable_redraw_us": 0.5113,
+          "structural_redraw_us": 0.4301
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.394,
+          "stable_redraw_us": 0.8846,
+          "structural_redraw_us": 0.7697
+        },
+        {
+          "views": 1024,
+          "lookup_us": 5.2113,
+          "stable_redraw_us": 5.9377,
+          "structural_redraw_us": 5.1917
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0413,
+          "stable_redraw_us": 0.5344,
+          "structural_redraw_us": 0.4402
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.4048,
+          "stable_redraw_us": 0.8828,
+          "structural_redraw_us": 0.7754
+        },
+        {
+          "views": 1024,
+          "lookup_us": 5.2004,
+          "stable_redraw_us": 5.8589,
+          "structural_redraw_us": 5.2542
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0388,
+          "stable_redraw_us": 0.5001,
+          "structural_redraw_us": 0.4388
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.3829,
+          "stable_redraw_us": 0.888,
+          "structural_redraw_us": 0.8326
+        },
+        {
+          "views": 1024,
+          "lookup_us": 5.2742,
+          "stable_redraw_us": 5.7656,
+          "structural_redraw_us": 5.1434
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0402,
+          "stable_redraw_us": 0.5077,
+          "structural_redraw_us": 0.4373
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.3787,
+          "stable_redraw_us": 0.8793,
+          "structural_redraw_us": 0.7681
+        },
+        {
+          "views": 1024,
+          "lookup_us": 5.2538,
+          "stable_redraw_us": 5.8243,
+          "structural_redraw_us": 5.3208
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.048,
+          "stable_redraw_us": 0.5023,
+          "structural_redraw_us": 0.4287
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.3693,
+          "stable_redraw_us": 0.8554,
+          "structural_redraw_us": 0.769
+        },
+        {
+          "views": 1024,
+          "lookup_us": 5.1891,
+          "stable_redraw_us": 5.8824,
+          "structural_redraw_us": 5.2956
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0435,
+          "stable_redraw_us": 0.5002,
+          "structural_redraw_us": 0.4335
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.3847,
+          "stable_redraw_us": 0.8692,
+          "structural_redraw_us": 0.7794
+        },
+        {
+          "views": 1024,
+          "lookup_us": 5.1625,
+          "stable_redraw_us": 5.7993,
+          "structural_redraw_us": 5.3255
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0428,
+          "stable_redraw_us": 0.4955,
+          "structural_redraw_us": 0.4426
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.3891,
+          "stable_redraw_us": 0.8597,
+          "structural_redraw_us": 0.7943
+        },
+        {
+          "views": 1024,
+          "lookup_us": 5.187,
+          "stable_redraw_us": 5.8821,
+          "structural_redraw_us": 5.212
+        }
+      ]
+    ],
+    "after": [
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0015,
+          "stable_redraw_us": 0.5196,
+          "structural_redraw_us": 0.4709
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5426,
+          "structural_redraw_us": 0.837
+        },
+        {
+          "views": 1024,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5284,
+          "structural_redraw_us": 5.2342
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5165,
+          "structural_redraw_us": 0.4664
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5194,
+          "structural_redraw_us": 0.8437
+        },
+        {
+          "views": 1024,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5223,
+          "structural_redraw_us": 5.6267
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0015,
+          "stable_redraw_us": 0.5144,
+          "structural_redraw_us": 0.4746
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5215,
+          "structural_redraw_us": 0.8258
+        },
+        {
+          "views": 1024,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5353,
+          "structural_redraw_us": 5.4957
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5332,
+          "structural_redraw_us": 0.4638
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.0015,
+          "stable_redraw_us": 0.5227,
+          "structural_redraw_us": 0.8235
+        },
+        {
+          "views": 1024,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5316,
+          "structural_redraw_us": 5.4296
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0015,
+          "stable_redraw_us": 0.529,
+          "structural_redraw_us": 0.484
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5318,
+          "structural_redraw_us": 0.8562
+        },
+        {
+          "views": 1024,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.523,
+          "structural_redraw_us": 5.259
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0015,
+          "stable_redraw_us": 0.5259,
+          "structural_redraw_us": 0.4687
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.0015,
+          "stable_redraw_us": 0.5186,
+          "structural_redraw_us": 0.8338
+        },
+        {
+          "views": 1024,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.526,
+          "structural_redraw_us": 5.2734
+        }
+      ],
+      [
+        {
+          "views": 16,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.5224,
+          "structural_redraw_us": 0.4574
+        },
+        {
+          "views": 128,
+          "lookup_us": 0.0015,
+          "stable_redraw_us": 0.515,
+          "structural_redraw_us": 0.8408
+        },
+        {
+          "views": 1024,
+          "lookup_us": 0.0016,
+          "stable_redraw_us": 0.521,
+          "structural_redraw_us": 5.1751
+        }
+      ]
+    ]
+  },
+  "median": {
+    "before": [
+      {
+        "views": 16,
+        "lookup_us": 0.0413,
+        "stable_redraw_us": 0.5023,
+        "structural_redraw_us": 0.4373
+      },
+      {
+        "views": 128,
+        "lookup_us": 0.3847,
+        "stable_redraw_us": 0.8793,
+        "structural_redraw_us": 0.7754
+      },
+      {
+        "views": 1024,
+        "lookup_us": 5.2004,
+        "stable_redraw_us": 5.8589,
+        "structural_redraw_us": 5.2542
+      }
+    ],
+    "after": [
+      {
+        "views": 16,
+        "lookup_us": 0.0015,
+        "stable_redraw_us": 0.5224,
+        "structural_redraw_us": 0.4687
+      },
+      {
+        "views": 128,
+        "lookup_us": 0.0016,
+        "stable_redraw_us": 0.5215,
+        "structural_redraw_us": 0.837
+      },
+      {
+        "views": 1024,
+        "lookup_us": 0.0016,
+        "stable_redraw_us": 0.526,
+        "structural_redraw_us": 5.2734
+      }
+    ]
+  },
+  "scope": "Core-only lookup and independent retained-view redraw; excludes toolkit layout and rendering. Structural case changes the target child count on every update. Alternating run order; no concurrent builds."
+}

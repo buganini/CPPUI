@@ -156,7 +156,13 @@ namespace CPPUI {
         virtual void removeChild(int idx, Node *child);
 
         Node * getNode(void);
+        // Tokens identify an owner's current structure without retaining it.
+        // Allocated lazily: nodes never queried for offsets allocate nothing.
+        std::shared_ptr<const char> domOffsetVersion, cachedDomOffsetVersion;
+        int cachedDomOffset = 0;
+        void invalidateDomOffsets() { domOffsetVersion.reset(); }
         bool findDomOffsetForNode(Node * node, int * offset);
+        bool findDomOffsetUncached(Node * node, int * offset);
 
         virtual void click(std::function<void()> callback);
 
