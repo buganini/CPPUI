@@ -11,7 +11,7 @@ are described in the component sections and backend plans.
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
-|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|Stack: shared native grid cell; Grid not yet ported|wxGridBagSizer / wxPanel + overlay wxSizer|
+|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|Native grid / shared native grid cell|wxGridBagSizer / wxPanel + overlay wxSizer|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
 |[Scroll](#scroll)|QScrollArea|scrollable object (basic)|wxScrolledWindow|
@@ -724,8 +724,8 @@ that dimension is explicit; dividers retain their one-pixel thickness.
 `grid_column`, `grid_rowspan` and `grid_columnspan`. Both coordinates must be
 nonnegative; absent/zero spans use one cell. Grid coordinates/spans participate
 in reconciliation identity, so changing them replaces that cell. A layout is
-required to group several controls in a cell. The shared fluent placement API
-is still undecided; the cookbook currently assigns these fields directly.
+required to group several controls in a cell. The cookbook assigns these public
+placement fields directly.
 
 Qt Stack uses StackAll mode and reverses initial declaration order, placing
 the last declared layer on top. All layers share the available geometry.
@@ -734,6 +734,22 @@ let QStackedLayout choose its current layer, as in PUI; moving the current layer
 can raise its neighbor. Grid and Stack share HBox/VBox's nested
 padding rules. PUI ignores Spacer inside these two containers; CPPUI also skips
 its native insertion and explicitly reclaims the unmounted item.
+
+LVGL exposes `Grid()` through `cppui/lvgl/layout.hpp` or `grid.hpp`
+(`LV_USE_GRID` required), with the same coordinate/span fields and replacement
+rules. Automatic axes measure visible cells and include their margins. Single
+cells establish each track's size; any additional space needed by a spanning
+cell is shared across its tracks. This also handles grids containing only
+spanning cells, which native `LV_GRID_CONTENT` alone does not measure. Children
+retain their natural size along automatic axes. Allocated axes use equal
+fractional tracks, stretching cells across their assigned rows/columns and
+gaps, less margins. Explicit Grid dimensions, parent allocation and Grid flex
+weight select allocated axes; child flex weights do not set track proportions.
+The default row/column gap is 6 pixels. Nested padding follows HBox/VBox.
+Hidden cells retain native state without contributing to track sizing; removed
+or hidden trailing cells allow automatic dimensions to shrink. Unplaced
+declarations are reclaimed, and placed Spacers are ignored by layout/input.
+The shared Grid cookbook runs on both SDL2 and X11.
 
 LVGL exposes `Stack()` through `cppui/lvgl/layout.hpp` or `stack.hpp`, using
 one native grid cell shared by all layers (`LV_USE_GRID` required). The last
@@ -747,8 +763,7 @@ layers to the available space, less each layer's margins. Resetting an axis to
 automatic, hiding or removing a large layer allows it to shrink again.
 Stack shares HBox/VBox's nested padding rules; Spacer is a zero-size ignored
 layout item and does not intercept input. Both SDL2/X11 run the shared Stack
-cookbook. The public LVGL Grid wrapper remains unported; Stack does not depend
-on completing it.
+cookbook.
 
 ## Spacer
 

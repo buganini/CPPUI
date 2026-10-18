@@ -1,15 +1,22 @@
 # LVGL implementation progress and remaining work
 
-Stack is now implemented using a shared native grid cell, with retained layers,
+Grid is now implemented with the existing public row/column/span fields,
+content measurement including spanning cells, equal fractional tracks on
+allocated axes, margins, nested padding and retained hidden cells. Both SDL2/X11
+enable the shared Grid cookbook. No new shared placement API is required.
+See the [Grid contract](../REFERENCE.md#grid-and-stack) for sizing behavior.
+
+Stack uses a shared native grid cell, with retained layers,
 keyed drawing/input order, nested padding, margins and automatic/fixed sizing.
 Hidden or removed layers no longer contribute to automatic size. Both SDL2/X11
-enable the shared Stack cookbook. This implementation is independent of the
-still-unported public Grid wrapper; see the [Stack contract](../REFERENCE.md#grid-and-stack).
+enable the shared Stack cookbook. Stack was implemented independently of the
+public Grid wrapper; both are now available.
 
-Stack verification (2026-10-18): both drivers build with `-j "$(nproc)"`,
-including C++11 and independent-header checks; all 19 CTests pass for each
-driver. The Stack regression also passes Valgrind with definite/indirect leaks
-treated as errors. Both rebuilt desktop cookbooks were launched.
+Grid/Stack verification (2026-10-18): both drivers build with `-j "$(nproc)"`,
+including C++11 and independent-header checks; all 20 CTests pass for each
+driver. The Grid regression also passes Valgrind with definite/indirect leaks
+treated as errors, including descriptor access during parent-subtree deletion.
+Both rebuilt desktop cookbooks were launched.
 
 The preceding follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
 and typed tab placement with the shared `Side` enum. Hidden content retains native
@@ -77,7 +84,7 @@ must name the choice; it must not be reported as toolkit non-support. Call work
 **blocked** only when a specific dependency prevents progress, and name that
 dependency. Routine implementation choices remain part of the porting work.
 
-Public LVGL headers currently cover Application, Window, HBox/VBox, Stack, Label,
+Public LVGL headers currently cover Application, Window, HBox/VBox, Grid/Stack, Label,
 Button, Checkbox, RadioButton, TextField, MaskedField, ComboBox, Spacer, Divider, plain Text with raw-source
 Html/MarkDown fallbacks, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
 and Canvas drawing. Shared recipes use the
@@ -112,7 +119,7 @@ changes are excluded at the user's request.
 | Application and native drivers | Loop returns when the last display closes; LVGL delay callback; separate SDL2/X11 startup and cleanup | Define explicit quit/host-driven pumping and borrowed-runtime ownership; handle SDL2 direct exit (2) |
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
 | Stack | Shared native grid cell, retained keyed layers, automatic/allocated sizing, margins, visibility and cookbook | Implemented; broader display/density coverage follows general validation (3) |
-| Grid | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans (3) |
+| Grid | Native rows/columns, spanning content measurement, equal allocated tracks, margins, retained cells and cookbook | Implemented; broader display/density coverage follows general validation (3) |
 | ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text and raw Html/MarkDown fallbacks in the shared cookbook | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
 | Bound controls | Boolean Checkbox, typed RadioButton, string TextField and editable/read-only ComboBox with Binding/State | Shared text conversion and event payloads remain deferred (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
@@ -195,8 +202,9 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
 - [x] Add public Stack independently of Grid; verify automatic sizing and
   shrinkage, allocated sizing, nested padding, margins, keyed order, hidden
   layers, pointer targeting and retained editor state.
-- [ ] Add public Grid after native track sizing is agreed; verify nested
-  padding and grid spans.
+- [x] Add public Grid using existing placement fields; verify row/column spans,
+  span-only content, nested padding, margins, native resizing, fixed-to-auto
+  sizing, visibility, independent view redraws, pointer input and native lifetime.
 - [ ] Add input payloads after the deferred common event contract is addressed.
 - [ ] Verify layout/style geometry at multiple display sizes and densities;
   define runtime font resources beyond the current compiled-font approximation.
@@ -276,10 +284,13 @@ and their cookbook recipes are excluded from CPPUI.
   visibility mode for an object. Basic public Scroll rejects a forced axis paired
   with an automatic axis; choose a mapping or custom scrollbar implementation for
   that mixed case. The offset representation needs no further shared decision.
-- **Grid sizing:** existing node coordinates/spans can drive placement. LVGL
-  additionally requires explicit row/column track arrays; choose content-sized
-  versus fractional tracks and their interaction with the shared size/weight
-  options. See the pinned [Grid API](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/layouts/lv_grid.h).
+- **Grid sizing (implemented):** existing node coordinates/spans drive native
+  placement. The wrapper owns descriptor arrays across retained declarations.
+  Automatic axes include spanning content and margins; allocated axes use
+  equal fractional tracks. Grid size/weight controls allocation by its parent;
+  per-cell weights do not alter track proportions. See the
+  [Grid contract](../REFERENCE.md#grid-and-stack) and pinned
+  [native API](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/layouts/lv_grid.h).
 - **Selection controls:** LVGL's [dropdown](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/widgets/lv_dropdown.h)
   takes newline-separated labels and exposes an unsigned selected index; it does
   not supply Qt's editable text field or negative-index empty selection contract.
