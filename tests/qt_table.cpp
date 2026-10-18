@@ -5,9 +5,18 @@
 #include <QKeyEvent>
 #include <QPersistentModelIndex>
 #include <QSpinBox>
+#include <QRegularExpressionValidator>
 #include <sstream>
 
 namespace {
+    QStringList editorWarnings;
+    struct CaptureEditorWarnings {
+        QtMessageHandler previous;
+        CaptureEditorWarnings():previous(qInstallMessageHandler([](QtMsgType,const QMessageLogContext &,const QString & message) {
+            if(message.contains("editor",Qt::CaseInsensitive)) editorWarnings.push_back(message);
+        })) {editorWarnings.clear();}
+        ~CaptureEditorWarnings() {qInstallMessageHandler(previous);}
+    };
     void require(bool value, const char * message) { if(!value) throw std::runtime_error(message); }
     void settle() { QCoreApplication::processEvents(); QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete); }
     class Root: public CPPUI::Application {
@@ -58,6 +67,35 @@ namespace {
 int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
+        {
+            CaptureEditorWarnings warnings;
+            Root root(argc, argv); root.decorated=true; root.sync(); settle();
+            auto table=root.native(); auto index=table->model()->index(0,0);
+            table->setCurrentIndex(index); table->edit(index); settle();
+            QPointer<QLineEdit> field=table->findChild<QLineEdit *>();
+            require(field && table->focusWidget()==field, "decorated editor did not receive native focus");
+            field->setValidator(new QRegularExpressionValidator(QRegularExpression("[0-9]{2}"),field));
+            field->setText("bad");
+            QKeyEvent enter(QEvent::KeyPress,Qt::Key_Return,Qt::NoModifier);
+            QCoreApplication::sendEvent(field,&enter); settle();
+            require(field && static_cast<std::string>(root.text)==std::string("A"), "decorated Enter bypassed native validator or closed invalid input");
+            field->setText("42"); QCoreApplication::sendEvent(field,&enter); settle();
+            require(!field && static_cast<std::string>(root.text)==std::string("42"), "validated decorated input failed to commit and close");
+            index=table->model()->index(0,3); table->setCurrentIndex(index); table->edit(index); settle();
+            auto spin=table->findChild<QSpinBox *>(); require(spin,"numeric editor missing");
+            spin->findChild<QLineEdit *>()->setText("19");
+            QCoreApplication::sendEvent(spin,&enter); settle();
+            require(root.number==19,"decorated spin editor did not interpret pending text");
+            index=table->model()->index(0,0); table->setCurrentIndex(index); table->edit(index); settle();
+            field=table->findChild<QLineEdit *>();require(field,"decorated editor could not reopen");
+            QKeyEvent tab(QEvent::KeyPress,Qt::Key_Tab,Qt::NoModifier);
+            QCoreApplication::sendEvent(field,&tab); settle();
+            // A model reset may cancel the next editor; explicitly reopen it.
+            root.sync(); settle(); index=table->model()->index(0,1); table->setCurrentIndex(index); table->edit(index); settle();
+            auto choice=table->findChild<QComboBox *>();require(choice,"Tab prevented opening decorated choice");
+            choice->setCurrentIndex(2);emit choice->activated(2);settle();require(root.number==5,"choice failed after Tab");
+            require(editorWarnings.empty(),"native decorated editing emitted stale-editor warnings");
+        }
         {
             Root root(argc, argv); root.decorated = true; root.sync(); settle();
             auto table = root.native(); auto model = table->model();

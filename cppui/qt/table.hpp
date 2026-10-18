@@ -11,6 +11,8 @@
 #include <QStyledItemDelegate>
 #include <QComboBox>
 #include <QLineEdit>
+#include <QAbstractSpinBox>
+#include <QKeyEvent>
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QPointer>
@@ -186,7 +188,10 @@ namespace CPPUI { namespace Qt {
             };
             label(prefix); layout->addWidget(field, 1); label(suffix);
             setFocusPolicy(::Qt::StrongFocus); setAutoFillBackground(true);
-            setFocusProxy(field);
+            setBackgroundRole(QPalette::Base);
+        }
+        void focusInEvent(QFocusEvent * event) override {
+            QWidget::focusInEvent(event); field->setFocus(event->reason());
         }
     };
     class TableDelegate: public QStyledItemDelegate {
@@ -194,13 +199,18 @@ namespace CPPUI { namespace Qt {
             auto decorated = dynamic_cast<TableDecoratedEditor *>(editor);
             return decorated ? decorated->field : editor;
         }
+        void closing(QWidget * editor) const {
+            if(auto decorated=dynamic_cast<TableDecoratedEditor *>(editor)) {
+                decorated->closing=true;
+                decorated->field->removeEventFilter(const_cast<TableDelegate *>(this));
+                decorated->removeEventFilter(const_cast<TableDelegate *>(this));
+            }
+        }
         public:
         explicit TableDelegate(QObject * owner): QStyledItemDelegate(owner) {
             // The view removes its filter from the outer editor when closing;
             // stop forwarding the field's ensuing focus-out event as well.
-            auto closing = [](QWidget * editor) {
-                if(auto decorated = dynamic_cast<TableDecoratedEditor *>(editor)) decorated->closing = true;
-            };
+            auto closing = [this](QWidget * editor) { this->closing(editor); };
             QObject::connect(this, &QAbstractItemDelegate::commitData, this, closing);
             QObject::connect(this, &QAbstractItemDelegate::closeEditor, this,
                 [closing](QWidget * editor, QAbstractItemDelegate::EndEditHint) { closing(editor); });
@@ -225,7 +235,6 @@ namespace CPPUI { namespace Qt {
             auto editor = input;
             if(!cell.prefix.empty() || !cell.suffix.empty()) {
                 editor = new TableDecoratedEditor(input, cell.prefix, cell.suffix, parent);
-                input->installEventFilter(const_cast<TableDelegate *>(this));
             }
             if(auto combo = dynamic_cast<TableChoiceEditor *>(input)) {
                 QPointer<TableDelegate> delegate(const_cast<TableDelegate *>(this));
@@ -238,21 +247,41 @@ namespace CPPUI { namespace Qt {
             }
             return editor;
         }
+        void destroyEditor(QWidget * editor,const QModelIndex & index) const override {
+            closing(editor); QStyledItemDelegate::destroyEditor(editor,index);
+        }
         bool eventFilter(QObject * object, QEvent * event) override {
-            if(auto widget = qobject_cast<QWidget *>(object)) {
-                auto decorated = dynamic_cast<TableDecoratedEditor *>(widget);
-                // Ignored key events bubble from the field to its wrapper. The
-                // field already forwarded them, so do not queue a second commit.
-                if(decorated && event->type() == QEvent::KeyPress) return false;
-                if(!decorated) decorated = dynamic_cast<TableDecoratedEditor *>(widget->parentWidget());
+            if(auto widget=qobject_cast<QWidget *>(object)) {
+                auto decorated=dynamic_cast<TableDecoratedEditor *>(widget);
+                if(!decorated) decorated=dynamic_cast<TableDecoratedEditor *>(widget->parentWidget());
                 if(decorated) {
                     if(decorated->closing) return false;
-                    if(decorated->field == widget) object = decorated;
+                    if(widget!=decorated && event->type()==QEvent::KeyPress) {
+                        const int key=static_cast<QKeyEvent *>(event)->key();
+                        if(key==::Qt::Key_Return || key==::Qt::Key_Enter) {
+                            if(auto line=qobject_cast<QLineEdit *>(widget)) {
+                                if(!line->hasAcceptableInput()) return true;
+                            } else if(auto spin=qobject_cast<QAbstractSpinBox *>(widget)) {
+                                if(!spin->hasAcceptableInput()) return true;
+                                spin->interpretText();
+                            }
+                            QPointer<TableDelegate> delegate(this); QPointer<QWidget> alive(decorated);
+                            emit commitData(decorated);
+                            if(delegate && alive) emit closeEditor(alive,SubmitModelCache);
+                            return true;
+                        }
+                    }
+                    // Ignored keys also reach the wrapper. Process them only
+                    // once, via the field, to avoid duplicate queued commits.
+                    if(widget==decorated && (event->type()==QEvent::KeyPress || event->type()==QEvent::ShortcutOverride)) return false;
+                    object=decorated;
                 }
             }
-            return QStyledItemDelegate::eventFilter(object, event);
+            return QStyledItemDelegate::eventFilter(object,event);
         }
         void setEditorData(QWidget * editor, const QModelIndex & index) const override {
+            if(auto decorated=dynamic_cast<TableDecoratedEditor *>(editor))
+                decorated->field->installEventFilter(const_cast<TableDelegate *>(this));
             editor = field(editor);
             if(auto combo = dynamic_cast<TableChoiceEditor *>(editor)) {
                 QSignalBlocker blocked(combo);

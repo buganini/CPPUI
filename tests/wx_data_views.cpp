@@ -65,11 +65,17 @@ int main(int argc,char ** argv){
         grid->SetGridCursor(0,1);grid->EnableCellEditControl();editor=grid->GetCellEditor(0,1);
         auto decorated=dynamic_cast<CPPUI::Wx::TableEditor *>(editor);
         input=decorated?dynamic_cast<wxTextCtrl *>(decorated->field):nullptr;
-        require(input && dynamic_cast<wxPanel *>(editor->GetWindow()) && input->GetValue()=="raw"
+        require(input && dynamic_cast<wxControl *>(editor->GetWindow()) && input->GetValue()=="raw"
             && input->GetHint()=="Enter price", "decorated editor lost raw value or hint");
         input->ChangeValue("12");wxKeyEvent enter(wxEVT_KEY_DOWN);enter.m_keyCode=WXK_RETURN;enter.SetEventObject(input);
         input->GetEventHandler()->ProcessEvent(enter);pump();editor->DecRef();
         require(std::string(root.text)=="12", "decorated editor Enter did not commit raw value");
+        require(!grid->IsCellEditControlEnabled(), "decorated Enter did not close outer control");
+        grid->SetGridCursor(0,1);grid->EnableCellEditControl();editor=grid->GetCellEditor(0,1);
+        decorated=dynamic_cast<CPPUI::Wx::TableEditor *>(editor);input=dynamic_cast<wxTextCtrl *>(decorated->field);
+        input->ChangeValue("cancelled");wxKeyEvent escape(wxEVT_KEY_DOWN);escape.m_keyCode=WXK_ESCAPE;escape.SetEventObject(input);
+        input->GetEventHandler()->ProcessEvent(escape);pump();editor->DecRef();
+        require(std::string(root.text)=="12" && !grid->IsCellEditControlEnabled(), "decorated Escape committed or left editor open");
         grid=static_cast<wxGrid *>(root.table()->ui);grid->SetGridCursor(0,0);grid->EnableCellEditControl();editor=grid->GetCellEditor(0,0);
         decorated=dynamic_cast<CPPUI::Wx::TableEditor *>(editor);choice=decorated?dynamic_cast<wxChoice *>(decorated->field):nullptr;
         require(choice && choice->GetStringSelection()=="Four", "decorated choice lost raw selection");

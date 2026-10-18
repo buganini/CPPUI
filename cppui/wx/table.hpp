@@ -121,7 +121,7 @@ public:
     wxGridCellEditor * Clone() const override{return new TableEditor(choice,prefix,suffix,hint);}
     void Create(wxWindow * parent,wxWindowID id,wxEvtHandler * handler) override {
         const bool decorated=!prefix.empty() || !suffix.empty();
-        auto panel=decorated ? new wxPanel(parent,id) : nullptr;
+        auto panel=decorated ? new wxControl(parent,id) : nullptr;
         auto owner=panel ? panel : parent;
         field=choice?static_cast<wxWindow *>(new wxChoice(owner,panel?wxID_ANY:id))
             :static_cast<wxWindow *>(new wxTextCtrl(owner,panel?wxID_ANY:id,"",wxDefaultPosition,wxDefaultSize,wxTE_PROCESS_ENTER));
@@ -133,8 +133,8 @@ public:
             box->Add(field,1,wxEXPAND);
             if(!suffix.empty())box->Add(new wxStaticText(panel,wxID_ANY,wxString::FromUTF8(suffix)),0,wxALIGN_CENTER_VERTICAL);
             panel->SetSizer(box);
-            field->Bind(wxEVT_KEY_DOWN,[panel](wxKeyEvent & event){panel->GetEventHandler()->ProcessEvent(event);});
-            field->Bind(wxEVT_KILL_FOCUS,[panel](wxFocusEvent & event){panel->GetEventHandler()->ProcessEvent(event);});
+            field->Bind(wxEVT_KEY_DOWN,[panel](wxKeyEvent & event){if(!panel->GetEventHandler()->ProcessEvent(event)) event.Skip();});
+            field->Bind(wxEVT_KILL_FOCUS,[panel](wxFocusEvent & event){if(!panel->GetEventHandler()->ProcessEvent(event)) event.Skip();});
         }
         if(choice)field->Bind(wxEVT_CHOICE,[this](wxCommandEvent &){if(valid()){auto grid=model->GetView();grid->SaveEditControlValue();grid->DisableCellEditControl();}});
         wxGridCellEditor::Create(parent,id,handler);
