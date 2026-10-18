@@ -24,13 +24,24 @@ namespace CPPUI {
 
         class Node: public ::CPPUI::Node {
             struct Commands {
-                struct Pending { std::mutex mutex; std::vector<std::function<void()>> callbacks; };
+                using Clock=std::chrono::steady_clock;
+                struct Entry { Clock::time_point deadline; Callback callback; };
+                struct Pending { std::mutex mutex; std::vector<Entry> callbacks; };
                 std::shared_ptr<Pending> pending{new Pending()};
                 lv_timer_t * timer;
                 Commands():timer(lv_timer_create([](lv_timer_t * timer) {
                     auto pending=static_cast<Commands *>(lv_timer_get_user_data(timer))->pending;
                     std::vector<std::function<void()>> callbacks;
-                    { std::lock_guard<std::mutex> lock(pending->mutex); callbacks.swap(pending->callbacks); }
+                    { std::lock_guard<std::mutex> lock(pending->mutex);
+                      auto & entries=pending->callbacks;
+                      std::vector<Entry> waiting;
+                      const auto now=Clock::now();
+                      for(auto & entry:entries) {
+                          if(entry.deadline<=now) callbacks.push_back(std::move(entry.callback));
+                          else waiting.push_back(std::move(entry));
+                      }
+                      entries.swap(waiting);
+                    }
                     for(auto & callback:callbacks) try { callback(); }
                     catch(const std::exception & error) { std::fprintf(stderr,"CPPUI ref: %s\n",error.what()); }
                     catch(...) { std::fprintf(stderr,"CPPUI ref failed\n"); }
@@ -126,11 +137,21 @@ namespace CPPUI {
             public:
             ~Node() override { clearRef(); unobserve(); }
             CommandPoster commandPoster() override {
+                if(!ui) return {};
                 if(!commands) commands.reset(new Commands());
                 auto pending=commands->pending;
                 return [pending](std::function<void()> callback) {
                     std::lock_guard<std::mutex> lock(pending->mutex);
-                    pending->callbacks.push_back(std::move(callback));
+                    pending->callbacks.push_back({Commands::Clock::now(),std::move(callback)});
+                };
+            }
+            TimerPoster timerPoster() override {
+                if(!ui) return {};
+                if(!commands) commands.reset(new Commands());
+                auto pending=commands->pending;
+                return [pending](int delay,Callback callback) {
+                    std::lock_guard<std::mutex> lock(pending->mutex);
+                    pending->callbacks.push_back({Commands::Clock::now()+std::chrono::milliseconds(delay),std::move(callback)});
                 };
             }
             void update(::CPPUI::Node * previous) override {

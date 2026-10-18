@@ -2,8 +2,13 @@
 #include "recipes.hpp"
 
 namespace Cookbook {
-    void refs(Model &) {
+    void refs(Model & model) {
         for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+            CPPUI::Button("Increment after 500 ms").click([&model]() {
+                auto post=CPPUI::ref("cookbook.refs.poster").node()->getPoster();
+                post([&model]() { model.postedCallbacks=static_cast<int>(model.postedCallbacks)+1; },500);
+            }).ref("cookbook.refs.poster");
+            CPPUI::Label("Callbacks executed on the UI loop: "+std::to_string(static_cast<int>(model.postedCallbacks)));
             CPPUI::Label("Fixed ref names identify live nodes across updates.");
             for(auto row: CPPUI::HBox()) {
                 CPPUI::Button("Select first").click([](){CPPUI::ref("cookbook.refs.tabs").select("first");});

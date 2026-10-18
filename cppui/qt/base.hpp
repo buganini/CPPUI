@@ -8,6 +8,7 @@
 #include <QBoxLayout>
 #include <QCoreApplication>
 #include <QColor>
+#include <QTimer>
 
 namespace CPPUI {
     namespace Qt {
@@ -171,6 +172,7 @@ namespace CPPUI {
 
             ~BaseWidget() override { clearRef(); releaseNativeAccess(); }
             CommandPoster commandPoster() override {
+                if(!ui) return {};
                 auto context=ui;
                 return [context](std::function<void()> callback) {
                     QMetaObject::invokeMethod(context,[callback]() {
@@ -178,6 +180,17 @@ namespace CPPUI {
                         catch(const std::exception & error) { std::cerr << "CPPUI ref: " << error.what() << '\n'; }
                         catch(...) { std::cerr << "CPPUI ref failed\n"; }
                     },::Qt::QueuedConnection);
+                };
+            }
+            TimerPoster timerPoster() override {
+                if(!ui) return {};
+                auto context=ui;
+                return [context](int delay,Callback callback) {
+                    QTimer::singleShot(delay,::Qt::PreciseTimer,context,[callback]() {
+                        try { callback(); }
+                        catch(const std::exception & error) { std::cerr<<"CPPUI posted callback: "<<error.what()<<'\n'; }
+                        catch(...) { std::cerr<<"CPPUI posted callback failed\n"; }
+                    });
                 };
             }
             Node & qt(const QtOptions & options) override { qtParams.merge(options); return *this; }

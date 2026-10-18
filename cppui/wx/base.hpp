@@ -72,11 +72,34 @@ namespace CPPUI { namespace Wx {
         }
     };
 
+    struct TimerQueue: std::enable_shared_from_this<TimerQueue> {
+        struct Timer: wxTimer, std::enable_shared_from_this<Timer> {
+            std::weak_ptr<TimerQueue> queue;
+            Callback callback;
+            void Notify() override {
+                auto keep=shared_from_this();
+                auto invoke=std::move(callback);
+                if(auto owner=queue.lock()) {
+                    auto & timers=owner->timers;
+                    timers.erase(std::remove(timers.begin(),timers.end(),keep),timers.end());
+                }
+                try { invoke(); } catch(...) { reportException("posted callback"); }
+            }
+        };
+        std::vector<std::shared_ptr<Timer>> timers;
+        void schedule(int delay,Callback callback) {
+            auto timer=std::make_shared<Timer>();
+            timer->queue=shared_from_this(); timer->callback=std::move(callback);
+            timers.push_back(timer); timer->StartOnce(delay);
+        }
+    };
+
     class Node;
     // One dispatch context per native object. Native pointers remain observers;
     // a callback may keep this context alive while removing its declaration.
     struct Native: wxEvtHandler, std::enable_shared_from_this<Native> {
         Node * node = nullptr;
+        std::shared_ptr<TimerQueue> timers{new TimerQueue()};
         wxWindow * window = nullptr;
         wxWindow * owner = nullptr;
         wxSizer * sizer = nullptr;
@@ -174,6 +197,7 @@ namespace CPPUI { namespace Wx {
     };
     inline void Native::destroyed(wxWindowDestroyEvent & event) {
         if(event.GetEventObject() == owner) {
+            timers->timers.clear();
             window = owner = nullptr; sizer = nullptr; command = {}; input = {}; finish = {}; resize = {};
             if(node) { node->clearRef(); node->invalidateNative(); }
         }
@@ -185,9 +209,17 @@ namespace CPPUI { namespace Wx {
         wxWindow * ui = nullptr;
         ~Widget() override { clearRef(); }
         CommandPoster commandPoster() override {
+            if(!ui || !wxTheApp) return {};
             auto app=wxTheApp;
             return [app](std::function<void()> callback) {
                 app->CallAfter([callback]() { try { callback(); } catch(...) { reportException("ref"); } });
+            };
+        }
+        TimerPoster timerPoster() override {
+            if(!ui || !native) return {};
+            std::weak_ptr<TimerQueue> weak=native->timers;
+            return [weak](int delay,Callback callback) {
+                if(auto queue=weak.lock()) queue->schedule(delay,std::move(callback));
             };
         }
         Widget() { is_terminal = true; layout_padding = Insets(3); }
@@ -237,6 +269,7 @@ namespace CPPUI { namespace Wx {
             dropHandlers={};
             clearRef();
             if(!native) return;
+            native->timers->timers.clear();
             native->node = nullptr; native->command = {}; native->input = {}; native->finish = {}; native->resize = {};
             auto object = native;
             ui = nullptr;

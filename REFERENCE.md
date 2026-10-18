@@ -1256,3 +1256,19 @@ Qt/wx/LVGL applications accept `run(const LandlockPolicy &)` and
 fails startup if the requested policy cannot be applied. See
 [Landlock semantics and startup requirements](doc/landlock.md), including
 `applyLandlock(policy)` for application-controlled early initialization.
+
+## UI callbacks
+
+On the UI thread, call `node->getPoster()` on a current mounted widget to obtain
+an independent `CPPUI::Poster` (`cppui/poster.hpp`). A worker may copy it and call
+`post(callback)` or `post(callback, delayMilliseconds)`; callbacks execute on the
+UI loop. Delay defaults to zero, must be finite and non-negative, and is measured
+from submission using a monotonic clock. Empty callbacks are rejected. Timers may
+run late when the UI is busy; queued time is deducted from the requested delay.
+
+Posters follow retained native widgets across reconciliation. Removing the target
+cancels pending execution; posting to an expired target is a no-op. Callbacks must
+still keep any other captured objects alive. Stop workers before destroying the
+backend runtime. Qt uses queued dispatch and precise timers, wx uses CallAfter
+and native timers, and LVGL drains its thread-safe queue on the UI timer loop.
+The Refs cookbook demonstrates a 500 ms delayed increment.

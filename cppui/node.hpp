@@ -85,11 +85,38 @@ namespace CPPUI {
         }
         detail::refRegistry()[refName]=refTarget;
     }
+    inline Poster Node::getPoster() {
+        if(std::this_thread::get_id()!=constructionThread)
+            throw std::logic_error("getPoster must be called on the UI thread");
+        if(destroyed || retired_by) throw std::logic_error("getPoster requires a current mounted node");
+        auto post=commandPoster(); auto later=timerPoster();
+        if(!post || !later) throw std::logic_error("This node has no mounted UI dispatcher");
+        if(!refTarget) refTarget=std::make_shared<detail::RefTarget>();
+        { std::lock_guard<std::mutex> lock(refTarget->mutex);
+          refTarget->node=this; refTarget->post=std::move(post); refTarget->later=std::move(later); }
+        std::weak_ptr<detail::RefTarget> weak=refTarget;
+        auto guard=[weak](Callback callback) -> Callback {
+            return [weak,callback]() {
+                auto target=weak.lock(); if(!target) return;
+                { std::lock_guard<std::mutex> lock(target->mutex); if(!target->node) return; }
+                callback(); // UI thread; callbacks may remove their own node.
+            };
+        };
+        return Poster([weak,guard](Callback callback) {
+            auto target=weak.lock(); if(!target) return;
+            std::lock_guard<std::mutex> lock(target->mutex);
+            if(target->node) target->post(guard(std::move(callback)));
+        },[weak,guard](int delay,Callback callback) {
+            auto target=weak.lock(); if(!target) return;
+            std::lock_guard<std::mutex> lock(target->mutex);
+            if(target->node) target->later(delay,guard(std::move(callback)));
+        });
+    }
     inline void Node::clearRef() {
         if(!refTarget) return;
         std::lock_guard<std::mutex> lock(refTarget->mutex);
         if(refTarget->node!=this) return;
-        refTarget->node=nullptr; refTarget->post={}; refTarget->invoke={};
+        refTarget->node=nullptr; refTarget->post={}; refTarget->later={}; refTarget->invoke={};
         auto & registry=detail::refRegistry(); auto it=registry.find(refName);
         if(it!=registry.end() && it->second==refTarget) registry.erase(it);
     }

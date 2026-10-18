@@ -2,6 +2,7 @@
 #define CPPUI_REFS
 
 #include "optional.hpp"
+#include "poster.hpp"
 #include <functional>
 #include <map>
 #include <memory>
@@ -11,12 +12,12 @@
 namespace CPPUI {
     class Node;
     enum class RefCommand { Select, Maximize, Minimize, Fullscreen };
-    using CommandPoster = std::function<void(std::function<void()>)>;
     namespace detail {
         struct RefTarget {
             std::mutex mutex;
             Node * node = nullptr; // Read/dereferenced only on the UI thread.
             CommandPoster post;
+            TimerPoster later;
             std::function<void(RefCommand, const OptionalText &, bool)> invoke;
             bool selection = false, emptySelection = false, window = false;
         };

@@ -60,6 +60,9 @@ namespace CPPUI {
         void publishRef();
         void clearRef();
         virtual CommandPoster commandPoster() { return {}; }
+        virtual TimerPoster timerPoster() { return {}; }
+        const std::thread::id constructionThread=std::this_thread::get_id();
+        Poster getPoster();
         virtual bool refSelection() const { return false; }
         virtual bool refEmptySelection() const { return false; }
         virtual bool refWindow() const { return false; }
