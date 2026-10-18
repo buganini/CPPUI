@@ -1,4 +1,5 @@
 2026-10-18
+    * LVGL Stack: add retained overlapping layers, native drawing/input order, automatic and allocated sizing, visibility, padding/margins and shared SDL2/X11 cookbook
     * Refs: publish after node update before descending, matching PUI ancestor lookup and nested duplicate-name ordering
     * Native PUI sync audited through e912d45; exclude AI development/IPC and Web/Pyodide; Python VDOM list-slice optimization is already covered by direct C++ indexed search
     * Drop: sync PUI e912d45 directory handling; / allows directories in filtered batches, omitted filters allow both, and the cookbook identifies directories without reading them

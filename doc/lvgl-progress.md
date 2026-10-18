@@ -1,6 +1,17 @@
 # LVGL implementation progress and remaining work
 
-The latest follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
+Stack is now implemented using a shared native grid cell, with retained layers,
+keyed drawing/input order, nested padding, margins and automatic/fixed sizing.
+Hidden or removed layers no longer contribute to automatic size. Both SDL2/X11
+enable the shared Stack cookbook. This implementation is independent of the
+still-unported public Grid wrapper; see the [Stack contract](../REFERENCE.md#grid-and-stack).
+
+Stack verification (2026-10-18): both drivers build with `-j "$(nproc)"`,
+including C++11 and independent-header checks; all 19 CTests pass for each
+driver. The Stack regression also passes Valgrind with definite/indirect leaks
+treated as errors. Both rebuilt desktop cookbooks were launched.
+
+The preceding follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
 and typed tab placement with the shared `Side` enum. Hidden content retains native
 state; callbacks run on the UI loop and stop executing after target removal. LVGL
 tab placement is now applied to the native tabview on redraw.
@@ -66,7 +77,7 @@ must name the choice; it must not be reported as toolkit non-support. Call work
 **blocked** only when a specific dependency prevents progress, and name that
 dependency. Routine implementation choices remain part of the porting work.
 
-Public LVGL headers currently cover Application, Window, HBox/VBox, Label,
+Public LVGL headers currently cover Application, Window, HBox/VBox, Stack, Label,
 Button, Checkbox, RadioButton, TextField, MaskedField, ComboBox, Spacer, Divider, plain Text with raw-source
 Html/MarkDown fallbacks, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
 and Canvas drawing. Shared recipes use the
@@ -100,7 +111,8 @@ changes are excluded at the user's request.
 | Native lifetime | Views own declarations; primary/secondary native observers clear on deletion; callbacks detach on retirement | Define external remount and shared-screen ownership before broadening interop (2, 6) |
 | Application and native drivers | Loop returns when the last display closes; LVGL delay callback; separate SDL2/X11 startup and cleanup | Define explicit quit/host-driven pumping and borrowed-runtime ownership; handle SDL2 direct exit (2) |
 | Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
-| Grid/Stack | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans/overlap (3) |
+| Stack | Shared native grid cell, retained keyed layers, automatic/allocated sizing, margins, visibility and cookbook | Implemented; broader display/density coverage follows general validation (3) |
+| Grid | Not yet ported to CPPUI | Add shared placement API and choose native track sizing, then verify spans (3) |
 | ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text and raw Html/MarkDown fallbacks in the shared cookbook | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
 | Bound controls | Boolean Checkbox, typed RadioButton, string TextField and editable/read-only ComboBox with Binding/State | Shared text conversion and event payloads remain deferred (4) |
 | Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
@@ -180,8 +192,11 @@ Reference: shared [HBox](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b
 [Label](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/label.py)
 and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/button.py) cases.
 
-- [ ] Add public Grid and Stack after native track sizing is agreed; verify
-  nested padding, grid spans and overlapping child order.
+- [x] Add public Stack independently of Grid; verify automatic sizing and
+  shrinkage, allocated sizing, nested padding, margins, keyed order, hidden
+  layers, pointer targeting and retained editor state.
+- [ ] Add public Grid after native track sizing is agreed; verify nested
+  padding and grid spans.
 - [ ] Add input payloads after the deferred common event contract is addressed.
 - [ ] Verify layout/style geometry at multiple display sizes and densities;
   define runtime font resources beyond the current compiled-font approximation.

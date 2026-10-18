@@ -11,7 +11,7 @@ are described in the component sections and backend plans.
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
-|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|wxGridBagSizer / wxPanel + overlay wxSizer|
+|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|Stack: shared native grid cell; Grid not yet ported|wxGridBagSizer / wxPanel + overlay wxSizer|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
 |[Scroll](#scroll)|QScrollArea|scrollable object (basic)|wxScrolledWindow|
@@ -727,13 +727,28 @@ in reconciliation identity, so changing them replaces that cell. A layout is
 required to group several controls in a cell. The shared fluent placement API
 is still undecided; the cookbook currently assigns these fields directly.
 
-Stack uses Qt's StackAll mode and reverses initial declaration order, placing
+Qt Stack uses StackAll mode and reverses initial declaration order, placing
 the last declared layer on top. All layers share the available geometry.
 Unchanged redraws retain the raised layer. Insertions/removals and keyed moves
 let QStackedLayout choose its current layer, as in PUI; moving the current layer
 can raise its neighbor. Grid and Stack share HBox/VBox's nested
 padding rules. PUI ignores Spacer inside these two containers; CPPUI also skips
 its native insertion and explicitly reclaims the unmounted item.
+
+LVGL exposes `Stack()` through `cppui/lvgl/layout.hpp` or `stack.hpp`, using
+one native grid cell shared by all layers (`LV_USE_GRID` required). The last
+declared layer draws on top and receives overlapping pointer input first;
+keyed moves update that order while retaining native widgets and editor state.
+Hidden layers retain their state and do not contribute to automatic sizing or
+pointer hit testing. Automatic axes fit the largest visible layer plus padding
+and margins, with children retaining their natural size at the padded origin.
+Axes allocated by an explicit size, a parent layout or flex weight stretch
+layers to the available space, less each layer's margins. Resetting an axis to
+automatic, hiding or removing a large layer allows it to shrink again.
+Stack shares HBox/VBox's nested padding rules; Spacer is a zero-size ignored
+layout item and does not intercept input. Both SDL2/X11 run the shared Stack
+cookbook. The public LVGL Grid wrapper remains unported; Stack does not depend
+on completing it.
 
 ## Spacer
 
