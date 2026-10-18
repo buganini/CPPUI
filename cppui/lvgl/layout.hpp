@@ -41,4 +41,5 @@ namespace CPPUI {
     inline LVGL::VBox & VBox() { return *new LVGL::VBox(); }
 }
 #include "stack.hpp"
+#include "grid.hpp"
 #endif

@@ -13,22 +13,6 @@ namespace CPPUI { namespace LVGL {
             static const int32_t stretch[]={LV_GRID_FR(1),LV_GRID_TEMPLATE_LAST};
             return fill ? stretch : content;
         }
-        bool fills(lv_obj_t * object,bool horizontal) const {
-            const auto size=horizontal ? lv_obj_get_style_width(object,LV_PART_MAIN) : lv_obj_get_style_height(object,LV_PART_MAIN);
-            if(size!=LV_SIZE_CONTENT) return true;
-            auto owner=lv_obj_get_parent(object);
-            if(!owner) return false;
-            const auto layout=lv_obj_get_style_layout(owner,LV_PART_MAIN);
-            if(layout==LV_LAYOUT_FLEX && lv_obj_get_style_flex_grow(object,LV_PART_MAIN)>0) {
-                const bool row=(lv_obj_get_style_flex_flow(owner,LV_PART_MAIN)&LV_FLEX_COLUMN)==0;
-                if(row==horizontal) return true;
-            }
-            if(layout==LV_LAYOUT_GRID) {
-                const auto align=horizontal ? lv_obj_get_style_grid_cell_x_align(object,LV_PART_MAIN) : lv_obj_get_style_grid_cell_y_align(object,LV_PART_MAIN);
-                if(align==LV_GRID_ALIGN_STRETCH) return true;
-            }
-            return false;
-        }
         void place(lv_obj_t * child) {
             lv_obj_set_grid_cell(child,fillX ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0,1,
                                       fillY ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0,1);
@@ -36,7 +20,7 @@ namespace CPPUI { namespace LVGL {
         void configure() {
             if(!ui || configuring) return;
             auto object=static_cast<lv_obj_t *>(ui);
-            const bool x=fills(object,true), y=fills(object,false);
+            const bool x=fillsAxis(object,true), y=fillsAxis(object,false);
             if(configured && x==fillX && y==fillY) return;
             configuring=true;
             remeasure=remeasure || (configured && ((fillX && !x) || (fillY && !y)));

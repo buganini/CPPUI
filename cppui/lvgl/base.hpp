@@ -212,7 +212,29 @@ namespace CPPUI {
                 ui = nullptr;
             }
          };
-        class Layout: public Node {};
+        class Layout: public Node {
+            protected:
+            static bool fillsAxis(lv_obj_t * object,bool horizontal) {
+                const auto size=horizontal ? lv_obj_get_style_width(object,LV_PART_MAIN) : lv_obj_get_style_height(object,LV_PART_MAIN);
+                if(size!=LV_SIZE_CONTENT) return true;
+                auto owner=lv_obj_get_parent(object);
+                if(!owner) return false;
+                const auto layout=lv_obj_get_style_layout(owner,LV_PART_MAIN);
+#if LV_USE_FLEX
+                if(layout==LV_LAYOUT_FLEX && lv_obj_get_style_flex_grow(object,LV_PART_MAIN)>0) {
+                    const bool row=(lv_obj_get_style_flex_flow(owner,LV_PART_MAIN)&LV_FLEX_COLUMN)==0;
+                    if(row==horizontal) return true;
+                }
+#endif
+#if LV_USE_GRID
+                if(layout==LV_LAYOUT_GRID) {
+                    const auto align=horizontal ? lv_obj_get_style_grid_cell_x_align(object,LV_PART_MAIN) : lv_obj_get_style_grid_cell_y_align(object,LV_PART_MAIN);
+                    if(align==LV_GRID_ALIGN_STRETCH) return true;
+                }
+#endif
+                return false;
+            }
+        };
 
         inline const lv_font_t * Node::resolveFont() const {
             if(style_fontfamily && !style_fontfamily->empty() && *style_fontfamily != "Montserrat")
