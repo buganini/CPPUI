@@ -118,6 +118,9 @@ namespace Cookbook { namespace Backend {
         } else if(std::string(page.key) == "stack") {
             page.render = stack;
             page.remaining = "";
+        } else if(std::string(page.key) == "grid") {
+            page.render = grid;
+            page.remaining = "";
         } else if(std::string(page.key) == "maskedfield") {
             page.render = maskedfield; page.remaining = "";
         } else if(std::string(page.key) == "combobox") {
@@ -267,6 +270,20 @@ namespace Cookbook { namespace Backend {
             lv_obj_get_coords(gap, &end);
             if(lv_obj_get_height(gap) <= lv_obj_get_content_height(box)/2 || end.y2 != content.y2)
                 throw std::runtime_error("vertical spacer must fill the remaining column height");
+        }
+        if(auto grid = find(root, "example-grid")) {
+            auto object = static_cast<lv_obj_t *>(grid->outer());
+            auto a = static_cast<lv_obj_t *>(find(root, "grid-0-0")->outer());
+            auto b = static_cast<lv_obj_t *>(find(root, "grid-1-0")->outer());
+            auto c = static_cast<lv_obj_t *>(find(root, "grid-0-1")->outer());
+            auto d = static_cast<lv_obj_t *>(find(root, "grid-2-1")->outer());
+            if(lv_obj_get_x(a) != 0 || lv_obj_get_y(a) != 0 || lv_obj_get_y(c) != 0
+               || lv_obj_get_x(b) != lv_obj_get_x(a) || lv_obj_get_x(c) != lv_obj_get_width(a) + 6
+               || lv_obj_get_x(d) != lv_obj_get_x(c) || lv_obj_get_y(b) != lv_obj_get_height(a) + 6
+               || lv_obj_get_y(d) != lv_obj_get_y(b) + lv_obj_get_height(b) + 6
+               || lv_obj_get_style_grid_cell_row_span(c, LV_PART_MAIN) != 2
+               || lv_obj_get_height(object) != lv_obj_get_y(d) + lv_obj_get_height(d))
+                throw std::runtime_error("Grid recipe must retain its two columns, three rows and spanning cell");
         }
         if(auto stack = find(root, "example-stack")) {
             auto object = static_cast<lv_obj_t *>(stack->outer());
