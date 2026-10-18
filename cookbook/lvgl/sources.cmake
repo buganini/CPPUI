@@ -2,6 +2,7 @@ target_sources(${target} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../canvas.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../checkbox.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../combobox.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../heavycanvas.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../image.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../radiobutton.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../stack.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../grid.cpp"
@@ -12,3 +13,4 @@ target_sources(${target} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../canvas.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../textfield.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../text.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../tab.cpp")
+target_compile_definitions(${target} PRIVATE CPPUI_COOKBOOK_ASSET_DIR="${CMAKE_CURRENT_LIST_DIR}/../assets")

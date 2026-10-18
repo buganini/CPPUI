@@ -7,6 +7,7 @@
 #include "cppui/lvgl/label.hpp"
 #include "cppui/lvgl/button.hpp"
 #include "cppui/lvgl/canvas.hpp"
+#include "cppui/lvgl/image.hpp"
 #include "cppui/lvgl/divider.hpp"
 #include "cppui/lvgl/tab.hpp"
 #include "cppui/lvgl/views.hpp"
@@ -120,6 +121,9 @@ namespace Cookbook { namespace Backend {
             page.remaining = "";
         } else if(std::string(page.key) == "grid") {
             page.render = grid;
+            page.remaining = "";
+        } else if(std::string(page.key) == "image") {
+            page.render = image;
             page.remaining = "";
         } else if(std::string(page.key) == "maskedfield") {
             page.render = maskedfield; page.remaining = "";
@@ -298,6 +302,13 @@ namespace Cookbook { namespace Backend {
                || lv_obj_get_height(top) != lv_obj_get_style_text_font(top, LV_PART_MAIN)->line_height
                || lv_obj_get_child(object, 1) != top)
                 throw std::runtime_error("Stack recipe must overlap natural-height labels with the last layer on top");
+        }
+        if(auto image = find(root, "example-image")) {
+            auto object = static_cast<lv_obj_t *>(image->outer());
+            auto pixels = static_cast<const lv_draw_buf_t *>(lv_image_get_src(object));
+            if(!pixels || pixels->header.w != 400 || pixels->header.h != 339
+               || lv_obj_get_width(object) != 400 || lv_obj_get_height(object) != 339)
+                throw std::runtime_error("Image recipe must decode the windmill and preserve its aspect ratio");
         }
         if(auto canvas = find(root, "example-canvas")) {
             auto object = static_cast<lv_obj_t *>(canvas->outer());
