@@ -40,4 +40,29 @@ int main() {
     root.show=false; root.redraw(); require(CPPUI::ref("renamed").node()==second.node(),"old duplicate erased current ref");
     second.select("page"); root.duplicate=false; root.redraw(); applied=nullptr; flush();
     require(!applied && !second.node() && CPPUI::detail::refRegistry().empty(),"removed ref leaked a node or dispatched");
+    class Nested:public CPPUI::View {
+        public:
+        bool ancestorVisible=false;
+        void destroy(bool) override {}
+        void content() override {
+            ancestorVisible=CPPUI::ref("nested").node()==parent;
+            (new Item())->ref("nested");
+        }
+    };
+    class NestedRoot:public CPPUI::View {
+        public:
+        Nested * nested=nullptr;
+        ~NestedRoot() override {for(auto node:*children) CPPUI::recur_delete(node,true);children->clear();}
+        void destroy(bool) override {}
+        void content() override {
+            for(auto scope:(new Item())->ref("nested")) nested=new Nested();
+        }
+    };
+    {
+        NestedRoot nested; nested.redraw();
+        require(nested.nested->ancestorVisible,"ancestor ref was not published before descendant content");
+        require(CPPUI::ref("nested").node()==nested.nested->children->front(),"parent publication overwrote nested duplicate");
+    }
+    require(CPPUI::detail::refRegistry().empty(),"nested refs leaked registry entries");
+
 }

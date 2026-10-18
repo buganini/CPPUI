@@ -178,6 +178,7 @@ namespace CPPUI {
                             delete newNode;
                         } else {
                             newNode->update(oldNode);
+                            newNode->publishRef();
                             if(newNode->is_virtual) {
                                 int num = 0;
                                 int delta = 0;
@@ -238,6 +239,7 @@ namespace CPPUI {
                 if(matchedIdx == -1) {
                     // Step 3-1: new node.
                     newNode->update(nullptr);
+                    newNode->publishRef();
                     if(newNode->is_virtual) {
                         std::vector<Node *> empty;
                         int num = 0;
@@ -305,7 +307,6 @@ namespace CPPUI {
 
         for(Node * child: *newDOM) {
             child->postUpdate();
-            child->publishRef();
         }
         node->postSync();
 

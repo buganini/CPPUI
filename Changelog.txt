@@ -1,4 +1,6 @@
 2026-10-18
+    * Refs: publish after node update before descending, matching PUI ancestor lookup and nested duplicate-name ordering
+    * Native PUI sync audited through e912d45; exclude AI development/IPC and Web/Pyodide; Python VDOM list-slice optimization is already covered by direct C++ indexed search
     * Drop: sync PUI e912d45 directory handling; / allows directories in filtered batches, omitted filters allow both, and the cookbook identifies directories without reading them
     * Application: sync optional Linux Landlock filesystem policies for native backends, with fail-closed startup and isolated subprocess coverage
     * Drop: sync Qt/wx portable file/text/URL events, explicit acceptance, suffix/directory checks and shared cookbook; preserve callback lifetime on redraw/removal

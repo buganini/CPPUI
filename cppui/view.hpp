@@ -109,6 +109,7 @@ namespace CPPUI {
         children = new std::vector<Node *>();
         try {
             update(nullptr);
+            publishRef();
         } catch(...) {
             delete children;
             children = lastChildren;
@@ -119,7 +120,6 @@ namespace CPPUI {
         int delta = 0;
         sync(this, physicalParent, offset, lastChildren, children, 0, &num, &delta);
         delete lastChildren;
-        publishRef();
     }
 
     inline void View::run(void) {
