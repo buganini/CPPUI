@@ -212,7 +212,7 @@ namespace CPPUI { namespace Wx {
             if(style_fontweight) font.SetWeight(*style_fontweight >= 600 ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
             if(ui->GetFont() != font) ui->SetFont(font);
             auto foreground = style_color ? colour(*style_color) : native->foreground;
-            if(ui->GetForegroundColour() != foreground) ui->SetForegroundColour(foreground);
+            if(ui->GetForegroundColour() != foreground) ui->SetOwnForegroundColour(foreground);
             if(style_bgcolor) {
                 ui->SetBackgroundColour(colour(*style_bgcolor));
                 native->backgroundCustomized = true;

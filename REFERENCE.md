@@ -11,7 +11,7 @@ are described in the component sections and backend plans.
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
-|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|wxGridBagSizer / overlay wxSizer|
+|[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|—|wxGridBagSizer / wxPanel + overlay wxSizer|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
 |[Scroll](#scroll)|QScrollArea|scrollable object (basic)|wxScrolledWindow|
@@ -1181,7 +1181,7 @@ native UI. Callback snapshots allow synchronous removal; models release adapter
 ownership on teardown. Native edits, retained state and adapter lifetimes pass
 sanitizers and Valgrind on wxGTK.
 
-wx Stack overlays padded children at the same size and raises later children
+wx Stack owns a native panel and overlays padded children at the same size and raises later children
 above earlier ones. It uses native controls and their native background/hit-test
 behavior; it does not rasterize the child hierarchy.
 

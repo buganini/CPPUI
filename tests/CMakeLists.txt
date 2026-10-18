@@ -1,6 +1,9 @@
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_stack wx_stack.cpp)
+    target_link_libraries(cppui_wx_stack PRIVATE CPPUI::wx)
+    cppui_add_test(wx.stack cppui_wx_stack)
     add_executable(cppui_wx_drop native_drop.cpp)
     target_compile_definitions(cppui_wx_drop PRIVATE CPPUI_TEST_WX)
     target_link_libraries(cppui_wx_drop PRIVATE CPPUI::wx)
