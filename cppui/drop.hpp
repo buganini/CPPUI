@@ -30,12 +30,12 @@ namespace CPPUI {
             return value;
         }
         inline std::vector<std::string> dropExtensions(const std::vector<std::string> & source) {
-            if(source.empty()) throw std::invalid_argument("extensions must contain suffixes such as .txt or .tar.gz");
+            if(source.empty()) throw std::invalid_argument("extensions must contain suffixes such as .txt or .tar.gz, or / for directories");
             std::vector<std::string> result;
             for(auto value:source) {
                 value=extensionLower(value);
-                if(value.size()<2 || value[0]!='.' || value.find_first_of("/\\")!=std::string::npos || value.find('\0')!=std::string::npos)
-                    throw std::invalid_argument("extensions must contain suffixes such as .txt or .tar.gz");
+                if(value!="/" && (value.size()<2 || value[0]!='.' || value.find_first_of("/\\")!=std::string::npos || value.find('\0')!=std::string::npos))
+                    throw std::invalid_argument("extensions must contain suffixes such as .txt or .tar.gz, or / for directories");
                 if(std::find(result.begin(),result.end(),value)==result.end()) result.push_back(value);
             }
             return result;
@@ -45,19 +45,19 @@ namespace CPPUI {
             Optional<std::vector<std::string>> extensions;
             void dispatch(DropEvent & event,bool enabled=true) const {
                 if(!dropped || !enabled) { event.reject("Drop target is no longer available"); return; }
-                std::string invalid;
-                if(extensions) for(const auto & file:event.files) {
+                std::string invalid; bool directories=false;
+                for(const auto & file:event.files) {
+                    struct stat info;
+                    if(::stat(file.path.c_str(),&info)==0 && (info.st_mode&S_IFMT)==S_IFDIR) { directories=true; continue; }
+                    if(!extensions) continue;
                     const auto name=extensionLower(file.name); bool matches=false;
                     for(const auto & suffix:*extensions)
                         if(name.size()>=suffix.size() && name.compare(name.size()-suffix.size(),suffix.size(),suffix)==0) matches=true;
                     if(!matches) { if(!invalid.empty()) invalid+=", "; invalid+=file.name; }
                 }
                 if(!invalid.empty()) { event.reject("Unsupported file extension: "+invalid); return; }
-                for(const auto & file:event.files) {
-                    struct stat info;
-                    if(::stat(file.path.c_str(),&info)==0 && (info.st_mode&S_IFMT)==S_IFDIR) {
-                        event.reject("Dropping directories is not supported"); return;
-                    }
+                if(directories && extensions && std::find(extensions->begin(),extensions->end(),"/")==extensions->end()) {
+                    event.reject("Directories are not allowed by the extension filter"); return;
                 }
                 // Callers snapshot handlers; callbacks may remove the target.
                 try { dropped(event); }

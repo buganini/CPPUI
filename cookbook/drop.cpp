@@ -10,7 +10,11 @@ namespace Cookbook {
                 if(model.rejectDrop) { event.reject("Rejected by the example"); return; }
                 std::ostringstream lines, contents; lines << "Action: " << event.action;
                 for(const auto & file:event.files) {
-                    struct stat info; const auto size=::stat(file.path.c_str(),&info)==0 ? info.st_size : 0;
+                    struct stat info; const bool exists=::stat(file.path.c_str(),&info)==0;
+                    if(exists && (info.st_mode&S_IFMT)==S_IFDIR) {
+                        lines << "\n" << file.name << ": directory (" << file.path << ")"; continue;
+                    }
+                    const auto size=exists ? info.st_size : 0;
                     lines << "\n" << file.name << ": " << size << " bytes (temporary=" << (file.temporary ? "true" : "false") << ")";
                     const auto name=CPPUI::detail::extensionLower(file.name);
                     if(name.size()>=4 && name.compare(name.size()-4,4,".txt")==0) {
@@ -21,7 +25,7 @@ namespace Cookbook {
                 if(event.text) lines << "\n" << *event.text;
                 for(const auto & url:event.urls) lines << "\n" << url;
                 model.dropResult=lines.str(); model.dropText=contents.str(); event.accept();
-            }, {".txt", ".json"});
+            }, {".txt", ".json", "/"});
             CPPUI::Checkbox("Reject this drop",model.rejectDrop);
             CPPUI::Label(static_cast<std::string>(model.dropResult));
             CPPUI::Label(static_cast<std::string>(model.dropText));

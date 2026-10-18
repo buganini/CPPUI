@@ -26,4 +26,19 @@ int main() {
         bool invalid=false; try {CPPUI::detail::dropExtensions(values);} catch(const std::invalid_argument &) {invalid=true;}
         require(invalid,"invalid suffix accepted");
     }
+    handlers.dropped=[](CPPUI::DropEvent & event){event.accept();};
+    auto batch=[](){CPPUI::DropEvent event;event.files.emplace_back("folder.txt","/tmp");event.files.emplace_back("file.txt","/tmp/missing.txt");return event;};
+    handlers.extensions=CPPUI::detail::dropExtensions({".txt","/"}); event=batch(); handlers.dispatch(event);
+    require(event.accepted,"directory plus file batch rejected");
+    handlers.extensions=CPPUI::detail::dropExtensions({".txt"}); event=batch(); handlers.dispatch(event);
+    require(!event.accepted,"directory name bypassed slash filter");
+    handlers.extensions=CPPUI::detail::dropExtensions({"/"}); event=batch(); handlers.dispatch(event);
+    require(!event.accepted,"directory-only filter accepted file");
+    event=batch();event.files.pop_back();handlers.dispatch(event);require(event.accepted,"directory-only filter rejected directory");
+    handlers.extensions.reset();event=batch();handlers.dispatch(event);require(event.accepted,"omitted filter rejected directory");
+    for(auto invalid:{"/tmp",".txt/",""}) {
+        bool failed=false;try{CPPUI::detail::dropExtensions({invalid});}catch(const std::invalid_argument &){failed=true;}
+        require(failed,"invalid directory filter accepted");
+    }
+
 }

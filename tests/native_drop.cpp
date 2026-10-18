@@ -15,7 +15,7 @@ static void require(bool value,const char * message) { if(!value) throw std::run
 class Root:public CPPUI::Application {
 public:
     using Application::Application;
-    bool show=true,handler=true,accept=true,remove=false;
+    bool show=true,handler=true,accept=true,remove=false,allowDirectories=false;
     int calls=0,version=0,seen=-1,enters=0;
     CPPUI::DropEvent saved;
     void content() override {
@@ -26,7 +26,7 @@ public:
                 ++calls; seen=snapshot; saved=event;
                 if(accept) event.accept();
                 if(remove) {show=false;sync();}
-            }, {".txt", ".json"}).dragEnter([this](CPPUI::DropEvent &){++enters;});
+            }, allowDirectories ? std::vector<std::string>{".txt", ".json", "/"} : std::vector<std::string>{".txt", ".json"}).dragEnter([this](CPPUI::DropEvent &){++enters;});
         }
     }
 };
@@ -64,6 +64,9 @@ int main(int argc,char ** argv) {
             require(event.isAccepted(),"scroll-area viewport did not deliver portable drops");
         }
         require(root.saved.action=="link" && root.enters==3,"drop actions or enter callback failed");
+        mime.setUrls({QUrl::fromLocalFile("/tmp")});
+        require(!send(Qt::CopyAction),"Qt directory bypassed suffix filter");
+        root.allowDirectories=true; root.sync(); require(send(Qt::CopyAction) && root.saved.files[0].path=="/tmp","Qt directory path lost");
         root.accept=false; root.sync(); require(!send(Qt::CopyAction),"unaccepted drop succeeded");
         root.handler=false; root.sync(); require(!native->acceptDrops(),"removed drop handler stayed registered");
         root.handler=true; root.accept=true; root.remove=true; root.sync();
@@ -84,6 +87,10 @@ int main(int argc,char ** argv) {
         require(event.urls.size()==2 && event.urls[0]=="https://example.com/item","wx URI list parsing failed");
         target->files->AddFile("/tmp/FILE.TXT"); event=target->eventData(2,3,wxDragMove,target->files->GetFormat());
         require(event.files.size()==1 && event.files[0].name=="FILE.TXT" && !event.files[0].temporary,"wx file data lost");
+        target->files->AddFile("/tmp"); event=target->eventData(2,3,wxDragCopy,target->files->GetFormat());
+        require(target->dispatchData(event,wxDragCopy)==wxDragNone,"wx directory bypassed suffix filter");
+        root.allowDirectories=true;root.sync();
+        require(target->dispatchData(event,wxDragCopy)==wxDragCopy && root.saved.files.back().path=="/tmp","wx directory path lost");
         root.accept=false; root.version=1; root.sync();
         require(target->OnData(2,3,wxDragCopy)==wxDragNone && root.seen==1,"wx handler update/rejection failed");
         root.handler=false; root.sync(); require(!native->GetDropTarget(),"wx omitted handler stayed registered");

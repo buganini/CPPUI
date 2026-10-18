@@ -1,4 +1,5 @@
 2026-10-18
+    * Drop: sync PUI e912d45 directory handling; / allows directories in filtered batches, omitted filters allow both, and the cookbook identifies directories without reading them
     * Application: sync optional Linux Landlock filesystem policies for native backends, with fail-closed startup and isolated subprocess coverage
     * Drop: sync Qt/wx portable file/text/URL events, explicit acceptance, suffix/directory checks and shared cookbook; preserve callback lifetime on redraw/removal
     * Refs: sync named node binders, queued Qt/wx window commands and Qt/wx/LVGL selection; preserve identity across reconciliation, expire removed targets and add Refs cookbook

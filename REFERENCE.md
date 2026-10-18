@@ -1226,8 +1226,12 @@ State-ref publishing for Web/AI inspection is excluded from this native sync.
 `.dragEnter(callback)` and `.drop(callback)` receive a `CPPUI::DropEvent &`.
 Use `.drop(callback, {".txt", ".json"})` to filter file suffixes (ASCII case
 insensitive, including compound suffixes such as `.tar.gz`). A supplied list must
-be nonempty. Unsupported suffixes and directories are rejected before dispatch;
-text and URLs are unaffected by the file filter. Disabled targets reject drops.
+be nonempty. Include `"/"` to allow directories; an omitted filter accepts both
+files and directories. Directories retain their original path and
+`temporary=false`; use filesystem inspection to distinguish them. CPPUI does
+not enumerate or copy their contents. One invalid file or disallowed directory
+rejects the entire batch before dispatch. Text and URLs are unaffected by the
+file filter. Disabled targets reject drops.
 
 Events own `files` (`DropFile{name, path, temporary}`), optional `text`, `urls`,
 optional local `x`/`y`, and an `action` string (`copy`, `move`, `link`). Native
