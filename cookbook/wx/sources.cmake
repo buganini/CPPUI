@@ -10,6 +10,7 @@ target_sources(${target} PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/../image.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../grid.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../stack.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../splitter.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../progressbar.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../radiobutton.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/../scroll.cpp"

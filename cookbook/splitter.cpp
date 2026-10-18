@@ -3,8 +3,8 @@
 
 namespace Cookbook {
     void splitter(Model &) {
-        for(auto vertical: CPPUI::Splitter(true)) {
-            for(auto horizontal: CPPUI::Splitter()) {
+        for(auto vertical: CPPUI::Splitter(true).id("example-splitter")) {
+            for(auto horizontal: CPPUI::Splitter().id("splitter-horizontal")) {
                 for(auto column: CPPUI::VBox()) {
                     CPPUI::Label("item 1");
                     CPPUI::Label("item 2");

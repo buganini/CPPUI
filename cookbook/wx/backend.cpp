@@ -5,6 +5,8 @@ namespace Cookbook { namespace Backend {
         for(auto & page: pages) {
             if(std::string(page.key) == "stack") {
                 page.render=stack; page.remaining="";
+            } else if(std::string(page.key) == "splitter") {
+                page.render=splitter; page.remaining="";
             } else if(std::string(page.key) == "tree_adapter") {
                 page.render = treeAdapter;
                 page.remaining = "";
@@ -66,7 +68,6 @@ namespace Cookbook { namespace Backend {
                 page.render = image;
                 page.remaining = "";
             }
-            if(std::string(page.key)=="splitter") page.remaining="wx has two-pane splitters; shared API permits multiple panes";
             if(std::string(page.key)=="modal") page.remaining="Nonblocking application-modal ownership policy needed";
             if(std::string(page.key)=="mdi") page.remaining="MDI requires a native MDI parent frame";
         }

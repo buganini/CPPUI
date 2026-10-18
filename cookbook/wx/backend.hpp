@@ -4,6 +4,7 @@
 #include "cppui/wx/window.hpp"
 #include "cppui/wx/layout.hpp"
 #include "cppui/wx/grid.hpp"
+#include "cppui/wx/splitter.hpp"
 #include "cppui/wx/divider.hpp"
 #include "cppui/wx/label.hpp"
 #include "cppui/wx/button.hpp"
@@ -98,6 +99,18 @@ namespace Cookbook { namespace Backend {
         if(scroll->GetVirtualSize().y<=scroll->GetClientSize().y)throw std::runtime_error("cookbook page list must scroll");
         auto bar=frame->GetMenuBar();if(!bar||bar->GetMenuCount()!=2||bar->GetMenu(0)->GetMenuItemCount()!=3||bar->GetMenu(1)->GetMenuItemCount()!=2)throw std::runtime_error("reference menus missing");
         if(find(root,"code"))throw std::runtime_error("source code pane must be omitted");
+        if(auto node=find(root,"example-splitter")) {
+            auto host=static_cast<wxWindow *>(node->outer());
+            auto outer=dynamic_cast<wxSplitterWindow *>(host->GetSizer()->GetItem(std::size_t(0))->GetWindow());
+            auto innerHost=static_cast<wxWindow *>(find(root,"splitter-horizontal")->outer());
+            auto inner=dynamic_cast<wxSplitterWindow *>(innerHost->GetSizer()->GetItem(std::size_t(0))->GetWindow());
+            auto tail=inner ? dynamic_cast<wxSplitterWindow *>(inner->GetWindow2()) : nullptr;
+            if(!outer || !outer->IsSplit() || outer->GetSplitMode()!=wxSPLIT_HORIZONTAL
+               || !inner || !tail || !inner->IsSplit() || !tail->IsSplit()
+               || inner->GetSplitMode()!=wxSPLIT_VERTICAL || tail->GetSplitMode()!=wxSPLIT_VERTICAL
+               || inner->GetWindow1()->GetSize().x<=0 || tail->GetWindow2()->GetSize().x<=0)
+                throw std::runtime_error("Splitter recipe must mount three horizontal panes inside a vertical split");
+        }
     }
 }}
 #endif
