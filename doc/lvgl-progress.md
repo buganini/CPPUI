@@ -186,8 +186,8 @@ well. Web/Pyodide changes are excluded at the user's request.
   ownership of its CPPUI content. It must not delete the screen. This is not yet
   an arbitrary shared-screen, multi-window, or externally replaced-screen API.
 - Application content must be released before input devices/displays, then SDL,
-  then LVGL. The cookbook startup owns those runtime resources; do not make the
-  reusable backend unconditionally deinitialize a host-owned LVGL runtime.
+  then LVGL. Application owns resources it creates lazily; externally supplied
+  displays, input devices, groups and host-owned LVGL runtime remain borrowed.
 - Confine state mutation, reconciliation and LVGL access to the owning UI thread.
   Background work must marshal there; scheduler APIs need the shared completion
   and error-delivery contract.
@@ -369,8 +369,10 @@ and their cookbook recipes are excluded from CPPUI.
 All cookbook source/header files live in `cookbook/`, with one source list for
 Qt, wx and both LVGL drivers. Select SDL2 or X11 through the CMake projects in
 `cookbook/lvgl_sdl2/` or `cookbook/lvgl_x11/`; `cookbook/lvgl/` contains only
-CMake helpers. Backend macros select toolkit headers, native helpers and
-supported recipes in the shared files. Preserve the cookbook sidebar, scrolling list,
+CMake helpers. The public `cppui/backend.hpp` facade selects toolkit headers and
+exposes feature capabilities. Native startup belongs to the backend; native smoke
+helpers live in `tests/cookbook/` and are linked only into separate test executables.
+Preserve the cookbook sidebar, scrolling list,
 Result pane and recipe layouts. Only the reference's source-code pane is omitted;
 `--list` reports unfinished wrappers as `not ported` and enabled recipes with gaps
 as `partial`. Record any verified toolkit limitation separately in the docs.
@@ -387,7 +389,7 @@ ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
 For X11, substitute `lvgl_x11` for `lvgl_sdl2` in both source/build paths; install
 X11 development packages and provide `DISPLAY`. See the [cookbook instructions](../cookbook/README.md)
 for full commands and the shallow v9.6.0 checkout. Both executables use their
-selected native driver for `--smoke` and interactive runs. CTest uses dummy
+selected native driver for separate `_smoke` test executables and interactive runs. CTest uses dummy
 video/software rendering for `cookbook.lvgl_sdl2`; `cookbook.lvgl_x11` uses an
 X server, optionally Xvfb. Keep interactive close, physical input/focus and
 embedded-device checks pending until explicitly tested.

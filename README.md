@@ -141,8 +141,8 @@ cmake --build build-cookbook-lvgl_x11
 ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
 ```
 
-Both LVGL executables use their selected driver for interactive runs and
-`--smoke`. CTest runs SDL2 with its dummy video/software-renderer drivers;
+Both LVGL builds use their selected driver for the gallery and the separate
+`_smoke` test executable. CTest runs SDL2 with its dummy video/software-renderer drivers;
 X11 tests use `DISPLAY` (a desktop X server or Xvfb). All four cookbook projects
 accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. Both LVGL backends use
 16 ms display/input timers. X11 uses a monotonic clock and applies native-cursor

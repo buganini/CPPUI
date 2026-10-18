@@ -1,9 +1,9 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 #include <fstream>
 #include <sstream>
 
-#if !defined(CPPUI_COOKBOOK_LVGL)
+#if CPPUI_HAS_DROP
 namespace Cookbook {
     void drop(Model & model) {
         for(auto column:CPPUI::VBox()) {

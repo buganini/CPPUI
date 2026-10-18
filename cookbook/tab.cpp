@@ -1,10 +1,9 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
 namespace Cookbook {
-#if defined(CPPUI_COOKBOOK_QT)
     namespace {
-        class TabExample: public Backend::View {
+        class TabExample: public CPPUI::Backend::View {
             CPPUI::State<CPPUI::OptionalText> selection{CPPUI::OptionalText("first")};
             void pages() {
                 for(auto tab: CPPUI::Tab("Tab 1").id("first")) CPPUI::Label("Content 1");
@@ -21,6 +20,7 @@ namespace Cookbook {
                         CPPUI::Button("Tab 2").click([this]() { choose("Tab 2"); });
                     }
                     for(auto tabs: CPPUI::Tabs(CPPUI::Side::TOP).layout({}, {}, 1).id("example-tabs").ref("cookbook.tabs")) pages();
+#if CPPUI_HAS_TAB_BINDING
                     const auto key = static_cast<CPPUI::OptionalText>(selection);
                     CPPUI::Label("Select by state: " + (key ? *key : "None"));
                     for(auto row: CPPUI::HBox()) {
@@ -28,21 +28,10 @@ namespace Cookbook {
                         CPPUI::Button("Tab 2 (state)").click([this]() { selection = CPPUI::OptionalText("Tab 2"); });
                     }
                     for(auto tabs: CPPUI::Tabs(CPPUI::Side::BOTTOM, selection).layout({}, {}, 1).id("bound-tabs")) pages();
+#endif
                 }
             }
         };
     }
     void tab(Model &) { CPPUI::SubView<TabExample>(); }
-#else
-    void tab(Model &) {
-        for(auto tabs: CPPUI::Tabs(CPPUI::Side::TOP).id("example-tabs")) {
-            for(auto first: CPPUI::Tab("Tab 1")) {
-                CPPUI::Label("Content 1");
-            }
-            for(auto second: CPPUI::Tab("Tab 2")) {
-                CPPUI::Label("Content 2");
-            }
-        }
-    }
-#endif
 }

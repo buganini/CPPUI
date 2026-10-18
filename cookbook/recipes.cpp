@@ -1,4 +1,4 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
 using namespace CPPUI;
@@ -52,6 +52,62 @@ namespace Cookbook {
         }
     }
 
+    void configureRecipes(std::vector<Recipe> & pages) {
+        struct Implementation {
+            const char * key;
+            void (*render)(Model &);
+            const char * remaining;
+        };
+        const Implementation implementations[] = {
+            {"stack", stack, ""},
+            {"grid", grid, ""},
+            {"table", table, ""},
+            {"table_adapter", tableAdapter, ""},
+            {"progressbar", progressbar, ""},
+            {"checkbox", checkbox, ""},
+            {"heavycanvas", heavycanvas, ""},
+            {"canvas", canvas, ""},
+            {"tab", tab, ""},
+            {"views", views, ""},
+            {"timeline", timeline, ""},
+            {"combobox", combobox, ""},
+            {"radiobutton", radiobutton, ""},
+            {"maskedfield", maskedfield, ""},
+            {"image", image, ""},
+            {"textfield", textfield, "String models; dynamic numeric conversion and typed input/change payloads pending"},
+            {"text", text, CPPUI::Backend::textSupport},
+#if CPPUI_HAS_TREE
+            {"tree", tree, ""},
+            {"tree_adapter", treeAdapter, ""},
+#endif
+#if CPPUI_HAS_SPLITTER
+            {"splitter", splitter, ""},
+#endif
+#if CPPUI_HAS_DROP
+            {"drop", drop, ""},
+#endif
+#if CPPUI_HAS_DIALOG
+            {"dialog", dialog, ""},
+#endif
+#if CPPUI_HAS_SCROLL_ANCHOR
+            {"scroll", scroll, ""},
+#endif
+#if CPPUI_HAS_MDI
+            {"mdi", mdi, ""},
+#endif
+#if CPPUI_HAS_MODAL
+            {"modal", modal, ""},
+#endif
+        };
+        for(auto & page: pages) {
+            for(const auto & implementation: implementations) {
+                if(std::string(page.key) != implementation.key) continue;
+                page.render = implementation.render;
+                page.remaining = implementation.remaining;
+                break;
+            }
+        }
+    }
     const std::vector<Recipe> & recipes() {
         static const std::vector<Recipe> result = []() {
             std::vector<Recipe> pages = {
@@ -88,7 +144,7 @@ namespace Cookbook {
             {"modal", "Modal", nullptr, "Bound visibility"},
             {"dialog", "Dialog", nullptr, "Typed results and cancellation"},
             };
-            Backend::configureRecipes(pages);
+            configureRecipes(pages);
             return pages;
         }();
         return result;

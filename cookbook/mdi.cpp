@@ -1,7 +1,7 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
-#if defined(CPPUI_COOKBOOK_QT)
+#if CPPUI_HAS_MDI
 namespace Cookbook {
     void mdi(Model &) {
         for(auto area: CPPUI::MdiArea()) {

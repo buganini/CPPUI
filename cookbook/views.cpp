@@ -1,9 +1,9 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
 namespace Cookbook {
     namespace {
-        class Editor: public Backend::View {
+        class Editor: public CPPUI::Backend::View {
             CPPUI::State<std::string> text{std::string("This text survives switching views.")};
             void content() override {
                 for(auto column: CPPUI::VBox()) {
@@ -15,7 +15,7 @@ namespace Cookbook {
                 }
             }
         };
-        class Example: public Backend::View {
+        class Example: public CPPUI::Backend::View {
             CPPUI::State<CPPUI::OptionalText> selection{CPPUI::OptionalText("editor")};
             void pages() {
                 CPPUI::SubView<Editor>().id("editor");

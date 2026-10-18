@@ -3,17 +3,18 @@
 All cookbook C++ sources and headers live directly in `cookbook/` and are shared
 by Qt, wxWidgets and LVGL. Every executable compiles the same source list in
 `common.cmake`. Only CMake files remain in the backend directories.
-`backend.hpp` selects toolkit headers and exposes the common interface;
-`backend.cpp` holds recipe registration, window/menu setup and native smoke-test
-helpers. `main.cpp` contains shared startup and LVGL driver initialization.
+The public `cppui/backend.hpp` facade selects toolkit headers and exposes the
+backend's name, view aliases and capabilities. Cookbook sources use only CPPUI
+declarations; each backend owns its native startup and cleanup. Native event
+injection and assertions live in `tests/cookbook/`, linked only into separate
+`cppui_cookbook_<backend>_smoke` executables when `BUILD_TESTING=ON`.
 Qt corresponds to the Python reference's PySide6 backend.
 
 The separate `qt`, `wx`, `lvgl_sdl2` and `lvgl_x11` CMake projects define exactly
-one of `CPPUI_COOKBOOK_QT`, `CPPUI_COOKBOOK_WX` or `CPPUI_COOKBOOK_LVGL`.
-LVGL also selects exactly one of `CPPUI_LVGL_SDL2` and `CPPUI_LVGL_X11`.
-Preprocessor checks reject ambiguous selections. Conditional compilation in the
-shared sources handles native helpers, unsupported recipes and the extended Qt
-Tab example. Each executable links only its selected toolkit.
+one of `CPPUI_BACKEND_QT`, `CPPUI_BACKEND_WX` or `CPPUI_BACKEND_LVGL`.
+The facade rejects ambiguous selections. LVGL's configuration selects SDL2 or
+X11. Shared recipes use `CPPUI_HAS_*` capability flags for optional features,
+including bound Tab selection. Each executable links only its selected toolkit.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
@@ -35,8 +36,8 @@ offers fourteen presets from 1,000 to 1,000,000 synthetic sessions,
 indicator panels, hover details, wheel zoom, regeneration and zoom reset.
 Datasets above 500,000 use zero-based grouped index labels instead of dates.
 These presets draw every session and intentionally stress native rendering.
-Run an executable with `--heavy-smoke` to render 1,000,000 sessions and switch
-back to 1,000; the regular `--smoke` retains its faster 30,000-session coverage.
+Run a `_smoke` executable with `--heavy-smoke` to render 1,000,000 sessions and
+switch back to 1,000; its default run retains the faster 30,000-session coverage.
 The `cookbook.heavycanvas_data` test checks full million-row generation.
 Button, Checkbox, RadioButton and ComboBox include disabled examples matching PUI.
 SDL2/X11 use the same recipe and native Canvas input. Image resources and custom
@@ -131,7 +132,8 @@ ctest --test-dir build-cookbook-wx --output-on-failure
 The root `CPPUI_BUILD_WX=ON` build includes the same executable and smoke test.
 Native wx controls require a display. Linux CI can use
 `xvfb-run -a ctest --test-dir build-cookbook-wx --output-on-failure`.
-`--list` reports the enabled recipes; `--smoke` navigates and tests them.
+The gallery's `--list` reports the enabled recipes; the separate `_smoke`
+executable navigates and tests them.
 Add `-DCPPUI_VALGRIND_TESTS=ON` to a non-sanitized build for memory checks.
 The wx gallery memory test allows 300 seconds for three full navigation cycles.
 
@@ -174,7 +176,7 @@ ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
 ```
 
 CTest uses SDL's dummy video and software-renderer drivers. To watch the same
-smoke scenario in a window, run `cppui_cookbook_lvgl_sdl2 --smoke` from its build
+smoke scenario in a window, run `cppui_cookbook_lvgl_sdl2_smoke` from its build
 directory without those driver overrides.
 
 ### X11
@@ -189,7 +191,7 @@ cmake --build build-cookbook-lvgl_x11
 ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
 ```
 
-Both interactive and `--smoke` runs use `DISPLAY`. On CI, an Xvfb server can
+Both interactive and `_smoke` executables use `DISPLAY`. On CI, an Xvfb server can
 supply that display, for example `xvfb-run -a ctest --test-dir
 build-cookbook-lvgl_x11 --output-on-failure`.
 
@@ -200,7 +202,7 @@ the display and sample input every 16 ms (about 60 Hz). X11 startup installs a
 SDL2 uses `SDL_GetTicks`.
 
 LVGL v9.6.0's X11 driver stops its tick thread only when the window manager
-closes the window. `x11-driver.cmake` builds a corrected copy that supplies the
+closes the window. `cmake/CPPUILVGLX11.cmake` builds a corrected copy that supplies the
 native cursor, joins the thread on programmatic display deletion, and makes
 its stop flag atomic. The tick callback supersedes the thread's simulated ticks.
 The supplied LVGL checkout is unchanged; updating LVGL requires reviewing these
@@ -208,18 +210,19 @@ version-specific fixes.
 
 ### Shared startup and cleanup
 
-The LVGL branch of `cookbook/main.cpp` serves both desktop drivers, using
-`cookbook/lv_conf.h`; `cookbook/lvgl/` contains only CMake build helpers.
-Both executables create their selected native display and input devices when
-running the gallery; `--list` does not initialize a display. The configuration uses
-libc allocation so memory checkers can observe individual LVGL allocations.
-When the display is still open, application teardown preserves its active screen
-and releases its CPPUI content before `lv_deinit`. Closing the last X11 window
-deletes the display and returns from the application loop. Native observers
-invalidate the deleted objects before the remaining declarations are released.
-The example assumes CPPUI owns the content of that screen. Startup owns the
-input devices and display; teardown releases those before quitting SDL (when
-used) and deinitializing LVGL.
+`CPPUI::LVGL::Application` lazily creates the selected desktop display, input
+devices and focus group when first rendering. `cppui/lvgl/desktop_conf.h` configures
+both drivers; `cookbook/lvgl/` contains only CMake build helpers. The gallery's
+`--list` does not initialize a display. The configuration uses libc allocation
+so memory checkers can observe individual LVGL allocations.
+
+Application teardown releases CPPUI content before its input devices, display,
+SDL subsystem and LVGL runtime. Closing the last native window returns from the
+application loop; subsequent redraws do not reopen it. Native observers invalidate
+deleted objects before the remaining declarations are released. If an embedding
+host supplies an existing display, Application borrows it and preserves its
+runtime, display, input devices and focus group. Window uses the active screen
+and assumes exclusive ownership of its CPPUI content.
 
 ## Tests and memory checks
 
@@ -227,7 +230,7 @@ used) and deinitializing LVGL.
 The new native cases exercise masked drafts/commit/clear, decorated price cells,
 raw autocomplete codes and HeavyCanvas zoom/reset/preset changes up to 30,000
 sessions. wx's gallery timeout allows for the larger chart under sanitizers.
-`--smoke` clicks every sidebar page three times, checks the two-column geometry,
+The `_smoke` executable clicks every sidebar page three times, checks the two-column geometry,
 scrollable list, Qt/wx menus, native label contents, bound controls, text editing,
 scroll anchoring, and A/B, progress and Canvas rotation buttons where supported.
 The Table page checks string edits, integer choices and separate value/label mappings.

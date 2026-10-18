@@ -1,4 +1,4 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
 namespace Cookbook {
@@ -19,7 +19,7 @@ namespace Cookbook {
                 for(auto tab: CPPUI::Tab("Second").id("second")) CPPUI::Label("Window refs provide queued desktop commands.");
             }
             CPPUI::Label("Window controls (desktop backends only). Restore minimized windows using your desktop.");
-            const bool desktop=Backend::desktopWindowCommands;
+            const bool desktop=CPPUI_HAS_WINDOW_COMMANDS;
             for(auto row: CPPUI::HBox()) {
                 CPPUI::Button("Maximize").disabled(!desktop).click([](){CPPUI::ref("cookbook.window").maximize(true);});
                 CPPUI::Button("Unmaximize").disabled(!desktop).click([](){CPPUI::ref("cookbook.window").maximize(false);});

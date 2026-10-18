@@ -1,10 +1,10 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 #include <iostream>
 
 using namespace CPPUI;
 
-#if defined(CPPUI_COOKBOOK_QT)
+#if CPPUI_HAS_MODAL
 namespace Cookbook {
     void modal(Model & model) {
         for(auto column: CPPUI::VBox().layout({}, {}, 1)) {

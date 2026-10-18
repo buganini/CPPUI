@@ -1,7 +1,7 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
-#if !defined(CPPUI_COOKBOOK_LVGL)
+#if CPPUI_HAS_TREE
 namespace Cookbook {
     void tree(Model & model) {
         for(auto column: CPPUI::VBox().layout({}, {}, 1)) {

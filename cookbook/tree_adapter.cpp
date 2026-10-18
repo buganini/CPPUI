@@ -1,7 +1,7 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
-#if !defined(CPPUI_COOKBOOK_LVGL)
+#if CPPUI_HAS_TREE
 namespace Cookbook {
     namespace {
         class HierarchyAdapter: public CPPUI::BaseTreeAdapter<AdapterTreeNode> {

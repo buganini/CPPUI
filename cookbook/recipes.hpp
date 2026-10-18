@@ -93,7 +93,6 @@ namespace Cookbook {
     void dialog(Model &);
     void modal(Model &);
     const std::vector<Recipe> & recipes();
-    CPPUI::Node * find(CPPUI::Node & node, const std::string & id);
     int run(int argc, char ** argv);
 }
 #endif

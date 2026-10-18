@@ -1,7 +1,7 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
-#if !defined(CPPUI_COOKBOOK_LVGL)
+#if CPPUI_HAS_DIALOG
 namespace Cookbook {
     namespace {
         std::string describe(const CPPUI::OptionalText & text) { return text ? "\"" + *text + "\"" : "None"; }

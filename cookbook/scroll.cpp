@@ -1,7 +1,7 @@
-#include "backend.hpp"
+#include "cppui/backend.hpp"
 #include "recipes.hpp"
 
-#if !defined(CPPUI_COOKBOOK_LVGL)
+#if CPPUI_HAS_SCROLL_ANCHOR
 namespace Cookbook {
     void scroll(Model & model) {
         for(auto column: CPPUI::VBox().layout({}, {}, 1).id("result-scroller-container")) {
