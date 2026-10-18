@@ -1,5 +1,10 @@
 # wxWidgets alignment with PUI/wx
 
+The latest follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
+and typed tab placement with the shared `Side` enum. Hidden content retains native
+state; callbacks run on the UI loop and stop executing after target removal. wx
+Stack now owns a native panel, and foreground styles use SetOwnForegroundColour.
+
 Portable inbound drops follow PUI `526b071`/`e912d45`: file/text/URI data, suffix filters,
 explicit acceptance and the shared Drop cookbook. Replacement, removal and
 native data negotiation are covered by regression tests.
@@ -13,7 +18,7 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: PUI `e912d45` (2026-10-18). See the
+Latest native delta audit: PUI `9005f42` (2026-10-18). See the
 [component audit and exclusions](pui-sync-2026-10-18.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and

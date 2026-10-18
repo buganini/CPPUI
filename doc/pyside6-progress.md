@@ -1,5 +1,10 @@
 # Qt implementation alignment with PUI/PySide6
 
+The latest follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
+and typed tab placement with the shared `Side` enum. Hidden content retains native
+state; callbacks run on the UI loop and stop executing after target removal. The
+Qt tab recipe demonstrates top and bottom placement with bound selection.
+
 Named node refs follow PUI `d83bbe2`: UI-thread lookup, retained binders and
 queued selection commands are ported, with Qt/wx desktop window commands and
 a shared Refs recipe. Worker submission, redraw and removal are tested. Native
@@ -9,7 +14,7 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: PUI `e912d45` (2026-10-18). See the
+Latest native delta audit: PUI `9005f42` (2026-10-18). See the
 [component audit and exclusions](pui-sync-2026-10-18.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and
