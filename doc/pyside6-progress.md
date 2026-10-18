@@ -9,7 +9,13 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: PUI `f0c1cf5` (2026-10-17). Shared controls use
+Latest native delta audit: PUI `e912d45` (2026-10-18). See the
+[component audit and exclusions](pui-sync-2026-10-18.md). Native Options,
+optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
+portable inbound drops and directory filters. AI development tooling and
+Web/Pyodide remain excluded. The earlier native baseline follows below.
+
+Previous native delta audit: PUI `f0c1cf5` (2026-10-17). Shared controls use
 `disabled` (`d7dc23a`) and HeavyCanvas includes fourteen presets through
 1,000,000 (`18d1c5e`), with index labels above 500,000. Canvas styles are cached
 within each frame (`8d3fa8d`/`4d77b90`); window state setters only store initial
