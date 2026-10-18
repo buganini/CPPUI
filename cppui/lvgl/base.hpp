@@ -212,6 +212,8 @@ namespace CPPUI {
                 ui = nullptr;
             }
          };
+        class Layout: public Node {};
+
         inline const lv_font_t * Node::resolveFont() const {
             if(style_fontfamily && !style_fontfamily->empty() && *style_fontfamily != "Montserrat")
                 throw std::invalid_argument("LVGL style fontFamily supports only configured Montserrat fonts");
