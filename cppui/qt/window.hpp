@@ -36,6 +36,7 @@ namespace CPPUI {
                 widget->setWindowState(value ? widget->windowState() | flag : widget->windowState() & ~flag);
             }
             public:
+            bool supportsVisibility() const override { return false; }
             bool refWindow() const override { return true; }
             void refCommand(RefCommand command,const OptionalText &,bool value) override {
                 if(!ui) return;

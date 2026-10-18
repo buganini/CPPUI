@@ -10,6 +10,7 @@ namespace CPPUI {
     namespace LVGL {
         class Window: public Node {
             public:
+            bool supportsVisibility() const override { return false; }
             void update(Node * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;

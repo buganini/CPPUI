@@ -51,9 +51,13 @@ public:
         ui->GetSizer()->Remove(index);
         mounts.erase(mounts.begin()+index);
     }
+    void applyVisibility(bool visible) override {
+        Widget::applyVisibility(visible);
+        for(auto & mount:mounts) showMount(mount,visible && layoutVisible());
+    }
     void postSync() override {
         if(!ui) return;
-        for(auto & mount:mounts) applyPadding(mount);
+        for(auto & mount:mounts) { applyPadding(mount); showMount(mount,ancestorsVisible() && layoutVisible()); }
         ui->InvalidateBestSize(); ui->Layout(); raise(ui->GetSizer());
         if(ui->GetParent()) ui->GetParent()->Layout();
     }

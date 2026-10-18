@@ -9,7 +9,8 @@ namespace CPPUI { namespace Wx {
         Optional<wxSize> dimensions;
         Optional<bool> initialMaximized, initialFullscreen;
         public:
-        bool refWindow() const override { return true; }
+        bool supportsVisibility() const override { return false; }
+            bool refWindow() const override { return true; }
         void refCommand(RefCommand command,const OptionalText &,bool value) override {
             if(!ui) return;
             auto frame=static_cast<wxFrame *>(ui); const bool minimized=frame->IsIconized();

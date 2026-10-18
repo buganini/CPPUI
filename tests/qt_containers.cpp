@@ -38,7 +38,7 @@ namespace {
     }
     class Root: public CPPUI::Application {
         public:
-        bool show = true, reverse = false;
+        bool show = true, reverse = false, layersVisible = true;
         int row = 1;
         using Application::Application;
         void content() override {
@@ -51,9 +51,9 @@ namespace {
                     cell(*new Spacer(), 9, 9);
                 }
                 for(auto stack: CPPUI::Stack().id("stack")) {
-                    if(reverse) CPPUI::Label("Top").id("top");
-                    for(auto bottom: CPPUI::HBox().id("bottom")) CPPUI::Label("Bottom");
-                    if(!reverse) CPPUI::Label("Top").id("top");
+                    if(reverse) CPPUI::Label("Top").id("top").visible(layersVisible);
+                    for(auto bottom: CPPUI::HBox().id("bottom").visible(layersVisible)) CPPUI::Label("Bottom");
+                    if(!reverse) CPPUI::Label("Top").id("top").visible(layersVisible);
                     new Spacer();
                 }
             }
@@ -88,6 +88,10 @@ int main(int argc, char ** argv) {
             require(nativeStack->widget(0) == bottom && nativeStack->widget(1) == top, "keyed Stack order was not reversed");
             // Removing/reinserting the current layer lets Qt raise its neighbor.
             require(nativeStack->currentWidget() == bottom, "Stack did not follow Qt's native current-layer transition");
+            root.layersVisible=false;root.sync();settle();
+            require(top->isHidden() && bottom->isHidden(),"Stack exposed hidden layers");
+            root.layersVisible=true;root.sync();settle();
+            require(top->isVisible() && bottom->isVisible(),"Stack layers did not reappear");
             QPointer<QWidget> oldCell = root.widget("moving");
             root.row = 2; root.sync(); settle();
             require(oldCell.isNull() && nativeGrid->itemAtPosition(2, 0)->widget() == root.widget("moving"), "changed grid identity did not replace its cell");

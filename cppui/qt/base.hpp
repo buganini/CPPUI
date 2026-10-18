@@ -207,6 +207,7 @@ namespace CPPUI {
                         dropFilter->handlers=dropHandlers; dropFilter->enable(true);
                     } else if(dropFilter) { dropFilter->handlers={}; dropFilter->enable(false); }
                     applyOptions();
+                    if(supportsVisibility() && (!is_visible || (prev && !prev->is_visible))) ui->setVisible(is_visible);
                     nativeDestroyed = QObject::connect(ui, &QObject::destroyed, [this]() {
                         clearRef(); clearNative();
                     });
@@ -301,7 +302,7 @@ namespace CPPUI {
         inline void updateStretch(Node * node) {
             auto box = dynamic_cast<BaseLayout *>(node->dom_parent);
             if(!box || !box->qtlayout || node->is_outoforder) return;
-            const int weight = node->layout_weight.valueOr(dynamic_cast<Spacer *>(node) ? 1 : 0);
+            const int weight = node->layoutVisible() ? node->layout_weight.valueOr(dynamic_cast<Spacer *>(node) ? 1 : 0) : 0;
             for(int i = 0; i < box->qtlayout->count(); ++i) {
                 auto item = box->qtlayout->itemAt(i);
                 if((dynamic_cast<Spacer *>(node) && item == node->outer()) || (item->widget() && item->widget() == node->outer())) {
@@ -309,7 +310,7 @@ namespace CPPUI {
                 }
             }
         }
-        inline void BaseWidget::postUpdate() { updateStretch(this); Node::postUpdate(); }
+        inline void BaseWidget::postUpdate() { if(ui && !layoutVisible()) ui->hide(); updateStretch(this); Node::postUpdate(); }
         inline void Spacer::postUpdate() { updateStretch(this); Node::postUpdate(); }
         inline void Spacer::update(Node * previous) {
             auto box = dynamic_cast<BaseLayout *>(dom_parent);
@@ -319,8 +320,8 @@ namespace CPPUI {
             owner = box ? box->qtlayout : nullptr;
             const auto direction = owner ? owner->direction() : QBoxLayout::LeftToRight;
             const bool horizontal = direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft;
-            ui->changeSize(0, 0, !owner || horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred,
-                           !owner || !horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred);
+            ui->changeSize(0, 0, !layoutVisible() ? QSizePolicy::Fixed : (!owner || horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred),
+                           !layoutVisible() ? QSizePolicy::Fixed : (!owner || !horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred));
             if(owner) {
                 owner->invalidate();
                 nativeDestroyed = QObject::connect(owner, &QObject::destroyed, [this]() { ui = nullptr; owner = nullptr; });

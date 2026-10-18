@@ -172,12 +172,16 @@ namespace CPPUI {
                     }
                 }
                 if(object && clickable) lv_obj_set_clickable(object, true);
-                if(object) applyOptions();
+                if(object) {
+                    applyOptions();
+                    if(supportsVisibility() && (!is_visible || (prev && !prev->is_visible))) lv_obj_set_hidden(object,!is_visible);
+                }
                 ::CPPUI::Node::update(previous);
             }
 
             virtual void layoutChild(Node *) {}
             void postUpdate() override {
+                if(ui && !layoutVisible()) lv_obj_set_hidden(static_cast<lv_obj_t *>(ui),true);
                 if(auto owner = dynamic_cast<Node *>(dom_parent)) owner->layoutChild(this);
                 ::CPPUI::Node::postUpdate();
             }

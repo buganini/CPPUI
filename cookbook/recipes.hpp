@@ -15,6 +15,7 @@ namespace Cookbook {
     struct Model {
         std::shared_ptr<HeavyChart> heavyChart;
         CPPUI::State<int> postedCallbacks{0};
+        CPPUI::State<bool> greetingVisible{true};
         CPPUI::State<bool> rejectDrop{false};
         CPPUI::State<std::string> dropResult{std::string("Drop .txt/.json files, directories (native backends), text, or URLs")}, dropText{std::string()};
         CPPUI::State<int> treeItems{0};

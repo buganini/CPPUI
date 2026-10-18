@@ -18,9 +18,10 @@ namespace Cookbook {
                 CPPUI::Spacer();
             }
         }
-        void label(Model &) {
+        void label(Model & model) {
             for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
-                CPPUI::Label("Hello World");
+                CPPUI::Checkbox("Show greeting",model.greetingVisible);
+                CPPUI::Label("Hello World").visible(model.greetingVisible);
                 CPPUI::Label("Big Yellow").style(0xffff00, 0xff0000, 20);
                 CPPUI::Label("No <b>HTML</b>");
                 CPPUI::Spacer();

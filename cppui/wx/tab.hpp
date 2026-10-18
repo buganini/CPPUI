@@ -7,7 +7,8 @@ namespace CPPUI { namespace Wx {
 // PUI/wx uses a native page panel, allowing either a sizer or a widget as content.
 class Tab: public SingleChild {
 public:
-    std::string label;
+    bool supportsVisibility() const override { return false; }
+            std::string label;
     explicit Tab(const std::string & label):label(label){}
     void updateWidget(Widget * prev) override {ui=prev?prev->ui:new wxPanel(parentWindow());panel=ui;}
 };

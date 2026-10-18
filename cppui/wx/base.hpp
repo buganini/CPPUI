@@ -147,6 +147,9 @@ namespace CPPUI { namespace Wx {
         virtual void invalidateNative() {}
         virtual void commit() {}
         virtual void rebindChild(Node *, Node *) {}
+        virtual void applyVisibility(bool visible) {
+            if(auto control=window()) if(supportsVisibility()) control->Show(visible && layoutVisible());
+        }
         void update(::CPPUI::Node * previous) override {
             ::CPPUI::Node::update(previous);
             // An independently redrawing virtual view can retire declarations
@@ -258,6 +261,8 @@ namespace CPPUI { namespace Wx {
                 if(!target) { target=new DropTarget(ui); ui->SetDropTarget(target); }
                 target->handlers=dropHandlers;
             } else if(target) ui->SetDropTarget(nullptr);
+            if(supportsVisibility() && (!is_visible || (prev && !prev->is_visible)))
+                ui->Show(is_visible && ancestorsVisible());
             updateEvents();
         }
         virtual void updateWidget(Widget *) = 0;
@@ -294,6 +299,12 @@ namespace CPPUI { namespace Wx {
         wxBoxSizer * row = nullptr;
         wxSizerItem * padding[4] = {};
     };
+    inline void showMount(Mount & mount,bool visible=true) {
+        visible=visible && mount.node->layoutVisible();
+        if(mount.item) mount.item->Show(visible);
+        // wxSizerItem::Show recursively shows descendants: reapply their own flags.
+        mount.node->applyVisibility(visible);
+    }
     inline Mount padded(Node * child, wxBoxSizer * outer) {
         Mount mount; mount.node = child;
         mount.padding[0] = outer->Add(0, 0);
@@ -336,6 +347,9 @@ namespace CPPUI { namespace Wx {
         void * inner() override { return nullptr; }
         void invalidateNative() override { wxSizerObject = nullptr; mounts.clear(); }
         virtual wxSizer * createSizer() = 0;
+        void applyVisibility(bool visible) override {
+            for(auto & mount:mounts) showMount(mount,visible && layoutVisible());
+        }
         void rebindChild(Node * previous, Node * current) override {
             for(auto & mount: mounts) if(mount.node == previous) mount.node = current;
         }
@@ -374,14 +388,17 @@ namespace CPPUI { namespace Wx {
             int maxX = 0, maxY = 0;
             for(auto & mount: mounts) {
                 applyPadding(mount);
-                maxX = std::max(maxX, mount.node->expansion(true)); maxY = std::max(maxY, mount.node->expansion(false));
+                if(mount.node->layoutVisible()) {
+                    maxX = std::max(maxX, mount.node->expansion(true)); maxY = std::max(maxY, mount.node->expansion(false));
+                }
             }
             for(auto & mount: mounts) {
+                showMount(mount,ancestorsVisible() && layoutVisible());
                 auto child = mount.node;
                 const int main = child->expansion(horizontal), cross = child->expansion(!horizontal);
                 const int maximum = horizontal ? maxX : maxY;
                 mount.item->SetFlag(cross ? int(wxEXPAND) : int(horizontal ? wxALIGN_CENTER_VERTICAL : wxALIGN_LEFT));
-                mount.item->SetProportion(child->layout_weight.valueOr(main == maximum && maximum > 0 ? 1 : 0));
+                mount.item->SetProportion(child->layoutVisible() ? child->layout_weight.valueOr(main == maximum && maximum > 0 ? 1 : 0) : 0);
             }
         }
         void postSync() override {
@@ -425,7 +442,23 @@ namespace CPPUI { namespace Wx {
             if(child->is_outoforder || !panel || !contentMount) return;
             detachContent(*contentMount); panel->SetSizer(nullptr); contentMount.reset();
         }
-        void postSync() override { if(panel) { if(contentMount) applyPadding(*contentMount); panel->Layout(); ui->Layout(); } }
+        void showContent(bool visible) {
+            if(!panel || !contentMount) return;
+            visible=visible && contentMount->node->layoutVisible();
+            for(auto item:panel->GetSizer()->GetChildren()) item->Show(visible);
+            showMount(*contentMount,visible);
+        }
+        void applyVisibility(bool visible) override {
+            Widget::applyVisibility(visible);
+            showContent(visible && layoutVisible());
+        }
+        void postSync() override {
+            if(panel) {
+                if(contentMount) applyPadding(*contentMount);
+                showContent(ancestorsVisible() && layoutVisible());
+                panel->Layout(); ui->Layout();
+            }
+        }
         void releaseRetiredRefs() override { panel = nullptr; contentMount.reset(); Widget::releaseRetiredRefs(); }
     };
 }}

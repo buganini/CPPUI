@@ -14,6 +14,7 @@ namespace CPPUI {
     namespace Qt {
         class Tab: public VBox {
             public:
+            bool supportsVisibility() const override { return false; }
             std::string label;
             explicit Tab(const std::string & label): label(label) { layout_padding = Insets(0); }
         };

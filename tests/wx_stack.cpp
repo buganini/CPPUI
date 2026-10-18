@@ -18,9 +18,9 @@ static CPPUI::Node * find(CPPUI::Node & root,const std::string & id) {
 class Root: public CPPUI::Application {
 public:
     using Application::Application;
-    bool reverse=false,empty=false,colored=true;
+    bool reverse=false,empty=false,colored=true,layersVisible=true;
     void layer(const char * id) {
-        for(auto column:CPPUI::VBox().id(id).layout({}, {}, {}, CPPUI::Insets(0)))
+        for(auto column:CPPUI::VBox().id(id).visible(layersVisible).layout({}, {}, {}, CPPUI::Insets(0)))
             CPPUI::Button(id).id(std::string(id)+"-button").layout(100,50,{},CPPUI::Insets(0));
     }
     void content() override {
@@ -55,6 +55,10 @@ int main(int argc,char ** argv) {
         auto before=panel->GetSize();
         static_cast<wxWindow *>(find(root,"window")->outer())->SetClientSize(500,400);pump();
         require(panel->GetSize()!=before && panel->GetSizer()->GetSize()==panel->GetClientSize() && bottom->GetRect()==top->GetRect(),"Stack did not follow parent resize");
+        root.layersVisible=false;root.sync();pump();
+        require(!top->IsShown() && !bottom->IsShown() && panel->GetSizer()->CalcMin()==wxSize(0,0),"hidden Stack layers retained space or visibility");
+        root.layersVisible=true;root.sync();pump();
+        require(top->IsShown() && bottom->IsShown(),"Stack layers did not reappear");
         root.colored=false;root.sync();pump();
         require(panel->GetForegroundColour()!=wxColour(0x12,0x34,0x56),"omitted Stack color was not restored");
         root.empty=true;root.sync();pump();

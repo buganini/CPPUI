@@ -85,6 +85,18 @@ namespace CPPUI {
         Node();
         virtual ~Node();
 
+        bool is_visible = true;
+        Node & visible(bool value = true) { is_visible=value; return *this; }
+        virtual bool supportsVisibility() const { return !is_virtual && !is_outoforder; }
+        bool layoutVisible() const { return !supportsVisibility() || is_visible; }
+        bool ancestorsVisible() const {
+            for(auto p=dom_parent;p && p!=this;p=p->dom_parent) {
+                if(!p->layoutVisible()) return false;
+                if(p->dom_parent==p) break;
+            }
+            return true;
+        }
+
         Optional<int> layout_width, layout_height, layout_weight;
         Optional<Insets> layout_padding, layout_margin;
         Optional<int> style_color, style_bgcolor, style_fontsize, style_fontweight;

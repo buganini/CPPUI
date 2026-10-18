@@ -1272,3 +1272,19 @@ still keep any other captured objects alive. Stop workers before destroying the
 backend runtime. Qt uses queued dispatch and precise timers, wx uses CallAfter
 and native timers, and LVGL drains its thread-safe queue on the UI timer loop.
 The Refs cookbook demonstrates a 500 ms delayed increment.
+
+## Visibility
+
+`.visible(bool = true)` hides an ordinary widget or layout without removing its
+node or native control. Hidden content takes no layout space, including its
+padding/margin and box stretch, and receives no normal user input. Hidden
+subtrees still reconcile and their callbacks/timers continue. Omission on a new
+declaration restores visibility. Explicit Grid coordinates are retained.
+
+Qt uses native widget visibility and collapses Spacer stretch; wx hides the
+whole padded sizer item and preserves explicitly hidden descendants when an
+ancestor is shown; LVGL uses its hidden flag. Container-specific native sizing
+still applies (for example, Qt Stack computes its preferred size across layers).
+Window, Tab, ComboBoxItem, TableNode and virtual views do not implement this
+modifier; apply it to their physical content instead. The Label cookbook includes
+a Show greeting checkbox.

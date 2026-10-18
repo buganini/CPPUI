@@ -1,6 +1,10 @@
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_visibility native_visibility.cpp)
+    target_compile_definitions(cppui_wx_visibility PRIVATE CPPUI_TEST_WX)
+    target_link_libraries(cppui_wx_visibility PRIVATE CPPUI::wx Threads::Threads)
+    cppui_add_test(wx.visibility cppui_wx_visibility)
     add_executable(cppui_wx_stack wx_stack.cpp)
     target_link_libraries(cppui_wx_stack PRIVATE CPPUI::wx)
     cppui_add_test(wx.stack cppui_wx_stack)
@@ -127,6 +131,10 @@ foreach(header context_header context node_header node view_header view state do
 endforeach()
 
 if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_visibility native_visibility.cpp)
+    target_compile_definitions(cppui_qt_visibility PRIVATE CPPUI_TEST_QT)
+    target_link_libraries(cppui_qt_visibility PRIVATE CPPUI::qt Threads::Threads)
+    cppui_add_test(qt.visibility cppui_qt_visibility)
     add_executable(cppui_qt_drop native_drop.cpp)
     target_compile_definitions(cppui_qt_drop PRIVATE CPPUI_TEST_QT)
     target_link_libraries(cppui_qt_drop PRIVATE CPPUI::qt)

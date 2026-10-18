@@ -10,6 +10,7 @@ namespace CPPUI {
     namespace LVGL {
         class Tab: public Node {
             public:
+            bool supportsVisibility() const override { return false; }
             std::string label;
             explicit Tab(const std::string & label): label(label) { is_virtual = true; }
             void update(Node *) override {}
@@ -99,7 +100,7 @@ namespace CPPUI {
                 auto content = static_cast<lv_obj_t *>(child->outer());
                 lv_obj_set_parent(content, page);
                 lv_obj_set_ignore_layout(content, false);
-                lv_obj_set_hidden(content, false);
+                lv_obj_set_hidden(content, !child->layoutVisible());
                 lv_obj_set_size(content, lv_pct(100), lv_pct(100));
                 lv_obj_move_to_index(page, idx);
                 lv_obj_move_to_index(button, idx);
