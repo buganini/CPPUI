@@ -3,7 +3,7 @@
 
 namespace Cookbook {
     void tab(Model &) {
-        for(auto tabs: CPPUI::Tabs().id("example-tabs")) {
+        for(auto tabs: CPPUI::Tabs(CPPUI::Side::TOP).id("example-tabs")) {
             for(auto first: CPPUI::Tab("Tab 1")) {
                 CPPUI::Label("Content 1");
             }

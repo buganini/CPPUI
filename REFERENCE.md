@@ -875,7 +875,7 @@ for(auto tabs: CPPUI::Tabs()) {
 Qt follows [PUI's selection contract](https://github.com/buganini/PUI/blob/65f2c02/PUI/selection.py):
 `Tabs()` keeps an internal selection; `Tabs(Binding<OptionalText>)` or
 `Tabs(State<OptionalText>&)` accepts an external model. Use
-`Tabs("s", model)` to combine placement and binding. The selection key is a Tab's
+`Tabs(Side::BOTTOM, model)` to combine placement and binding. The selection key is a Tab's
 non-empty `.id()`, falling back to its label. The first matching key wins.
 Native selection and `.select(key)` write through the current model. Binding
 updates, insertion, removal and reordering do not write back during reconciliation.
@@ -893,17 +893,18 @@ Direct children of Tabs must be Tab declarations; invalid children are rejected
 before native reconciliation. Keyed moves and selection changes preserve native
 pages, local view state and controls. Removed pages are reclaimed normally.
 
-Qt `Tabs(tabposition = "n")` maps `n`, `s`, `e`, and `w` to native North, South,
-East, and West placement and updates it on redraw without replacing pages.
-Other values throw `std::invalid_argument` during construction.
+`Tabs(tabposition = Side::TOP)` accepts the shared `CPPUI::Side` enum:
+`TOP`, `RIGHT`, `BOTTOM`, and `LEFT` (`cppui/side.hpp`). Raw strings are no
+longer accepted. Qt and LVGL update native placement on redraw while preserving
+pages; wx recreates its notebook when the side changes.
 
 LVGL still uses virtual Tab declarations: each physical descendant creates a
 native tabview page, so group multiple controls in an explicit VBox or HBox.
 Empty virtual Tabs create no page. Its legacy label update uses direct declaration
 indexes: two physical children in Tab("A") followed by one in Tab("B") display
 A, B, B. Keyed moves retain child widgets and selection; removing the selected
-page clamps its index. Empty tabviews retain their native container. Native tab
-placement and the new optional selection API remain to port to LVGL. The optional
+page clamps its index. Empty tabviews retain their native container. The optional
+selection API remains to port to LVGL. The optional
 selection API also remains to port to wx; wx already owns one panel per Tab.
 
 ## Views

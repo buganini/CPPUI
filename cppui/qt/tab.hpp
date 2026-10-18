@@ -3,6 +3,7 @@
 
 #include "layout.hpp"
 #include "../binding.hpp"
+#include "../side.hpp"
 #include <QTabWidget>
 #include <QPointer>
 #include <memory>
@@ -23,11 +24,11 @@ namespace CPPUI {
             OptionalText selected;
             bool initialized = false, syncing = true;
             int applied = -1;
-            static QTabWidget::TabPosition nativePosition(const std::string & position) {
-                if(position == "n") return QTabWidget::North;
-                if(position == "s") return QTabWidget::South;
-                if(position == "e") return QTabWidget::East;
-                if(position == "w") return QTabWidget::West;
+            static QTabWidget::TabPosition nativePosition(Side position) {
+                if(position == Side::TOP) return QTabWidget::North;
+                if(position == Side::BOTTOM) return QTabWidget::South;
+                if(position == Side::RIGHT) return QTabWidget::East;
+                if(position == Side::LEFT) return QTabWidget::West;
                 throw std::invalid_argument("Unknown tab position");
             }
             static std::string key(const Node * node) {
@@ -35,13 +36,13 @@ namespace CPPUI {
                 return tab->has_id && !tab->_id.empty() ? tab->_id : tab->label;
             }
             public:
-            std::string tabposition;
+            Side tabposition;
 
-            explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) {
+            explicit Tabs(Side tabposition = Side::TOP): tabposition(tabposition) {
                 nativePosition(tabposition);
                 if(!dynamic_cast<QtView *>(cppui_root)) throw std::logic_error("Tabs requires a Qt Application or QtView");
             }
-            Tabs(const std::string & tabposition, Binding<OptionalText> model): Tabs(tabposition) {
+            Tabs(Side tabposition, Binding<OptionalText> model): Tabs(tabposition) {
                 this->model = model;
                 selected = model.get();
             }
@@ -110,9 +111,9 @@ namespace CPPUI {
             void select(const char * key) { select(key ? OptionalText(std::string(key)) : OptionalText()); }
         };
     }
-    inline Qt::Tabs & Tabs(const std::string & tabposition = "n") { return *new Qt::Tabs(tabposition); }
-    inline Qt::Tabs & Tabs(const std::string & tabposition, Binding<OptionalText> model) { return *new Qt::Tabs(tabposition, model); }
-    inline Qt::Tabs & Tabs(Binding<OptionalText> model) { return *new Qt::Tabs("n", model); }
+    inline Qt::Tabs & Tabs(Side tabposition = Side::TOP) { return *new Qt::Tabs(tabposition); }
+    inline Qt::Tabs & Tabs(Side tabposition, Binding<OptionalText> model) { return *new Qt::Tabs(tabposition, model); }
+    inline Qt::Tabs & Tabs(Binding<OptionalText> model) { return *new Qt::Tabs(Side::TOP, model); }
     inline Qt::Tab & Tab(const std::string & label) { return *new Qt::Tab(label); }
 }
 #endif

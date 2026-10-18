@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_TAB
 #define CPPUI_WX_TAB
 #include "base.hpp"
+#include "../side.hpp"
 #include <wx/notebook.h>
 namespace CPPUI { namespace Wx {
 // PUI/wx uses a native page panel, allowing either a sizer or a widget as content.
@@ -13,14 +14,14 @@ public:
 class Tabs: public Widget {
     std::vector<Tab *> pages;
     wxWindow * selected=nullptr;
-    std::string position;
-    static long flags(const std::string & position) {
-        if(position=="n")return wxNB_TOP;if(position=="s")return wxNB_BOTTOM;
-        if(position=="e")return wxNB_RIGHT;if(position=="w")return wxNB_LEFT;
+    Side position;
+    static long flags(Side position) {
+        if(position==Side::TOP)return wxNB_TOP;if(position==Side::BOTTOM)return wxNB_BOTTOM;
+        if(position==Side::RIGHT)return wxNB_RIGHT;if(position==Side::LEFT)return wxNB_LEFT;
         throw std::invalid_argument("Unknown tab position");
     }
 public:
-    explicit Tabs(const std::string & position="n"):position(position){flags(position);is_terminal=false;expandX=expandY=2;}
+    explicit Tabs(Side position=Side::TOP):position(position){flags(position);is_terminal=false;expandX=expandY=2;}
     bool refSelection() const override { return true; }
     bool refEmptySelection() const override { return true; }
     void refCommand(RefCommand,const OptionalText & key,bool) override {
@@ -32,7 +33,7 @@ public:
         }
         static_cast<wxNotebook *>(ui)->SetSelection(index);
     }
-    std::size_t typecode() const override {return Widget::typecode() ^ std::hash<std::string>()(position);}
+    std::size_t typecode() const override {return Widget::typecode() ^ static_cast<std::size_t>(position);}
     void updateWidget(Widget * previous) override {
         auto prev=static_cast<Tabs *>(previous);ui=prev?prev->ui:new wxNotebook(parentWindow(),wxID_ANY,wxDefaultPosition,wxDefaultSize,flags(position));
         if(prev)pages=std::move(prev->pages);
@@ -54,7 +55,7 @@ public:
     }
 };
 }
-inline Wx::Tabs & Tabs(const std::string & position="n"){return *new Wx::Tabs(position);}
+inline Wx::Tabs & Tabs(Side position=Side::TOP){return *new Wx::Tabs(position);}
 inline Wx::Tab & Tab(const std::string & label){return *new Wx::Tab(label);}
 }
 #endif

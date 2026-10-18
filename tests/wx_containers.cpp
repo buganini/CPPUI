@@ -18,6 +18,7 @@ public:
     int rows=50,builds=0,version=1,calls=0;
     bool reverse=false,showMenu=true,ticking=false;
     double offset=CPPUI::ScrollEnd;
+    CPPUI::Side side=CPPUI::Side::TOP;
     void content() override {
         ++builds;
         for(auto w:CPPUI::Window().size(420,240).maximize(false).fullscreen(true).id("window")) {
@@ -25,7 +26,7 @@ public:
                 int v=version;CPPUI::MenuAction("Action").trigger([this,v](){calls+=v;showMenu=false;sync();}).id("action");
                 for(auto nested:CPPUI::Menu("Nested"))CPPUI::MenuAction("child");
             }
-            for(auto tabs:CPPUI::Tabs().id("tabs")) {
+            for(auto tabs:CPPUI::Tabs(side).id("tabs")) {
                 if(reverse)for(auto tab:CPPUI::Tab("Second").id("second"))CPPUI::Label("second");
                 for(auto tab:CPPUI::Tab("First").id("first"))for(auto scroll:CPPUI::Scroll().scrollY(offset).id("scroll"))for(auto box:CPPUI::VBox())
                     for(int i=0;i<rows;++i)CPPUI::Label(std::to_string(i)).layout({},24).id(std::to_string(i));
@@ -69,6 +70,14 @@ int main(int argc,char **argv){
         require(static_cast<wxScrolledWindow *>(scroll->ui)->GetViewStart().y==scroll->maximum(1)-20,"changed scroll request ignored");
         auto notebook=static_cast<wxNotebook *>(find(root,"tabs")->outer());auto first=notebook->GetPage(0);notebook->ChangeSelection(0);
         root.reverse=true;root.sync();pump();require(notebook->GetPage(1)==first&&notebook->GetSelection()==1,"keyed tab reorder lost page/selection");
+        for(const auto & placement: std::vector<std::pair<CPPUI::Side,long>>{
+                {CPPUI::Side::BOTTOM,wxNB_BOTTOM},{CPPUI::Side::LEFT,wxNB_LEFT},
+                {CPPUI::Side::RIGHT,wxNB_RIGHT},{CPPUI::Side::TOP,wxNB_TOP}}) {
+            root.side=placement.first;root.sync();pump();
+            notebook=static_cast<wxNotebook *>(find(root,"tabs")->outer());
+            require((notebook->GetWindowStyleFlag() & placement.second)==placement.second && notebook->GetPageCount()==2,
+                    "Side did not recreate wx notebook with requested placement");
+        }
         root.version=3;root.sync();auto action=static_cast<CPPUI::Wx::MenuAction *>(find(root,"action"));
         wxCommandEvent event(wxEVT_MENU,action->ui->GetId());static_cast<wxWindow *>(root.children->at(0)->outer())->ProcessWindowEvent(event);pump();
         require(root.calls==3&&!find(root,"action"),"menu callback replacement/self-removal failed");

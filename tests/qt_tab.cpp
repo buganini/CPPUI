@@ -35,7 +35,7 @@ namespace {
         CPPUI::State<CPPUI::OptionalText> first{CPPUI::OptionalText("b")}, second{CPPUI::OptionalText("a")};
         int writes = 0;
         std::function<void()> action;
-        std::string position = "n";
+        CPPUI::Side position = CPPUI::Side::TOP;
         std::vector<Page> pages{{"a", "A"}, {"b", "B"}, {"c", "C"}};
         ~Root() {
             clearChildren();
@@ -131,25 +131,25 @@ namespace {
             root.checkSinglePages();
             require(root.native() == tabs && tabs->currentIndex() == -1, "empty tabs lost native identity");
             root.pages = {{"a", "Again"}};
-            root.position = "s";
+            root.position = CPPUI::Side::BOTTOM;
             root.sync();
             root.checkSinglePages();
             require(tabs->tabPosition() == QTabWidget::South, "south tab position was not applied");
             auto page = tabs->widget(0);
-            for(const auto & position: std::map<std::string, QTabWidget::TabPosition>{
-                    {"n", QTabWidget::North}, {"s", QTabWidget::South}, {"e", QTabWidget::East}, {"w", QTabWidget::West}}) {
+            for(const auto & position: std::map<CPPUI::Side, QTabWidget::TabPosition>{
+                    {CPPUI::Side::TOP, QTabWidget::North}, {CPPUI::Side::BOTTOM, QTabWidget::South}, {CPPUI::Side::RIGHT, QTabWidget::East}, {CPPUI::Side::LEFT, QTabWidget::West}}) {
                 root.position = position.first; root.sync();
                 require(root.native() == tabs && tabs->tabPosition() == position.second
                     && tabs->currentWidget() == page, "tab placement change replaced native content or selection");
             }
-            for(const auto & invalid: {"", "north", "invalid"}) {
+            for(auto invalid: {static_cast<CPPUI::Side>(-1), static_cast<CPPUI::Side>(99)}) {
                 root.position = invalid;
                 bool rejected = false;
                 try { root.sync(); } catch(const std::invalid_argument &) { rejected = true; }
                 require(rejected && root.native() == tabs && tabs->currentWidget() == page
                     && declarations == 1, "invalid tab placement damaged mounted content");
             }
-            root.position = "n";
+            root.position = CPPUI::Side::TOP;
             root.show = false;
             root.sync();
             settle();

@@ -2,6 +2,7 @@
 #define CPPUI_LVGL_TAB
 
 #include "base.hpp"
+#include "../side.hpp"
 #include <stdexcept>
 #include <string>
 
@@ -43,9 +44,17 @@ namespace CPPUI {
                 lv_tabview_set_active(object, count ? std::min(fallback, count - 1) : 0, LV_ANIM_OFF);
             }
             public:
-            // The pinned PUI reference stores this option without applying it.
-            std::string tabposition;
-            explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) {}
+            static lv_dir_t nativePosition(Side position) {
+                switch(position) {
+                    case Side::TOP: return LV_DIR_TOP;
+                    case Side::RIGHT: return LV_DIR_RIGHT;
+                    case Side::BOTTOM: return LV_DIR_BOTTOM;
+                    case Side::LEFT: return LV_DIR_LEFT;
+                }
+                throw std::invalid_argument("Unknown tab position");
+            }
+            Side tabposition;
+            explicit Tabs(Side tabposition = Side::TOP): tabposition(tabposition) { nativePosition(tabposition); }
             bool refSelection() const override { return true; }
             bool refEmptySelection() const override { return true; }
             void refCommand(RefCommand,const OptionalText & key,bool) override {
@@ -62,6 +71,7 @@ namespace CPPUI {
             ~Tabs() override { forgetSelection(); }
             void update(Node * prev) override {
                 ui = prev && prev->ui ? prev->ui : lv_tabview_create(static_cast<lv_obj_t *>(parent->inner()));
+                lv_tabview_set_tab_bar_position(static_cast<lv_obj_t *>(ui), nativePosition(tabposition));
             }
             void destroy(bool direct) override {
                 forgetSelection();
@@ -139,7 +149,7 @@ namespace CPPUI {
             }
         };
     }
-    inline LVGL::Tabs & Tabs(const std::string & tabposition = "n") { return *new LVGL::Tabs(tabposition); }
+    inline LVGL::Tabs & Tabs(Side tabposition = Side::TOP) { return *new LVGL::Tabs(tabposition); }
     inline LVGL::Tab & Tab(const std::string & label) { return *new LVGL::Tab(label); }
 }
 #endif
