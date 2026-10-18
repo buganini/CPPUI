@@ -2,6 +2,7 @@
 #define CPPUI_LVGL_CANVAS
 
 #include "../canvas_input.hpp"
+#include "../frame_rate.hpp"
 
 #include "base.hpp"
 #include <algorithm>
@@ -309,6 +310,8 @@ namespace CPPUI {
         class Canvas: public Node {
             public:
             using Painter = std::function<bool(CanvasPainter &)>;
+            bool showFPS = false;
+            Canvas & showFps(bool value = true) { showFPS = value; return *this; }
             Painter painter;
             std::function<void(const CanvasPointerEvent &)> moved, wheeled;
             std::function<void()> left;
@@ -322,6 +325,9 @@ namespace CPPUI {
                 lv_timer_t * timer = nullptr;
                 detail::CanvasBuffer buffer;
                 Painter painter;
+                bool showFPS = false;
+                FrameRate fps;
+                lv_obj_t * fpsLabel = nullptr;
                 std::function<void(const CanvasPointerEvent &)> moved, wheeled;
                 std::function<void()> left;
                 struct Pointer {
@@ -470,6 +476,18 @@ namespace CPPUI {
                             self->buffer = std::move(buffer);
                         }
                         frame.render(self->object);
+                        if(self->showFPS) {
+                            if(!self->fpsLabel) {
+                                self->fpsLabel = lv_label_create(self->object);
+                                lv_obj_set_clickable(self->fpsLabel, false);
+                                lv_obj_set_style_bg_color(self->fpsLabel, lv_color_hex(0x101a2b), 0);
+                                lv_obj_set_style_bg_opa(self->fpsLabel, LV_OPA_COVER, 0);
+                                lv_obj_set_style_text_color(self->fpsLabel, lv_color_white(), 0);
+                                lv_obj_set_style_pad_all(self->fpsLabel, 4, 0);
+                            }
+                            if(auto text = self->fps.tick()) lv_label_set_text(self->fpsLabel, text->c_str());
+                            lv_obj_align(self->fpsLabel, LV_ALIGN_TOP_RIGHT, -8, 8);
+                        }
                         if(again) self->request();
                     } catch(const std::exception & error) {
                         std::fprintf(stderr, "CPPUI LVGL Canvas paint failed: %s\n", error.what());
@@ -497,6 +515,10 @@ namespace CPPUI {
                 ui = native->object;
                 native->owner = this;
                 native->painter = painter;
+                if(native->showFPS != showFPS) {
+                    native->showFPS = showFPS; native->fps.reset();
+                    if(!showFPS && native->fpsLabel) { lv_obj_delete(native->fpsLabel); native->fpsLabel = nullptr; }
+                }
                 native->moved=moved; native->wheeled=wheeled; native->left=left;
                 lv_obj_set_clickable(native->object, bool(moved) || bool(wheeled) || bool(left));
                 native->attachInputs();

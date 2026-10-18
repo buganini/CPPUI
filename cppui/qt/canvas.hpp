@@ -4,6 +4,8 @@
 #include "base.hpp"
 #include "../canvas_input.hpp"
 #include <QWheelEvent>
+#include <QLabel>
+#include "../frame_rate.hpp"
 #include "image_resource.hpp"
 #include <QPainter>
 #include <QPainterPath>
@@ -183,6 +185,9 @@ namespace CPPUI {
             std::function<void()> left;
             private:
             Painter painter;
+            bool showFPS = false;
+            FrameRate fps;
+            QLabel * fpsLabel = nullptr;
             std::uint64_t generation = 0;
             protected:
             void mouseMoveEvent(QMouseEvent * event) override {
@@ -220,9 +225,25 @@ namespace CPPUI {
                     CanvasPainter canvas(native, width(), height(), std::max(1.0, devicePixelRatioF()));
                     again = invoke(canvas);
                 }
+                if(showFPS && painter && version == generation) {
+                    if(!fpsLabel) {
+                        fpsLabel = new QLabel(this);
+                        fpsLabel->setObjectName("cppui-fps");
+                        fpsLabel->setStyleSheet("background: #101a2b; color: white; padding: 4px;");
+                        fpsLabel->setAttribute(::Qt::WA_TransparentForMouseEvents);
+                    }
+                    if(auto text = fps.tick()) { fpsLabel->setText(QString::fromStdString(*text)); fpsLabel->adjustSize(); }
+                    fpsLabel->move(std::max(0, width() - fpsLabel->width() - 8), 8);
+                    fpsLabel->show();
+                }
                 if(again && painter && version == generation) update();
             }
             public:
+            void setShowFPS(bool value) {
+                if(showFPS == value) return;
+                showFPS = value; fps.reset();
+                if(!value) { delete fpsLabel; fpsLabel = nullptr; }
+            }
             void setPainter(Painter callback) { painter = std::move(callback); ++generation; update(); }
             void clearPainter() { painter = {}; moved = {}; wheeled = {}; left = {}; ++generation; }
         };
@@ -230,6 +251,8 @@ namespace CPPUI {
         class Canvas: public BaseWidget {
             public:
             using Painter = CanvasWidget::Painter;
+            bool showFPS = false;
+            Canvas & showFps(bool value = true) { showFPS = value; return *this; }
             Painter painter;
             std::function<void(const CanvasPointerEvent &)> moved, wheeled;
             std::function<void()> left;
@@ -242,6 +265,7 @@ namespace CPPUI {
                 auto canvas = static_cast<CanvasWidget *>(ui);
                 canvas->moved=moved; canvas->wheeled=wheeled; canvas->left=left;
                 canvas->setMouseTracking(bool(moved));
+                canvas->setShowFPS(showFPS);
                 canvas->setPainter(painter);
             }
             void destroy(bool direct) override {

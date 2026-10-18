@@ -15,7 +15,7 @@ class Root:public CPPUI::Application {
 public:
     using Application::Application;
     std::string path;
-    bool show=true,remove=false;
+    bool show=true,remove=false,showFPS=true;
     int paints=0,version=0,last=-1,moves=0,wheels=0,leaves=0;
     bool input=true;
     CPPUI::CanvasPointerEvent lastInput;
@@ -29,7 +29,7 @@ public:
                 if(input)canvas.mousemove([this,snapshot](const CPPUI::CanvasPointerEvent & e){moves+=snapshot+1;lastInput=e;})
                     .wheel([this,snapshot](const CPPUI::CanvasPointerEvent & e){wheels+=snapshot+1;lastInput=e;})
                     .mouseleave([this,snapshot](){leaves+=snapshot+1;});
-                canvas.layout(100,100).id("canvas");}
+                canvas.showFps(showFPS).layout(100,100).id("canvas");}
         }
     }
 };
@@ -85,6 +85,9 @@ int main(int argc,char ** argv){
         dc.SelectObject(wxNullBitmap);auto pixels=bitmap.ConvertToImage();require(pixels.GetRed(10,10)>240&&pixels.GetGreen(10,10)<10,"rectangle pixels");require(pixels.GetBlue(50,15)>240,"ellipse pixels");require(pixels.GetGreen(75,10)>240&&pixels.GetRed(75,10)<10,"image pixels");require(pixels.GetGreen(35,65)>240&&pixels.GetRed(35,65)>100,"image opacity");
         root.sync();pump();auto bottom=static_cast<wxWindow *>(find(root,"bottom")->outer());auto top=static_cast<wxWindow *>(find(root,"top")->outer());require(bottom->GetPosition()==top->GetPosition()&&bottom->GetSize()==top->GetSize(),"stack layers must overlap");require(root.paints>0&&root.last==0,"native paint");root.version=1;root.sync();pump();require(root.last==1,"paint replacement");
         auto canvas=static_cast<wxWindow *>(find(root,"canvas")->outer());
+        require(wxWindow::FindWindowByName("cppui-fps",canvas),"FPS overlay missing");
+        root.showFPS=false;root.sync();pump();
+        require(!wxWindow::FindWindowByName("cppui-fps",canvas),"FPS overlay retained after reset");
         for(int i=1;i<=3;++i){
             root.version=i;root.sync();int before=root.wheels;
             wxMouseEvent wheel(wxEVT_MOUSEWHEEL);wheel.SetPosition(wxPoint(20,30));wheel.m_wheelRotation=120;wheel.SetEventObject(canvas);canvas->ProcessWindowEvent(wheel);

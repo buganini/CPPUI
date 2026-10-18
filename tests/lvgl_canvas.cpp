@@ -18,7 +18,7 @@ namespace {
         public:
         using Application::Application;
         bool show = true, window = true, redrawDuringPaint = false, removeDuringPaint = false;
-        bool deleteDuringPaint = false, fail = false, finished = false;
+        bool deleteDuringPaint = false, fail = false, finished = false, showFPS = false;
         int paints = 0, version = 1, seenVersion = 0, repeats = 0;
         int width = 0, height = 0;
         double density = 0;
@@ -41,7 +41,7 @@ namespace {
                     finished = true;
                     if(repeats > 0) { --repeats; return true; }
                     return false;
-                });
+                }).showFps(showFPS);
             }
         }
         CPPUI::Node * node() { return children->front()->children->front(); }
@@ -126,6 +126,11 @@ namespace {
         require(painted(object,0,100,70,120)>25 && painted(object,80,100,140,140)>25,
                 "plain or rotated text did not render");
         require(lv_obj_get_child_count(object) == 0, "temporary text canvases survived rendering");
+        root.showFPS = true; root.redraw(); step(2);
+        require(lv_obj_get_child_count(object) == 1, "FPS overlay missing");
+        require(std::string(lv_label_get_text(lv_obj_get_child(object,0))).find("FPS:") == 0, "FPS label missing");
+        root.showFPS = false; root.redraw(); step(2);
+        require(lv_obj_get_child_count(object) == 0, "FPS overlay retained after reset");
         if(argc > 1) {
             std::ofstream image(argv[1], std::ios::binary);
             image << "P6\n160 150\n255\n";

@@ -2,6 +2,7 @@
 #define CPPUI_WX_CANVAS
 #include "base.hpp"
 #include "../canvas_input.hpp"
+#include "../frame_rate.hpp"
 #include "image_resource.hpp"
 #include <wx/dcbuffer.h>
 #include <wx/graphics.h>
@@ -114,13 +115,22 @@ public:
     std::function<void()> left;
 private:
     Painter painter;
+    bool showFPS=false;
+    FrameRate fps;
+    wxStaticText * fpsLabel=nullptr;
     std::uint64_t generation=0;
     void paint(wxPaintEvent &){
         wxAutoBufferedPaintDC dc(this);dc.SetBackground(wxBrush(GetBackgroundColour()));dc.Clear();
         auto invoke=painter;if(!invoke)return;auto version=generation;bool again=false;
         {std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));if(!gc)return;
         CanvasPainter canvas(*gc,GetClientSize().x,GetClientSize().y,std::max(1.0,GetContentScaleFactor()),GetFont(),GetForegroundColour());
-        try{again=invoke(canvas);}catch(...){reportException("paint");}}
+        try{again=invoke(canvas);}catch(...){reportException("paint");return;}}
+        if(showFPS&&painter&&version==generation){
+            if(!fpsLabel){fpsLabel=new wxStaticText(this,wxID_ANY,"FPS: ...");fpsLabel->SetName("cppui-fps");
+                fpsLabel->SetBackgroundColour(wxColour("#101a2b"));fpsLabel->SetForegroundColour(*wxWHITE);}
+            if(auto text=fps.tick())fpsLabel->SetLabel(wxString::FromUTF8(*text));
+            fpsLabel->SetPosition(wxPoint(std::max(0,GetClientSize().x-fpsLabel->GetBestSize().x-8),8));
+        }
         if(again&&painter&&version==generation)Refresh(false);
     }
 public:
@@ -141,12 +151,15 @@ public:
             try{invoke(value);}catch(...){reportException("Canvas wheel");}
         });
     }
+    void setShowFPS(bool value){if(showFPS==value)return;showFPS=value;fps.reset();if(!value&&fpsLabel){fpsLabel->Destroy();fpsLabel=nullptr;}}
     void setPainter(Painter value){painter=std::move(value);++generation;Refresh(false);}
     void clearPainter(){painter={};moved={};wheeled={};left={};++generation;}
 };
 class Canvas:public Widget {
 public:
     using Painter=CanvasWidget::Painter;
+    bool showFPS=false;
+    Canvas & showFps(bool value=true){showFPS=value;return *this;}
     Painter painter;
     std::function<void(const CanvasPointerEvent &)> moved,wheeled;
     std::function<void()> left;
@@ -154,7 +167,7 @@ public:
     Canvas & mouseleave(std::function<void()> callback){left=std::move(callback);return *this;}
     Canvas & wheel(std::function<void(const CanvasPointerEvent &)> callback){wheeled=std::move(callback);return *this;}
     explicit Canvas(Painter painter):painter(std::move(painter)){expandX=expandY=3;}
-    void updateWidget(Widget * prev) override {ui=prev?prev->ui:new CanvasWidget(parentWindow());auto canvas=static_cast<CanvasWidget *>(ui);canvas->moved=moved;canvas->wheeled=wheeled;canvas->left=left;canvas->setPainter(painter);}
+    void updateWidget(Widget * prev) override {ui=prev?prev->ui:new CanvasWidget(parentWindow());auto canvas=static_cast<CanvasWidget *>(ui);canvas->moved=moved;canvas->wheeled=wheeled;canvas->left=left;canvas->setShowFPS(showFPS);canvas->setPainter(painter);}
     void destroy(bool direct) override {if(ui)static_cast<CanvasWidget *>(ui)->clearPainter();Widget::destroy(direct);}
 };
 namespace detail {

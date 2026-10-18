@@ -1060,6 +1060,13 @@ before mounting Canvas, or redraw after adding devices. Input callbacks run on
 the UI thread; they may redraw/remove Canvas, but must not destroy the input
 device, display or LVGL runtime during native input dispatch.
 
+Canvas `.showFps(bool = true)` displays the rate of completed native draws, with
+text updates at most twice per second. It defaults to false and resets when
+omitted on redraw. The overlay itself does not request another frame. FPS
+measures Canvas drawing, not compositor presentation. HeavyCanvas includes
+"Run continuously (FPS)" and "Full-frame changes" controls. The latter changes
+explicit command colors each frame while preserving geometry and data.
+
 The Qt/wx/LVGL HeavyCanvas cookbook uses these callbacks for hover inspection and
 cursor-anchored wheel zoom over 1,000–1,000,000 synthetic sessions. It draws OHLCV,
 Bollinger bands, K/D and RSI and provides regenerate/reset controls. Data is

@@ -323,6 +323,22 @@ namespace {
 int main(int argc, char ** argv) {
     QApplication app(argc, argv);
     try {
+        {
+            CPPUI::Qt::CanvasWidget widget;
+            widget.resize(150, 100);
+            int paints = 0;
+            widget.setShowFPS(true);
+            widget.setPainter([&](CPPUI::CanvasPainter &) { ++paints; return false; });
+            widget.show();
+            for(int i=0;i<5;++i) app.processEvents();
+            auto label = widget.findChild<QLabel *>("cppui-fps");
+            require(label && label->text().startsWith("FPS:"), "FPS overlay was not created after painting");
+            const int before=paints;
+            for(int i=0;i<5;++i) app.processEvents();
+            require(paints==before, "FPS overlay triggered continuous redraw");
+            widget.setShowFPS(false);
+            require(!widget.findChild<QLabel *>("cppui-fps"), "disabling FPS retained overlay");
+        }
         drawingAndImages();
         frameStyles();
         scopes();

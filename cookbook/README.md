@@ -276,3 +276,6 @@ settle queued redraws and lifecycle notifications. LVGL startup remains immediat
 The root build's `qt.tree` regression also checks model invariants with Qt Test,
 persistent indexes, selection and expansion after reordering, independent virtual
 subviews, callback retirement and native teardown, including Valgrind.
+
+HeavyCanvas follows PUI `39759a2`/`e46cb43`: completed-draw FPS, optional
+continuous drawing and full-frame color changes are available on Qt/wx/LVGL.

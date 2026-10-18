@@ -1,3 +1,6 @@
+2026-10-18
+    * Canvas/HeavyCanvas: sync PUI completed-draw FPS, continuous rendering and full-frame color changes on Qt/wx/LVGL
+
 2026-10-17
     * Native PUI sync audited through f0c1cf5; retain unconditional Qt/wx Canvas setters after native A/B measurements found small or unstable gains; add reproducible benchmarks and decision notes, excluding Web/Pyodide
     * Canvas: sync PUI cae7713/10fe513/f0c1cf5 scopes; add nested Qt native-state and wx CPPUI pen/brush push/pop, plus LVGL compatibility no-ops; validate unmatched pop and unwind Qt scopes on exceptions

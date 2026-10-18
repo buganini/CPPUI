@@ -1,5 +1,9 @@
 # Qt implementation alignment with PUI/PySide6
 
+Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
+continuous painting and full-frame color changes. Overlay removal and repeat
+painting are covered by native regressions.
+
 Latest native delta audit: PUI `f0c1cf5` (2026-10-17). Shared controls use
 `disabled` (`d7dc23a`) and HeavyCanvas includes fourteen presets through
 1,000,000 (`18d1c5e`), with index labels above 500,000. Canvas styles are cached
