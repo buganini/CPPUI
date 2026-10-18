@@ -7,6 +7,11 @@
 // Desktop display refresh and input sampling should run at about 60 Hz.
 #define LV_DEF_REFR_PERIOD 16
 #define LV_FONT_MONTSERRAT_28 1
+// Image(path) uses host paths and the bundled PNG/baseline-JPEG decoders.
+#define LV_USE_FS_STDIO 1
+#define LV_FS_STDIO_LETTER 'A'
+#define LV_USE_LODEPNG 1
+#define LV_USE_TJPGD 1
 #define LV_USE_SDL CPPUI_LVGL_SDL2
 // Deliver wheel steps through the pointer device used by the cookbook.
 #define LV_SDL_MOUSEWHEEL_MODE LV_SDL_MOUSEWHEEL_MODE_CROWN

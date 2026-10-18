@@ -99,7 +99,7 @@ if(BUILD_TESTING)
         CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
     cppui_add_test(lvgl.radiobutton cppui_lvgl_radiobutton)
 
-    foreach(component progressbar timeline views textfield canvas_input combobox stack grid)
+    foreach(component progressbar timeline views textfield canvas_input combobox stack grid image)
         add_executable(cppui_lvgl_${component} "${cppui_lvgl_dir}/../../tests/lvgl_${component}.cpp")
         target_include_directories(cppui_lvgl_${component} PRIVATE "${cppui_lvgl_dir}/../..")
         target_link_libraries(cppui_lvgl_${component} PRIVATE lvgl::lvgl)
@@ -107,6 +107,7 @@ if(BUILD_TESTING)
             CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
         cppui_add_test(lvgl.${component} cppui_lvgl_${component})
     endforeach()
+    target_compile_definitions(cppui_lvgl_image PRIVATE CPPUI_TEST_ASSET_DIR="${cppui_lvgl_dir}/../assets")
 
     if(CPPUI_LVGL_DRIVER STREQUAL "lvgl_sdl2")
         set_property(TEST cookbook.lvgl_sdl2 APPEND PROPERTY ENVIRONMENT
@@ -117,7 +118,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header application base button canvas checkbox combobox divider grid label layout progressbar radiobutton scroll spacer stack tab text textfield timeline views window)
+    foreach(header application base button canvas checkbox combobox divider grid image label layout progressbar radiobutton scroll spacer stack tab text textfield timeline views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

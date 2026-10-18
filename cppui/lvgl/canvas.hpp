@@ -84,6 +84,9 @@ namespace CPPUI {
         inline CanvasBuffer canvasBuffer(int width, int height) {
             CanvasBuffer buffer(lv_draw_buf_create(width, height, LV_COLOR_FORMAT_ARGB8888, LV_STRIDE_AUTO));
             if(!buffer) throw std::bad_alloc();
+            // Enabled image decoders may inspect the first pixels while the
+            // canvas is attached, before its first paint initializes them.
+            lv_draw_buf_clear(buffer.get(), nullptr);
             return buffer;
         }
         class CanvasLayer {
