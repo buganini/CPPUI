@@ -115,6 +115,9 @@ namespace Cookbook { namespace Backend {
         } else if(std::string(page.key) == "views") {
             page.render = views;
             page.remaining = "";
+        } else if(std::string(page.key) == "stack") {
+            page.render = stack;
+            page.remaining = "";
         } else if(std::string(page.key) == "maskedfield") {
             page.render = maskedfield; page.remaining = "";
         } else if(std::string(page.key) == "combobox") {
@@ -264,6 +267,20 @@ namespace Cookbook { namespace Backend {
             lv_obj_get_coords(gap, &end);
             if(lv_obj_get_height(gap) <= lv_obj_get_content_height(box)/2 || end.y2 != content.y2)
                 throw std::runtime_error("vertical spacer must fill the remaining column height");
+        }
+        if(auto stack = find(root, "example-stack")) {
+            auto object = static_cast<lv_obj_t *>(stack->outer());
+            auto bottom = static_cast<lv_obj_t *>(find(root, "stack-bottom")->outer());
+            auto top = static_cast<lv_obj_t *>(find(root, "stack-top")->outer());
+            lv_area_t a, b, content;
+            lv_obj_get_coords(bottom, &a); lv_obj_get_coords(top, &b);
+            lv_obj_get_content_coords(object, &content);
+            if(a.x1 != b.x1 || a.y1 != b.y1 || a.x1 != content.x1 || a.y1 != content.y1
+               || lv_obj_get_height(object) != lv_obj_get_height(bottom)
+               || lv_obj_get_height(bottom) < lv_obj_get_height(top)
+               || lv_obj_get_height(top) != lv_obj_get_style_text_font(top, LV_PART_MAIN)->line_height
+               || lv_obj_get_child(object, 1) != top)
+                throw std::runtime_error("Stack recipe must overlap natural-height labels with the last layer on top");
         }
         if(auto canvas = find(root, "example-canvas")) {
             auto object = static_cast<lv_obj_t *>(canvas->outer());
