@@ -9,6 +9,8 @@
 
 namespace CPPUI {
     namespace LVGL {
+        constexpr char backendName[] = "LVGL";
+
         class View: public ::CPPUI::View {
             public:
             ~View() override {

@@ -8,8 +8,10 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are audited through PUI `1c7b45c` (2026-10-18); AI development
+Native additions are audited through PUI `97e442c` (2026-10-18); AI development
 and Web/Pyodide changes are excluded. See the [sync audit](../doc/pui-sync-2026-10-18.md).
+Window titles and sidebar headings identify the active backend: `Cookbook (Qt)`,
+`Cookbook (wxWidgets)`, `Cookbook (LVGL SDL2)` or `Cookbook (LVGL X11)`.
 State Binding now uses an external getter/setter and shows the latest 100
 getter/setter/change messages in a scrollable in-app log on all backends.
 Table marks editable cells with `editable: ` while storing their raw values.
@@ -55,7 +57,7 @@ The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources remain pending. Move, leave and wheel callbacks work on SDL2 and X11. See the [Canvas reference](../REFERENCE.md#canvas)
 for font/color differences and callback ownership.
-The gallery preserves the reference's scrollable **Example** sidebar and expanding
+The gallery preserves the reference's scrollable cookbook sidebar and expanding
 **Result** pane. Qt and wx also keep the nested example menus and initially maximized
 window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
 divider, and styled examples follow the reference on the available pages.

@@ -26,6 +26,8 @@
 #include "../recipes.hpp"
 #include <wx/stopwatch.h>
 namespace Cookbook { namespace Backend {
+    constexpr const char * name = CPPUI::Wx::backendName;
+    const std::string title = std::string("Cookbook (") + name + ")";
         constexpr bool desktopWindowCommands = true;
     using View = CPPUI::Wx::View;
     using Views = CPPUI::Wx::Views;
@@ -35,8 +37,7 @@ namespace Cookbook { namespace Backend {
         const int index = static_cast<wxSimplebook *>(views->ui)->GetSelection();
         return key.empty() ? index == 0 : index > 0 && views->children->at(index - 1)->_id == key;
     }
-    const char * const name="wxWidgets";
-    inline void configureWindow(CPPUI::Context * node){static_cast<CPPUI::Wx::Window *>(node)->title("CPPUI Cookbook").maximize();}
+    inline void configureWindow(CPPUI::Context * node){static_cast<CPPUI::Wx::Window *>(node)->title(title).maximize();}
     inline void menus(){
         for(auto bar:CPPUI::MenuBar()){
             for(auto menu:CPPUI::Menu("Menu")){
@@ -81,7 +82,7 @@ namespace Cookbook { namespace Backend {
     inline bool selectPage(CPPUI::Node & node){auto link=dynamic_cast<CPPUI::Wx::Label *>(&node);if(!link||!link->ui)return false;
         for(auto parent=link->ui->GetParent();parent;parent=parent->GetParent())if(auto scroll=dynamic_cast<wxScrolledWindow *>(parent)){int x,y;scroll->GetViewStart(&x,&y);auto point=scroll->ScreenToClient(link->ui->ClientToScreen(wxPoint(0,0)));scroll->Scroll(x,std::max(0,y+point.y));}
         wxMouseEvent event(wxEVT_LEFT_DOWN);event.SetEventObject(link->ui);link->ui->ProcessWindowEvent(event);return true;}
-    inline void prepareLayoutCheck(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());if(frame->GetTitle()!="CPPUI Cookbook")throw std::runtime_error("cookbook window title missing");frame->Maximize(false);frame->SetSize(800,600);
+    inline void prepareLayoutCheck(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());if(frame->GetTitle()!=wxString::FromUTF8(title))throw std::runtime_error("cookbook window title missing");frame->Maximize(false);frame->SetSize(800,600);
         // The window manager may deliver unmaximize/resize after the first idle
         // cycle. Wait for the native client size before checking child layout.
         wxStopWatch clock;

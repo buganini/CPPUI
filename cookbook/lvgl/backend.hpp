@@ -166,10 +166,11 @@ namespace Cookbook { namespace Backend {
         }
     }
 #if CPPUI_LVGL_SDL2
-    const char * const name = "LVGL SDL2";
+    const std::string name = std::string(CPPUI::LVGL::backendName) + " SDL2";
 #else
-    const char * const name = "LVGL X11";
+    const std::string name = std::string(CPPUI::LVGL::backendName) + " X11";
 #endif
+    const std::string title = "Cookbook (" + name + ")";
     inline void settle() {
         // Finish layout before waiting so size/style changes cannot postpone the frame.
         lv_obj_update_layout(lv_screen_active());

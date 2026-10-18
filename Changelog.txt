@@ -1,4 +1,5 @@
 2026-10-18
+    * Cookbook: sync PUI 97e442c backend names in window titles and sidebar headings; expose backendName constants in Qt/wx/LVGL base headers and distinguish the LVGL desktop drivers
     * Native PUI sync through 1c7b45c: exclude AI provider tooling; retain native ownership instead of Python editor-wrapper workarounds
     * Table: sync Qt decorated input validation/focus/filter cleanup and wx outer-control event forwarding; mark editable cookbook cells across backends
     * Binding cookbook: add shared external getter/setter example with a scrollable latest-100-message log and commit-driven State publication

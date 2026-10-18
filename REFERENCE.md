@@ -230,6 +230,11 @@ omitted values to native defaults. `.qt()` is specific to the Qt backend.
 
 ## Application
 
+Each backend's `base.hpp` exposes a constant string: `CPPUI::Qt::backendName`
+(`"Qt"`), `CPPUI::Wx::backendName` (`"wxWidgets"`) or
+`CPPUI::LVGL::backendName` (`"LVGL"`). These are C++11 `constexpr char[]` values;
+applications can use them in titles or diagnostics without creating a runtime.
+
 Qt and wx `Application::title(text)` set the native application display name
 when nonempty and supply the default title for Windows under that logical root.
 `Window().title(text)` takes precedence, including an explicit empty string.

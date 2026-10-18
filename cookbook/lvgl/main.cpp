@@ -58,13 +58,14 @@ int main(int argc, char ** argv) {
             shutdown();
             return 1;
         }
+        lv_sdl_window_set_title(display, Cookbook::Backend::title.c_str());
         inputGroup = lv_group_create();
         lv_group_set_default(inputGroup);
         lv_indev_set_group(pointer, inputGroup);
         lv_indev_set_group(keyboard, inputGroup);
     }
 #elif LV_USE_X11
-    auto display = lv_x11_window_create("CPPUI Cookbook", 800, 600);
+    auto display = lv_x11_window_create(Cookbook::Backend::title.c_str(), 800, 600);
     if(!display) {
         std::cerr << "Failed to initialize the X11 display\n";
         shutdown();

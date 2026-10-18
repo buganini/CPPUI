@@ -20,7 +20,7 @@ namespace Cookbook {
                 Backend::menus();
                 for(auto row: CPPUI::HBox().id("gallery")) {
                     for(auto menu: CPPUI::VBox().layout(200).id("menu-container")) {
-                        CPPUI::Label("Example");
+                        CPPUI::Label(Backend::title);
                         for(auto scroll: CPPUI::Scroll().layout(200, 0, 1).id("menu-scroller")) {
                             for(auto list: CPPUI::VBox().id("menu-list")) {
                                 for(std::size_t i = 0; i < recipes().size(); ++i) {

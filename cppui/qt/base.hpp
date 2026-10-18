@@ -12,6 +12,8 @@
 
 namespace CPPUI {
     namespace Qt {
+        constexpr char backendName[] = "Qt";
+
         class QtView: public View {
             friend class Views;
             friend class Tabs;

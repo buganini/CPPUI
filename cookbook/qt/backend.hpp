@@ -29,6 +29,8 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+    constexpr const char * name = CPPUI::Qt::backendName;
+    const std::string title = std::string("Cookbook (") + name + ")";
         constexpr bool desktopWindowCommands = true;
     using View = CPPUI::Qt::QtView;
     using Views = CPPUI::Qt::Views;
@@ -38,7 +40,7 @@ namespace Cookbook { namespace Backend {
         const int index = static_cast<QStackedWidget *>(views->ui)->currentIndex();
         return key.empty() ? index == 0 : index > 0 && views->children->at(index - 1)->_id == key;
     }
-    inline void configureWindow(CPPUI::Context * node) { static_cast<CPPUI::Qt::Window *>(node)->title("CPPUI Cookbook").maximize(); }
+    inline void configureWindow(CPPUI::Context * node) { static_cast<CPPUI::Qt::Window *>(node)->title(title).maximize(); }
     inline void menus() {
         for(auto bar: CPPUI::MenuBar()) {
             for(auto menu: CPPUI::Menu("Menu")) {
@@ -68,7 +70,6 @@ namespace Cookbook { namespace Backend {
         QCoreApplication::sendEvent(widget, &event); return true;
     }
     void configureRecipes(std::vector<Recipe> & pages);
-    const char * const name = "Qt";
     inline void settle() {
         QCoreApplication::processEvents();
         QCoreApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
@@ -178,7 +179,7 @@ namespace Cookbook { namespace Backend {
     }
     inline void prepareLayoutCheck(CPPUI::Node & root) {
         auto window = static_cast<QMainWindow *>(find(root, "cookbook")->outer());
-        if(!window->isMaximized() || window->windowTitle() != "CPPUI Cookbook") {
+        if(!window->isMaximized() || window->windowTitle() != QString::fromStdString(title)) {
             throw std::runtime_error("cookbook should open maximized with its window title");
         }
         // Force an overflowing list independently of the host's screen size.

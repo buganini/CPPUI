@@ -9,6 +9,8 @@
 #include <functional>
 
 namespace CPPUI { namespace Wx {
+    constexpr char backendName[] = "wxWidgets";
+
     inline void reportException(const char * operation) {
         try { throw; }
         catch(const std::exception & error) { std::cerr << "CPPUI " << operation << ": " << error.what() << '\n'; }
