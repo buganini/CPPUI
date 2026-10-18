@@ -51,7 +51,12 @@ namespace CPPUI { namespace Wx {
             if(destroyed || retired_by) return;
             if(updating) { dirty = true; return; }
             dirty = false; updating = true;
-            try { ::CPPUI::View::redraw(); }
+            try {
+                ::CPPUI::View::redraw();
+                // An independently redrawn virtual view changes its physical
+                // parent's children without reconciling the parent declaration.
+                if(dom_parent && dom_parent!=this) dom_parent->getNode()->postSync();
+            }
             catch(...) { updating = false; dirty = false; throw; }
             updating = false;
             if(dirty) redraw();
@@ -170,7 +175,12 @@ namespace CPPUI { namespace Wx {
         wxWindow * parentWindow() const {
             auto p = parent;
             while(p && p != this) {
-                if(auto wx = dynamic_cast<Node *>(p)) if(auto w = static_cast<wxWindow *>(wx->inner())) return w;
+                if(auto wx = dynamic_cast<Node *>(p)) {
+                    if(auto w = static_cast<wxWindow *>(wx->inner())) return w;
+                    // Containers such as Splitter mount a layout in a native
+                    // pane before its descendants are constructed.
+                    if(auto layout = wx->sizer()) if(auto owner = layout->GetContainingWindow()) return owner;
+                }
                 if(p == p->parent) break;
                 p = p->parent;
             }
@@ -325,8 +335,14 @@ namespace CPPUI { namespace Wx {
     }
     inline void detachContent(Mount & mount) {
         if(!mount.row) return;
-        if(mount.content->IsSizer()) mount.row->Detach(mount.content->GetSizer());
-        else if(mount.content->IsWindow()) mount.row->Detach(mount.content->GetWindow());
+        // wx removes a window's sizer item during external native deletion.
+        // The wrapper can still exist when reconciliation removes the node.
+        for(auto item:mount.row->GetChildren()) if(item==mount.content) {
+            if(item->IsSizer()) mount.row->Detach(item->GetSizer());
+            else if(item->IsWindow()) mount.row->Detach(item->GetWindow());
+            break;
+        }
+        mount.content=nullptr;
     }
 
     class Spacer: public Node {
