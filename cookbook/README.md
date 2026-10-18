@@ -29,7 +29,9 @@ SDL2/X11 use the same recipe and native Canvas input. Image resources and custom
 font loading remain separate LVGL Canvas work.
 
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,
-Text and Tab share their recipe implementations across all three backends.
+Text, Image and Tab share their recipe implementations across all three backends.
+LVGL Image uses the bundled PNG/baseline-JPEG decoders and preserves the windmill's
+aspect ratio at its declared width. Canvas image resources remain separate work.
 Views also shares internal and bound selection examples across all backends.
 Its TextField and Change text button demonstrate retained local state.
 Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Image, MDI, Splitter, Modal and Dialog recipes through

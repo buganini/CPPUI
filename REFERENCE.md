@@ -26,7 +26,7 @@ are described in the component sections and backend plans.
 |[ProgressBar](#progressbar)|QProgressBar|bar / busy animation|wxGauge|
 |[Text / Html / MarkDown](#text)|QLabel|wrapping label / raw markup fallbacks|wxStaticText / wxHtmlWindow / raw text fallback|
 |[Canvas](#canvas)|QWidget / QPainter|canvas / software drawing|wxPanel / wxGraphicsContext|
-|[Image](#image)|QLabel / QPixmap|—|wxStaticBitmap / wxImage|
+|[Image](#image)|QLabel / QPixmap|lv_image / owned decoded pixels|wxStaticBitmap / wxImage|
 |[Menus / Toolbars](#menus-and-toolbars)|QMenuBar / QMenu / QToolBar / QAction|—|wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)|
 |[MDI](#mdi)|QMdiArea / QMdiSubWindow|—|—|
 |[TimelineView](#timelineview)|QTimer / virtual node|timer / virtual node|wxTimer / virtual node|
@@ -426,8 +426,31 @@ building, preserving the mounted image on a failed redraw; undecodable existing
 files produce an empty Qt pixmap. `.layout(width, height)` scales the source
 pixmap with its aspect ratio preserved; with one dimension, the other is inferred.
 The original pixels remain cached so changing or omitting dimensions rescales
-from the source. Positive weight enables native scaled contents. The cookbook
-uses `.layout({}, 360)` and the same screenshot as PUI's Image recipe.
+from the source. Positive weight enables native scaled contents. The shared
+cookbook uses `.layout(400)` and PUI's public-domain Rijksmuseum windmill image.
+
+Include `cppui/lvgl/image.hpp` for the same `Image(path)` API on LVGL 9.6.
+The native image retains decoded pixels across redraws, visibility changes and
+keyed moves. Width-only or height-only sizing infers the other dimension; two
+dimensions fit the image inside that box with its aspect ratio preserved.
+Positive weight enables native stretching into the allocated area. Omitting
+dimensions/weight restores natural sizing and aspect-preserving drawing, subject
+to the parent layout's allocation. PNG transparency and `.click()` are supported.
+
+LVGL file images are decoded during declaration building. Missing, unsupported
+or corrupt files throw before reconciliation, preserving the mounted tree.
+Matching path, file identity, size and modification timestamp reuse an owned
+source; replacement loads new pixels. Live images of the same unchanged file
+share decoding, with only weak cache entries after removal. Native objects retain
+the pixels until deletion, including parent-subtree teardown. Images occupy their
+full decoded size in memory; no borrowed native-descriptor overload is exposed.
+
+The SDL2/X11 configuration enables LVGL's bundled LodePNG and TJpgDec decoders
+for PNG and baseline JPEG (`.jpg`/`.jpeg`). Other applications must enable suitable
+decoders plus `LV_USE_FS_STDIO`, a nonzero `LV_FS_STDIO_LETTER`, and an empty
+`LV_FS_STDIO_PATH` for the host-path API. Progressive JPEG and other formats need
+additional LVGL decoders. This widget does not add Canvas `ImageResource` or
+`drawImage`; those remain separate work.
 
 ## Menus and toolbars
 

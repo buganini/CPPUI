@@ -1,4 +1,5 @@
 2026-10-18
+    * LVGL Image: add cached owned PNG/baseline-JPEG sources, aspect-preserving sizing, weighted stretching, click/visibility and safe replacement/teardown; enable the shared SDL2/X11 windmill cookbook
     * LVGL Grid: add row/column spans, span-aware automatic sizing, equal allocated tracks, retained cells, margins and shared SDL2/X11 cookbook
     * LVGL Stack: add retained overlapping layers, native drawing/input order, automatic and allocated sizing, visibility, padding/margins and shared SDL2/X11 cookbook
     * Refs: publish after node update before descending, matching PUI ancestor lookup and nested duplicate-name ordering

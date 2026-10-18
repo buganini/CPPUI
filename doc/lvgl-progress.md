@@ -1,5 +1,20 @@
 # LVGL implementation progress and remaining work
 
+Image now implements the shared `Image(path)` interface using native `lv_image`,
+owned decoded pixels, path/file-stamp reuse, aspect-preserving declared dimensions,
+weighted stretching, visibility and click callbacks. PNG and baseline JPEG are
+enabled in both desktop configurations. Invalid files fail before reconciliation;
+source storage survives declaration replacement and native parent deletion.
+Both drivers enable the shared windmill recipe. See the
+[Image contract](../REFERENCE.md#image) for decoder configuration and memory cost.
+
+Image verification (2026-10-18): SDL2 and X11 build with `-j "$(nproc)"`;
+all 21 CTests pass on each, including the shared cookbook. Image and Canvas
+regressions pass Valgrind with zero errors and zero remaining allocations.
+Image tests cover transparent PNG rendering, JPEG edge tiles, resizing, source
+replacement with native caches enabled, invalid-file rollback, callback removal
+and external/native-parent deletion. Both rebuilt desktop cookbooks were launched.
+
 Grid is now implemented with the existing public row/column/span fields,
 content measurement including spanning cells, equal fractional tracks on
 allocated axes, margins, nested padding and retained hidden cells. Both SDL2/X11
@@ -86,7 +101,7 @@ dependency. Routine implementation choices remain part of the porting work.
 
 Public LVGL headers currently cover Application, Window, HBox/VBox, Grid/Stack, Label,
 Button, Checkbox, RadioButton, TextField, MaskedField, ComboBox, Spacer, Divider, plain Text with raw-source
-Html/MarkDown fallbacks, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
+Html/MarkDown fallbacks, Image, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
 and Canvas drawing. Shared recipes use the
 public PUI layout/style modifiers; see the
 [component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
@@ -216,8 +231,9 @@ and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213d
   Text and raw-source Html/MarkDown fallbacks. Fallback calls warn at compile
   time, the page displays a formatting notice, and `--list` marks it partial.
   This does not implement formatted rendering or selection.
-- [ ] Add Image with owned/borrowed source lifetime, decoding failure behavior,
-  declared dimensions and replacement cleanup.
+- [x] Add file Image with owned source lifetime, decoding failure behavior,
+  declared dimensions and replacement cleanup. The shared API takes host paths;
+  borrowed native descriptors are not exposed.
 - [ ] Automatic collection observation and value-based Checkbox overloads remain
   tied to the shared collection contract; explicit boolean membership adapters
   work now.
