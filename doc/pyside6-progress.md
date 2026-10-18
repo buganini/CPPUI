@@ -213,7 +213,7 @@ the separate deferred section records intentional omissions.
 | Grid/Stack | Native Grid spans and StackAll overlap | Add shared fluent grid placement | 3 / [Grid][ref-grid], [Stack][ref-stack], [HBox][ref-hbox] |
 | TextField/Checkbox | String TextField/MaskedField model/draft bindings; boolean Checkbox and membership adapters | Define conversion helpers and observable collections | 4 / [TextField][ref-textfield], [Checkbox][ref-checkbox], [RadioButton][ref-radio] |
 | ComboBox/ComboBoxItem | Index/string bindings, distinct labels/values, editable text and dynamic items | Define raw non-string value adapters and deferred event payloads | 4 / [ComboBox][ref-combo], [Qt regression][ref-qt] |
-| Canvas input | Native drawing, image resources, move/leave/wheel callbacks | Add remaining pointer/drop callbacks; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
+| Canvas input | Native drawing, image resources, move/leave/wheel callbacks | Add remaining pointer callbacks; verify rendering on a real HiDPI display | 7 / [Canvas][ref-canvas], [Drop][ref-drop] |
 | Table/Tree values and input | Typed external adapters with explicit ownership and model-owned indexes | Define arbitrary cell values and deferred Tree drag/drop payloads | 8 / [Table adapter][ref-table-adapter], [Tree adapter][ref-tree-adapter] |
 | Qt interop | Missing | Borrowed widgets survive removal according to their ownership contract | 6 / [embedding example][ref-interop], [Widget][ref-widget] |
 | Validation | Core/native CTest, headers, sanitizer and Valgrind harnesses | Port each remaining case above; manual focus/window/HiDPI behavior on a display | 1–8 / [Qt regression][ref-qt], [wx regression][ref-wx] |
@@ -268,7 +268,7 @@ phases 0–3 does not block independent components in later phases.
   reconciliation; recovery after partial native updates is separate work.
 - Canvas move/wheel use the shared `CanvasPointerEvent` coordinate/delta payload
   on Qt/wx; leave and existing control callbacks take no arguments. General
-  keyboard/button/modifier and drag/drop event objects remain deferred.
+  keyboard/button/modifier event objects remain deferred; portable inbound drops are implemented.
 
 ### Phase 1 — Node identity, ownership, and reconciliation (P0)
 
@@ -365,15 +365,15 @@ Acceptance: borrowed widgets survive declaration removal. Adapt
 
 ### Phase 7 — Canvas and input (P2)
 
-- [ ] Implement mouse down/up/double-click, enter and modifiers, plus Qt
-  drag-enter/drop callbacks and their acceptance behavior
-  after the deferred input-event contract is addressed.
+- [ ] Implement mouse down/up/double-click, enter and modifiers after the
+  remaining input-event contract is addressed.
 - [ ] Extend the existing move/leave/wheel lifetime coverage to each added input
   callback so replacement/removal cannot dispatch to a retired declaration.
 - [ ] Verify Canvas rendering and logical coordinates on a real HiDPI display.
 
-Acceptance: port the drop cookbook case and verify event payloads, acceptance,
-callback replacement and removal. Retain automated painting/lifetime coverage
+Portable inbound drops and the Drop cookbook are ported through PUI `526b071`,
+including payloads, acceptance, callback replacement/removal and viewport events.
+Retain automated painting/lifetime coverage
 while validating physical-display rendering separately.
 
 ### Phase 8 — Table/Tree values and input (P2)

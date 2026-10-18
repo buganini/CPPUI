@@ -2,6 +2,7 @@
 #define CPPUI_WX_BASE
 
 #include "../view.hpp"
+#include "drop.hpp"
 #include <wx/wx.h>
 #include <wx/weakref.h>
 #include <memory>
@@ -220,6 +221,11 @@ namespace CPPUI { namespace Wx {
                 native->backgroundCustomized = false;
             }
             ui->SetMinSize(minSize());
+            auto target=dynamic_cast<DropTarget *>(ui->GetDropTarget());
+            if(dropHandlers.entered || dropHandlers.dropped) {
+                if(!target) { target=new DropTarget(ui); ui->SetDropTarget(target); }
+                target->handlers=dropHandlers;
+            } else if(target) ui->SetDropTarget(nullptr);
             updateEvents();
         }
         virtual void updateWidget(Widget *) = 0;
@@ -227,6 +233,8 @@ namespace CPPUI { namespace Wx {
         virtual void updateEvents() { native->command = onClicked; }
         void releaseRetiredRefs() override { ui = nullptr; Node::releaseRetiredRefs(); }
         void destroy(bool) override {
+            if(ui) if(auto target=dynamic_cast<DropTarget *>(ui->GetDropTarget())) target->handlers={};
+            dropHandlers={};
             clearRef();
             if(!native) return;
             native->node = nullptr; native->command = {}; native->input = {}; native->finish = {}; native->resize = {};

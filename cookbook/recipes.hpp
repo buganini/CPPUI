@@ -14,6 +14,8 @@ namespace Cookbook {
     struct HeavyChart;
     struct Model {
         std::shared_ptr<HeavyChart> heavyChart;
+        CPPUI::State<bool> rejectDrop{false};
+        CPPUI::State<std::string> dropResult{std::string("Drop .txt or .json files, text, or URLs")}, dropText{std::string()};
         CPPUI::State<int> treeItems{0};
         std::shared_ptr<AdapterTreeData> adapterTree{new AdapterTreeData()};
         std::shared_ptr<CPPUI::BaseTreeAdapter<AdapterTreeNode>> adapterTreeSource;
@@ -48,6 +50,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void drop(Model &);
     void refs(Model &);
     void tree(Model &);
     void treeAdapter(Model &);

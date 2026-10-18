@@ -104,6 +104,7 @@ namespace CPPUI {
         dom_parent = nullptr;
         ui = nullptr;
         onClicked = [](){};
+        dropHandlers={};
         delete children;
         children = nullptr;
     }

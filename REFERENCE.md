@@ -1045,8 +1045,8 @@ separate; consumers may use direction when exact distance is unnecessary.
 Callbacks are replaced on redraw, omitted callbacks are cleared, and dispatch
 copies the callable before invocation so it may redraw/remove its own Canvas.
 Exceptions are reported to stderr. A wheel handler consumes the event; without
-one, native scrolling can handle it. Other pointer events, modifiers and drag/drop
-remain to port.
+one, native scrolling can handle it. Other pointer events and modifiers remain to port. Qt/wx also support the
+portable drag-enter/drop contract below.
 
 LVGL input uses native hit testing, including clipping and overlays. SDL2 pointer
 wheel samples (`LV_SDL_MOUSEWHEEL_MODE_CROWN`) and X11 encoder samples map one
@@ -1220,3 +1220,25 @@ contract; their optional State selection models remain an older porting gap.
 
 The Refs cookbook demonstrates queued selection and desktop window operations.
 State-ref publishing for Web/AI inspection is excluded from this native sync.
+
+### Portable inbound drops (Qt/wx)
+
+`.dragEnter(callback)` and `.drop(callback)` receive a `CPPUI::DropEvent &`.
+Use `.drop(callback, {".txt", ".json"})` to filter file suffixes (ASCII case
+insensitive, including compound suffixes such as `.tar.gz`). A supplied list must
+be nonempty. Unsupported suffixes and directories are rejected before dispatch;
+text and URLs are unaffected by the file filter. Disabled targets reject drops.
+
+Events own `files` (`DropFile{name, path, temporary}`), optional `text`, `urls`,
+optional local `x`/`y`, and an `action` string (`copy`, `move`, `link`). Native
+files have `temporary=false`. Call `event.accept()` explicitly, or
+`event.reject(reason)`. Returning without accepting rejects the drop; exceptions
+reject and report to stderr. Acceptance never reads, copies, moves or deletes a
+file. The Drop cookbook reads text files in its application callback.
+
+Qt converts MIME data for widget and scroll-area viewport events. wx negotiates
+file lists, Unicode text and URI lists; drag-enter only has coordinates/action
+before data transfer. Native callbacks are replaced on redraw and cleared on
+removal. Events can be copied for later use, without retaining toolkit events.
+LVGL desktop file-drop bridging and browser uploads are not implemented here.
+Tree-specific outbound drag/model reordering remains a separate porting gap.

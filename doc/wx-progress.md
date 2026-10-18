@@ -1,5 +1,9 @@
 # wxWidgets alignment with PUI/wx
 
+Portable inbound drops follow PUI `526b071`: file/text/URI data, suffix filters,
+explicit acceptance and the shared Drop cookbook. Replacement, removal and
+native data negotiation are covered by regression tests.
+
 Named node refs follow PUI `d83bbe2`: UI-thread lookup, retained binders and
 queued selection commands are ported, with Qt/wx desktop window commands and
 a shared Refs recipe. Worker submission, redraw and removal are tested. Native

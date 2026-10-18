@@ -31,6 +31,8 @@ namespace Cookbook { namespace Backend {
             } else if(std::string(page.key) == "tab") {
                 page.render = tab;
                 page.remaining = "";
+            } else if(std::string(page.key) == "drop") {
+                page.render=drop; page.remaining="";
             } else if(std::string(page.key) == "views") {
                 page.render = views;
                 page.remaining = "";

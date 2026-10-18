@@ -1,6 +1,10 @@
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_drop native_drop.cpp)
+    target_compile_definitions(cppui_wx_drop PRIVATE CPPUI_TEST_WX)
+    target_link_libraries(cppui_wx_drop PRIVATE CPPUI::wx)
+    cppui_add_test(wx.drop cppui_wx_drop)
     add_executable(cppui_wx_refs native_refs.cpp)
     target_compile_definitions(cppui_wx_refs PRIVATE CPPUI_TEST_WX)
     target_link_libraries(cppui_wx_refs PRIVATE CPPUI::wx Threads::Threads)
@@ -27,7 +31,7 @@ if(CPPUI_BUILD_WX)
     add_executable(cppui_wx_data_views wx_data_views.cpp)
     target_link_libraries(cppui_wx_data_views PRIVATE CPPUI::wx)
     cppui_add_test(wx.data_views cppui_wx_data_views)
-    foreach(header application base button label layout window grid divider progressbar checkbox radiobutton textfield combobox text scroll tab views dialog timeline menu image_resource image canvas table tree stack)
+    foreach(header drop application base button label layout window grid divider progressbar checkbox radiobutton textfield combobox text scroll tab views dialog timeline menu image_resource image canvas table tree stack)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_wx_${header}.cpp")
         file(WRITE "${source}" "#include \"cppui/wx/${header}.hpp\"\n#include \"cppui/wx/${header}.hpp\"\n")
         add_library(cppui_header_wx_${header} OBJECT "${source}")
@@ -72,6 +76,10 @@ set_target_properties(cppui_core_reconciliation PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 cppui_add_test(core.reconciliation cppui_core_reconciliation)
 
+add_executable(cppui_core_drop core_drop.cpp)
+target_link_libraries(cppui_core_drop PRIVATE CPPUI::cppui)
+cppui_add_test(core.drop cppui_core_drop)
+
 add_executable(cppui_core_refs core_refs.cpp)
 target_link_libraries(cppui_core_refs PRIVATE CPPUI::cppui Threads::Threads)
 cppui_add_test(core.refs cppui_core_refs)
@@ -96,7 +104,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs)
+foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -109,6 +117,10 @@ foreach(header context_header context node_header node view_header view state do
 endforeach()
 
 if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_drop native_drop.cpp)
+    target_compile_definitions(cppui_qt_drop PRIVATE CPPUI_TEST_QT)
+    target_link_libraries(cppui_qt_drop PRIVATE CPPUI::qt)
+    cppui_add_test(qt.drop cppui_qt_drop)
     add_executable(cppui_qt_refs native_refs.cpp)
     target_compile_definitions(cppui_qt_refs PRIVATE CPPUI_TEST_QT)
     target_link_libraries(cppui_qt_refs PRIVATE CPPUI::qt Threads::Threads)
@@ -241,7 +253,7 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_checkbox PRIVATE CPPUI::qt)
     cppui_add_test(qt.checkbox cppui_qt_checkbox)
 
-    foreach(header options application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline toolbar tree views window)
+    foreach(header drop options application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline toolbar tree views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")

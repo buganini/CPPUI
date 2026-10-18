@@ -3,6 +3,7 @@
 
 #include "../view.hpp"
 #include "options.hpp"
+#include "drop.hpp"
 #include <QWidget>
 #include <QBoxLayout>
 #include <QCoreApplication>
@@ -106,6 +107,7 @@ namespace CPPUI {
 
         class BaseWidget: public Node {
             QMetaObject::Connection nativeDestroyed;
+            QPointer<DropFilter> dropFilter;
             std::vector<QMetaObject::Connection> connections;
             QtOptions qtParams;
             QSizePolicy defaultPolicy;
@@ -185,7 +187,12 @@ namespace CPPUI {
                 auto prev = static_cast<BaseWidget *>(previous);
                 if(prev) { prev->disconnectSignals(); prev->restoreOptions(); }
                 update(prev);
+                if(prev) dropFilter=prev->dropFilter;
                 if(ui) {
+                    if(dropHandlers.entered || dropHandlers.dropped) {
+                        if(!dropFilter) dropFilter=new DropFilter(ui);
+                        dropFilter->handlers=dropHandlers; dropFilter->enable(true);
+                    } else if(dropFilter) { dropFilter->handlers={}; dropFilter->enable(false); }
                     applyOptions();
                     nativeDestroyed = QObject::connect(ui, &QObject::destroyed, [this]() {
                         clearRef(); clearNative();
@@ -205,6 +212,8 @@ namespace CPPUI {
             }
 
             void destroy(bool direct) override {
+                if(dropFilter) dropFilter->handlers={};
+                dropHandlers={};
                 clearRef();
                 QWidget * widget = ui;
                 releaseNativeAccess();

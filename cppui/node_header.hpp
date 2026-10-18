@@ -12,6 +12,7 @@
 #include "context.hpp"
 #include "modifiers.hpp"
 #include "refs.hpp"
+#include "drop.hpp"
 
 namespace CPPUI {
     class Node;
@@ -68,6 +69,15 @@ namespace CPPUI {
 
         std::vector<Node *> * children = nullptr;
         std::function<void()> onClicked = [](){};
+        detail::DropHandlers dropHandlers;
+        Node & dragEnter(std::function<void(DropEvent &)> callback) { dropHandlers.entered=std::move(callback); return *this; }
+        Node & drop(std::function<void(DropEvent &)> callback) {
+            dropHandlers.dropped=std::move(callback); dropHandlers.extensions.reset(); return *this;
+        }
+        Node & drop(std::function<void(DropEvent &)> callback,const std::vector<std::string> & extensions) {
+            auto normalized=detail::dropExtensions(extensions);
+            dropHandlers.dropped=std::move(callback); dropHandlers.extensions=std::move(normalized); return *this;
+        }
 
         Node();
         virtual ~Node();
