@@ -10,6 +10,7 @@
 #include "cppui/lvgl/image.hpp"
 #include "cppui/lvgl/divider.hpp"
 #include "cppui/lvgl/tab.hpp"
+#include "cppui/lvgl/table.hpp"
 #include "cppui/lvgl/views.hpp"
 #include "cppui/lvgl/textfield.hpp"
 #include "cppui/lvgl/text.hpp"
@@ -45,8 +46,14 @@ namespace Cookbook { namespace Backend {
     inline void menus() {}
     inline int treeChildCount(CPPUI::Node &, const std::vector<int> &) { return -1; }
     inline bool treeExpanded(CPPUI::Node &, const std::vector<int> &) { return false; }
-    inline std::string tableText(CPPUI::Node &, int, int) { return {}; }
-    inline bool editTable(CPPUI::Node &, int, int, const std::string &) { return false; }
+    inline std::string tableText(CPPUI::Node & node,int row,int column) {
+        auto table=dynamic_cast<CPPUI::LVGL::Table *>(&node);
+        return table ? table->cellText(row,column) : std::string();
+    }
+    inline bool editTable(CPPUI::Node & node,int row,int column,const std::string & value) {
+        auto table=dynamic_cast<CPPUI::LVGL::Table *>(&node);
+        return table && table->edit(row,column,value);
+    }
     inline bool atScrollEnd(CPPUI::Node &) { return false; }
     inline bool selectCombo(CPPUI::Node & node, int index) {
         auto combo = dynamic_cast<CPPUI::LVGL::ComboBox *>(&node);
@@ -122,6 +129,10 @@ namespace Cookbook { namespace Backend {
         } else if(std::string(page.key) == "grid") {
             page.render = grid;
             page.remaining = "";
+        } else if(std::string(page.key) == "table") {
+            page.render = table; page.remaining = "";
+        } else if(std::string(page.key) == "table_adapter") {
+            page.render = tableAdapter; page.remaining = "";
         } else if(std::string(page.key) == "image") {
             page.render = image;
             page.remaining = "";
