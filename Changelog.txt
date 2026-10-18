@@ -1,4 +1,8 @@
 2026-10-18
+    * Native PUI sync through 1c7b45c: exclude AI provider tooling; retain native ownership instead of Python editor-wrapper workarounds
+    * Table: sync Qt decorated input validation/focus/filter cleanup and wx outer-control event forwarding; mark editable cookbook cells across backends
+    * Binding cookbook: add shared external getter/setter example with a scrollable latest-100-message log and commit-driven State publication
+    * Reconciliation: cache retained-view DOM offsets with structural/virtual-ancestor invalidation after measured native benefit; add benchmark and randomized native-order coverage
     * LVGL Table: add native tables with typed bindings/adapters, text/choice overlay editors, commit/cancel, decorations, headers, autofit and safe redraw/removal; enable shared Table and Table(Adapter) cookbooks on SDL2/X11
     * wx Splitter: port PUI multipane/nested native splitters with sash retention, keyed pane/editor reuse, virtual-view updates and shared cookbook; fix pane descendant ownership and cleanup after external native deletion
     * LVGL Image: add cached owned PNG/baseline-JPEG sources, aspect-preserving sizing, weighted stretching, click/visibility and safe replacement/teardown; enable the shared SDL2/X11 windmill cookbook

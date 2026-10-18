@@ -541,6 +541,11 @@ focused line editor so it can commit. Keypress payloads remain deferred.
 
 ## Binding
 
+The shared State Binding cookbook demonstrates an external string getter/setter
+and the TextField change callback with a scrollable latest-100-message log.
+It publishes a State revision after commit; getters never mutate State during
+view construction.
+
 `cppui/binding.hpp` provides a copyable C++11 `Binding<T>` with `get()` and
 `set(value)`. Construct it from a `State<T>&`, or supply a getter and setter:
 

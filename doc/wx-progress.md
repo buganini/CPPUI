@@ -1,5 +1,11 @@
 # wxWidgets alignment with PUI/wx
 
+The native sync through PUI `1c7b45c` adds the shared Binding log viewer and
+editable Table cookbook markers, with wx decorated Table control ownership and
+event forwarding.
+The shared DOM offset cache was adopted after native measurement; see the
+[latest audit](pui-sync-2026-10-18.md) and [performance results](dom-offset-performance.md).
+
 Splitter follows PUI/wx `d3f0679`: arbitrary pane counts built from nested native
 two-pane splitters, widget/layout content, padding, both orientations and retained
 controls during keyed changes. Unchanged composition preserves sash positions;
@@ -14,7 +20,7 @@ wx Valgrind configuration, covering native ownership, sash retention/resize,
 keyed reorder and editor drafts, independent views, external deletion and
 removal from a click callback. The rebuilt wx cookbook was launched.
 
-The latest follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
+An earlier follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
 and typed tab placement with the shared `Side` enum. Hidden content retains native
 state; callbacks run on the UI loop and stop executing after target removal. wx
 Stack now owns a native panel, and foreground styles use SetOwnForegroundColour.
@@ -32,7 +38,7 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: PUI `9005f42` (2026-10-18). See the
+Latest native delta audit: PUI `1c7b45c` (2026-10-18). See the
 [component audit and exclusions](pui-sync-2026-10-18.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and

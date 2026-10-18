@@ -8,8 +8,11 @@ one toolkit. Qt corresponds to the Python reference's PySide6 backend.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are audited through PUI `e912d45` (2026-10-18); AI development
+Native additions are audited through PUI `1c7b45c` (2026-10-18); AI development
 and Web/Pyodide changes are excluded. See the [sync audit](../doc/pui-sync-2026-10-18.md).
+State Binding now uses an external getter/setter and shows the latest 100
+getter/setter/change messages in a scrollable in-app log on all backends.
+Table marks editable cells with `editable: ` while storing their raw values.
 Refs demonstrates queued selection on every backend and window commands on
 Qt/wx. The Qt/wx Drop page accepts files, directories, text and URLs. Image uses
 the bundled public-domain Rijksmuseum windmill with attribution. Native performance changes are evaluated

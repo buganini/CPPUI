@@ -1,5 +1,10 @@
 # LVGL implementation progress and remaining work
 
+The native sync through PUI `1c7b45c` adds the shared Binding log viewer and
+editable Table cookbook markers, with the existing LVGL Table editors.
+The shared DOM offset cache was adopted after native measurement; see the
+[latest audit](pui-sync-2026-10-18.md) and [performance results](dom-offset-performance.md).
+
 Table now implements the shared declarative and typed-adapter interfaces on
 native `lv_table`, with text/numeric editors, boolean/choice dropdowns, header
 fallbacks, ragged cells, decorations and autofit. Double-click or Enter opens an
@@ -62,7 +67,7 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: PUI `9005f42` (2026-10-18). See the
+Latest native delta audit: PUI `1c7b45c` (2026-10-18). See the
 [component audit and exclusions](pui-sync-2026-10-18.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and
