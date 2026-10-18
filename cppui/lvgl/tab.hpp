@@ -46,6 +46,19 @@ namespace CPPUI {
             // The pinned PUI reference stores this option without applying it.
             std::string tabposition;
             explicit Tabs(const std::string & tabposition = "n"): tabposition(tabposition) {}
+            bool refSelection() const override { return true; }
+            bool refEmptySelection() const override { return true; }
+            void refCommand(RefCommand,const OptionalText & key,bool) override {
+                if(!ui) return;
+                int index=0, selectedIndex=0;
+                for(auto child:*children) {
+                    auto tab=static_cast<Tab *>(child);
+                    if(key && (tab->has_id && !tab->_id.empty() ? tab->_id : tab->label)==*key) { selectedIndex=index; break; }
+                    index+=count_dom_children(tab->children);
+                }
+                auto object=static_cast<lv_obj_t *>(ui);
+                if(lv_tabview_get_tab_count(object)) lv_tabview_set_active(object,selectedIndex,LV_ANIM_OFF);
+            }
             ~Tabs() override { forgetSelection(); }
             void update(Node * prev) override {
                 ui = prev && prev->ui ? prev->ui : lv_tabview_create(static_cast<lv_obj_t *>(parent->inner()));

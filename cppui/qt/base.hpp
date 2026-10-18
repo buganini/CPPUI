@@ -167,7 +167,17 @@ namespace CPPUI {
             // This observer is valid only within the explicit native lifetime.
             QWidget * ui = nullptr;
 
-            ~BaseWidget() override { releaseNativeAccess(); }
+            ~BaseWidget() override { clearRef(); releaseNativeAccess(); }
+            CommandPoster commandPoster() override {
+                auto context=ui;
+                return [context](std::function<void()> callback) {
+                    QMetaObject::invokeMethod(context,[callback]() {
+                        try { callback(); }
+                        catch(const std::exception & error) { std::cerr << "CPPUI ref: " << error.what() << '\n'; }
+                        catch(...) { std::cerr << "CPPUI ref failed\n"; }
+                    },::Qt::QueuedConnection);
+                };
+            }
             Node & qt(const QtOptions & options) override { qtParams.merge(options); return *this; }
             void postUpdate() override;
 
@@ -178,7 +188,7 @@ namespace CPPUI {
                 if(ui) {
                     applyOptions();
                     nativeDestroyed = QObject::connect(ui, &QObject::destroyed, [this]() {
-                        clearNative();
+                        clearRef(); clearNative();
                     });
                 }
                 Node::update(previous);
@@ -195,6 +205,7 @@ namespace CPPUI {
             }
 
             void destroy(bool direct) override {
+                clearRef();
                 QWidget * widget = ui;
                 releaseNativeAccess();
                 if(direct && widget) widget->deleteLater();

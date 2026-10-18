@@ -1,5 +1,10 @@
 # wxWidgets alignment with PUI/wx
 
+Named node refs follow PUI `d83bbe2`: UI-thread lookup, retained binders and
+queued selection commands are ported, with Qt/wx desktop window commands and
+a shared Refs recipe. Worker submission, redraw and removal are tested. Native
+State-ref inspection publishers (Web/AI tooling) remain excluded.
+
 Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.

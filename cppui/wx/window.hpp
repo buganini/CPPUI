@@ -9,6 +9,16 @@ namespace CPPUI { namespace Wx {
         Optional<wxSize> dimensions;
         Optional<bool> initialMaximized, initialFullscreen;
         public:
+        bool refWindow() const override { return true; }
+        void refCommand(RefCommand command,const OptionalText &,bool value) override {
+            if(!ui) return;
+            auto frame=static_cast<wxFrame *>(ui); const bool minimized=frame->IsIconized();
+            if(command==RefCommand::Minimize) frame->Iconize(value);
+            else {
+                if(command==RefCommand::Maximize) frame->Maximize(value); else frame->ShowFullScreen(value);
+                if(minimized) frame->Iconize(true);
+            }
+        }
         Window & title(const std::string & text) { caption = text; return *this; }
         Window & icon(const std::string & path) { iconPath = path; return *this; }
         Window & size(int w, int h) { dimensions = wxSize(w, h); return *this; }

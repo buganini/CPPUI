@@ -1194,3 +1194,29 @@ entry wins. Malformed entries emit a warning and leave valid entries intact.
 `loadEnvironmentOptions()` replaces the map from the current environment.
 Initialize/reload on the UI thread before sharing values with workers. This is
 host input only; Web URL subscriptions and AI IPC are excluded.
+
+### Named node references
+
+Declare `.ref("name")` on a node and look it up with `CPPUI::ref("name")` after
+mounting. Names are process-local; lookup and `binder.node()` inspection belong
+on the UI thread. Missing names throw `std::out_of_range`. Keep a binder value
+instead of a borrowed declaration pointer when it must survive redraws.
+
+`binder.select(OptionalText)` queues selection on Tabs/Views (Qt, wx and LVGL).
+Qt/wx Window binders also provide `maximize(bool)`, `minimize(bool)` and
+`fullscreen(bool)` for live changes. Declaration setters remain initial-only.
+A binder obtained on the UI thread may submit commands from a worker; commands
+never run synchronously. Qt/wx use their native queues; LVGL drains a protected
+queue on its normal refresh timer without calling LVGL from the worker.
+
+A binder follows matching reconciled declarations. Renaming a ref, changing
+node identity/type, or removing its node expires that binder; already queued
+commands are discarded, and new commands throw `std::runtime_error`. A missing
+capability throws `std::logic_error`. Duplicate names resolve to the most recently
+published node; removing an older owner does not erase the current registration.
+A binder does not own a native widget. Join application workers before tearing
+down the backend runtime. wx/LVGL Tabs retain their existing native selection
+contract; their optional State selection models remain an older porting gap.
+
+The Refs cookbook demonstrates queued selection and desktop window operations.
+State-ref publishing for Web/AI inspection is excluded from this native sync.

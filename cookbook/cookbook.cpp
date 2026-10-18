@@ -13,7 +13,7 @@ namespace Cookbook {
 
         void content() override {
             const auto & page = recipes().at(static_cast<int>(selected));
-            for(auto window: CPPUI::Window().id("cookbook")) {
+            for(auto window: CPPUI::Window().ref("cookbook.window").id("cookbook")) {
                 Backend::configureWindow(window);
                 Backend::menus();
                 for(auto row: CPPUI::HBox().id("gallery")) {
@@ -121,6 +121,10 @@ namespace Cookbook {
                     require(find(gallery, "menu-scroller")->outer() == sidebar, "page selection replaced the sidebar");
                     require(Backend::pageVisible(gallery, recipes()[i].key), "selected sidebar link is clipped or lost its scroll position");
                     Backend::checkLayout(gallery);
+                    if(std::string(recipes()[i].key) == "refs") {
+                        require(click(gallery,"Select second"),"Refs selection button missing"); Backend::settle();
+                        require(click(gallery,"Select first"),"Refs first button missing"); Backend::settle();
+                    }
                     if(std::string(recipes()[i].key) == "views" && recipes()[i].render) {
                         require(Backend::viewSelected(*find(gallery, "internal-views"), "")
                             && Backend::viewSelected(*find(gallery, "bound-views"), "editor"), "Views initial selection is wrong");

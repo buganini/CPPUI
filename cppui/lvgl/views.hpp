@@ -94,6 +94,8 @@ namespace CPPUI { namespace LVGL {
                 if(page) lv_obj_set_hidden(page, !selected || child->_id != *selected);
             }
         }
+        bool refSelection() const override { return true; }
+        void refCommand(RefCommand, const OptionalText & key, bool) override { select(key); }
         void select(OptionalText key = {}) {
             validate(key);
             if(destroyed || retired_by || !ui) return;

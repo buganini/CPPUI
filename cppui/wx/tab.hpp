@@ -21,6 +21,17 @@ class Tabs: public Widget {
     }
 public:
     explicit Tabs(const std::string & position="n"):position(position){flags(position);is_terminal=false;expandX=expandY=2;}
+    bool refSelection() const override { return true; }
+    bool refEmptySelection() const override { return true; }
+    void refCommand(RefCommand,const OptionalText & key,bool) override {
+        if(!ui || pages.empty()) return;
+        int index=0;
+        for(std::size_t i=0;i<pages.size();++i) {
+            auto page=static_cast<Tab *>(pages[i]->getNode());
+            if(key && (page->has_id && !page->_id.empty() ? page->_id : page->label)==*key) { index=i; break; }
+        }
+        static_cast<wxNotebook *>(ui)->SetSelection(index);
+    }
     std::size_t typecode() const override {return Widget::typecode() ^ std::hash<std::string>()(position);}
     void updateWidget(Widget * previous) override {
         auto prev=static_cast<Tabs *>(previous);ui=prev?prev->ui:new wxNotebook(parentWindow(),wxID_ANY,wxDefaultPosition,wxDefaultSize,flags(position));

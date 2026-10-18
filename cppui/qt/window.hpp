@@ -36,6 +36,13 @@ namespace CPPUI {
                 widget->setWindowState(value ? widget->windowState() | flag : widget->windowState() & ~flag);
             }
             public:
+            bool refWindow() const override { return true; }
+            void refCommand(RefCommand command,const OptionalText &,bool value) override {
+                if(!ui) return;
+                const auto flag=command==RefCommand::Maximize ? ::Qt::WindowMaximized :
+                    command==RefCommand::Minimize ? ::Qt::WindowMinimized : ::Qt::WindowFullScreen;
+                windowFlag(ui,flag,value); ui->show();
+            }
             Window & title(const std::string & value) { caption = value; return *this; }
             Window & icon(const std::string & path) { iconPath = path.empty() ? OptionalText() : OptionalText(path); return *this; }
             Window & size(int width, int height) { dimensions = QSize(width, height); return *this; }

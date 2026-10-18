@@ -26,6 +26,7 @@
 #endif
 
 namespace Cookbook { namespace Backend {
+        constexpr bool desktopWindowCommands = false;
     using View = CPPUI::LVGL::View;
     using Views = CPPUI::LVGL::Views;
     inline bool viewSelected(CPPUI::Node & node, const std::string & key) {

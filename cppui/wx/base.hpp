@@ -174,7 +174,7 @@ namespace CPPUI { namespace Wx {
     inline void Native::destroyed(wxWindowDestroyEvent & event) {
         if(event.GetEventObject() == owner) {
             window = owner = nullptr; sizer = nullptr; command = {}; input = {}; finish = {}; resize = {};
-            if(node) node->invalidateNative();
+            if(node) { node->clearRef(); node->invalidateNative(); }
         }
         event.Skip();
     }
@@ -182,6 +182,13 @@ namespace CPPUI { namespace Wx {
     class Widget: public Node {
         public:
         wxWindow * ui = nullptr;
+        ~Widget() override { clearRef(); }
+        CommandPoster commandPoster() override {
+            auto app=wxTheApp;
+            return [app](std::function<void()> callback) {
+                app->CallAfter([callback]() { try { callback(); } catch(...) { reportException("ref"); } });
+            };
+        }
         Widget() { is_terminal = true; layout_padding = Insets(3); }
         wxWindow * window() const override { return ui; }
         void * inner() override { return ui; }
@@ -220,6 +227,7 @@ namespace CPPUI { namespace Wx {
         virtual void updateEvents() { native->command = onClicked; }
         void releaseRetiredRefs() override { ui = nullptr; Node::releaseRetiredRefs(); }
         void destroy(bool) override {
+            clearRef();
             if(!native) return;
             native->node = nullptr; native->command = {}; native->input = {}; native->finish = {}; native->resize = {};
             auto object = native;

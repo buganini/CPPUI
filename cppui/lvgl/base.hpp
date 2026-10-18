@@ -23,6 +23,21 @@ namespace CPPUI {
          };
 
         class Node: public ::CPPUI::Node {
+            struct Commands {
+                struct Pending { std::mutex mutex; std::vector<std::function<void()>> callbacks; };
+                std::shared_ptr<Pending> pending{new Pending()};
+                lv_timer_t * timer;
+                Commands():timer(lv_timer_create([](lv_timer_t * timer) {
+                    auto pending=static_cast<Commands *>(lv_timer_get_user_data(timer))->pending;
+                    std::vector<std::function<void()>> callbacks;
+                    { std::lock_guard<std::mutex> lock(pending->mutex); callbacks.swap(pending->callbacks); }
+                    for(auto & callback:callbacks) try { callback(); }
+                    catch(const std::exception & error) { std::fprintf(stderr,"CPPUI ref: %s\n",error.what()); }
+                    catch(...) { std::fprintf(stderr,"CPPUI ref failed\n"); }
+                },LV_DEF_REFR_PERIOD,this)) {}
+                ~Commands() { lv_timer_delete(timer); }
+            };
+            std::unique_ptr<Commands> commands;
             friend class Tabs;
             struct Observer {
                 lv_obj_t * object;
@@ -81,6 +96,7 @@ namespace CPPUI {
                 auto observer = static_cast<Observer *>(lv_event_get_user_data(event));
                 auto node = observer->owner;
                 if(lv_event_get_code(event) == LV_EVENT_DELETE) {
+                    node->clearRef();
                     node->ui = nullptr;
                     observer->invalidate();
                 } else {
@@ -108,10 +124,18 @@ namespace CPPUI {
                 }
             }
             public:
-            ~Node() override { unobserve(); }
+            ~Node() override { clearRef(); unobserve(); }
+            CommandPoster commandPoster() override {
+                if(!commands) commands.reset(new Commands());
+                auto pending=commands->pending;
+                return [pending](std::function<void()> callback) {
+                    std::lock_guard<std::mutex> lock(pending->mutex);
+                    pending->callbacks.push_back(std::move(callback));
+                };
+            }
             void update(::CPPUI::Node * previous) override {
                 auto prev = static_cast<Node *>(previous);
-                if(prev) prev->restoreOptions();
+                if(prev) { prev->restoreOptions(); commands=std::move(prev->commands); }
                 update(prev);
                 auto object = static_cast<lv_obj_t *>(ui);
                 if(prev && prev->observed && prev->observed->object == object) {
@@ -155,6 +179,7 @@ namespace CPPUI {
             }
 
             void destroy(bool direct) {
+                clearRef(); commands.reset();
                 unobserve();
                 if(direct && ui){
                     lv_obj_delete((lv_obj_t *)ui);

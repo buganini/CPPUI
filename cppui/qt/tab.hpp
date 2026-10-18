@@ -92,6 +92,9 @@ namespace CPPUI {
                 applied = index;
                 syncing = false;
             }
+            bool refSelection() const override { return true; }
+            bool refEmptySelection() const override { return true; }
+            void refCommand(RefCommand, const OptionalText & key, bool) override { select(key); }
             void select(OptionalText key = {}) {
                 if(destroyed || retired_by || !ui) return;
                 auto binding = model;

@@ -1,4 +1,5 @@
 2026-10-18
+    * Refs: sync named node binders, queued Qt/wx window commands and Qt/wx/LVGL selection; preserve identity across reconciliation, expire removed targets and add Refs cookbook
     * Image cookbook: sync PUI public-domain Rijksmuseum windmill image and attribution
     * Options: sync native PUI_OPTIONS string input with strict percent/UTF-8 decoding and per-entry warnings
     * Canvas/HeavyCanvas: sync PUI completed-draw FPS, continuous rendering and full-frame color changes on Qt/wx/LVGL

@@ -26,18 +26,17 @@ namespace Cookbook {
                 }
             }
             void choose(CPPUI::OptionalText key) {
-                // Resolve the current declaration; factory references are borrowed.
-                if(auto node = dynamic_cast<Backend::Views *>(find(*this, "internal-views"))) node->select(key);
+                CPPUI::ref("cookbook.views").select(key);
             }
             void content() override {
                 for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
-                    CPPUI::Label("Select with .select(): internal model, initially empty");
+                    CPPUI::Label("Select with ref().select(): internal model, initially empty");
                     for(auto row: CPPUI::HBox()) {
                         CPPUI::Button("Editor").click([this]() { choose(CPPUI::OptionalText("editor")); });
                         CPPUI::Button("Settings").click([this]() { choose(CPPUI::OptionalText("settings")); });
                         CPPUI::Button("Clear").click([this]() { choose({}); });
                     }
-                    for(auto views: CPPUI::Views().layout({}, {}, 1).id("internal-views")) pages();
+                    for(auto views: CPPUI::Views().layout({}, {}, 1).id("internal-views").ref("cookbook.views")) pages();
                     const auto key = static_cast<CPPUI::OptionalText>(selection);
                     CPPUI::Label("Select by state: " + (key ? *key : "None"));
                     for(auto row: CPPUI::HBox()) {

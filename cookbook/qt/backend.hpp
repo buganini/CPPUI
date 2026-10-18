@@ -29,6 +29,7 @@
 #include <stdexcept>
 
 namespace Cookbook { namespace Backend {
+        constexpr bool desktopWindowCommands = true;
     using View = CPPUI::Qt::QtView;
     using Views = CPPUI::Qt::Views;
     inline bool viewSelected(CPPUI::Node & node, const std::string & key) {

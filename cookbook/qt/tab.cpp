@@ -10,16 +10,16 @@ namespace Cookbook {
                 for(auto tab: CPPUI::Tab("Tab 2")) CPPUI::Label("Content 2");
             }
             void choose(const std::string & key) {
-                if(auto tabs = dynamic_cast<CPPUI::Qt::Tabs *>(find(*this, "example-tabs"))) tabs->select(key);
+                CPPUI::ref("cookbook.tabs").select(key);
             }
             void content() override {
                 for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
-                    CPPUI::Label("Select with .select(): internal model");
+                    CPPUI::Label("Select with ref().select(): internal model");
                     for(auto row: CPPUI::HBox()) {
                         CPPUI::Button("Tab 1").click([this]() { choose("first"); });
                         CPPUI::Button("Tab 2").click([this]() { choose("Tab 2"); });
                     }
-                    for(auto tabs: CPPUI::Tabs().layout({}, {}, 1).id("example-tabs")) pages();
+                    for(auto tabs: CPPUI::Tabs().layout({}, {}, 1).id("example-tabs").ref("cookbook.tabs")) pages();
                     const auto key = static_cast<CPPUI::OptionalText>(selection);
                     CPPUI::Label("Select by state: " + (key ? *key : "None"));
                     for(auto row: CPPUI::HBox()) {

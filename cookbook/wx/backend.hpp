@@ -25,6 +25,7 @@
 #include "../recipes.hpp"
 #include <wx/stopwatch.h>
 namespace Cookbook { namespace Backend {
+        constexpr bool desktopWindowCommands = true;
     using View = CPPUI::Wx::View;
     using Views = CPPUI::Wx::Views;
     inline bool viewSelected(CPPUI::Node & node, const std::string & key) {

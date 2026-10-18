@@ -6,6 +6,7 @@ function(cppui_add_cookbook target backend)
     add_executable(${target}
         "${cookbook_dir}/cookbook.cpp"
         "${cookbook_dir}/recipes.cpp"
+        "${cookbook_dir}/refs.cpp"
         "${cookbook_dir}/${backend}/main.cpp")
     target_include_directories(${target} PRIVATE
         "${cookbook_dir}/.." "${cookbook_dir}/${backend}")

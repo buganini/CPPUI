@@ -1,6 +1,10 @@
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_refs native_refs.cpp)
+    target_compile_definitions(cppui_wx_refs PRIVATE CPPUI_TEST_WX)
+    target_link_libraries(cppui_wx_refs PRIVATE CPPUI::wx Threads::Threads)
+    cppui_add_test(wx.refs cppui_wx_refs)
     add_executable(cppui_wx_native_baseline wx_native_baseline.cpp)
     target_link_libraries(cppui_wx_native_baseline PRIVATE CPPUI::wx)
     cppui_add_test(wx.native_baseline cppui_wx_native_baseline)
@@ -68,6 +72,10 @@ set_target_properties(cppui_core_reconciliation PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 cppui_add_test(core.reconciliation cppui_core_reconciliation)
 
+add_executable(cppui_core_refs core_refs.cpp)
+target_link_libraries(cppui_core_refs PRIVATE CPPUI::cppui Threads::Threads)
+cppui_add_test(core.refs cppui_core_refs)
+
 add_executable(cppui_core_options core_options.cpp)
 target_link_libraries(cppui_core_options PRIVATE CPPUI::cppui)
 cppui_add_test(core.options cppui_core_options)
@@ -88,7 +96,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options)
+foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -101,6 +109,10 @@ foreach(header context_header context node_header node view_header view state do
 endforeach()
 
 if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_refs native_refs.cpp)
+    target_compile_definitions(cppui_qt_refs PRIVATE CPPUI_TEST_QT)
+    target_link_libraries(cppui_qt_refs PRIVATE CPPUI::qt Threads::Threads)
+    cppui_add_test(qt.refs cppui_qt_refs)
     add_executable(cppui_qt_virtual_nodes qt_virtual_nodes.cpp qt_support.cpp)
     target_link_libraries(cppui_qt_virtual_nodes PRIVATE CPPUI::qt)
     cppui_add_test(qt.virtual_nodes cppui_qt_virtual_nodes)

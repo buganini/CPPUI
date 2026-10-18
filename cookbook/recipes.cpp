@@ -74,6 +74,7 @@ namespace Cookbook {
             {"image", "Image", nullptr, "Image and size options"},
             {"tab", "Tab", nullptr, "Tabs and Tab"},
             {"views", "Views", nullptr, "Retained pages and optional selection"},
+            {"refs", "Refs", refs, ""},
             {"table", "Table", nullptr, "Table data/identity API"},
             {"table_adapter", "Table(Adapter)", nullptr, "Table adapter API"},
             {"tree", "Tree", nullptr, "Tree data/identity API"},

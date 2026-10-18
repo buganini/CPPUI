@@ -11,6 +11,7 @@
 
 #include "context.hpp"
 #include "modifiers.hpp"
+#include "refs.hpp"
 
 namespace CPPUI {
     class Node;
@@ -49,6 +50,19 @@ namespace CPPUI {
         int debug = 0;
         std::string _id;
         bool has_id = false;
+        std::string refName;
+        std::shared_ptr<detail::RefTarget> refTarget;
+        Node & ref(const std::string & name) {
+            if(name.empty()) throw std::invalid_argument("ref name must be nonempty");
+            refName=name; return *this;
+        }
+        void publishRef();
+        void clearRef();
+        virtual CommandPoster commandPoster() { return {}; }
+        virtual bool refSelection() const { return false; }
+        virtual bool refEmptySelection() const { return false; }
+        virtual bool refWindow() const { return false; }
+        virtual void refCommand(RefCommand, const OptionalText &, bool) {}
 
         void * ui = nullptr;
 

@@ -48,6 +48,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void refs(Model &);
     void tree(Model &);
     void treeAdapter(Model &);
     void table(Model &);

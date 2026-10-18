@@ -27,6 +27,7 @@ namespace CPPUI {
     }
 
     inline void recur_delete(Node * child, bool direct) {
+        child->clearRef();
         child->destroyed = true;
         for(Node * subchild: *child->children) {
             if(subchild) {
@@ -304,6 +305,7 @@ namespace CPPUI {
 
         for(Node * child: *newDOM) {
             child->postUpdate();
+            child->publishRef();
         }
         node->postSync();
 

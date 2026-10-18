@@ -19,7 +19,7 @@ namespace CPPUI {
     }
 
     inline bool Node::operator==(Node &obj) {
-        if(typecode() != obj.typecode()) {
+        if(typecode() != obj.typecode() || refName != obj.refName) {
             return false;
         }
         const bool placed = grid_row >= 0 && grid_column >= 0;
@@ -48,6 +48,7 @@ namespace CPPUI {
     }
 
     inline Node::~Node() {
+        clearRef();
         // A derived constructor can throw after Node registered itself with
         // its parent. Do not leave a pointer to that failed allocation behind.
         if(!destroyed && parent && parent != this && parent->children) {
@@ -69,7 +70,28 @@ namespace CPPUI {
     inline void Node::update(Node * prev) {
         if(prev) {
             prev->retired_by = this;
+            if(prev->refTarget) { refTarget=prev->refTarget; std::lock_guard<std::mutex> lock(refTarget->mutex); refTarget->node=this; }
         }
+    }
+
+    inline void Node::publishRef() {
+        if(refName.empty() || destroyed) return;
+        if(!refTarget) refTarget=std::make_shared<detail::RefTarget>();
+        {
+            std::lock_guard<std::mutex> lock(refTarget->mutex);
+            refTarget->node=this; refTarget->post=commandPoster();
+            refTarget->selection=refSelection(); refTarget->emptySelection=refEmptySelection(); refTarget->window=refWindow();
+            refTarget->invoke=[this](RefCommand cmd,const OptionalText & key,bool value) { refCommand(cmd,key,value); };
+        }
+        detail::refRegistry()[refName]=refTarget;
+    }
+    inline void Node::clearRef() {
+        if(!refTarget) return;
+        std::lock_guard<std::mutex> lock(refTarget->mutex);
+        if(refTarget->node!=this) return;
+        refTarget->node=nullptr; refTarget->post={}; refTarget->invoke={};
+        auto & registry=detail::refRegistry(); auto it=registry.find(refName);
+        if(it!=registry.end() && it->second==refTarget) registry.erase(it);
     }
 
     inline void Node::prepare(void) {

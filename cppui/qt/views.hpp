@@ -88,6 +88,8 @@ namespace CPPUI { namespace Qt {
             }
             if(ui) static_cast<QStackedWidget *>(ui)->setCurrentIndex(index);
         }
+        bool refSelection() const override { return true; }
+        void refCommand(RefCommand, const OptionalText & key, bool) override { select(key); }
         void select(OptionalText key = {}) {
             validate(key);
             if(destroyed || retired_by || !ui) return;

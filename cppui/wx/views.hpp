@@ -102,6 +102,8 @@ namespace CPPUI { namespace Wx {
                 ui->Layout();
             }
         }
+        bool refSelection() const override { return true; }
+        void refCommand(RefCommand, const OptionalText & key, bool) override { select(key); }
         void select(OptionalText key = {}) {
             validate(key);
             if(destroyed || retired_by || !ui) return;
