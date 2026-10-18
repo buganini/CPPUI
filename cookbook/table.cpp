@@ -18,19 +18,19 @@ namespace Cookbook {
             for(auto table: CPPUI::Table().columnHeader({"Col 1", "Col 2", "Col 3", "Choice"})
                     .rowHeader({"Row 1", "Row 2", "Row 3"}).id("example-table")) {
                 for(auto row: CPPUI::TableNode()) {
-                    CPPUI::TableNode(model.tableA1).display("A1: " + static_cast<std::string>(model.tableA1));
-                    CPPUI::TableNode("A2").set([&model](const std::string & value) { model.tableA1 = value; });
+                    CPPUI::TableNode(model.tableA1).prefix("editable: ").display("A1: " + static_cast<std::string>(model.tableA1));
+                    CPPUI::TableNode("A2").prefix("editable: ").set([&model](const std::string & value) { model.tableA1 = value; });
                     readonlyCell("A3");
-                    CPPUI::TableNode(model.tableSides).choices(std::vector<int>{3, 4, 5, 6, 8});
+                    CPPUI::TableNode(model.tableSides).prefix("editable: ").choices(std::vector<int>{3, 4, 5, 6, 8});
                 }
                 for(auto row: CPPUI::TableNode()) {
-                    CPPUI::TableNode(model.tableB1);
+                    CPPUI::TableNode(model.tableB1).prefix("editable: ");
                     readonlyCell("B2"); readonlyCell("B3");
-                    CPPUI::TableNode(model.tableDirection).choices(std::vector<std::pair<std::string, std::string>>{
+                    CPPUI::TableNode(model.tableDirection).prefix("editable: ").choices(std::vector<std::pair<std::string, std::string>>{
                         {"CW", "Clockwise"}, {"CCW", "Counterclockwise"}});
                 }
                 for(auto row: CPPUI::TableNode()) {
-                    CPPUI::TableNode(model.tablePrice).prefix("Price: $").suffix(" USD").placeholder("Enter price");
+                    CPPUI::TableNode(model.tablePrice).prefix("editable: Price: $").suffix(" USD").placeholder("Enter price");
                     CPPUI::TableNode(""); CPPUI::TableNode(""); CPPUI::TableNode("");
                 }
             }

@@ -235,6 +235,10 @@ namespace Cookbook {
                             "table adapter accepted an edit in its readonly rows");
                     }
                     if(std::string(recipes()[i].key) == "table" && recipes()[i].render) {
+                        auto table=find(gallery,"example-table");
+                        for(auto position:std::vector<std::pair<int,int>>{{0,0},{0,1},{0,3},{1,0},{1,3},{2,0}})
+                            require(Backend::tableText(*table,position.first,position.second).find("editable: ")==0,"editable table cell missing its marker");
+                        require(Backend::tableText(*table,0,2)=="A3","readonly table cell marked editable");
                         require(Backend::editTable(*find(gallery, "example-table"), 0, 0, "edited"), "table string cell did not commit");
                         Backend::settle();
                         require(hasText(gallery, "A1: edited"), "table edit did not update the bound label");
@@ -245,7 +249,7 @@ namespace Cookbook {
                         Backend::settle(); require(hasText(gallery, "Direction: CCW"), "table mapped choice lost its raw value");
                         require(Backend::editTable(*find(gallery, "example-table"), 2, 0, "12"), "decorated price cell did not commit");
                         Backend::settle(); require(hasText(gallery, "Price: $12 USD")
-                            && Backend::tableText(*find(gallery, "example-table"), 2, 0)=="Price: $12 USD", "table price decoration altered the raw model");
+                            && Backend::tableText(*find(gallery, "example-table"), 2, 0)=="editable: Price: $12 USD", "table price decoration altered the raw model");
                     }
                     if(std::string(recipes()[i].key) == "scroll" && recipes()[i].render) {
                         require(Backend::atScrollEnd(*find(gallery, "scroller")), "scroll recipe did not start at the end");
