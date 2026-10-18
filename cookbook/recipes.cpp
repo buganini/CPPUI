@@ -80,7 +80,7 @@ namespace Cookbook {
             {"table_adapter", "Table(Adapter)", nullptr, "Table adapter API"},
             {"tree", "Tree", nullptr, "Tree data/identity API"},
             {"tree_adapter", "Tree(Adapter)", nullptr, "Tree adapter API"},
-            {"binding", "State Binding", nullptr, "External getter/setter and subscriptions"},
+            {"binding", "State Binding", binding, ""},
             {"widget", "WidgetWrapper", nullptr, "Borrowed native widget ownership"},
             {"drop", "Drop", nullptr, "Drag/drop events"},
             {"mdi", "MDI", nullptr, "MdiArea and MdiSubWindow"},

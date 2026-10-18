@@ -223,6 +223,20 @@ namespace Cookbook {
                         require(gallery.model.treeItems == before + 1 && Backend::treeChildCount(*tree, {0, 3}) == before + 1
                             && Backend::treeExpanded(*tree, {0, 3}), "tree growth lost items or expansion");
                     }
+                    if(std::string(recipes()[i].key) == "binding" && recipes()[i].render) {
+                        auto field=find(gallery,"binding-field");
+                        require(field && Backend::editTextField(*field,"bound",true),"Binding field did not accept an edit");
+                        Backend::settle();
+                        auto log=find(gallery,"binding-log");const auto text=gallery.model.bindingLogText();
+                        require(gallery.model.bindingValue=="bound" && hasText(gallery,"var: bound") && log
+                            && Backend::labelHasText(*log,text),"Binding model or visible log did not update");
+                        require(text.find("getter_func")!=std::string::npos && text.find("setter_func bound")!=std::string::npos
+                            && text.find("on_changed_func bound")!=std::string::npos,"Binding callbacks missing from in-app log");
+                        for(int entry=0;entry<105;++entry) gallery.model.bindingLog("message "+std::to_string(entry));
+                        gallery.model.bindingRevision+=1;Backend::settle();
+                        require(gallery.model.bindingLogs.size()==100
+                            && Backend::labelHasText(*find(gallery,"binding-log"),gallery.model.bindingLogText()),"Binding log exceeded its cap or failed to render retained entries");
+                    }
                     if(std::string(recipes()[i].key) == "table_adapter" && recipes()[i].render) {
                         auto first = find(gallery, "adapter-table-first");
                         auto second = find(gallery, "adapter-table-second");

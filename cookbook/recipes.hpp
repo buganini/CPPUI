@@ -9,11 +9,24 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <deque>
 
 namespace Cookbook {
     struct HeavyChart;
     struct Model {
         std::shared_ptr<HeavyChart> heavyChart;
+        std::string bindingValue="test";
+        CPPUI::State<int> bindingRevision{0};
+        std::deque<std::string> bindingLogs{"setup()"};
+        void bindingLog(const std::string & message) {
+            bindingLogs.push_back(message);
+            while(bindingLogs.size()>100) bindingLogs.pop_front();
+        }
+        std::string bindingLogText() const {
+            std::string text;
+            for(const auto & line:bindingLogs) {if(!text.empty()) text+='\n';text+=line;}
+            return text;
+        }
         CPPUI::State<int> postedCallbacks{0};
         CPPUI::State<bool> greetingVisible{true};
         CPPUI::State<bool> rejectDrop{false};
@@ -52,6 +65,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void binding(Model &);
     void drop(Model &);
     void refs(Model &);
     void tree(Model &);
