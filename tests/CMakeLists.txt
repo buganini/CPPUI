@@ -76,6 +76,13 @@ set_target_properties(cppui_core_reconciliation PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 cppui_add_test(core.reconciliation cppui_core_reconciliation)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_executable(cppui_core_landlock core_landlock.cpp)
+    target_link_libraries(cppui_core_landlock PRIVATE CPPUI::cppui Threads::Threads)
+    cppui_add_test(core.landlock cppui_core_landlock)
+    set_tests_properties(core.landlock PROPERTIES SKIP_RETURN_CODE 77)
+endif()
+
 add_executable(cppui_core_drop core_drop.cpp)
 target_link_libraries(cppui_core_drop PRIVATE CPPUI::cppui)
 cppui_add_test(core.drop cppui_core_drop)
@@ -104,7 +111,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop)
+foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop landlock)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")

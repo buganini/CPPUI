@@ -3,6 +3,7 @@
 
 #include "base.hpp"
 #include "../options.hpp"
+#include "../landlock.hpp"
 #include "../application_title.hpp"
 #include <QApplication>
 #include <QEvent>
@@ -80,6 +81,9 @@ namespace CPPUI {
             if(child->is_outoforder) return;
             if(auto widget = static_cast<QWidget *>(child->outer())) widget->close();
         }
+        using Qt::QtView::run;
+        void run(const LandlockPolicy & policy) { sync(); start(policy); }
+        void start(const LandlockPolicy & policy) { applyLandlock(policy); start(); }
         void start() override { application->exec(); }
 
         void quit() {

@@ -1242,3 +1242,12 @@ before data transfer. Native callbacks are replaced on redraw and cleared on
 removal. Events can be copied for later use, without retaining toolkit events.
 LVGL desktop file-drop bridging and browser uploads are not implemented here.
 Tree-specific outbound drag/model reordering remains a separate porting gap.
+
+### Optional filesystem policy
+
+Qt/wx/LVGL applications accept `run(const LandlockPolicy &)` and
+`start(const LandlockPolicy &)`. Default entrypoints remain unrestricted.
+`LandlockPolicy` contains `read`, `write`, and `execute` path vectors. Linux
+fails startup if the requested policy cannot be applied. See
+[Landlock semantics and startup requirements](doc/landlock.md), including
+`applyLandlock(policy)` for application-controlled early initialization.

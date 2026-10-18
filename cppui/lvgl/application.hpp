@@ -3,6 +3,7 @@
 
 #include "base.hpp"
 #include "../options.hpp"
+#include "../landlock.hpp"
 
 #include <iostream>
 #include "lvgl.h"
@@ -29,6 +30,9 @@ namespace CPPUI {
         }
 
 
+        using LVGL::View::run;
+        void run(const LandlockPolicy & policy) { redraw(); start(policy); }
+        void start(const LandlockPolicy & policy) { applyLandlock(policy); start(); }
         void start(void) override {
             std::cout << "start\n";
             while(lv_display_get_next(nullptr)) {

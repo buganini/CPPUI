@@ -2,6 +2,7 @@
 #define CPPUI_WX_APPLICATION
 #include "base.hpp"
 #include "../options.hpp"
+#include "../landlock.hpp"
 #include "../application_title.hpp"
 namespace CPPUI {
     namespace Wx { class RuntimeApp: public wxApp { public: bool OnInit() override { return true; } }; }
@@ -44,6 +45,9 @@ namespace CPPUI {
         void removeChild(int, Node * child) override {
             if(!child->is_outoforder) if(auto window = static_cast<wxWindow *>(child->outer())) window->Hide();
         }
+        using Wx::View::run;
+        void run(const LandlockPolicy & policy) { sync(); start(policy); }
+        void start(const LandlockPolicy & policy) { applyLandlock(policy); start(); }
         void start() override { application->OnRun(); }
         void quit() {
             if(destroyed || retired_by) return;
