@@ -16,8 +16,8 @@ the bundled public-domain Rijksmuseum windmill with attribution. Native performa
 separately; see the [Canvas benchmark decision](../doc/canvas-performance.md).
 MaskedField runs on Qt, wx and LVGL with
 single/buffered passwords and length labels. All backends include the airport
-autocomplete ComboBox and HeavyCanvas. Qt/wx also include decorated Table price
-editors. HeavyCanvas offers fourteen presets from 1,000 to 1,000,000 synthetic sessions,
+autocomplete ComboBox, HeavyCanvas and decorated Table price editors. HeavyCanvas
+offers fourteen presets from 1,000 to 1,000,000 synthetic sessions,
 indicator panels, hover details, wheel zoom, regeneration and zoom reset.
 Datasets above 500,000 use zero-based grouped index labels instead of dates.
 These presets draw every session and intentionally stress native rendering.
@@ -29,12 +29,13 @@ SDL2/X11 use the same recipe and native Canvas input. Image resources and custom
 font loading remain separate LVGL Canvas work.
 
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,
-Text, Image and Tab share their recipe implementations across all three backends.
+Text, Image, Tab, Table and Table(Adapter) share their recipe implementations
+across all three backends.
 LVGL Image uses the bundled PNG/baseline-JPEG decoders and preserves the windmill's
 aspect ratio at its declared width. Canvas image resources remain separate work.
 Views also shares internal and bound selection examples across all backends.
 Its TextField and Change text button demonstrate retained local state.
-Qt also enables shared Table, Table(Adapter), Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Image, MDI, Splitter, Modal and Dialog recipes through
+Qt also enables shared Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Image, MDI, Splitter, Modal and Dialog recipes through
 its source manifest. Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. All backends have a
 partial TextField recipe with separate string model/draft bindings; dynamic
@@ -136,6 +137,14 @@ the sources to be supplied explicitly, using that target or a manual clone:
 ```sh
 git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0
 ```
+
+Table editing uses native LVGL textareas/dropdowns over the selected cell:
+double-click or Enter opens the editor, Enter/choice activation commits, and Esc
+cancels. Prefix/suffix stay outside the stored value. Headers scroll with the
+native table; a redraw discards an unfinished draft. Table(Adapter) shows two
+views of one State matrix. The `lvgl.table` and `lvgl.table_adapter` regressions
+exercise real keypad/pointer events, scrolling, typed edits, source replacement,
+rollback and callback-driven redraw/removal.
 
 ### SDL2
 

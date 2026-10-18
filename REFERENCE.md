@@ -33,7 +33,7 @@ are described in the component sections and backend plans.
 |[ImageResource](#canvas)|QImage|—|wxImage|
 |[Tabs / Tab](#tabs)|QTabWidget / QWidget|tabview / virtual node|wxNotebook / wxPanel|
 |[Views](#views)|QStackedWidget|Retained containers|wxSimplebook|
-|[Table / TableNode](#table)|QTableView / QAbstractTableModel|—|wxGrid / wxGridTableBase|
+|[Table / TableNode](#table)|QTableView / QAbstractTableModel|lv_table + cell editors|wxGrid / wxGridTableBase|
 |[Tree / TreeNode](#tree)|QTreeView / QAbstractItemModel|—|wxDataViewCtrl / wxDataViewModel|
 |[Modal](#modal)|QDialog|—|—|
 |[Dialogs](#dialogs)|QFileDialog / QMessageBox / QInputDialog|—|wxFileDialog / wxMessageDialog / wxTextEntryDialog|
@@ -266,7 +266,8 @@ closes. The caller still owns input-device cleanup and `lv_deinit()`.
 
 ## Table
 
-Include `cppui/qt/table.hpp`. `Table(autofit = true)` contains row
+Include `cppui/qt/table.hpp`, `cppui/wx/table.hpp` or `cppui/lvgl/table.hpp`.
+`Table(autofit = true)` contains row
 `TableNode()` scopes, each containing cell `TableNode(value)` declarations.
 Cells accept `std::string` and arithmetic values, `State<T>` or `Binding<T>`.
 Bindings make a cell editable; an unbound cell can opt into editing with
@@ -278,16 +279,15 @@ remain deferred. External typed adapters are described below.
 without changing the editor's raw value. `.choices(std::vector<T>)` supplies
 values with default labels; `.choices(std::vector<std::pair<T, std::string>>)`
 supplies separate labels in declaration order. Editors preserve value types and
-duplicate labels, commit once on activation, and leave unknown values unselected
-with a placeholder. No selection does not overwrite the model. `.click()` and
+duplicate labels, commit once on activation, and leave unknown values unselected. No selection does not overwrite the model. `.click()` and
 `.dblclick()` use no-argument callbacks on each cell.
 
-Qt and wx cell declarations accept `.prefix(text)`, `.suffix(text)` and
+Qt, wx and LVGL cell declarations accept `.prefix(text)`, `.suffix(text)` and
 `.placeholder(text)`. Prefix/suffix surround the resolved display text or choice
 label, and appear beside the field while editing; the binding always stores the
 raw value. Placeholders are native empty-field hints (Qt line/choice editors and
-wx text editors; wxChoice has no hint). Omitted options reset to empty on a fresh
-declaration. Composite editor widgets own their labels and input, with keyboard
+wx/LVGL text editors; wxChoice and LVGL dropdowns have no empty-field hint).
+Omitted options reset to empty on a fresh declaration. Composite editor widgets own their labels and input, with keyboard
 commit/cancel and choice activation routed through the outer editor.
 
 Table's `.columnHeader(labels)` and `.rowHeader(labels)` show optional headers;
@@ -305,6 +305,25 @@ exceptions are reported to stderr. Bindings still borrow their model storage.
 Rows/cells are declaration-only children: use direct TableNode scopes, rather
 than nested retained views or native widgets inside a table.
 
+LVGL uses one native `lv_table` with an overlaid editor. Single-click selects and
+invokes the cell callback; double-click or Enter starts editing. Text and numeric
+cells use `lv_textarea`; booleans and choices use `lv_dropdown`. Enter or focus
+loss submits, Esc cancels, and invalid numeric input leaves the model unchanged.
+Choosing an option writes its raw value, including when labels are duplicates.
+An unknown choice displays its raw value without selecting an option; leaving
+without choosing preserves it. Redraw cancels an active draft before replacing
+bindings/adapter snapshots. Native callbacks keep their state alive across
+synchronous redraw or removal.
+
+LVGL headers occupy the first row/column with a distinct background and scroll
+with the cells. They are not frozen headers. Counts including headers are limited
+to 65,535 per axis by native selection indexes. Autofit measures native text and
+padding; `autofit=false` retains native column widths. Editor placement follows
+native measured row heights and scrolling, using LVGL 9.6's private table geometry.
+LVGL copies displayed strings into its native cells on redraw and after edits;
+it does not provide a virtualized/on-demand adapter view. Plain-storage changes
+still require a redraw to refresh other cells or tables.
+
 Reference: [PUI Table](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/table.py)
 and [ragged-table cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py).
 
@@ -316,7 +335,7 @@ and [ragged-table cases](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b
 `Table(adapter, autofit = true)`. `T` is an arithmetic type or `std::string`;
 `editData` defaults to `data`, cells default to read-only, and headers default to
 `Col n` / `Row n`. Data, edit data, counts and headers are const methods; setters
-and callbacks can mutate the source. Qt converts edits back to `T` before
+and callbacks can mutate the source. Each backend converts edits back to `T` before
 calling `setData`. Display and editor values remain separate.
 
 Header methods return `OptionalText`: absent entries use any declaration header
@@ -333,7 +352,8 @@ deletion; inactive models cannot dispatch edits.
 
 Each declaration reads adapter dimensions, headers, editability and cell values
 during construction, tracking State dependencies and validating before mounting.
-Native display/edit reads use the current adapter. Plain storage changes require
+Native edit reads use the current adapter; Qt/wx also read it for display, while
+LVGL retains display strings until redraw or an edit. Plain storage changes require
 an explicit view redraw; State assignment schedules it automatically when the
 adapter read that State during construction. Structural refresh resets the
 native model and invalidates old indexes. Automatic collection observation and
@@ -414,7 +434,8 @@ manual TreeNode children in the same Tree.
 two views share the same application hierarchy, one starts expanded, and Add
 item appends a subtree to both. Drag/drop remains tied to the deferred common
 input-event contract. Both adapter interfaces are toolkit-independent; native
-Table/Tree and their adapter cookbook pages are currently implemented for Qt.
+Table and its adapter cookbook run on Qt, wx and LVGL. Tree and its adapter
+cookbook run on Qt/wx; the LVGL Tree wrapper is not yet implemented.
 
 ## Image
 

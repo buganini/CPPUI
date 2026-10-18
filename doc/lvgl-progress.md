@@ -1,5 +1,20 @@
 # LVGL implementation progress and remaining work
 
+Table now implements the shared declarative and typed-adapter interfaces on
+native `lv_table`, with text/numeric editors, boolean/choice dropdowns, header
+fallbacks, ragged cells, decorations and autofit. Double-click or Enter opens an
+editor; submission writes the raw typed value and Esc cancels. Redraw discards
+an unfinished draft. Headers scroll with cells and native display strings are
+copied eagerly. Tree remains unported. See the [Table contract](../REFERENCE.md#table).
+
+Table verification (2026-10-18): both drivers build with `-j "$(nproc)"`;
+all 23 CTests pass on each, including shared Table/Table(Adapter) cookbook
+edits. New regressions exercise real pointer/keypad input, focus loss, numeric
+validation, duplicate/unknown choices, scrolled editor geometry, callback-driven
+redraw/removal, shared State updates, adapter replacement and invalid-snapshot
+rollback. Both new tests pass Valgrind with zero errors and zero remaining
+allocations. Both rebuilt desktop cookbooks were launched.
+
 Image now implements the shared `Image(path)` interface using native `lv_image`,
 owned decoded pixels, path/file-stamp reuse, aspect-preserving declared dimensions,
 weighted stretching, visibility and click callbacks. PNG and baseline JPEG are
@@ -123,9 +138,9 @@ the shared password and HeavyCanvas cookbooks. HeavyCanvas includes 1,000–1,00
 synthetic sessions, hover details, wheel zoom and regenerate/reset controls.
 Canvas handles move, leave and wheel input on SDL2/X11 through the bundled LVGL
 input bridge. SDL2 enables pointer wheel delivery; X11 uses its encoder device.
-Application display-name/title fallback and native Table decorations belong to
-the desktop wrappers; LVGL host titles/Table remain tracked below. Web/Pyodide
-changes are excluded at the user's request.
+Application display-name/title fallback belongs to the desktop wrappers; LVGL
+host titles remain pending. Table decorations are now implemented on LVGL as
+well. Web/Pyodide changes are excluded at the user's request.
 
 | Area | Current basis | Remaining acceptance / phase |
 | --- | --- | --- |
@@ -141,7 +156,8 @@ changes are excluded at the user's request.
 | Views | Retained native pages, internal/optional bound selection, keyed reuse and shared cookbook | Real-display input/layout checks remain part of general validation |
 | Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
 | Timeline/Canvas/resources | Cancellable TimelineView timers; Canvas primitives, text, native-resolution buffers and move/leave/wheel callbacks | Add image resources, font/density capabilities and remaining input events (6) |
-| Table/Tree/adapters/interop | Shared typed adapter interfaces; LVGL wrappers not yet ported | Map the public interfaces to LVGL models or custom widgets and define interop borrowing (6) |
+| Table/adapters | Native table, overlay text/choice editors, typed bindings/adapters, shared cookbook and lifecycle/input tests | Implemented; headers scroll with cells and display values are eagerly copied (6) |
+| Tree/interop | Shared typed tree adapter interface; LVGL Tree wrapper not yet ported | Implement tree behavior and define interop borrowing (6) |
 | Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand component/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (2–6) |
 
 ## Ownership contract
@@ -280,9 +296,11 @@ and agreed modal/dialog cases, or report the omitted capability explicitly.
   device rendering/antialiasing expectations before promising equivalent output.
   Move/leave/wheel follow the shared Canvas input API; other pointer events
   remain tied to the deferred shared input contract.
-- [ ] Implement Table/Tree against the public typed adapter interfaces;
-  investigate custom tree behavior separately from LVGL's table widget. Preserve
-  adapter/data ownership; arbitrary mixed/custom values remain a shared gap.
+- [x] Implement Table against the public typed adapter interface, with native
+  text/choice editors, declarations, headers, shared ownership and cookbook.
+- [ ] Implement Tree against the public typed adapter interface; investigate
+  custom tree behavior separately from LVGL's table widget. Preserve adapter/data
+  ownership; arbitrary mixed/custom values remain a shared gap.
 - [ ] Define native-object/display embedding and external owner deletion before
   exposing interop. Support shared-screen content only under an explicit scope.
 
