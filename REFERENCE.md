@@ -263,6 +263,15 @@ pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.
 
+LVGL `Application::sync()`/`run()` lazily initializes LVGL and creates an 800x600
+SDL2/X11 display plus pointer/keyboard input when no display exists. Construction
+alone does not open a window. `Application::title()` supplies a fallback title;
+`Window::title()` overrides it for an application-owned desktop host. X11 builds
+use `cmake/CPPUILVGLX11.cmake` for the pinned driver's lifecycle and window bridge.
+Application teardown destroys its declarations before its input, display and
+owned LVGL runtime. An existing display/runtime is borrowed; its host, input and
+focus group remain owned by the caller and must outlive the application.
+
 LVGL `Application::start()` pumps timers while at least one LVGL display exists.
 Closing the last display returns from the loop; closing one of several displays
 keeps it running. Delays use LVGL's configured delay callback. Native deletion

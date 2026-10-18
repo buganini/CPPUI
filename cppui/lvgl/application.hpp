@@ -2,48 +2,46 @@
 #define CPPUI_LVGL_APPLICATION
 
 #include "base.hpp"
+#include "runtime.hpp"
 #include "../options.hpp"
 #include "../landlock.hpp"
-
-#include <iostream>
-#include "lvgl.h"
+#include "../application_title.hpp"
 
 namespace CPPUI {
-    class Application: public LVGL::View {
-        int argc;
-        char **argv;
+    class Application: public LVGL::View, public ApplicationTitle, public LVGL::DisplayHost {
+        LVGL::Runtime runtime;
+        std::string caption;
 
         public:
-        Application(int argc, char *argv[]): LVGL::View() {
-            this->argc = argc;
-            this->argv = argv;
+        Application(int, char *[]) {}
+        Application & title(const std::string & text) { caption = text; return *this; }
+        const std::string & applicationTitle() const override { return caption; }
+        void displayTitle(const std::string & text) override { runtime.setTitle(text); }
+        ~Application() override {
+            // Declarations, timers and input observers must die before the host.
+            destroyed = true;
+            for(auto child: *children) recur_delete(child, true);
+            children->clear();
         }
 
-        void update(Node * prev) {
+        void update(Node * prev) override {
+            if(!runtime.ensure(caption)) return; // The native host was closed.
             View::update(prev);
         }
-
-        void addChild(int idx, Node *child) {
-        }
-
-        void removeChild(int idx, Node *child) {
-        }
-
+        void addChild(int, Node *) override {}
+        void removeChild(int, Node *) override {}
+        void sync() { redraw(); }
 
         using LVGL::View::run;
-        void run(const LandlockPolicy & policy) { redraw(); start(policy); }
+        void run(const LandlockPolicy & policy) { sync(); start(policy); }
         void start(const LandlockPolicy & policy) { applyLandlock(policy); start(); }
-        void start(void) override {
-            std::cout << "start\n";
+        void start() override {
             while(lv_display_get_next(nullptr)) {
                 uint32_t ms_delay = lv_timer_handler();
-                // A native close can delete the last display inside the handler.
-                // Return before sleeping so declarations and the runtime unwind.
                 if(!lv_display_get_next(nullptr)) break;
                 lv_delay_ms(ms_delay == LV_NO_TIMER_READY ? LV_DEF_REFR_PERIOD : ms_delay);
             }
         }
     };
 }
-
 #endif

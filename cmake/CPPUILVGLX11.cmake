@@ -31,6 +31,8 @@ string(REPLACE "${cursor_site}"
     "    Cursor cursor = XCreateFontCursor(xd->hdr.display, XC_left_ptr);\n    XDefineCursor(xd->hdr.display, xd->window, cursor);\n    XFreeCursor(xd->hdr.display, cursor);"
     x11_code "${x11_code}")
 string(REPLACE "x11_hide_cursor" "x11_set_cursor" x11_code "${x11_code}")
+# Expose the native window without duplicating LVGL's private struct layout.
+string(APPEND x11_code "\n#if LV_USE_X11\nunsigned long cppui_lvgl_x11_window_id(lv_display_t * disp) {\n    x11_disp_data_t * xd = lv_display_get_driver_data(disp);\n    return xd->window;\n}\n#endif\n")
 set(patched_x11 "${CMAKE_CURRENT_BINARY_DIR}/lv_x11_display.c")
 file(WRITE "${patched_x11}" "#include <stdatomic.h>\n#include <X11/cursorfont.h>\n${x11_code}")
 get_target_property(lvgl_sources lvgl SOURCES)

@@ -1,3 +1,6 @@
+2026-10-19
+    * LVGL Application: own lazy SDL2/X11 display/input startup and ordered teardown, borrow externally supplied displays, retain native close handling and expose application/window titles
+
 2026-10-18
     * Cookbook: merge backend headers/implementations, startup and Qt Tab into shared sources; compile one source list using backend/driver macros, leaving only CMake files in backend directories
     * Cookbook: sync PUI 97e442c backend names in window titles and sidebar headings; expose backendName constants in Qt/wx/LVGL base headers and distinguish the LVGL desktop drivers
