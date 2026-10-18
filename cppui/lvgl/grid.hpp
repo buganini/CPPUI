@@ -92,6 +92,18 @@ namespace CPPUI { namespace LVGL {
         }
     public:
         Grid() {is_grid_layout=true;}
+        void destroy(bool direct) override {
+            if(ui && !direct) {
+                // C++ descendants retire before their parent's native subtree.
+                // Detach borrowed arrays before their storage can be reclaimed;
+                // native delete listeners may still inspect this widget's styles.
+                static const int32_t empty[]={0,LV_GRID_TEMPLATE_LAST};
+                tracks->updating=true;
+                lv_obj_set_grid_dsc_array(static_cast<lv_obj_t *>(ui),empty,empty);
+                tracks->updating=false;
+            }
+            Node::destroy(direct);
+        }
         void update(Node * previous) override {
             auto prev=static_cast<Grid *>(previous);
             if(prev) tracks=prev->tracks;

@@ -167,6 +167,16 @@ namespace {
         auto node=find(root,"inner");lv_obj_delete(inner);require(!node->ui,"external grid deletion left a stale observer");
         root.show=false;root.redraw();require(lv_obj_get_child_count(lv_screen_active())==0,"grid removal left native children");
         root.show=true;root.redraw();settle();
+        int retiredTracks=-1;
+        lv_obj_add_event_cb(root.native("inner"),[](lv_event_t * event) {
+            auto object=static_cast<lv_obj_t *>(lv_event_get_target(event));
+            // The C++ child declaration is retired before its parent's native
+            // subtree. Borrowed descriptor pointers must still be readable here.
+            const auto columns=lv_obj_get_style_grid_column_dsc_array(object,LV_PART_MAIN);
+            const auto rows=lv_obj_get_style_grid_row_dsc_array(object,LV_PART_MAIN);
+            *static_cast<int *>(lv_event_get_user_data(event))=columns[0]+rows[0];
+        },LV_EVENT_DELETE,&retiredTracks);
+        root.show=false;root.redraw();require(retiredTracks>=0,"retired grid left invalid native descriptor storage");
     }
 }
 int main() {
