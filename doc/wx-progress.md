@@ -7,7 +7,7 @@ The native sync through PUI `1c7b45c` adds the shared Binding log viewer and
 editable Table cookbook markers, with wx decorated Table control ownership and
 event forwarding.
 The shared DOM offset cache was adopted after native measurement; see the
-[latest audit](pui-sync-2026-10-18.md) and [performance results](dom-offset-performance.md).
+[latest audit](pui-sync-2026-10-18.md) and [performance decision](dom-offset-performance.md).
 
 Splitter follows PUI/wx `d3f0679`: arbitrary pane counts built from nested native
 two-pane splitters, widget/layout content, padding, both orientations and retained
@@ -59,7 +59,7 @@ Canvas scopes follow PUI `cae7713`/`10fe513`/`f0c1cf5`: Qt restores native
 state, wx restores CPPUI pen/brush choices, and LVGL provides compatibility
 no-ops. The new redundant-setter guards were evaluated in native C++ and are
 intentionally not adopted: benefits were small or inconsistent. See the
-[measurement and decision](canvas-performance.md). Browser event/command
+[benchmark method and decision](canvas-performance.md). Browser event/command
 changes remain excluded.
 
 Prepared on 2026-10-13 against CPPUI `07271a3` and

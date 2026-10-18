@@ -14,7 +14,7 @@ this is different from the Python/DC path. Native rendering still dominates the
 measured workloads. Scope support is a functionality change and is retained
 regardless of the optimization decision.
 
-## Measurements
+## Benchmark method
 
 Baseline: CPPUI `0889cf3`, which already contains the per-frame style caches.
 The candidate adds pointer-identity guards around pen/brush setters, including
@@ -23,39 +23,20 @@ primitive. This measures only the **incremental setter guard**, not the earlier
 per-frame caches or the new scope API. The prototype does not implement scope
 tracking and must not be shipped as a production header.
 
-Environment: Ryzen 7 5700G, GCC 16.0.1, `-O2 -DNDEBUG`, Qt 6.10.2 software QImage
-rasterization with QPainter::Antialiasing as in CanvasWidget, wx 3.2.9 GTK/Cairo
-with a 32-bit wxBitmap. Surfaces are 1024×720.
+The benchmark uses `-O2 -DNDEBUG`, Qt software QImage rasterization with
+QPainter::Antialiasing as in CanvasWidget, and wx GTK/Cairo with a 32-bit
+wxBitmap. Surfaces are 1024×720.
 Data generation, surface clearing and pixel hashing are outside the timed region;
 context creation, CanvasPainter creation/destruction, drawing and flushing are
 inside. Each invocation warms up two frames and measures seven. Three A/B pairs
-alternate AB / BA / AB; the table reports the median of 21 frames per variant.
-There were no concurrent CPPUI builds during measurement.
-
-| Backend / workload | Existing setters (ms) | Guarded setters (ms) | Time reduction |
-| --- | ---: | ---: | ---: |
-| Qt, repeated color | 202.388 | 195.752 | 3.28% |
-| Qt, changing colors | 234.887 | 232.882 | 0.85% |
-| Qt, 30,000-row HeavyCanvas geometry | 123.875 | 120.557 | 2.68% |
-| Qt, 100,000-row HeavyCanvas geometry | 372.257 | 367.112 | 1.38% |
-| wx, repeated color | 838.832 | 840.902 | −0.25% |
-| wx, changing colors | 868.470 | 865.327 | 0.36% |
-| wx, 30,000-row HeavyCanvas geometry | 518.950 | 529.190 | −1.97% |
+alternate AB / BA / AB. Avoid concurrent builds during measurement.
 
 The repeated/changing workloads each issue 200,000 line/rectangle pairs. The
 HeavyCanvas workload uses the cookbook's seeded data and its OHLCV/indicator
 geometry passes (about nine calls per row), excluding text, hover and window
-presentation. All A/B pixel hashes match within each backend/workload.
+presentation. Pixel hashes must match within each backend/workload.
 
-The first Qt diagnostic omitted antialiasing and is preserved in the raw data:
-2.36% for repeated colors, −0.30% for changing colors and 3.78% for 30,000 rows.
-Its CPU-0-pinned 100,000-row confirmation yielded aggregate medians of
-475.704/475.413 ms (0.06%), with paired reductions of 0.70%, 0.00%, −1.08% and
-1.16%. System speed varied across pairs; an earlier run changed timing bands
-during a pair and was discarded rather than treating its aggregate as a
-regression. The table above uses the subsequent Qt antialiasing runs matching
-the application, with no CPU affinity. Results are local observations, not
-cross-platform performance guarantees.
+## Decision
 
 Qt's small repeat-style gain does not justify adding another cache that must
 stay synchronized with native state and nested scopes. wx has no consistent
@@ -81,10 +62,8 @@ python3 benchmarks/canvas_compare.py --base 0889cf3 --cpu 0 \
   --results /tmp/canvas-large-results.json
 ```
 
-[Recorded samples and hashes](../benchmarks/results/2026-10-17-canvas-styles.json)
-include the initial six workloads, the non-antialiased Qt large-dataset
-confirmation, and the four Qt workloads with application-matching antialiasing.
-Use `--no-antialias` to reproduce the earlier Qt diagnostic.
+Keep generated measurements outside the repository. Use `--no-antialias` for
+the Qt diagnostic without antialiasing.
 
 wx scopes explicitly restore CPPUI graphics pen/brush objects. Native
 [wxCairoContext PushState/PopState](https://github.com/wxWidgets/wxWidgets/blob/v3.2.8/src/generic/graphicc.cpp#L2763)

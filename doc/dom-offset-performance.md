@@ -5,7 +5,7 @@ owner. This removes repeated tree traversal in C++ as well as Python, so the
 optimization is adopted. It affects independent retained-view updates, not
 Canvas painting or full-tree reconciliation.
 
-## Measurement
+## Benchmark method
 
 [`benchmarks/dom_offsets.cpp`](../benchmarks/dom_offsets.cpp) creates 16, 128 or
 1,024 retained sibling views, each initially containing three native mock nodes.
@@ -14,19 +14,12 @@ The structural case changes the target's child count on every update. There is
 no toolkit rendering or event-loop cost in these timings.
 
 Both versions use `g++ -O3 -DNDEBUG -std=c++11`; the baseline headers come from
-CPPUI `445002f`. Seven samples alternate before/after order without concurrent
-builds. The table reports medians in microseconds per redraw. Raw samples and
-compiler identity are in [the measurement file](../benchmarks/results/2026-10-18-dom-offsets.json).
-
-| Views | Stable before | Stable cached | Speedup | Structural before | Structural cached |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 16 | 0.502 | 0.522 | 0.96x | 0.437 | 0.469 |
-| 128 | 0.879 | 0.521 | 1.69x | 0.775 | 0.837 |
-| 1024 | 5.859 | 0.526 | 11.14x | 5.254 | 5.273 |
+CPPUI `445002f`. Alternate before/after samples without concurrent builds and
+keep generated measurements outside the repository.
 
 Small trees gain little, and structural changes invalidate the cache and can
 add overhead. The larger stable-tree improvement justifies the native port;
-these ratios are not application frame-rate predictions. A single HeavyCanvas
+core timings are not application frame-rate predictions. A single HeavyCanvas
 view doing expensive drawing does not benefit from caching sibling offsets.
 
 To repeat against either header version:
