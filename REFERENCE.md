@@ -1183,3 +1183,14 @@ sanitizers and Valgrind on wxGTK.
 wx Stack overlays padded children at the same size and raises later children
 above earlier ones. It uses native controls and their native background/hit-test
 behavior; it does not rasterize the child hierarchy.
+
+### Environment options
+
+`CPPUI::Options()` returns a process-local `std::map<std::string, std::string>`
+initialized from `PUI_OPTIONS` on first access. The environment syntax is
+`#name=value#other=value` (the first `#` is optional). Names and values use UTF-8
+percent encoding; `+` remains literal, and values remain strings. The last valid
+entry wins. Malformed entries emit a warning and leave valid entries intact.
+`loadEnvironmentOptions()` replaces the map from the current environment.
+Initialize/reload on the UI thread before sharing values with workers. This is
+host input only; Web URL subscriptions and AI IPC are excluded.

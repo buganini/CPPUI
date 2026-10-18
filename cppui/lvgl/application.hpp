@@ -2,6 +2,7 @@
 #define CPPUI_LVGL_APPLICATION
 
 #include "base.hpp"
+#include "../options.hpp"
 
 #include <iostream>
 #include "lvgl.h"

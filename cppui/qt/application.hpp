@@ -2,6 +2,7 @@
 #define CPPUI_QT_APPLICATION
 
 #include "base.hpp"
+#include "../options.hpp"
 #include "../application_title.hpp"
 #include <QApplication>
 #include <QEvent>

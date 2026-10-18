@@ -68,6 +68,10 @@ set_target_properties(cppui_core_reconciliation PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 cppui_add_test(core.reconciliation cppui_core_reconciliation)
 
+add_executable(cppui_core_options core_options.cpp)
+target_link_libraries(cppui_core_options PRIVATE CPPUI::cppui)
+cppui_add_test(core.options cppui_core_options)
+
 add_executable(cppui_core_frame_rate core_frame_rate.cpp)
 target_link_libraries(cppui_core_frame_rate PRIVATE CPPUI::cppui)
 cppui_add_test(core.frame_rate cppui_core_frame_rate)
@@ -84,7 +88,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate)
+foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")

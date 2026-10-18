@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_APPLICATION
 #define CPPUI_WX_APPLICATION
 #include "base.hpp"
+#include "../options.hpp"
 #include "../application_title.hpp"
 namespace CPPUI {
     namespace Wx { class RuntimeApp: public wxApp { public: bool OnInit() override { return true; } }; }

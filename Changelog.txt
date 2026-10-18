@@ -1,4 +1,5 @@
 2026-10-18
+    * Options: sync native PUI_OPTIONS string input with strict percent/UTF-8 decoding and per-entry warnings
     * Canvas/HeavyCanvas: sync PUI completed-draw FPS, continuous rendering and full-frame color changes on Qt/wx/LVGL
 
 2026-10-17
