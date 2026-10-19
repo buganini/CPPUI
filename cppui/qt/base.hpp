@@ -2,6 +2,7 @@
 #define CPPUI_QT_BASE
 
 #include "../view.hpp"
+#include "adaptive.hpp"
 #include "options.hpp"
 #include "drop.hpp"
 #include <QWidget>
@@ -196,6 +197,9 @@ namespace CPPUI {
                 };
             }
             Node & qt(const QtOptions & options) override { qtParams.merge(options); return *this; }
+            std::unique_ptr<detail::SizeObserver> observeSize() override {
+                return ui ? std::unique_ptr<detail::SizeObserver>(new SizeObserver(ui,sizeState)) : nullptr;
+            }
             void postUpdate() override;
 
             void update(Node * previous) override {

@@ -117,14 +117,17 @@ namespace CPPUI {
 
         std::vector<Node *> * lastChildren = children;
         children = new std::vector<Node *>();
+        previousSizeChildren=lastChildren;
         try {
             update(nullptr);
             publishRef();
         } catch(...) {
+            previousSizeChildren=nullptr;
             delete children;
             children = lastChildren;
             throw;
         }
+        previousSizeChildren=nullptr;
 
         int num = 0;
         int delta = 0;

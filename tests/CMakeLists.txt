@@ -1,6 +1,15 @@
+add_executable(cppui_core_adaptive core_adaptive.cpp)
+target_link_libraries(cppui_core_adaptive PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_adaptive PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.adaptive cppui_core_adaptive)
+
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_adaptive native_adaptive.cpp)
+    target_compile_definitions(cppui_wx_adaptive PRIVATE CPPUI_TEST_WX)
+    target_link_libraries(cppui_wx_adaptive PRIVATE CPPUI::wx Threads::Threads)
+    cppui_add_test(wx.adaptive cppui_wx_adaptive)
     add_executable(cppui_wx_visibility native_visibility.cpp)
     target_compile_definitions(cppui_wx_visibility PRIVATE CPPUI_TEST_WX)
     target_link_libraries(cppui_wx_visibility PRIVATE CPPUI::wx Threads::Threads)
@@ -42,7 +51,7 @@ if(CPPUI_BUILD_WX)
     add_executable(cppui_wx_data_views wx_data_views.cpp)
     target_link_libraries(cppui_wx_data_views PRIVATE CPPUI::wx)
     cppui_add_test(wx.data_views cppui_wx_data_views)
-    foreach(header drop application base button label layout window grid divider progressbar checkbox radiobutton textfield combobox text scroll tab views dialog timeline menu image_resource image canvas table tree stack splitter)
+    foreach(header adaptive drop application base button label layout window grid divider progressbar checkbox radiobutton textfield combobox text scroll tab views dialog timeline menu image_resource image canvas table tree stack splitter)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_wx_${header}.cpp")
         file(WRITE "${source}" "#include \"cppui/wx/${header}.hpp\"\n#include \"cppui/wx/${header}.hpp\"\n")
         add_library(cppui_header_wx_${header} OBJECT "${source}")
@@ -122,7 +131,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop landlock side poster)
+foreach(header adaptive context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop landlock side poster)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -135,6 +144,10 @@ foreach(header context_header context node_header node view_header view state do
 endforeach()
 
 if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_adaptive native_adaptive.cpp)
+    target_compile_definitions(cppui_qt_adaptive PRIVATE CPPUI_TEST_QT)
+    target_link_libraries(cppui_qt_adaptive PRIVATE CPPUI::qt Threads::Threads)
+    cppui_add_test(qt.adaptive cppui_qt_adaptive)
     add_executable(cppui_qt_visibility native_visibility.cpp)
     target_compile_definitions(cppui_qt_visibility PRIVATE CPPUI_TEST_QT)
     target_link_libraries(cppui_qt_visibility PRIVATE CPPUI::qt Threads::Threads)
@@ -275,7 +288,7 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_checkbox PRIVATE CPPUI::qt)
     cppui_add_test(qt.checkbox cppui_qt_checkbox)
 
-    foreach(header drop options application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline toolbar tree views window)
+    foreach(header adaptive drop options application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline toolbar tree views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")

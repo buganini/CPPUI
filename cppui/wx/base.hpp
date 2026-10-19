@@ -2,6 +2,7 @@
 #define CPPUI_WX_BASE
 
 #include "../view.hpp"
+#include "adaptive.hpp"
 #include "drop.hpp"
 #include <wx/wx.h>
 #include <wx/weakref.h>
@@ -151,6 +152,18 @@ namespace CPPUI { namespace Wx {
         bool horizontal = false, vertical = false;
         virtual wxWindow * window() const { return nullptr; }
         virtual wxSizer * sizer() const { return nullptr; }
+        std::unique_ptr<detail::SizeObserver> observeSize() override {
+            if(!native) return {};
+            auto host=native->window ? native->window : native->owner;
+            if(!host) return {};
+            std::weak_ptr<Native> weak=native;
+            return std::unique_ptr<detail::SizeObserver>(new SizeObserver(host,sizeState,[weak]() {
+                auto current=weak.lock();
+                if(!current) return wxSize(0,0);
+                if(current->sizer) return current->sizer->GetSize();
+                return current->window ? current->window->GetClientSize() : wxSize(0,0);
+            }));
+        }
         virtual void invalidateNative() {}
         virtual void commit() {}
         virtual void rebindChild(Node *, Node *) {}
@@ -424,7 +437,7 @@ namespace CPPUI { namespace Wx {
             applyChildren(); wxSizerObject->Layout();
             if(native->owner) native->owner->Layout();
         }
-        void postUpdate() override { postSync(); }
+        void postUpdate() override { postSync(); ::CPPUI::Node::postUpdate(); }
         void releaseRetiredRefs() override { wxSizerObject = nullptr; mounts.clear(); Node::releaseRetiredRefs(); }
         void destroy(bool direct) override {
             if(native) { native->node = nullptr; native->sizer = nullptr; }

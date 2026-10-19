@@ -23,6 +23,7 @@ namespace CPPUI {
         std::vector<Node *> frames = std::vector<Node *>();
         std::vector<StateBase *> stateSubscriptions = std::vector<StateBase *>();
         std::vector<StateBase *> statesReadDuringBuild;
+        const std::vector<Node *> * previousSizeChildren = nullptr;
 
         View();
         virtual ~View();

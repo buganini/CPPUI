@@ -1,4 +1,5 @@
 2026-10-19
+    * Adaptive layout: observe reactive content sizes and apply optional inclusive-minimum/exclusive-maximum visibility bounds on Qt/wx/LVGL (PUI b4771b8)
     * Visibility: freeze hidden subtrees, defer initial child creation, retain native input state, and refresh pending nested views on show (PUI bb5284a)
     * Examples: make the virtual-node demo portable across Qt/wx/LVGL, move all native example checks into tests, and remove the remaining Qt-only example helper
     * Examples: share one portable counter across Qt/wx/LVGL, separate native smoke executables, and reuse LVGL desktop CMake setup for SDL2/X11

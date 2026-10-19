@@ -22,6 +22,7 @@ namespace CPPUI { namespace Wx {
         }
         Window & title(const std::string & text) { caption = text; return *this; }
         Window & icon(const std::string & path) { iconPath = path; return *this; }
+        using ::CPPUI::Node::size;
         Window & size(int w, int h) { dimensions = wxSize(w, h); return *this; }
         Window & maximize(bool value = true) { initialMaximized = value; return *this; }
         Window & fullscreen(bool value = true) { initialFullscreen = value; return *this; }

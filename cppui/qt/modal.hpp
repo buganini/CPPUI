@@ -68,6 +68,7 @@ namespace CPPUI { namespace Qt {
         explicit Modal(State<T> & status, T offValue = T{}): Modal(Binding<T>(status), offValue) {}
 
         Modal & title(const std::string & value) { caption = value; return *this; }
+        using ::CPPUI::Node::size;
         Modal & size(int width, int height) { dimensions = QSize(width, height); return *this; }
         Modal & maximize(bool value = true) {
             initialMaximized = value;

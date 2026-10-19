@@ -46,6 +46,7 @@ namespace CPPUI {
             }
             Window & title(const std::string & value) { caption = value; return *this; }
             Window & icon(const std::string & path) { iconPath = path.empty() ? OptionalText() : OptionalText(path); return *this; }
+            using ::CPPUI::Node::size;
             Window & size(int width, int height) { dimensions = QSize(width, height); return *this; }
             Window & maximize(bool value = true) {
                 initialMaximized = value;

@@ -61,7 +61,7 @@ public:
         ui->InvalidateBestSize(); ui->Layout(); raise(ui->GetSizer());
         if(ui->GetParent()) ui->GetParent()->Layout();
     }
-    void postUpdate() override { postSync(); }
+    void postUpdate() override { postSync(); ::CPPUI::Node::postUpdate(); }
     void invalidateNative() override { mounts.clear(); Widget::invalidateNative(); }
     void releaseRetiredRefs() override { mounts.clear(); Widget::releaseRetiredRefs(); }
     void destroy(bool direct) override { mounts.clear(); Widget::destroy(direct); }

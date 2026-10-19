@@ -27,6 +27,7 @@ namespace CPPUI {
     }
 
     inline void recur_delete(Node * child, bool direct) {
+        child->stopObservingSize();
         child->clearRef();
         child->destroyed = true;
         child->domOffsetVersion.reset(); child->cachedDomOffsetVersion.reset();

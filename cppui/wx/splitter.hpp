@@ -111,7 +111,7 @@ public:
         ui->InvalidateBestSize();ui->Layout();
         if(ui->GetParent()) ui->GetParent()->Layout();
     }
-    void postUpdate() override {postSync();}
+    void postUpdate() override {postSync(); ::CPPUI::Node::postUpdate();}
     void invalidateNative() override {clearHandles();Widget::invalidateNative();}
     void releaseRetiredRefs() override {clearHandles();Widget::releaseRetiredRefs();}
     void destroy(bool direct) override {clearHandles();Widget::destroy(direct);}

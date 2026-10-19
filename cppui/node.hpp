@@ -14,6 +14,84 @@ namespace CPPUI {
     class Node;
     class View;
 
+    namespace detail {
+        // Native geometry is read-only, so it needs dependency tracking without
+        // exposing State's public mutation operators to callers.
+        class SizeState: public StateBase {
+            Optional<Size> value;
+            std::vector<View *> listeners, pending;
+        public:
+            Node * owner=nullptr;
+            ~SizeState() override {
+                for(auto view:listeners) view->untrackState(this);
+            }
+            void removeListener(View * view) override {
+                listeners.erase(std::remove(listeners.begin(),listeners.end(),view),listeners.end());
+                pending.erase(std::remove(pending.begin(),pending.end(),view),pending.end());
+            }
+            Optional<Size> get() {
+                if(!getStack()->empty()) {
+                    auto view=getStack()->back();view->trackState(this);
+                    if(std::find(listeners.begin(),listeners.end(),view)==listeners.end()) listeners.push_back(view);
+                }
+                return value;
+            }
+            void publish(int width,int height) {
+                if(!owner || owner->destroyed) return;
+                if(!getStack()->empty()) throw std::logic_error("Size must be published after view construction");
+                Size next(std::max(0,width),std::max(0,height));
+                if(value && *value==next) return;
+                value=next;pending=listeners;
+                while(!pending.empty()) {
+                    auto view=pending.front();pending.erase(pending.begin());view->redraw();
+                }
+            }
+        };
+    }
+
+    inline Optional<Size> SizeBinding::get() const { return state->get(); }
+
+    inline Node * Node::previousSizeNode() {
+        if(!cppui_root || !cppui_root->previousSizeChildren || this==cppui_root) return nullptr;
+        const std::vector<Node *> * previous=nullptr;
+        if(parent==cppui_root) previous=cppui_root->previousSizeChildren;
+        else if(parent && parent!=this) {
+            auto owner=parent->previousSizeNode();
+            if(owner) previous=owner->children;
+        }
+        if(!previous) return nullptr;
+        Node * candidate=nullptr;int count=0;
+        for(auto old:*previous) if(*old==*this) {
+            if(old->declarationIndex==declarationIndex) return old;
+            candidate=old;++count;
+        }
+        return count==1 ? candidate : nullptr;
+    }
+
+    inline SizeBinding Node::size() {
+        if(!sizeState) {
+            if(auto previous=previousSizeNode()) sizeState=previous->sizeState;
+            if(!sizeState) sizeState=std::make_shared<detail::SizeState>();
+        }
+        if(sizeMounted) Node::postUpdate();
+        return SizeBinding(sizeState);
+    }
+
+    inline Node & Node::visible(bool value,const VisibilityBounds & bounds) {
+        if(bounds.constrained()) {
+            auto owner=parent;
+            while(owner && owner->is_virtual && owner->parent!=owner) owner=owner->parent;
+            value=value && owner && owner!=this && bounds.matches(owner->size().get());
+        }
+        is_visible=value;is_frozen=supportsVisibility() && !value;
+        return *this;
+    }
+
+    inline void Node::stopObservingSize() {
+        sizeObserver.reset();
+        if(sizeState && sizeState->owner==this) sizeState->owner=nullptr;
+    }
+
     inline std::size_t Node::typecode() const {
         return typeid(*this).hash_code();
     }
@@ -43,11 +121,13 @@ namespace CPPUI {
         }else{
             cppui_root = stack->back();
             parent = cppui_root->frames.back();
+            declarationIndex=parent->children->size();
             parent->children->push_back(this);
         }
     }
 
     inline Node::~Node() {
+        stopObservingSize();
         clearRef();
         // A derived constructor can throw after Node registered itself with
         // its parent. Do not leave a pointer to that failed allocation behind.
@@ -69,9 +149,14 @@ namespace CPPUI {
 
     inline void Node::update(Node * prev) {
         if(prev) {
+            if(prev->sizeState) sizeState=prev->sizeState;
+            if(prev->sizeObserver && prev->outer()!=outer()) prev->stopObservingSize();
+            sizeObserver=std::move(prev->sizeObserver);
             prev->retired_by = this;
             if(prev->refTarget) { refTarget=prev->refTarget; std::lock_guard<std::mutex> lock(refTarget->mutex); refTarget->node=this; }
         }
+        sizeMounted=true;
+        if(sizeState) sizeState->owner=this;
     }
 
     inline void Node::publishRef() {
@@ -139,7 +224,11 @@ namespace CPPUI {
     }
 
     inline void Node::postUpdate(void) {
-
+        if(sizeState && !destroyed && !retired_by) {
+            sizeState->owner=this;
+            if(!sizeObserver) sizeObserver=observeSize();
+            if(sizeObserver) sizeObserver->refresh();
+        }
     }
 
     inline void Node::preSync(void) {

@@ -1,4 +1,5 @@
 #include "../view.hpp"
+#include "adaptive.hpp"
 
 #include <lvgl.h>
 #include <cstdio>
@@ -181,6 +182,9 @@ namespace CPPUI {
                 ::CPPUI::Node::update(previous);
             }
 
+            std::unique_ptr<detail::SizeObserver> observeSize() override {
+                return ui ? std::unique_ptr<detail::SizeObserver>(new SizeObserver(static_cast<lv_obj_t *>(ui),sizeState)) : nullptr;
+            }
             virtual void layoutChild(Node *) {}
             void postUpdate() override {
                 if(ui && !layoutVisible()) lv_obj_set_hidden(static_cast<lv_obj_t *>(ui),true);

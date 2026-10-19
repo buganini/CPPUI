@@ -1409,3 +1409,41 @@ still applies (for example, Qt Stack computes its preferred size across layers).
 Window, Tab, ComboBoxItem, TableNode and virtual views do not implement this
 modifier; apply it to their physical content instead. The Label cookbook includes
 a Show greeting checkbox.
+## Reactive size and adaptive visibility
+
+`node.size()` returns a read-only `SizeBinding`. `.get()` returns
+`Optional<Size>`: empty before the first native layout measurement, then
+`Size { width, height }` in native logical pixels. Reading the binding inside
+`content()` subscribes that view to size changes. A saved binding follows the
+retained node across redraws. Removing the node stops observations; the binding
+can still read its last measurement. Observe physical widgets/layouts, not
+virtual views or item declarations without a native surface.
+
+Qt measures the content rectangle minus layout margins; Window uses its central
+widget. wx measures a sizer's allocated size or a window's client size. LVGL
+measures the content area excluding padding/borders. Measurements are coalesced
+and published after layout; unchanged dimensions do not trigger another redraw.
+Only nodes used by `.size()` or constrained `.visible()` install observers.
+Existing Qt/wx `Window::size(width, height)` and Qt `Modal::size(width, height)`
+continue to set the preferred size; zero arguments observe the actual size.
+
+Use `VisibilityBounds` for PUI's optional width/height limits:
+
+```cpp
+for(auto scope: CPPUI::VBox()) {
+    for(auto compact: CPPUI::VBox().visible(true, {{}, 600})) {
+        CPPUI::Label("Compact layout");
+    }
+    for(auto wide: CPPUI::HBox().visible(true, {600})) {
+        CPPUI::Label("Wide layout");
+    }
+}
+```
+
+The fields/constructor arguments are `minWidth`, `maxWidth`, `minHeight`,
+`maxHeight`, each `Optional<int>`. `{}` omits a limit; zero is an explicit bound.
+Minima are inclusive and maxima exclusive. Bounds refer to the nearest physical
+parent's content size, skipping virtual ancestors. Before that size is known,
+constrained branches remain hidden and their children are not mounted. Passing
+`false` still hides the branch regardless of bounds. Showing it later restores
+its retained controls and refreshes frozen nested views.

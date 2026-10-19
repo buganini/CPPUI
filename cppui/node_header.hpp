@@ -13,6 +13,7 @@
 #include "modifiers.hpp"
 #include "refs.hpp"
 #include "drop.hpp"
+#include "adaptive.hpp"
 
 namespace CPPUI {
     class Node;
@@ -86,11 +87,17 @@ namespace CPPUI {
         virtual ~Node();
 
         bool is_visible = true;
+        std::size_t declarationIndex = 0;
+        bool sizeMounted = false;
+        std::shared_ptr<detail::SizeState> sizeState;
+        std::unique_ptr<detail::SizeObserver> sizeObserver;
+        SizeBinding size();
+        Node * previousSizeNode();
+        void stopObservingSize();
+        virtual std::unique_ptr<detail::SizeObserver> observeSize() { return {}; }
         bool is_frozen = false;
         bool thaw_pending = false;
-        Node & visible(bool value = true) {
-            is_visible=value; is_frozen=supportsVisibility() && !value; return *this;
-        }
+        Node & visible(bool value = true, const VisibilityBounds & bounds = {});
         bool isFrozen() const {
             for(auto current=this; current;) {
                 if(current->is_frozen) return true;
