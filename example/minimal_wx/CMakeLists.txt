@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
-project(minimal)
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_EXTENSIONS  OFF)
-
-find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base)
+project(CPPUIMinimalWx LANGUAGES CXX)
+find_package(wxWidgets 3.2 REQUIRED COMPONENTS core base html)
 include(${wxWidgets_USE_FILE})
-
-add_executable(minimal main.cpp)
-target_link_libraries(minimal ${wxWidgets_LIBRARIES})
+include(../common.cmake)
+cppui_add_example(minimal minimal wx "${wxWidgets_LIBRARIES}" example.wx_minimal)

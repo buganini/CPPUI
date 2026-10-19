@@ -233,6 +233,11 @@ omitted values to native defaults. `.qt()` is specific to the Qt backend.
 Portable applications can include `cppui/backend.hpp` and select exactly one of
 `CPPUI_BACKEND_QT`, `CPPUI_BACKEND_WX` or `CPPUI_BACKEND_LVGL` in the build.
 The `CPPUI::qt` and `CPPUI::wx` CMake targets set their selector automatically.
+For desktop LVGL, include `cmake/CPPUILVGLDesktop.cmake`, set
+`CPPUI_LVGL_SOURCE_DIR` to the LVGL 9.6.0 checkout and call
+`cppui_add_lvgl_desktop(lvgl_sdl2)` or `cppui_add_lvgl_desktop(lvgl_x11)`.
+Its `CPPUI::lvgl` target supplies the selector, SDK, desktop configuration and
+driver fixes. Both the cookbook and standalone examples use this setup.
 Each backend owns its header selection, `CPPUI::Backend::View`/`Views` aliases,
 display name and `CPPUI_HAS_*` feature flags. Use capability flags for optional
 components; application code does not need native toolkit types or startup calls.
