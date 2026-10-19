@@ -1,3 +1,10 @@
+# Link this header in isolation as well as compiling it: size bindings use the
+# view dependency protocol without requiring a caller to include view.hpp.
+add_executable(cppui_core_node_size core_node_size.cpp)
+target_link_libraries(cppui_core_node_size PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_node_size PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.node_size cppui_core_node_size)
+
 add_executable(cppui_core_adaptive core_adaptive.cpp)
 target_link_libraries(cppui_core_adaptive PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_adaptive PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)

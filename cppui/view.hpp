@@ -23,28 +23,6 @@ namespace CPPUI {
         }
     }
 
-    inline void View::trackState(StateBase * state) {
-        if(std::find(statesReadDuringBuild.begin(), statesReadDuringBuild.end(), state)
-           == statesReadDuringBuild.end()) {
-            statesReadDuringBuild.push_back(state);
-        }
-        if(std::find(stateSubscriptions.begin(), stateSubscriptions.end(), state)
-           == stateSubscriptions.end()) {
-            stateSubscriptions.push_back(state);
-        }
-    }
-
-    inline void View::untrackState(StateBase * state) {
-        statesReadDuringBuild.erase(
-            std::remove(statesReadDuringBuild.begin(), statesReadDuringBuild.end(), state),
-            statesReadDuringBuild.end()
-        );
-        stateSubscriptions.erase(
-            std::remove(stateSubscriptions.begin(), stateSubscriptions.end(), state),
-            stateSubscriptions.end()
-        );
-    }
-
     inline void View::enter(void) {
         std::vector<View *> * stack = getStack();
         stack->push_back(this);
