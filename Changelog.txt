@@ -1,3 +1,6 @@
+2026-10-20
+    * Cookbook: share the Adaptive recipe with measured container size, a 600-pixel breakpoint and shared input state; sync committed local PUI b4771b8, excluding uncommitted work and AI/Web tooling
+
 2026-10-19
     * Adaptive layout: observe reactive content sizes and apply optional inclusive-minimum/exclusive-maximum visibility bounds on Qt/wx/LVGL (PUI b4771b8)
     * Visibility: freeze hidden subtrees, defer initial child creation, retain native input state, and refresh pending nested views on show (PUI bb5284a)

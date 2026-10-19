@@ -27,6 +27,7 @@ namespace Cookbook {
             for(const auto & line:bindingLogs) {if(!text.empty()) text+='\n';text+=line;}
             return text;
         }
+        CPPUI::State<std::string> adaptiveName{std::string("Ada")};
         CPPUI::State<int> postedCallbacks{0};
         CPPUI::State<bool> greetingVisible{true};
         CPPUI::State<bool> rejectDrop{false};
@@ -65,6 +66,7 @@ namespace Cookbook {
         void (*render)(Model &);
         const char * remaining;
     };
+    void adaptive(Model &);
     void binding(Model &);
     void drop(Model &);
     void refs(Model &);

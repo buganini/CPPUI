@@ -8,6 +8,7 @@ function(cppui_add_cookbook target backend)
     endif()
     string(TOUPPER "${backend}" backend_macro)
     add_library(${target}_sources OBJECT
+        "${cookbook_dir}/adaptive.cpp"
         "${cookbook_dir}/binding.cpp"
         "${cookbook_dir}/canvas.cpp"
         "${cookbook_dir}/checkbox.cpp"

@@ -111,6 +111,7 @@ namespace Cookbook {
     const std::vector<Recipe> & recipes() {
         static const std::vector<Recipe> result = []() {
             std::vector<Recipe> pages = {
+            {"adaptive", "Adaptive", adaptive, ""},
             {"vbox", "Vbox", vbox, ""},
             {"hbox", "HBox", hbox, ""},
             {"stack", "Stack", nullptr, "Stack and layout options"},

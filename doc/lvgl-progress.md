@@ -1,12 +1,16 @@
 # LVGL implementation progress and remaining work
 
+The 2026-10-19 sync adds frozen hidden subtrees, reactive content-size observation
+and adaptive visibility bounds, with a shared Adaptive cookbook. It follows the
+committed PUI `b4771b8` snapshot; see the [sync audit](pui-sync-2026-10-19.md).
+
 PUI `97e442c` adds the backend name to the cookbook window title and sidebar
 heading: `Cookbook (LVGL SDL2)` or `Cookbook (LVGL X11)`.
 
 The native sync through PUI `1c7b45c` adds the shared Binding log viewer and
 editable Table cookbook markers, with the existing LVGL Table editors.
 The shared DOM offset cache was adopted after native measurement; see the
-[latest audit](pui-sync-2026-10-18.md) and [performance decision](dom-offset-performance.md).
+[earlier audit](pui-sync-2026-10-18.md) and [performance decision](dom-offset-performance.md).
 
 Table now implements the shared declarative and typed-adapter interfaces on
 native `lv_table`, with text/numeric editors, boolean/choice dropdowns, header
@@ -70,8 +74,8 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: PUI `97e442c` (2026-10-18). See the
-[component audit and exclusions](pui-sync-2026-10-18.md). Native Options,
+Latest native delta audit: committed local PUI `b4771b8` (2026-10-19). See the
+[component audit and exclusions](pui-sync-2026-10-19.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and
 Web/Pyodide remain excluded. The earlier native baseline follows below.

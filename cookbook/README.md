@@ -18,8 +18,11 @@ including bound Tab selection. Each executable links only its selected toolkit.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are audited through PUI `97e442c` (2026-10-18); AI development
-and Web/Pyodide changes are excluded. See the [sync audit](../doc/pui-sync-2026-10-18.md).
+Native additions are audited through committed local PUI `b4771b8` (2026-10-19);
+uncommitted PUI work, AI development and Web/Pyodide changes are excluded.
+See the [sync audit](../doc/pui-sync-2026-10-19.md).
+Adaptive displays reactive container dimensions and switches compact/wide layouts
+at 600 logical pixels while sharing input state on Qt, wx and LVGL.
 Window titles and sidebar headings identify the active backend: `Cookbook (Qt)`,
 `Cookbook (wxWidgets)`, `Cookbook (LVGL SDL2)` or `Cookbook (LVGL X11)`.
 State Binding now uses an external getter/setter and shows the latest 100

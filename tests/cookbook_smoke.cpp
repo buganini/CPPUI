@@ -76,6 +76,18 @@ namespace Cookbook {
                     require(find(gallery, "menu-scroller")->outer() == sidebar, "page selection replaced the sidebar");
                     require(TestBackend::pageVisible(gallery, recipes()[i].key), "selected sidebar link is clipped or lost its scroll position");
                     TestBackend::checkLayout(gallery);
+                    if(std::string(recipes()[i].key) == "adaptive") {
+                        for(int pass=0;pass<4;++pass) TestBackend::settle();
+                        auto size=find(gallery,"adaptive-container")->size().get();
+                        require(bool(size),"adaptive container size was not measured");
+                        const bool wide=size->width>=600;
+                        require(find(gallery,"adaptive-wide")->is_visible==wide &&
+                                find(gallery,"adaptive-compact")->is_visible!=wide,"adaptive cookbook branch differs from measured size");
+                        auto field=find(gallery,wide ? "adaptive-wide-input" : "adaptive-compact-input");
+                        require(field && TestBackend::editTextField(*field,"Grace",true),"adaptive shared input missing");
+                        TestBackend::settle();
+                        require(static_cast<std::string>(gallery.model.adaptiveName)=="Grace","adaptive input did not share model state");
+                    }
                     if(std::string(recipes()[i].key) == "refs") {
                         const int before=gallery.model.postedCallbacks;
                         const auto start=std::chrono::steady_clock::now();
