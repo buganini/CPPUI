@@ -29,7 +29,7 @@ namespace CPPUI { namespace Wx {
         ~View() override { clearChildren(); }
         virtual void setup() {}
         void update(::CPPUI::Node * previous) override {
-            if(destroyed || retired_by) return;
+            if(destroyed || retired_by || is_frozen) return;
             const bool ownUpdate = !updating;
             if(ownUpdate) updating = true;
             try {

@@ -1,4 +1,5 @@
 #include "cppui/view.hpp"
+#include "cppui/state.hpp"
 #include <functional>
 #include <set>
 #include <map>
@@ -174,6 +175,36 @@ namespace {
         void content() override {node("before");new OffsetInner(width);node("after");}
         void destroy(bool) override {}
     };
+    void frozen() {
+        Root root; bool show=false,remove=false; int width=2;
+        root.build=[&]() {
+            if(remove) return;
+            for(auto scope:node("owner").visible(show)) (new OffsetFragment(width))->id("fragment");
+            node("tail");
+        };
+        root.redraw();
+        require(declarations==2 && natives==3,"initially hidden subtree allocated children");
+        show=true;root.redraw();
+        auto owner=root.children->front();auto fragment=owner->children->front();
+        auto inner=static_cast<CPPUI::View *>(fragment->children->at(1));
+        auto identity=inner->children->front()->ui;
+        show=false;root.redraw();
+        width=4;inner->redraw();
+        require(inner->children->size()==2,"frozen child rebuilt independently");
+        for(int i=0;i<4;++i) root.redraw();
+        require(declarations==6,"discarded frozen proposals leaked");
+        require(inner->dom_parent==root.children->front(),"retained child points at retired physical owner");
+        show=true;root.redraw();
+        require(inner->children->size()==4 && inner->children->front()->ui==identity,"thaw lost native identity or pending update");
+        root.is_frozen=true;width=1;inner->redraw();
+        require(inner->children->size()==4,"root freeze did not reach child");
+        root.is_frozen=false;root.redraw();
+        require(inner->children->size()==1,"root thaw did not refresh descendants");
+        root.is_frozen=true;root.redraw();root.is_frozen=false;root.redraw();
+        show=false;root.redraw();remove=true;root.redraw();
+        require(declarations==0 && natives==1,"removing frozen tree leaked resources");
+    }
+
     void offsetCache() {
         std::weak_ptr<const char> token;
         {
@@ -238,6 +269,7 @@ int main() {
         grid();
         outOfOrderMove();
         offsetCache();
+        frozen();
         require(declarations == 0 && natives == 0, "reconciliation teardown leaked resources");
     } catch(const std::exception & error) {
         std::cerr << error.what() << '\n';

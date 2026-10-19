@@ -40,11 +40,12 @@ static void pump() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
+static int nestedBuilds=0;
 class Nested:public NativeView {
     CPPUI::State<int> & version;
 public:
     explicit Nested(CPPUI::State<int> & version):version(version) {}
-    void content() override {CPPUI::Label(std::to_string(static_cast<int>(version))).id("nested");}
+    void content() override {++nestedBuilds;CPPUI::Label(std::to_string(static_cast<int>(version))).id("nested");}
 };
 class Root:public CPPUI::Application {
 public:
@@ -139,13 +140,20 @@ int main(int argc,char ** argv) {
 #else
         require(lv_obj_is_hidden(static_cast<lv_obj_t *>(group)) && lv_obj_is_hidden(static_cast<lv_obj_t *>(find(root,"gap")->outer())),"LVGL hidden layout/spacer flags missing");
 #endif
-        root.version=1;pump();
+        const int before=nestedBuilds;root.version=1;pump();
+        require(nestedBuilds==before,"hidden view rebuilt its content");
         require(hidden(find(root,"nested")),"independent hidden subtree update exposed a child");
         int called=0;post([&](){++called;});pump();require(called==1,"hidden node stopped UI callbacks");
         root.omit=true;root.mount();pump(); // Omission restores the default.
         require(!hidden(find(root,"editor")) && hidden(find(root,"hidden")),"ancestor show exposed an explicitly hidden child");
         require(find(root,"editor")->outer()==editor && text(editor)=="draft","showing lost native editor state");
+        require(nestedBuilds>before,"shown view did not refresh pending state");
         require(!hidden(find(root,"window")),"Window unexpectedly accepted visibility modifier");
+        Root lazy(argc,argv);lazy.show=false;
+        const int beforeLazy=nestedBuilds;lazy.mount();pump();
+        require(!find(lazy,"editor") && nestedBuilds==beforeLazy,"initially hidden subtree mounted children");
+        lazy.version=3;lazy.show=true;lazy.mount();pump();
+        require(find(lazy,"editor") && nestedBuilds>beforeLazy,"show did not lazily mount children");
     } catch(const std::exception & error) { std::cerr<<error.what()<<'\n';result=1; }
 #if !defined(CPPUI_TEST_QT) && !defined(CPPUI_TEST_WX)
     lv_deinit();

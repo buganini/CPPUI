@@ -86,7 +86,20 @@ namespace CPPUI {
         virtual ~Node();
 
         bool is_visible = true;
-        Node & visible(bool value = true) { is_visible=value; return *this; }
+        bool is_frozen = false;
+        bool thaw_pending = false;
+        Node & visible(bool value = true) {
+            is_visible=value; is_frozen=supportsVisibility() && !value; return *this;
+        }
+        bool isFrozen() const {
+            for(auto current=this; current;) {
+                if(current->is_frozen) return true;
+                if(current->parent==current) break;
+                current=current->parent;
+            }
+            return false;
+        }
+        virtual void refreshAfterThaw() {}
         virtual bool supportsVisibility() const { return !is_virtual && !is_outoforder; }
         bool layoutVisible() const { return !supportsVisibility() || is_visible; }
         bool ancestorsVisible() const {

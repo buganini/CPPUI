@@ -122,6 +122,7 @@ namespace CPPUI {
     }
 
     inline void Node::prepare(void) {
+        if(is_frozen) return;
         for(auto child: *children) child->prepare();
     }
 

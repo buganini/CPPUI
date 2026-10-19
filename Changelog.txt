@@ -1,4 +1,5 @@
 2026-10-19
+    * Visibility: freeze hidden subtrees, defer initial child creation, retain native input state, and refresh pending nested views on show (PUI bb5284a)
     * Examples: make the virtual-node demo portable across Qt/wx/LVGL, move all native example checks into tests, and remove the remaining Qt-only example helper
     * Examples: share one portable counter across Qt/wx/LVGL, separate native smoke executables, and reuse LVGL desktop CMake setup for SDL2/X11
     * Cookbook: use a common backend facade and feature capabilities; move native smoke helpers to separate test executables, use backend-owned startup, and share the ref Tab recipe with optional binding support

@@ -41,6 +41,7 @@ namespace CPPUI {
 
         virtual void update(Node * prev);
         virtual void redraw(void);
+        void refreshAfterThaw() override { redraw(); }
         virtual void run(void);
 
         void trackState(StateBase * state);

@@ -58,6 +58,7 @@ namespace CPPUI {
     }
 
     inline void View::update(Node * prev) {
+        if(is_frozen) return;
         if(retired_by) {
             return;
         }
@@ -98,6 +99,15 @@ namespace CPPUI {
 
     inline void View::redraw(void) {
         if(retired_by || destroyed) {
+            return;
+        }
+        if(isFrozen()) {
+            thaw_pending=true;
+            for(auto current=parent;current && current!=this;) {
+                if(current->is_view && current->is_frozen) current->thaw_pending=true;
+                if(current->parent==current) break;
+                current=current->parent;
+            }
             return;
         }
 

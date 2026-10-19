@@ -26,7 +26,7 @@ namespace CPPUI {
             virtual void setup() {}
 
             void update(Node * previous) override {
-                if(destroyed || retired_by) return;
+                if(destroyed || retired_by || is_frozen) return;
                 // A nested view is first built by its parent's reconciliation.
                 const bool ownUpdate = !updating;
                 if(ownUpdate) updating = true;

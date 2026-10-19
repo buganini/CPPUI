@@ -1396,8 +1396,11 @@ The Refs cookbook demonstrates a 500 ms delayed increment.
 `.visible(bool = true)` hides an ordinary widget or layout without removing its
 node or native control. Hidden content takes no layout space, including its
 padding/margin and box stretch, and receives no normal user input. Hidden
-subtrees still reconcile and their callbacks/timers continue. Omission on a new
-declaration restores visibility. Explicit Grid coordinates are retained.
+subtrees freeze child reconciliation. Initially hidden containers defer child
+creation until shown; already mounted children retain their native state. State
+changes in hidden views are refreshed when the ancestor becomes visible again.
+Callbacks/timers on retained controls continue. Omission on a new declaration
+restores visibility. Explicit Grid coordinates are retained.
 
 Qt uses native widget visibility and collapses Spacer stretch; wx hides the
 whole padded sizer item and preserves explicitly hidden descendants when an

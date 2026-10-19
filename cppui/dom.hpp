@@ -147,6 +147,20 @@ namespace CPPUI {
         }
     }
 
+    inline void refresh_thawed(Node * node, bool inherited=false) {
+        if(node->destroyed || node->retired_by || node->is_frozen) return;
+        const bool refresh=inherited || node->thaw_pending;
+        node->thaw_pending=false;
+        if(refresh && node->is_view) {
+            // Let this view's completed sync refresh its current children. A
+            // synchronous redraw can delete them; never queue raw child pointers.
+            node->thaw_pending=true;
+            node->refreshAfterThaw();
+            return;
+        }
+        for(auto child:*node->children) refresh_thawed(child,refresh);
+    }
+
     inline void sync(
         Node * node,
         Node * dom_parent,
@@ -155,11 +169,28 @@ namespace CPPUI {
         std::vector<Node *> * newDOM,
         int depth,
         int * result_num,
-        int * result_delta
+        int * result_delta,
+        bool * thaws = nullptr
     ) {
+        bool pendingThaws=node->thaw_pending;
+        if(!thaws) thaws=&pendingThaws;
         int orig_dom_children_num = count_dom_children(oldDOM);
         int dom_children_num = orig_dom_children_num;
         int dom_children_curr = 0;
+
+        if(node->is_frozen) {
+            const auto proposals=*newDOM;
+            for(auto child:proposals)
+                if(std::find(oldDOM->begin(),oldDOM->end(),child)==oldDOM->end()) recur_delete(child,false);
+            *newDOM=*oldDOM;
+            for(auto child:*newDOM) {
+                child->parent=node;
+                rebind_dom_parent(child,dom_parent);
+            }
+            *result_num=orig_dom_children_num;
+            *result_delta=0;
+            return;
+        }
 
         // The old DOM already records native mounting order from the last sync.
         // Reversing it again would make our offsets disagree with the backend.
@@ -189,7 +220,11 @@ namespace CPPUI {
                 if(childIdx < static_cast<int>(oldDOM->size())) {
                     Node * oldNode = oldDOM->at(childIdx);
                     if(*oldNode == *newNode) {
+                        const bool thawed=oldNode->is_frozen && !newNode->is_frozen;
+                        if(thawed || oldNode->thaw_pending) *thaws=true;
                         if(oldNode->is_view) {
+                            oldNode->is_frozen=newNode->is_frozen;
+                            oldNode->thaw_pending=oldNode->thaw_pending || thawed;
                             dom_children_curr += count_dom_children(oldNode->children);
                             oldNode->parent = newNode->parent;
                             rebind_dom_parent(oldNode, newNode->dom_parent);
@@ -197,13 +232,14 @@ namespace CPPUI {
                             newNode->destroy(true);
                             delete newNode;
                         } else {
+                            newNode->thaw_pending=oldNode->thaw_pending || thawed;
                             newNode->update(oldNode);
                             newNode->publishRef();
                             if(newNode->is_virtual) {
                                 int num = 0;
                                 int delta = 0;
                                 sync(newNode, dom_parent, dom_offset + dom_children_curr,
-                                     oldNode->children, newNode->children, depth + 1, &num, &delta);
+                                     oldNode->children, newNode->children, depth + 1, &num, &delta, thaws);
                                 dom_children_curr += num;
                                 dom_children_num += delta;
                             } else {
@@ -214,7 +250,7 @@ namespace CPPUI {
                                     int num = 0;
                                     int delta = 0;
                                     sync(newNode, newNode, 0, oldNode->children,
-                                         newNode->children, depth + 1, &num, &delta);
+                                         newNode->children, depth + 1, &num, &delta, thaws);
                                 } else if(oldNode->is_terminal) {
                                     // Terminal children are declarations only; no
                                     // native recursion will retire them for us.
@@ -224,7 +260,7 @@ namespace CPPUI {
                                     std::vector<Node *> empty;
                                     int num = 0, delta = 0;
                                     sync(newNode, newNode, 0, oldNode->children,
-                                         &empty, depth + 1, &num, &delta);
+                                         &empty, depth + 1, &num, &delta, thaws);
                                 }
                             }
                             oldNode->releaseRetiredRefs();
@@ -266,7 +302,7 @@ namespace CPPUI {
                         int num = 0;
                         int delta = 0;
                         sync(newNode, dom_parent, dom_offset + dom_children_curr, &empty,
-                             newNode->children, depth + 1, &num, &delta);
+                             newNode->children, depth + 1, &num, &delta, thaws);
                         dom_children_curr += num;
                         dom_children_num += num;
                     } else {
@@ -280,7 +316,7 @@ namespace CPPUI {
                             int num = 0;
                             int delta = 0;
                             sync(newNode, newNode, 0, &empty, newNode->children,
-                                 depth + 1, &num, &delta);
+                                 depth + 1, &num, &delta, thaws);
                         }
                     }
                     invalidate_dom_offsets(dom_parent,node);
@@ -349,6 +385,11 @@ namespace CPPUI {
         }
         *result_num = dom_children_curr;
         *result_delta = dom_children_num - orig_dom_children_num;
+        if(depth==0 && *thaws) {
+            const bool refresh=node->thaw_pending;
+            node->thaw_pending=false;
+            for(auto child:*newDOM) refresh_thawed(child,refresh);
+        }
     }
 }
 
