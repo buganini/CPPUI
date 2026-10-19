@@ -54,8 +54,10 @@ namespace CPPUI { namespace Qt {
         }
         void fitDisabledAxes() {
             if(auto child = widget()) {
-                if(horizontalDisabled) setMinimumWidth(child->sizeHint().width());
-                if(verticalDisabled) setMinimumHeight(child->sizeHint().height());
+                // QWidget uses -1 for an unspecified hint, not a minimum size.
+                const auto hint=child->sizeHint();
+                if(horizontalDisabled) setMinimumWidth(std::max(0,hint.width()));
+                if(verticalDisabled) setMinimumHeight(std::max(0,hint.height()));
             }
         }
     };

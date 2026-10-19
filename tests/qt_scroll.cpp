@@ -6,6 +6,13 @@
 #include <stdexcept>
 
 namespace {
+    bool invalidMinimumWarning=false;
+    struct CaptureMinimumWarnings {
+        QtMessageHandler previous=qInstallMessageHandler([](QtMsgType,const QMessageLogContext &,const QString & message) {
+            if(message.contains("Negative sizes")) invalidMinimumWarning=true;
+        });
+        ~CaptureMinimumWarnings() {qInstallMessageHandler(previous);}
+    };
     void require(bool value, const char * message) { if(!value) throw std::runtime_error(message); }
     void settle() {
         for(int i = 0; i < 4; ++i) {
@@ -45,6 +52,14 @@ int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
         require(std::signbit(CPPUI::ScrollEnd) && !std::signbit(0.0), "end anchor lost negative zero");
+        {
+            CaptureMinimumWarnings warnings;
+            CPPUI::Qt::ScrollWidget scroll(false,false,{},{});
+            scroll.setWidget(new QWidget()); // A bare native widget has no size hint.
+            scroll.fitDisabledAxes();
+            require(!invalidMinimumWarning && scroll.minimumSize()==QSize(0,0),
+                    "an unspecified content size became a negative scroll minimum");
+        }
         {
             Root root(argc, argv); root.sync(); settle();
             auto scroll = root.native();
