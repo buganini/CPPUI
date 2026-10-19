@@ -53,6 +53,7 @@ namespace CPPUI {
             };
             std::unique_ptr<Commands> commands;
             friend class Tabs;
+            friend class Box;
             struct Observer {
                 lv_obj_t * object;
                 Node * owner;

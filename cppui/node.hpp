@@ -86,6 +86,16 @@ namespace CPPUI {
         return SizeBinding(sizeState);
     }
 
+    namespace detail {
+        inline bool adaptiveHorizontal(Node & node,int threshold,bool width) {
+            auto owner=node.parent;
+            while(owner && owner->is_virtual && owner->parent!=owner) owner=owner->parent;
+            const auto size=owner && owner!=&node ? owner->size().get() : Optional<Size>();
+            const bool primary=size && (width ? size->width : size->height)>=threshold;
+            return width ? primary : !primary;
+        }
+    }
+
     inline Node & Node::visible(bool value,const VisibilityBounds & bounds) {
         if(bounds.constrained()) {
             auto owner=parent;

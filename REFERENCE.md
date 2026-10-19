@@ -11,6 +11,7 @@ are described in the component sections and backend plans.
 |[Window](#window)|QMainWindow|screen_active|wxFrame|
 |[HBox](#box-layouts)|QHBoxLayout|flex_flow|wxBoxSizer|
 |[VBox](#box-layouts)|QVBoxLayout|flex_flow|wxBoxSizer|
+|[HVBox / VHBox](#adaptive-box-layouts)|QBoxLayout|flex_flow|wxBoxSizer|
 |[Grid / Stack](#grid-and-stack)|QGridLayout / QStackedLayout|Native grid / shared native grid cell|wxGridBagSizer / wxPanel + overlay wxSizer|
 |[Spacer](#spacer)|QSpacerItem|transparent flex item|wxSizer stretch spacer|
 |[Divider](#divider)|QFrame|flex-axis separator|wxStaticLine|
@@ -1423,7 +1424,7 @@ Qt measures the content rectangle minus layout margins; Window uses its central
 widget. wx measures a sizer's allocated size or a window's client size. LVGL
 measures the content area excluding padding/borders. Measurements are coalesced
 and published after layout; unchanged dimensions do not trigger another redraw.
-Only nodes used by `.size()` or constrained `.visible()` install observers.
+Only nodes used by `.size()`, constrained `.visible()` or adaptive boxes install observers.
 Existing Qt/wx `Window::size(width, height)` and Qt `Modal::size(width, height)`
 continue to set the preferred size; zero arguments observe the actual size.
 
@@ -1447,3 +1448,28 @@ parent's content size, skipping virtual ancestors. Before that size is known,
 constrained branches remain hidden and their children are not mounted. Passing
 `false` still hides the branch regardless of bounds. Showing it later restores
 its retained controls and refreshes frozen nested views.
+
+## Adaptive box layouts
+
+`HVBox(int minWidth)` arranges children horizontally when the nearest physical
+parent's content width is at least `minWidth`, and vertically otherwise.
+`VHBox(int minHeight)` arranges them vertically when that parent's content
+height is at least `minHeight`, and horizontally otherwise. Unknown measurements
+use the second direction. Virtual views are skipped when choosing the parent.
+Thresholds use native logical pixels and compare the parent's whole content
+area, not the space remaining after siblings.
+
+```cpp
+for(auto box: CPPUI::HVBox(600)) {
+    CPPUI::Label("Name");
+    CPPUI::TextField(name);
+    CPPUI::Button("Save");
+}
+```
+
+Qt, wx and LVGL change the existing native container's direction, retaining its
+children, editor drafts and cursor positions. Sizing and modifiers follow
+HBox/VBox. Qt and LVGL dividers/spacers follow the new direction. Like PUI,
+wx Divider keeps its creation-time line orientation. These layouts do not wrap
+children into multiple rows. CPPUI has no Textual backend, so PUI's separate
+terminal-cell APIs (`tsize`, `tlayout`, `tstyle` and terminal bounds) are not exposed.

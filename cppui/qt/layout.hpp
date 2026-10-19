@@ -38,6 +38,18 @@ namespace CPPUI {
                 }
             }
         };
+
+        class AdaptiveBox: public HBox {
+            bool horizontal;
+            public:
+            AdaptiveBox(int threshold,bool width):horizontal(::CPPUI::detail::adaptiveHorizontal(*this,threshold,width)) {}
+            void update(BaseLayout * prev) override {
+                HBox::update(prev);
+                qtlayout->setDirection(horizontal ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom);
+            }
+        };
+        class HVBox: public AdaptiveBox { public: explicit HVBox(int minWidth):AdaptiveBox(minWidth,true) {} };
+        class VHBox: public AdaptiveBox { public: explicit VHBox(int minHeight):AdaptiveBox(minHeight,false) {} };
     }
     inline Qt::HBox & HBox() {
         return *(new Qt::HBox());
@@ -45,6 +57,8 @@ namespace CPPUI {
     inline Qt::VBox & VBox() {
         return *(new Qt::VBox());
     }
+    inline Qt::HVBox & HVBox(int minWidth) { return *new Qt::HVBox(minWidth); }
+    inline Qt::VHBox & VHBox(int minHeight) { return *new Qt::VHBox(minHeight); }
 }
 
 #endif

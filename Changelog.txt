@@ -1,4 +1,5 @@
 2026-10-20
+    * Adaptive boxes: add HVBox(minWidth)/VHBox(minHeight) on Qt/wx/LVGL with retained native containers, editor drafts/cursors and parent-size subscriptions; sync committed local PUI efda649
     * Cookbook: share the Adaptive recipe with measured container size, a 600-pixel breakpoint and shared input state; sync committed local PUI b4771b8, excluding uncommitted work and AI/Web tooling
 
 2026-10-19

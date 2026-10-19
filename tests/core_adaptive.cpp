@@ -15,6 +15,10 @@ struct Node:CPPUI::Node {
     }
     void destroy(bool) override {}
 };
+struct Box:Node {
+    bool horizontal;
+    Box(int threshold,bool width):horizontal(CPPUI::detail::adaptiveHorizontal(*this,threshold,width)) {}
+};
 static Node & node() {return *(new Node());}
 struct Root:CPPUI::View {
     std::function<void()> build;
@@ -58,6 +62,35 @@ int main() {
             callback(-20,-5);require(binding.get()->width==0 && binding.get()->height==0,"negative size was not clamped");
             remove=true;root.redraw();before=root.builds;callback(800,300);
             require(root.builds==before && stops==1,"removed observer continued publishing or failed cleanup");
+        }
+        {
+            Root root;bool present=true;
+            root.build=[&]() {
+                if(!present) return;
+                for(auto container:node()) {
+                    auto & wrapper=node();wrapper.is_virtual=true;
+                    for(auto scope:wrapper) {
+                        for(auto box:(new Box(600,true))->id("width")) node();
+                        for(auto box:(new Box(400,false))->id("height")) node();
+                    }
+                }
+            };
+            root.redraw();auto state=root.children->front()->sizeState;
+            auto boxes=[&]() {return root.children->front()->children->front()->children;};
+            require(!static_cast<Box *>(boxes()->front())->horizontal && static_cast<Box *>(boxes()->back())->horizontal,
+                "unknown size did not choose the fallback direction");
+            auto first=boxes()->front()->ui,second=boxes()->back()->ui,editor=boxes()->front()->children->front()->ui;
+            for(auto size:{CPPUI::Size(600,400),CPPUI::Size(599,399),CPPUI::Size(900,700),CPPUI::Size(400,200)}) {
+                state->publish(size.width,size.height);
+                require(static_cast<Box *>(boxes()->front())->horizontal==(size.width>=600) &&
+                        static_cast<Box *>(boxes()->back())->horizontal==(size.height<400),"adaptive box breakpoint failed");
+                require(boxes()->front()->ui==first && boxes()->back()->ui==second &&
+                        boxes()->front()->children->front()->ui==editor,"direction change replaced retained nodes");
+                require(!root.children->front()->children->front()->sizeState,"adaptive box observed a virtual ancestor");
+            }
+            int before=root.builds;state->publish(400,200);require(root.builds==before,"stable box geometry rebuilt");
+            present=false;root.redraw();before=root.builds;state->publish(900,700);
+            require(root.builds==before,"removed adaptive box remained subscribed");
         }
         {
             Root root;bool reverse=false;

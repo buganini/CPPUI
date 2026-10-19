@@ -12,8 +12,10 @@ namespace CPPUI {
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new Widget<QFrame>();
                 auto frame = static_cast<QFrame *>(ui);
-                frame->setFrameShape(dynamic_cast<VBox *>(dom_parent) ? QFrame::HLine
-                    : dynamic_cast<HBox *>(dom_parent) ? QFrame::VLine : QFrame::NoFrame);
+                auto box=dynamic_cast<BaseLayout *>(dom_parent);
+                const auto direction=box ? box->qtlayout->direction() : QBoxLayout::LeftToRight;
+                const bool horizontal=direction==QBoxLayout::LeftToRight || direction==QBoxLayout::RightToLeft;
+                frame->setFrameShape(!box ? QFrame::NoFrame : horizontal ? QFrame::VLine : QFrame::HLine);
                 frame->setFrameShadow(QFrame::Sunken);
             }
         };

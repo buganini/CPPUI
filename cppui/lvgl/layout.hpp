@@ -7,6 +7,7 @@
 
 namespace CPPUI { namespace LVGL {
     class Box: public Layout {
+        protected:
         bool horizontal;
         public:
         explicit Box(bool horizontal): horizontal(horizontal) {}
@@ -28,17 +29,34 @@ namespace CPPUI { namespace LVGL {
             if(!child->ui || child->is_outoforder || dynamic_cast<Divider *>(child)) return;
             auto object = static_cast<lv_obj_t *>(child->outer());
             if(horizontal) {
-                if(!child->layout_height && !dynamic_cast<Spacer *>(child))
+                if(!child->layout_height && !dynamic_cast<Spacer *>(child)) {
+                    child->saveStyle(LV_STYLE_HEIGHT);
                     lv_obj_set_height(object, dynamic_cast<Layout *>(child) ? lv_pct(100) : LV_SIZE_CONTENT);
-            } else if(!child->layout_width) lv_obj_set_width(object, lv_pct(100));
+                }
+            } else if(!child->layout_width) {
+                // Restore the child's intrinsic size before the next update:
+                // an adaptive column may become a row without remounting it.
+                child->saveStyle(LV_STYLE_WIDTH);
+                lv_obj_set_width(object, lv_pct(100));
+            }
         }
     };
     class HBox: public Box { public: HBox(): Box(true) {} };
     class VBox: public Box { public: VBox(): Box(false) {} };
+    class HVBox: public Box {
+        public:
+        explicit HVBox(int minWidth):Box(false) { horizontal=::CPPUI::detail::adaptiveHorizontal(*this,minWidth,true); }
+    };
+    class VHBox: public Box {
+        public:
+        explicit VHBox(int minHeight):Box(true) { horizontal=::CPPUI::detail::adaptiveHorizontal(*this,minHeight,false); }
+    };
 }}
 namespace CPPUI {
     inline LVGL::HBox & HBox() { return *new LVGL::HBox(); }
     inline LVGL::VBox & VBox() { return *new LVGL::VBox(); }
+    inline LVGL::HVBox & HVBox(int minWidth) { return *new LVGL::HVBox(minWidth); }
+    inline LVGL::VHBox & VHBox(int minHeight) { return *new LVGL::VHBox(minHeight); }
 }
 #include "stack.hpp"
 #include "grid.hpp"
