@@ -139,10 +139,13 @@ namespace {
         require(lv_obj_get_width(inner)==lv_obj_get_content_width(outer) && lv_obj_get_height(a)==lv_obj_get_content_height(inner),"nested Stack did not stretch to parent");
         lv_textarea_set_text(editor,"draft");
         for(int i=0;i<12;++i) {
+            auto first=lv_obj_get_child(inner,0);
             root.order=2;settle();
-            require(lv_obj_get_child(inner,0)==b && lv_obj_get_child(inner,1)==a,"independent virtual reorder lost layer order");
-            root.order=1;settle();
+            if(root.hidden) require(lv_obj_get_child(inner,0)==first,"hidden Stack reconciled frozen layer order");
+            else require(lv_obj_get_child(inner,0)==b && lv_obj_get_child(inner,1)==a,"independent virtual reorder lost layer order");
             root.hidden=!root.hidden;root.redraw();settle();
+            if(!root.hidden) require(lv_obj_get_child(inner,0)==b && lv_obj_get_child(inner,1)==a,"shown Stack did not apply pending layer order");
+            root.order=1;settle();
             require(root.native("inner")==inner && root.native("editor")==editor && std::string(lv_textarea_get_text(editor))=="draft","redraw/hide lost native state");
         }
         int removed=0;lv_obj_add_event_cb(a,deleted,LV_EVENT_DELETE,&removed);lv_obj_add_event_cb(b,deleted,LV_EVENT_DELETE,&removed);

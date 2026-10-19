@@ -157,9 +157,11 @@ namespace {
         require(lv_obj_get_style_pad_left(inner,LV_PART_MAIN)==0 && lv_obj_get_width(inner)==lv_obj_get_content_width(outer),"nested grid padding or stretch failed");
         lv_textarea_set_text(editor,"draft");
         for(int i=1;i<=12;++i) {
+            const auto before=lv_obj_get_child_count(inner);
             root.count=i;settle();
-            require(lv_obj_get_child_count(inner)==static_cast<uint32_t>(i+1),"independent view redraw did not resize native grid tracks");
+            require(lv_obj_get_child_count(inner)==(root.hidden ? before : static_cast<uint32_t>(i+1)),"grid did not respect frozen/visible child synchronization");
             root.hidden=!root.hidden;root.redraw();settle();
+            require(lv_obj_get_child_count(inner)==static_cast<uint32_t>(i+1),"shown grid did not apply pending native tracks");
             require(root.native("inner")==inner && root.native("editor")==editor && std::string(lv_textarea_get_text(editor))=="draft","hidden/redrawn grid lost retained native state");
         }
         root.hidden=false;root.redraw();root.count=0;settle();
