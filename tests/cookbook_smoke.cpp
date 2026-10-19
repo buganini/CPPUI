@@ -63,7 +63,16 @@ namespace Cookbook {
                 return 0;
             }
             auto sidebar = find(gallery, "menu-scroller")->outer();
-            TestBackend::checkLayout(gallery);
+            auto container = find(gallery,"gallery")->outer();
+            for(int width:{1200,800,1200,800}) {
+                TestBackend::resizeWindow(gallery,width,600);
+                for(int pass=0;pass<4;++pass) TestBackend::settle();
+                const auto size=find(gallery,"cookbook")->size().get();
+                require(size && (size->width>=1000)==(width>=1000),"gallery resize did not cross the measured breakpoint");
+                TestBackend::checkLayout(gallery);
+                require(find(gallery,"gallery")->outer()==container && find(gallery,"menu-scroller")->outer()==sidebar,
+                        "gallery direction change replaced a native container");
+            }
             // Revisit pages to exercise replacement and retired callback cleanup.
             for(int cycle = 0; cycle < 3; ++cycle) {
                 for(std::size_t i = 0; i < recipes().size(); ++i) {
@@ -87,6 +96,11 @@ namespace Cookbook {
                         require(field && TestBackend::editTextField(*field,"Grace",true),"adaptive shared input missing");
                         TestBackend::settle();
                         require(static_cast<std::string>(gallery.model.adaptiveName)=="Grace","adaptive input did not share model state");
+                        auto retained=find(gallery,"adaptive-retained-input");
+                        require(find(gallery,"adaptive-hvbox") && find(gallery,"adaptive-vhbox") && retained &&
+                                TestBackend::editTextField(*retained,"Ada",true),"adaptive box input missing");
+                        TestBackend::settle();
+                        require(static_cast<std::string>(gallery.model.adaptiveName)=="Ada","adaptive box input did not share model state");
                     }
                     if(std::string(recipes()[i].key) == "refs") {
                         const int before=gallery.model.postedCallbacks;
@@ -249,6 +263,10 @@ namespace Cookbook {
                         TestBackend::settle(); require(hasText(gallery, "Autocomplete value: (empty)"), "autocomplete clear failed");
                     }
                     if(std::string(recipes()[i].key) == "heavycanvas" && recipes()[i].render) {
+                        // The chart deliberately disables zoom below 320x360.
+                        // Leave enough space after the responsive menu and controls.
+                        TestBackend::resizeWindow(gallery,1200,800);
+                        for(int pass=0;pass<4;++pass) TestBackend::settle();
                         require(find(gallery, "heavy-canvas"), "HeavyCanvas is missing its chart");
                         require(TestBackend::selectCombo(*find(gallery, "heavy-samples"), 0), "HeavyCanvas sample selector missing");
                         TestBackend::settle();
@@ -269,6 +287,8 @@ namespace Cookbook {
                         TestBackend::settle(); require(hasText(gallery, "Visible: 3000 / 3000 sessions | Zoom 1.00x"), "HeavyCanvas sample count did not update");
                         require(click(gallery, "Regenerate") && click(gallery, "Reset zoom"), "HeavyCanvas controls missing");
                         TestBackend::settle();
+                        TestBackend::resizeWindow(gallery,800,600);
+                        for(int pass=0;pass<4;++pass) TestBackend::settle();
                     }
                     if(std::string(recipes()[i].key) == "maskedfield" && recipes()[i].render) {
                         require(TestBackend::editTextField(*find(gallery, "buffered-password"), "secret", false), "masked input missing");

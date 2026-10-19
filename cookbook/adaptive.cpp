@@ -21,6 +21,18 @@ namespace Cookbook {
                 CPPUI::TextField(model.adaptiveName).id("adaptive-wide-input");
                 CPPUI::Label("Shared input state");
             }
+            CPPUI::Label("HVBox: one input, retained while the direction changes");
+            for(auto box:CPPUI::HVBox(600).id("adaptive-hvbox")) {
+                CPPUI::Label("Name");
+                CPPUI::TextField(model.adaptiveName).id("adaptive-retained-input");
+                CPPUI::Button("Save");
+            }
+            CPPUI::Label("VHBox: vertical when the parent is tall enough");
+            for(auto box:CPPUI::VHBox(500).id("adaptive-vhbox")) {
+                CPPUI::Label("First");
+                CPPUI::Label("Second");
+                CPPUI::Label("Third");
+            }
             CPPUI::Spacer();
         }
     }

@@ -136,6 +136,9 @@ namespace Cookbook { namespace TestBackend {
         window->resize(800, 600);
         settle();
     }
+    void resizeWindow(CPPUI::Node & root,int width,int height) {
+        static_cast<QWidget *>(find(root,"cookbook")->outer())->resize(width,height);
+    }
     bool pageVisible(CPPUI::Node & root, const std::string & key) {
         auto scroll = static_cast<QScrollArea *>(find(root, "menu-scroller")->outer());
         auto label = static_cast<QWidget *>(find(root, "page:" + key)->outer());
@@ -146,9 +149,12 @@ namespace Cookbook { namespace TestBackend {
         auto sidebar = static_cast<QWidget *>(find(root, "menu-container")->outer());
         auto result = static_cast<QWidget *>(find(root, "result")->outer());
         auto scroll = static_cast<QScrollArea *>(find(root, "menu-scroller")->outer());
-        if(sidebar->geometry().right() >= result->geometry().left()
-           || result->width() <= sidebar->width() || result->height() < 200) {
-            throw std::runtime_error("cookbook must retain a sidebar beside an expanding result pane");
+        const auto size=find(root,"cookbook")->size().get();
+        const bool horizontal=size && size->width>=1000;
+        if((horizontal ? sidebar->geometry().right() >= result->geometry().left()
+                       : sidebar->geometry().bottom() >= result->geometry().top())
+           || (horizontal && result->width() <= sidebar->width()) || result->width() < 200 || result->height() < 200) {
+            throw std::runtime_error("cookbook must place the menu beside/above the result at its width breakpoint");
         }
         if(scroll->verticalScrollBar()->maximum() <= 0 || !scroll->widget()
            || scroll->widget()->findChildren<QLabel *>().size() != static_cast<int>(recipes().size())) {

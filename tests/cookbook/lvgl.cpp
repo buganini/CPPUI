@@ -143,6 +143,9 @@ namespace Cookbook { namespace TestBackend {
         return true;
     }
     void prepareLayoutCheck(CPPUI::Node &) {}
+    void resizeWindow(CPPUI::Node &,int width,int height) {
+        lv_display_set_resolution(lv_display_get_default(),width,height);
+    }
     bool pageVisible(CPPUI::Node & root, const std::string & key) {
         lv_obj_update_layout(lv_screen_active());
         lv_area_t viewport, label;
@@ -171,9 +174,13 @@ namespace Cookbook { namespace TestBackend {
         auto result = static_cast<lv_obj_t *>(find(root, "result")->outer());
         auto scroll = static_cast<lv_obj_t *>(find(root, "menu-scroller")->outer());
         auto list = static_cast<lv_obj_t *>(find(root, "menu-list")->outer());
-        if(lv_obj_get_x(sidebar) + lv_obj_get_width(sidebar) > lv_obj_get_x(result)
-           || lv_obj_get_width(result) <= lv_obj_get_width(sidebar) || lv_obj_get_height(result) < 200) {
-            throw std::runtime_error("cookbook must retain a sidebar beside an expanding result pane");
+        const auto size=find(root,"cookbook")->size().get();
+        const bool horizontal=size && size->width>=1000;
+        if((horizontal ? lv_obj_get_x(sidebar) + lv_obj_get_width(sidebar) > lv_obj_get_x(result)
+                       : lv_obj_get_y(sidebar) + lv_obj_get_height(sidebar) > lv_obj_get_y(result))
+           || (horizontal && lv_obj_get_width(result) <= lv_obj_get_width(sidebar))
+           || lv_obj_get_width(result) < 200 || lv_obj_get_height(result) < 200) {
+            throw std::runtime_error("cookbook must place the menu beside/above the result at its width breakpoint");
         }
         if(lv_obj_get_height(list) <= lv_obj_get_content_height(scroll)
            || lv_obj_get_child_count(list) != recipes().size() + 1

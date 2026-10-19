@@ -1,5 +1,10 @@
 # LVGL implementation progress and remaining work
 
+The 2026-10-20 sync adds `HVBox(minWidth)` and `VHBox(minHeight)`, retaining
+native containers and editor state across direction changes. The shared Adaptive
+recipe and cookbook shell follow committed local PUI `efda649`; see the
+[sync audit](pui-sync-2026-10-20.md).
+
 The 2026-10-19 sync adds frozen hidden subtrees, reactive content-size observation
 and adaptive visibility bounds, with a shared Adaptive cookbook. It follows the
 committed PUI `b4771b8` snapshot; see the [sync audit](pui-sync-2026-10-19.md).
@@ -74,8 +79,8 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: committed local PUI `b4771b8` (2026-10-19). See the
-[component audit and exclusions](pui-sync-2026-10-19.md). Native Options,
+Latest native delta audit: committed local PUI `efda649` (2026-10-20). See the
+[component audit and exclusions](pui-sync-2026-10-20.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and
 Web/Pyodide remain excluded. The earlier native baseline follows below.
@@ -126,7 +131,7 @@ must name the choice; it must not be reported as toolkit non-support. Call work
 **blocked** only when a specific dependency prevents progress, and name that
 dependency. Routine implementation choices remain part of the porting work.
 
-Public LVGL headers currently cover Application, Window, HBox/VBox, Grid/Stack, Label,
+Public LVGL headers currently cover Application, Window, HBox/VBox, HVBox/VHBox, Grid/Stack, Label,
 Button, Checkbox, RadioButton, TextField, MaskedField, ComboBox, Spacer, Divider, plain Text with raw-source
 Html/MarkDown fallbacks, Image, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
 and Canvas drawing. Shared recipes use the
