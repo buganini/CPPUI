@@ -60,12 +60,21 @@ namespace CPPUI {
             if(owner) previous=owner->children;
         }
         if(!previous) return nullptr;
-        Node * candidate=nullptr;int count=0;
-        for(auto old:*previous) if(*old==*this) {
-            if(old->declarationIndex==declarationIndex) return old;
-            candidate=old;++count;
+        // Reconciliation pairs equal identities in order. Absolute sibling
+        // indices change when an unrelated declaration is inserted/removed.
+        std::size_t ordinal=0;
+        for(auto sibling:*parent->children) {
+            if(sibling==this) break;
+            if(*sibling==*this) ++ordinal;
         }
-        return count==1 ? candidate : nullptr;
+        std::vector<Node *> candidates;
+        for(auto old:*previous) if(*old==*this) candidates.push_back(old);
+        // The mounted DOM may have been reversed or grid-sorted. Restore its
+        // declaration order before pairing anonymous siblings.
+        std::sort(candidates.begin(),candidates.end(),[](Node * a,Node * b) {
+            return a->declarationIndex<b->declarationIndex;
+        });
+        return ordinal<candidates.size() ? candidates[ordinal] : nullptr;
     }
 
     inline SizeBinding Node::size() {

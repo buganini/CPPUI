@@ -73,6 +73,20 @@ int main() {
             require(root.children->at(0)->sizeState==first && root.children->at(1)->sizeState==second,"anonymous siblings shared size state");
             require(root.children->at(2)->sizeState==b && root.children->at(3)->sizeState==a,"keyed reorder swapped size state");
         }
+        {
+            struct Prefix:Node {};
+            Root root;bool prefix=true;std::vector<int> read;
+            root.build=[&]() {
+                if(prefix) new Prefix();
+                read.clear();
+                for(int i=0;i<2;++i) {auto size=node().size().get();read.push_back(size ? size->width : -1);}
+            };
+            root.redraw();
+            root.children->at(1)->sizeState->publish(100,20);
+            root.children->at(2)->sizeState->publish(200,20);
+            prefix=false;root.redraw();
+            require(read==std::vector<int>({100,200}),"unrelated sibling removal misbound anonymous sizes during construction");
+        }
         require(starts==stops,"size observer leaked");
     }catch(const std::exception & error) {std::cerr<<error.what()<<'\n';return 1;}
 }
