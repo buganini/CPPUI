@@ -37,8 +37,9 @@ ctest --test-dir build-qt --output-on-failure
 Qt applications can link `CPPUI::qt`; Qt's imported target supplies its compiler
 requirements. CTest sets the offscreen platform for the Qt test automatically.
 The interactive examples are `cppui_minimal_qt` and `cppui_virtual_nodes` in the
-build directory. Both accept `--smoke` and run as CTest regressions, including
-Valgrind variants when enabled. Their original CMake projects under `example/`
+build directory. Their separate `_smoke` executables run as CTest regressions,
+including Valgrind variants when enabled. The [shared example sources](example/README.md)
+also build with wx and LVGL; the standalone CMake projects under `example/`
 remain usable.
 
 [Views](REFERENCE.md#views) on Qt, wx and LVGL supports internal selection or a
@@ -59,7 +60,8 @@ ctest --test-dir build-wx --output-on-failure
 ./build-wx/cppui_minimal_wx
 ```
 
-wx applications can link `CPPUI::wx`. On Linux, install `libwxgtk3.2-dev`;
+The wx examples are `cppui_minimal_wx` and `cppui_virtual_nodes_wx`, each with
+a separate `_smoke` test executable. wx applications can link `CPPUI::wx`. On Linux, install `libwxgtk3.2-dev`;
 on macOS, `brew install wxwidgets`. Native wx tests need an X/Wayland display
 (or `xvfb-run` on Linux); they are not headless widgets. Add
 `-DCPPUI_VALGRIND_TESTS=ON` in a non-sanitized build for memory checks. Linux wx
