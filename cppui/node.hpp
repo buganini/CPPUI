@@ -351,4 +351,8 @@ namespace CPPUI {
     }
 }
 
+// Standalone users also need View's inline virtual definitions (and RTTI for
+// checked/sanitized builds). view.hpp's guard breaks the normal reverse include.
+#include "view.hpp"
+
 #endif
