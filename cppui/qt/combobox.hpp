@@ -8,6 +8,10 @@
 #include <QSignalBlocker>
 #include <QPointer>
 #include <QStringList>
+#include <QStringListModel>
+#include <QCompleter>
+#include <QAbstractItemView>
+#include <QLineEdit>
 
 namespace CPPUI { namespace Qt {
     class ComboBoxItem;
@@ -19,15 +23,31 @@ namespace CPPUI { namespace Qt {
         OptionalText declaredText;
         QVariant selectedKey;
         QString freeText;
+        bool editing = false, committing = false, autoexpand = true;
+        void complete() {
+            auto completion = completer();
+            if(!autoexpand || !isEnabled() || !isVisible() || !completion) return;
+            if(count()) completion->complete();
+            else completion->popup()->hide();
+        }
+        void hideEvent(QHideEvent * event) override {
+            if(completer()) completer()->popup()->hide();
+            QComboBox::hideEvent(event);
+        }
     };
     class ComboBox: public BaseWidget {
         bool editable;
         bool isDisabled = false;
+        bool expand = true;
         Optional<Binding<int>> indexModel;
         Optional<Binding<std::string>> textModel;
+        Optional<Binding<std::string>> editBinding;
         int indexValue = -1;
         std::string textValue;
         std::function<void()> onChange;
+        std::function<void()> onInput;
+        QString editorText;
+        int editorCursor = -1, editorSelection = -1, editorSelectionLength = 0;
         public:
         ComboBox(bool editable = false, Optional<Binding<int>> indexModel = {}, Optional<Binding<std::string>> textModel = {})
             : editable(editable), indexModel(indexModel), textModel(textModel) {
@@ -35,11 +55,30 @@ namespace CPPUI { namespace Qt {
             if(textModel) textValue = textModel->get();
         }
         ComboBox & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
+        ComboBox & input(std::function<void()> callback) { onInput = std::move(callback); return *this; }
+        ComboBox & editModel(Binding<std::string> model) { editBinding = std::move(model); return *this; }
+        ComboBox & autoexpand(bool value = true) { expand = value; return *this; }
         ComboBox & disabled(bool value = true) { isDisabled = value; return *this; }
         void update(BaseWidget * prev) override {
             ui = prev && prev->ui ? prev->ui : new ComboBoxWidget();
             QSignalBlocker block(ui);
-            static_cast<QComboBox *>(ui)->setEditable(editable);
+            auto combo = static_cast<ComboBoxWidget *>(ui);
+            if(auto editor = combo->lineEdit()) {
+                editorText = editor->text(); editorCursor = editor->cursorPosition();
+                editorSelection = editor->selectionStart(); editorSelectionLength = editor->selectedText().size();
+            }
+            combo->setEditable(editable);
+            combo->autoexpand = expand;
+            if(editable && expand) {
+                if(!combo->completer() || !combo->completer()->property("cppuiCandidates").toBool()) {
+                    auto completion = new QCompleter(combo);
+                    completion->setModel(new QStringListModel(completion));
+                    completion->setProperty("cppuiCandidates", true);
+                    combo->setCompleter(completion);
+                }
+                combo->completer()->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+            } else if(editable) combo->setCompleter(nullptr);
+            if(isDisabled && combo->completer()) combo->completer()->popup()->hide();
             ui->setDisabled(isDisabled);
         }
         void addChild(int index, Node * child) override;
@@ -54,7 +93,7 @@ namespace CPPUI { namespace Qt {
             if(!ui) return;
             auto combo = static_cast<ComboBoxWidget *>(ui);
             disconnectSignals();
-            {
+            if(!combo->committing) {
                 QSignalBlocker block(combo);
                 int index = -1;
                 QString text;
@@ -63,21 +102,40 @@ namespace CPPUI { namespace Qt {
                     else if(editable) text = textModel ? QString::fromStdString(textValue) : combo->freeText;
                 } else if(textModel) {
                     text = QString::fromStdString(textValue);
-                    index = combo->findData(text);
+                    if(!editable || !combo->editing || text != combo->freeText) index = combo->findData(text);
                     if(index >= 0) text = combo->itemText(index);
                 } else {
                     if(combo->selectedKey.isValid()) index = combo->findData(combo->selectedKey, ComboBoxWidget::IdentityRole);
                     if(index >= 0) text = combo->itemText(index);
                     else if(editable) text = combo->freeText;
                 }
-                if(combo->itemsChanged || !combo->declaredIndex || *combo->declaredIndex != index) combo->setCurrentIndex(index);
+                auto editor = combo->lineEdit();
+                const auto oldText = editor ? editor->text() : QString();
+                const int cursor = editor ? editor->cursorPosition() : -1;
+                const int selection = editor ? editor->selectionStart() : -1;
+                const int length = editor ? editor->selectedText().size() : 0;
+                if(combo->currentIndex() != index) combo->setCurrentIndex(index);
                 // Read-only text follows the selected index. setCurrentText()
                 // would select the first duplicate label and lose value identity.
-                if(editable && (combo->itemsChanged || !combo->declaredText || *combo->declaredText != text.toStdString())) combo->setCurrentText(text);
+                if(editable && combo->currentText() != text) combo->setCurrentText(text);
+                if(editor && oldText == text) {
+                    if(selection >= 0 && length) editor->setSelection(selection, length);
+                    else editor->setCursorPosition(cursor);
+                } else if(editor && editorCursor >= 0 && editorText == text) {
+                    if(editorSelection >= 0 && editorSelectionLength) editor->setSelection(editorSelection, editorSelectionLength);
+                    else editor->setCursorPosition(editorCursor);
+                }
                 combo->declaredIndex = index;
                 combo->declaredText = text.toStdString();
             }
             combo->itemsChanged = false;
+            if(editable && combo->completer()) {
+                auto model = static_cast<QStringListModel *>(combo->completer()->model());
+                QStringList labels;
+                for(int i = 0; i < combo->count(); ++i) labels.append(combo->itemText(i));
+                if(model->stringList() != labels) model->setStringList(labels);
+                if(labels.isEmpty()) combo->completer()->popup()->hide();
+            }
             auto indexBinding = indexModel;
             auto textBinding = textModel;
             auto callback = onChange;
@@ -92,6 +150,7 @@ namespace CPPUI { namespace Qt {
                 // Save native state before a binding can redraw or remove us.
                 alive->selectedKey = valid ? alive->itemData(index, ComboBoxWidget::IdentityRole) : QVariant();
                 alive->freeText = valid ? alive->itemText(index) : QString();
+                alive->editing = false;
                 try {
                     if(indices) indices->set(index);
                     if(texts) texts->set(value);
@@ -99,22 +158,50 @@ namespace CPPUI { namespace Qt {
                 } catch(const std::exception & error) { std::cerr << "CPPUI ComboBox index: " << error.what() << '\n'; }
                 catch(...) { std::cerr << "CPPUI ComboBox index: unknown exception\n"; }
             }));
-            if(editable) connectSignal(QObject::connect(combo, &QComboBox::currentTextChanged, combo, [alive, indexBinding, textBinding, callback](const QString & text) {
+            auto draft = editBinding; auto inputCallback = onInput;
+            auto edited = [alive, indexBinding, textBinding, callback, draft, inputCallback](const QString & text, bool user) {
                 auto indices = indexBinding;
                 auto texts = textBinding;
                 auto invoke = callback;
-                if(!alive) return;
+                auto edits = draft; auto input = inputCallback;
+                if(!alive || alive->committing || !alive->isEnabled()) return;
                 const int index = alive->currentIndex();
                 // A native selection also changes its displayed label; commit
                 // the item's value only through currentIndexChanged.
-                if(index >= 0 && index < alive->count() && text == alive->itemText(index)) return;
+                if(!user && index >= 0 && index < alive->count() && text == alive->itemText(index)) return;
                 const auto value = text.toStdString();
+                const bool changed = !alive->editing || alive->freeText != text;
                 alive->selectedKey.clear();
                 alive->freeText = text;
-                try { if(indices) indices->set(-1); if(texts) texts->set(value); if(invoke) invoke(); }
+                alive->editing = true; alive->committing = true;
+                {
+                    QSignalBlocker block(alive.data());
+                    auto editor = alive->lineEdit();
+                    const int cursor = editor->cursorPosition();
+                    alive->setCurrentIndex(-1); alive->setEditText(text); editor->setCursorPosition(cursor);
+                }
+                try {
+                    if(changed) { if(indices) indices->set(-1); if(texts) texts->set(value); }
+                    if(user) { if(edits) edits->set(value); if(input) input(); }
+                    if(changed && invoke) invoke();
+                }
                 catch(const std::exception & error) { std::cerr << "CPPUI ComboBox text: " << error.what() << '\n'; }
                 catch(...) { std::cerr << "CPPUI ComboBox text: unknown exception\n"; }
-            }));
+                if(alive) {
+                    alive->committing = false;
+                    // Query writes may rebuild the candidate items synchronously.
+                    if(auto completion = alive->completer()) {
+                        QStringList labels;
+                        for(int i = 0; i < alive->count(); ++i) labels.append(alive->itemText(i));
+                        static_cast<QStringListModel *>(completion->model())->setStringList(labels);
+                    }
+                    if(user) alive->complete();
+                }
+            };
+            if(editable) {
+                connectSignal(QObject::connect(combo, &QComboBox::currentTextChanged, combo, [edited](const QString & text) { edited(text, false); }));
+                connectSignal(QObject::connect(combo->lineEdit(), &QLineEdit::textEdited, combo, [edited](const QString & text) { edited(text, true); }));
+            }
         }
     };
     class ComboBoxItem: public Node {

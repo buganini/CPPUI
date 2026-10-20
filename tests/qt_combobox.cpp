@@ -2,6 +2,7 @@
 #include "cppui/qt/application.hpp"
 #include "cppui/qt/window.hpp"
 #include <QPointer>
+#include <QTest>
 #include <stdexcept>
 
 namespace {
@@ -67,10 +68,70 @@ namespace {
         }
         QComboBox * native() { return static_cast<QComboBox *>(children->front()->children->front()->outer()); }
     };
+    class CompletionRoot: public CPPUI::Application {
+    public:
+        using Application::Application;
+        CPPUI::State<std::string> value{std::string()}, query{std::string("not the display")};
+        bool show = true, enabled = true, expand = true, filter = false, empty = false;
+        int inputs = 0, changes = 0;
+        std::function<void()> action;
+        void content() override {
+            const auto input = static_cast<std::string>(query);
+            for(auto window: CPPUI::Window().size(500, 300)) if(show) {
+                for(auto combo: CPPUI::ComboBox(true, value).editModel(query).autoexpand(expand).disabled(!enabled)
+                        .input([this]() { ++inputs; if(action) action(); }).change([this]() { ++changes; })) {
+                    if(!empty) {
+                        // Deliberately unrelated to the query: matching belongs to the application.
+                        CPPUI::ComboBoxItem("Amsterdam", "AMS");
+                        if(!filter || input.empty()) CPPUI::ComboBoxItem("Tokyo Haneda", "HND");
+                    }
+                }
+            }
+        }
+        QComboBox * native() { return static_cast<QComboBox *>(children->front()->children->front()->outer()); }
+    };
 }
 int main(int argc, char ** argv) {
     QApplication qt(argc, argv);
     try {
+        {
+            CompletionRoot root(argc, argv); root.sync(); settle();
+            auto combo = root.native(); auto editor = combo->lineEdit();
+            require(editor->text().isEmpty(), "edit model unexpectedly drove the display");
+            combo->setFocus(); root.filter = true;
+            QTest::keyClicks(editor, "tai tok"); settle();
+            require(root.native() == combo && combo->lineEdit() == editor && editor->text() == "tai tok"
+                && static_cast<std::string>(root.value) == "tai tok" && static_cast<std::string>(root.query) == "tai tok"
+                && root.inputs == 7 && root.changes == 7, "reactive typing lost text, bindings, editor or callback count");
+            require(combo->count() == 1 && combo->completer()->completionModel()->rowCount() == 1
+                && combo->completer()->popup()->isVisible(), "application candidates were filtered again or failed to open");
+            editor->setSelection(1, 3); root.sync(); settle();
+            require(editor->selectionStart() == 1 && editor->selectedText() == "ai ", "redraw lost editor selection");
+            root.filter = false; root.sync(); settle();
+            QTest::keyClick(combo->completer()->popup(), ::Qt::Key_Escape); settle();
+            require(editor->text() == "tai tok" && !combo->completer()->popup()->isVisible(), "Escape changed draft or left candidates open");
+            editor->selectAll(); QTest::keyClicks(editor, "AMS"); settle();
+            require(editor->text() == "AMS" && combo->currentIndex() == -1, "typing an item value replaced it with the label");
+            auto popup = combo->completer()->popup();
+            QTest::keyClick(popup, ::Qt::Key_Down); QTest::keyClick(popup, ::Qt::Key_Return); settle();
+            require(editor->text() == "Amsterdam" && static_cast<std::string>(root.value) == "AMS"
+                && static_cast<std::string>(root.query) == "AMS", "candidate selection lost label/value or wrote edit model");
+            root.expand = false; root.sync(); settle();
+            require(!combo->completer() && combo->lineEdit() == editor, "autoexpand toggle replaced editor or retained completion");
+            editor->selectAll(); QTest::keyClicks(editor, "free"); settle();
+            require(editor->text() == "free" && static_cast<std::string>(root.query) == "free", "autoexpand off blocked free input");
+            root.expand = true; root.empty = true; root.sync();
+            QTest::keyClicks(editor, "x"); settle();
+            require(!combo->completer()->popup()->isVisible(), "empty candidates opened a popup");
+            root.empty = false; root.sync(); QTest::keyClicks(editor, "y"); settle();
+            root.enabled = false; root.sync(); settle();
+            require(!combo->completer()->popup()->isVisible(), "disabling left candidates visible");
+            root.enabled = true; root.sync();
+            QPointer<QWidget> removed(combo);
+            root.action = [&]() { root.show = false; root.sync(); };
+            QTest::keyClicks(editor, "z"); settle();
+            require(!removed, "input callback removal retained native control");
+        }
         for(bool editable: {false, true}) {
             Root root(argc, argv); root.editable = editable; root.sync();
             auto combo = root.native();

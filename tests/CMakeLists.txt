@@ -249,7 +249,7 @@ if(CPPUI_BUILD_QT)
     cppui_add_test(qt.scroll cppui_qt_scroll)
 
     add_executable(cppui_qt_combobox qt_combobox.cpp)
-    target_link_libraries(cppui_qt_combobox PRIVATE CPPUI::qt)
+    target_link_libraries(cppui_qt_combobox PRIVATE CPPUI::qt Qt6::Test)
     cppui_add_test(qt.combobox cppui_qt_combobox)
 
     add_executable(cppui_qt_radiobutton qt_radiobutton.cpp)
