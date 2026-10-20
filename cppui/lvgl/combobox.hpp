@@ -27,15 +27,54 @@ namespace CPPUI { namespace LVGL {
         struct Runtime: std::enable_shared_from_this<Runtime> {
             ComboBox * current = nullptr;
             lv_obj_t * object = nullptr, * dropdown = nullptr, * editor = nullptr;
+            lv_display_t * display = nullptr;
+            lv_area_t geometry{};
+            bool positioning = false;
             std::vector<Choice> items;
             std::vector<int> visible;
             std::vector<std::string> key;
             std::string freeText, options;
-            int selected = -1;
-            bool applying = false, committing = false, filtering = false, openingSuggestions = false;
+            int selected = -1, highlighted = -1;
+            bool applying = false, committing = false, editing = false;
             ~Runtime() {
+                if(display) lv_display_remove_event_cb_with_user_data(display, layoutEvent, this);
                 for(auto child: {object, dropdown, editor})
-                    if(child) lv_obj_remove_event_cb_with_user_data(child, event, this);
+                    if(child) { lv_obj_remove_event_cb_with_user_data(child, event, this);
+                        lv_obj_remove_event_cb_with_user_data(child, keyEvent, this); }
+            }
+            static void layoutEvent(lv_event_t * event) {
+                auto self = static_cast<Runtime *>(lv_event_get_user_data(event));
+                if(lv_event_get_code(event) == LV_EVENT_DELETE) { self->display = nullptr; return; }
+                if(self->positioning || !self->object || !self->dropdown || !lv_dropdown_is_open(self->dropdown)) return;
+                if(!lv_obj_is_visible(self->object)) { lv_dropdown_close(self->dropdown); return; }
+                lv_area_t area; lv_obj_get_coords(self->dropdown, &area);
+                if(area.x1 != self->geometry.x1 || area.y1 != self->geometry.y1 || area.x2 != self->geometry.x2 || area.y2 != self->geometry.y2) {
+                    self->geometry = area; self->positioning = true;
+                    lv_dropdown_open(self->dropdown);
+                    self->positioning = false;
+                }
+            }
+            static void keyEvent(lv_event_t * event) {
+                auto self = static_cast<Runtime *>(lv_event_get_user_data(event))->shared_from_this();
+                if(self->applying || !self->current || self->current->isDisabled || !self->dropdown) return;
+                const auto key = lv_event_get_key(event);
+                if(key == LV_KEY_ESC || key == LV_KEY_NEXT || key == LV_KEY_PREV) {
+                    lv_event_stop_processing(event); lv_dropdown_close(self->dropdown);
+                } else if(lv_dropdown_is_open(self->dropdown) && !self->visible.empty()) {
+                    if(key == LV_KEY_UP || key == LV_KEY_DOWN) {
+                        lv_event_stop_processing(event);
+                        const int count = self->visible.size();
+                        self->highlighted = self->highlighted < 0 ? (key == LV_KEY_DOWN ? 0 : count - 1)
+                            : (self->highlighted + (key == LV_KEY_DOWN ? 1 : count - 1)) % count;
+                        lv_dropdown_set_selected(self->dropdown, self->highlighted);
+                        lv_dropdown_set_selected_highlight(self->dropdown, true);
+                    } else if(key == LV_KEY_ENTER && self->highlighted >= 0) {
+                        lv_event_stop_processing(event);
+                        try { self->current->chosen(); }
+                        catch(const std::exception & error) { std::fprintf(stderr, "CPPUI LVGL ComboBox: %s\n", error.what()); }
+                        catch(...) { std::fprintf(stderr, "CPPUI LVGL ComboBox: unknown exception\n"); }
+                    }
+                }
             }
             static void event(lv_event_t * event) {
                 auto self = static_cast<Runtime *>(lv_event_get_user_data(event))->shared_from_this();
@@ -49,12 +88,11 @@ namespace CPPUI { namespace LVGL {
                 }
                 if(self->applying || !self->current || self->current->isDisabled) return;
                 try {
-                    if(code == LV_EVENT_READY && target == self->dropdown && !self->openingSuggestions) {
-                        self->filtering = false;
-                        self->current->postSync();
-                    } else if(code == LV_EVENT_VALUE_CHANGED) {
+                    if(code == LV_EVENT_VALUE_CHANGED) {
                         if(target == self->editor) self->current->typed();
                         else if(target == self->dropdown) self->current->chosen();
+                    } else if(target == self->editor && (code == LV_EVENT_DEFOCUSED || code == LV_EVENT_LEAVE)) {
+                        if(self->dropdown) lv_dropdown_close(self->dropdown);
                     } else if(target == self->dropdown && self->selected < 0 && !lv_dropdown_is_open(target)
                               && (code == LV_EVENT_RELEASED || (code == LV_EVENT_KEY && lv_event_get_key(event) == LV_KEY_ENTER))) {
                         // LVGL suppresses VALUE_CHANGED when keyboard Enter
@@ -66,30 +104,26 @@ namespace CPPUI { namespace LVGL {
             }
         };
         std::shared_ptr<Runtime> runtime;
-        bool editable, isDisabled = false;
+        bool editable, isDisabled = false, expand = true;
         Optional<Binding<int>> indexModel;
         Optional<Binding<std::string>> textModel;
+        Optional<Binding<std::string>> editBinding;
         int indexValue = -1;
         std::string textValue;
         std::function<void()> onChange;
+        std::function<void()> onInput;
         void retire() { if(runtime && runtime->current == this) runtime->current = nullptr; }
-        static bool startsWith(const std::string & label, const std::string & prefix) {
-            if(label.size() < prefix.size()) return false;
-            for(std::size_t i = 0; i < prefix.size(); ++i) {
-                auto lower = [](unsigned char c) { return c >= 'A' && c <= 'Z' ? c + ('a'-'A') : c; };
-                if(lower(label[i]) != lower(prefix[i])) return false;
-            }
-            return true;
-        }
-        void changed(int index, const std::string & value) {
+        void changed(int index, const std::string & value, bool user = false) {
             // Bindings can synchronously redraw/remove the declaration. Retain
             // only copied bindings/callbacks across the first application write.
             auto indices = indexModel; auto texts = textModel; auto invoke = onChange;
+            auto edits = editBinding; auto input = onInput;
             auto state = runtime;
             state->committing = true;
             try {
                 if(indices) indices->set(index);
                 if(texts) texts->set(value);
+                if(user) { if(edits) edits->set(value); if(input) input(); }
                 if(invoke) invoke();
             } catch(...) { state->committing = false; throw; }
             state->committing = false;
@@ -103,34 +137,36 @@ namespace CPPUI { namespace LVGL {
             const int index = state->visible[position];
             const auto item = state->items[index];
             state->key = item.key; state->freeText = item.text; state->selected = index;
+            state->editing = false; state->highlighted = -1;
+            lv_dropdown_close(state->dropdown);
             // Update unbound controls too; native text must be current before writes.
             display(index, item.text);
             changed(index, item.value);
+            if(state->editor && state->current) lv_group_focus_obj(state->editor);
         }
         void typed() {
             auto state = runtime;
             const std::string value = lv_textarea_get_text(state->editor);
             state->key.clear(); state->freeText = value; state->selected = -1;
-            state->filtering = true;
+            state->editing = true; state->highlighted = -1;
             display(-1, value);
-            state->openingSuggestions = true;
-            if(!value.empty() && !state->visible.empty()) lv_dropdown_open(state->dropdown);
-            else lv_dropdown_close(state->dropdown);
-            state->openingSuggestions = false;
-            changed(-1, value);
+            changed(-1, value, true);
+            if(state->current && state->dropdown) {
+                if(state->current->expand && !state->current->isDisabled && state->current->ancestorsVisible()
+                    && state->current->layoutVisible() && !state->visible.empty()) lv_dropdown_open(state->dropdown);
+                else lv_dropdown_close(state->dropdown);
+            }
         }
         void display(int selected, const std::string & text) {
             auto state = runtime;
             if(!state || !state->dropdown) return;
             state->applying = true;
             state->selected = selected;
-            if(selected >= 0 || text != state->freeText) state->filtering = false;
             std::string options;
             state->visible.clear();
             int nativeIndex = 0;
             for(std::size_t i = 0; i < state->items.size(); ++i) {
                 const auto & item = state->items[i];
-                if(state->filtering && !text.empty() && !startsWith(item.text, text)) continue;
                 if(!state->visible.empty()) options += '\n';
                 // LVGL uses newline as its option separator; keep one item per row.
                 auto label = item.text;
@@ -140,6 +176,7 @@ namespace CPPUI { namespace LVGL {
                 state->visible.push_back(i);
             }
             if(state->options != options) {
+                state->highlighted = -1;
                 // LVGL 9.6's popup label borrows the option buffer, but
                 // set_options frees that buffer without rebinding the label.
                 auto label = lv_obj_get_child(lv_dropdown_get_list(state->dropdown), 0);
@@ -147,15 +184,15 @@ namespace CPPUI { namespace LVGL {
                 lv_dropdown_set_options(state->dropdown, options.c_str()); state->options = options;
                 lv_label_set_text_static(label, lv_dropdown_get_options(state->dropdown));
             }
-            lv_dropdown_set_selected(state->dropdown, nativeIndex);
-            lv_dropdown_set_selected_highlight(state->dropdown, selected >= 0);
+            lv_dropdown_set_selected(state->dropdown, selected < 0 && state->highlighted >= 0 ? state->highlighted : nativeIndex);
+            lv_dropdown_set_selected_highlight(state->dropdown, selected >= 0 || state->highlighted >= 0);
             lv_dropdown_set_text(state->dropdown, editable || selected < 0 ? "" : nullptr);
             lv_obj_set_state(state->dropdown, LV_STATE_DISABLED, isDisabled || state->items.empty());
             if(state->editor) {
                 lv_obj_set_state(state->editor, LV_STATE_DISABLED, isDisabled);
                 if(text != lv_textarea_get_text(state->editor)) lv_textarea_set_text(state->editor, text.c_str());
             }
-            if(isDisabled || state->visible.empty()) lv_dropdown_close(state->dropdown);
+            if(isDisabled || !layoutVisible() || !ancestorsVisible() || state->visible.empty()) lv_dropdown_close(state->dropdown);
             else if(lv_dropdown_is_open(state->dropdown)) lv_dropdown_open(state->dropdown);
             state->applying = false;
         }
@@ -167,6 +204,9 @@ namespace CPPUI { namespace LVGL {
         }
         std::size_t typecode() const override { return Node::typecode() ^ (editable ? 0x7123U : 0U); }
         ComboBox & change(std::function<void()> callback) { onChange = std::move(callback); return *this; }
+        ComboBox & input(std::function<void()> callback) { onInput = std::move(callback); return *this; }
+        ComboBox & editModel(Binding<std::string> model) { editBinding = std::move(model); return *this; }
+        ComboBox & autoexpand(bool value = true) { expand = value; return *this; }
         ComboBox & disabled(bool value = true) { isDisabled = value; return *this; }
         ~ComboBox() override { retire(); }
         void destroy(bool direct) override { retire(); Node::destroy(direct); }
@@ -191,13 +231,19 @@ namespace CPPUI { namespace LVGL {
                     runtime->dropdown = lv_dropdown_create(runtime->object);
                     lv_obj_set_width(runtime->dropdown, 40);
                     lv_obj_add_event_cb(runtime->editor, Runtime::event, LV_EVENT_ALL, runtime.get());
+                    lv_obj_add_event_cb(runtime->editor, Runtime::keyEvent, static_cast<lv_event_code_t>(LV_EVENT_KEY | LV_EVENT_PREPROCESS), runtime.get());
                     lv_obj_add_event_cb(runtime->object, Runtime::event, LV_EVENT_DELETE, runtime.get());
                 } else runtime->object = runtime->dropdown = lv_dropdown_create(parentObject);
                 lv_dropdown_set_options(runtime->dropdown, "");
                 lv_obj_add_event_cb(runtime->dropdown, Runtime::event, LV_EVENT_ALL, runtime.get());
                 ui = runtime->object;
+                runtime->display = lv_obj_get_display(runtime->object);
+                lv_display_add_event_cb(runtime->display, Runtime::layoutEvent, LV_EVENT_UPDATE_LAYOUT_COMPLETED, runtime.get());
+                lv_display_add_event_cb(runtime->display, Runtime::layoutEvent, LV_EVENT_DELETE, runtime.get());
             }
             runtime->current = this;
+            if(runtime->dropdown && (isDisabled || !layoutVisible() || !ancestorsVisible() || (prev && prev->expand && !expand)))
+                lv_dropdown_close(runtime->dropdown);
         }
         void addChild(int index, ::CPPUI::Node * child) override {
             if(auto item = dynamic_cast<ComboBoxItem *>(child))
@@ -223,7 +269,8 @@ namespace CPPUI { namespace LVGL {
                 else if(editable) text = textModel ? textValue : runtime->freeText;
             } else if(textModel) {
                 text = textValue;
-                for(std::size_t i = 0; i < items.size(); ++i) if(items[i].value == textValue) { index = i; break; }
+                if(!editable || !runtime->editing || text != runtime->freeText)
+                    for(std::size_t i = 0; i < items.size(); ++i) if(items[i].value == textValue) { index = i; break; }
             } else {
                 if(editable) text = runtime->freeText;
                 for(std::size_t i = 0; !runtime->key.empty() && i < items.size(); ++i)
