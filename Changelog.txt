@@ -1,4 +1,5 @@
 2026-10-20
+    * Modifiers: add C++11 typed named layout/style arguments in arbitrary order, with compile-time domain checks and direct field application; retain positional APIs and demonstrate named calls in shared cookbook recipes
     * Qt Scroll: clamp unspecified native size hints before setting minimum dimensions, eliminating negative-size warnings during responsive gallery changes
     * Cookbook: sync PUI efda649 adaptive box examples and use HVBox(1000) for a responsive gallery; retain shared source across all backends
     * Adaptive boxes: add HVBox(minWidth)/VHBox(minHeight) on Qt/wx/LVGL with retained native containers, editor drafts/cursors and parent-size subscriptions; sync committed local PUI efda649

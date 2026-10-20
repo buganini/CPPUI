@@ -6,23 +6,24 @@ using namespace CPPUI;
 namespace Cookbook {
     namespace {
         void button(Model & model) {
-            for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+            for(auto column: CPPUI::VBox().layout(layout::weight(1))) {
                 for(auto row: CPPUI::HBox()) {
                     CPPUI::Label(static_cast<std::string>(model.buttonValue));
                     Button("A").click([&model]() { model.buttonValue = std::string("A"); });
                     Button("B").click([&model]() { model.buttonValue = std::string("B"); });
                     Button("Disabled").disabled().click([&model]() { model.buttonValue = std::string("Disabled"); });
-                    CPPUI::Button("Styled").style(0xff0000, {}, 20);
+                    CPPUI::Button("Styled").style(style::color(0xff0000), style::fontSize(20));
                     CPPUI::Spacer();
                 }
                 CPPUI::Spacer();
             }
         }
         void label(Model & model) {
-            for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
+            for(auto column: CPPUI::VBox().layout(layout::weight(1))) {
                 CPPUI::Checkbox("Show greeting",model.greetingVisible);
                 CPPUI::Label("Hello World").visible(model.greetingVisible);
-                CPPUI::Label("Big Yellow").style(0xffff00, 0xff0000, 20);
+                CPPUI::Label("Big Yellow")
+                    .style(style::color(0xffff00), style::bgColor(0xff0000), style::fontSize(20));
                 CPPUI::Label("No <b>HTML</b>");
                 CPPUI::Spacer();
             }
@@ -36,14 +37,14 @@ namespace Cookbook {
                 }
                 for(auto row: CPPUI::HBox()) {
                     CPPUI::Label("Column 1");
-                    CPPUI::Label("Column 2").layout({}, {}, 1);
+                    CPPUI::Label("Column 2").layout(layout::weight(1));
                     CPPUI::Label("Column 3");
                 }
             }
             CPPUI::Spacer();
         }
         void vbox(Model &) {
-            for(auto column: CPPUI::VBox().layout({}, {}, 1).id("spacer-column")) {
+            for(auto column: CPPUI::VBox().layout(layout::weight(1)).id("spacer-column")) {
                 CPPUI::Label("Row 1");
                 CPPUI::Divider();
                 CPPUI::Label("Row 2");

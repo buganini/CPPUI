@@ -149,7 +149,39 @@ their `Optional<T>` arguments and `{}` omission syntax below.
 Nodes expose PUI's `.layout(...)`, `.style(...)` and `.qt(...)` APIs. These are
 ports of [PUI's node modifiers](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/node.py)
 and [Qt parameter application](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py).
-C++ arguments follow the Python keyword order; `{}` omits an argument:
+C++ supports typed named arguments in any order on Qt, wx and LVGL:
+
+```cpp
+namespace layout = CPPUI::layout;
+namespace style = CPPUI::style;
+
+CPPUI::Label("Hello")
+    .layout(layout::width(200), layout::weight(1), layout::padding(8, 12))
+    .style(style::color(0xffffff), style::bgColor(0x222222), style::fontSize(16));
+
+CPPUI::Label("Body").style(style::fontFamily("Sans"));
+```
+
+The layout argument helpers are `width(int)`, `height(int)`, `weight(int)`,
+`padding(...)` and `margin(...)`. The style helpers are `color(int)`,
+`bgColor(int)`, `fontSize(int)`, `fontWeight(int)` and `fontFamily(std::string)`.
+`padding`/`margin` accept an `Insets` or one to four integers in the order
+described below. `fontFamily` accepts string literals directly and owns its
+string value.
+
+Each helper produces a distinct argument type. The modifier dispatches by type,
+without string keys, maps or runtime key lookup; numeric and inset argument
+wrappers require no heap allocation. Node fields still use the existing
+`Optional<T>` storage, which allocates when holding a value. Named arguments do
+not remove those allocations or any allocations required by string contents.
+Wrong argument domains (such as `style::color` in `.layout()`) fail to compile.
+Named and positional arguments cannot be mixed within one call, but separate
+calls can use either form. Repeated keys apply left to right, with the last value
+winning. A negative dimension/weight/font size rejects the whole call before
+changing any fields.
+
+The existing positional arguments follow the Python keyword order; `{}` omits
+an argument. The names below describe the order, not C++ assignment syntax:
 
 ```cpp
 .layout(width = {}, height = {}, weight = {}, padding = {}, margin = {})
@@ -184,11 +216,13 @@ for(auto column: CPPUI::VBox().layout({}, {}, 1, CPPUI::Insets(12))) {
 ```
 
 `Insets` accepts one value (all sides), two (vertical, horizontal), three
-(top, horizontal, bottom), or four (top, right, bottom, left). Pass an explicit
-`Insets(...)`; C++ cannot implicitly convert an integer through both Insets and
-Optional. Use `std::string(...)` for a font-family literal for the same reason.
+(top, horizontal, bottom), or four (top, right, bottom, left). With positional
+arguments, pass an explicit `Insets(...)`; C++ cannot implicitly convert an
+integer through both Insets and Optional. Use `std::string(...)` for a positional
+font-family literal for the same reason. Named helpers avoid these conversions.
 **Reference limitations:** `margin` and `fontWeight` are stored but not applied
-by the pinned PUI Qt implementation. CPPUI keeps that behavior on both backends.
+by the pinned PUI Qt implementation. CPPUI's Qt backend keeps that behavior;
+other backends apply properties according to their native support.
 Virtual/model-only nodes have no native size or appearance to modify.
 
 Qt dimensions override preferred `sizeHint()`, not minimum/maximum dimensions;

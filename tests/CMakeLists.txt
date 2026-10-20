@@ -131,6 +131,11 @@ target_link_libraries(cppui_core_optional PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_optional PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 cppui_add_test(core.optional cppui_core_optional)
 
+add_executable(cppui_core_modifiers core_modifiers.cpp)
+target_link_libraries(cppui_core_modifiers PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_modifiers PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.modifiers cppui_core_modifiers)
+
 add_executable(cppui_core_binding core_binding.cpp)
 target_link_libraries(cppui_core_binding PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_binding PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)

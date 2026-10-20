@@ -20,11 +20,13 @@ namespace {
         void content() override {
             for(auto window: CPPUI::Window()) {
                 auto & column = CPPUI::VBox(); column.id("box");
-                if(phase == 0) column.layout({}, {}, {}, CPPUI::Insets(1, 2, 3, 4));
+                if(phase == 0) column.layout(CPPUI::layout::padding(1, 2, 3, 4));
                 if(phase == 1) column.layout({}, {}, {}, CPPUI::Insets(0));
                 for(auto scope: column) {
                     auto & label = CPPUI::Label("text"); label.id("label");
-                    if(phase == 0) label.layout(160, 45, 2).style(0xff0000, 0x123456, 20);
+                    if(phase == 0) label
+                        .layout(CPPUI::layout::height(45), CPPUI::layout::weight(2), CPPUI::layout::width(160))
+                        .style(CPPUI::style::fontSize(20), CPPUI::style::bgColor(0x123456), CPPUI::style::color(0xff0000));
                     if(phase == 1) label.layout(0, 0, 0).style(0, 0);
                     CPPUI::Button("styled").style(0xffff00, {}, 20).id("button");
                     const auto vertical = phase == 0 ? CPPUI::Optional<bool>() : CPPUI::Optional<bool>(phase == 1);

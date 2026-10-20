@@ -32,7 +32,7 @@ namespace {
                 if(phase == 0) {
                     CPPUI::QtOptions options;
                     options.SizeConstraint = QLayout::SetMinAndMaxSize;
-                    column.layout({}, {}, {}, CPPUI::Insets(1, 2, 3, 4)).qt(options);
+                    column.layout(CPPUI::layout::padding(1, 2, 3, 4)).qt(options);
                 } else if(phase == 1) column.layout({}, {}, {}, CPPUI::Insets(0));
                 for(auto scope: column) {
                     auto & label = CPPUI::Label("text"); label.id("label");
@@ -42,7 +42,9 @@ namespace {
                         options.VerticalPolicy = QSizePolicy::Maximum;
                         options.Style = nativeStyle;
                         options.StyleSheet = CPPUI::QtStyleSheet{{"border-width", "2px"}};
-                        label.layout(160, {}, 3).layout({}, 45).style(0xff0000, 0x123456, 20, {}, std::string("Sans"));
+                        label.layout(CPPUI::layout::weight(3), CPPUI::layout::width(160)).layout({}, 45)
+                            .style(CPPUI::style::fontFamily("Sans"), CPPUI::style::fontSize(20),
+                                   CPPUI::style::color(0xff0000), CPPUI::style::bgColor(0x123456));
                         label.qt(options);
                         CPPUI::QtOptions replacement;
                         replacement.StyleSheet = CPPUI::QtStyleSheet{{"color", "#000000"}, {"font", "16pt"}};

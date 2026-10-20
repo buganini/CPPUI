@@ -143,6 +143,56 @@ namespace CPPUI {
             if(fontFamily) style_fontfamily = fontFamily;
             return *this;
         }
+
+        template<class First, class... Rest>
+        typename std::enable_if<detail::AreModifierArguments<detail::LayoutKey, First, Rest...>::value, Node &>::type
+        layout(First && first, Rest &&... rest) {
+            return applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
+        }
+        template<class First, class... Rest>
+        typename std::enable_if<detail::AreModifierArguments<detail::StyleKey, First, Rest...>::value, Node &>::type
+        style(First && first, Rest &&... rest) {
+            return applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
+        }
+
+        private:
+        template<class Argument>
+        static void validateModifier(const Argument &) {}
+        static void validateModifier(CPPUI::layout::Width argument) {
+            if(argument.value < 0) throw std::invalid_argument("Layout dimensions and weight must be non-negative");
+        }
+        static void validateModifier(CPPUI::layout::Height argument) {
+            if(argument.value < 0) throw std::invalid_argument("Layout dimensions and weight must be non-negative");
+        }
+        static void validateModifier(CPPUI::layout::Weight argument) {
+            if(argument.value < 0) throw std::invalid_argument("Layout dimensions and weight must be non-negative");
+        }
+        static void validateModifier(CPPUI::style::FontSize argument) {
+            if(argument.value < 0) throw std::invalid_argument("Font size must be non-negative");
+        }
+        void applyModifier(CPPUI::layout::Width argument) { layout_width = argument.value; }
+        void applyModifier(CPPUI::layout::Height argument) { layout_height = argument.value; }
+        void applyModifier(CPPUI::layout::Weight argument) { layout_weight = argument.value; }
+        void applyModifier(CPPUI::layout::Padding argument) { layout_padding = argument.value; }
+        void applyModifier(CPPUI::layout::Margin argument) { layout_margin = argument.value; }
+        void applyModifier(CPPUI::style::Color argument) { style_color = argument.value; }
+        void applyModifier(CPPUI::style::BgColor argument) { style_bgcolor = argument.value; }
+        void applyModifier(CPPUI::style::FontSize argument) { style_fontsize = argument.value; }
+        void applyModifier(CPPUI::style::FontWeight argument) { style_fontweight = argument.value; }
+        void applyModifier(CPPUI::style::FontFamily argument) { style_fontfamily = std::move(argument.value); }
+
+        template<class... Arguments>
+        Node & applyModifiers(Arguments &&... arguments) {
+            // Validate the whole call before changing fields. Array initializer
+            // clauses are sequenced left-to-right in C++11 (last value wins).
+            const int checked[] = {0, (validateModifier(arguments), 0)...};
+            const int applied[] = {0, (applyModifier(std::forward<Arguments>(arguments)), 0)...};
+            (void)checked;
+            (void)applied;
+            return *this;
+        }
+
+        public:
         // Non-Qt nodes accept backend options without applying them, like PUI.
         virtual Node & qt(const QtOptions &) { return *this; }
 

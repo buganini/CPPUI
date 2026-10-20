@@ -160,7 +160,7 @@ public:
     void content() override {
         for(auto w: CPPUI::Window().size(width,240)) for(auto v: CPPUI::VBox()) {
             auto & field=CPPUI::TextField(text).id("column-field");
-            if(explicitSize) field.layout(160,44);
+            if(explicitSize) field.layout(CPPUI::layout::height(44),CPPUI::layout::width(160));
             for(auto row: CPPUI::HBox()) {
                 CPPUI::Label("Field").id("row-label");
                 CPPUI::TextField(text).id("row-field");
