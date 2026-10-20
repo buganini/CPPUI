@@ -1,4 +1,5 @@
 2026-10-20
+    * PUI audit: review committed local 2544344, a Textual-only tLayout/tStyle rename; update reference terminology and sync records without native code changes
     * Cookbook: sync PUI 2b4b528 wide modifier example, keep the gallery horizontal at narrow widths, and open all four native variants at 1024x768 without maximizing
     * LVGL Window: support size(width, height) on owned SDL2/X11 desktop hosts, preserve user resizing across unchanged declarations, and leave borrowed display resolutions to their owners
     * Adaptive modifiers: port PUI 5761500 wideLayout/wideStyle parent-width overrides with named and positional arguments, declaration-order precedence and retained native nodes

@@ -1556,4 +1556,4 @@ children, editor drafts and cursor positions. Sizing and modifiers follow
 HBox/VBox. Qt and LVGL dividers/spacers follow the new direction. Like PUI,
 wx Divider keeps its creation-time line orientation. These layouts do not wrap
 children into multiple rows. CPPUI has no Textual backend, so PUI's separate
-terminal-cell APIs (`tsize`, `tlayout`, `tstyle` and terminal bounds) are not exposed.
+terminal-cell APIs (`tsize`, `tLayout`, `tStyle` and terminal bounds) are not exposed.

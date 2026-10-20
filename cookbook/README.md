@@ -18,8 +18,9 @@ including bound Tab selection. Each executable links only its selected toolkit.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are audited through committed PUI `2b4b528` (2026-10-20),
-matching local HEAD and public main at inspection;
+Native additions are audited through committed local PUI `2544344` (2026-10-20);
+public main was still at `2b4b528` at inspection. The latest commit only renames
+Textual's `tLayout`/`tStyle` APIs and requires no native cookbook changes;
 uncommitted PUI work, AI development and Web/Pyodide changes are excluded.
 See the [sync audit](../doc/pui-sync-2026-10-20.md).
 Adaptive displays reactive container dimensions and switches compact/wide layouts
