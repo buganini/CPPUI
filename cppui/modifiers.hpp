@@ -62,13 +62,14 @@ namespace CPPUI {
         using BgColor = detail::ModifierArgument<detail::StyleKey, detail::StyleKey::BgColor, int>;
         using FontSize = detail::ModifierArgument<detail::StyleKey, detail::StyleKey::FontSize, int>;
         using FontWeight = detail::ModifierArgument<detail::StyleKey, detail::StyleKey::FontWeight, int>;
-        using FontFamily = detail::ModifierArgument<detail::StyleKey, detail::StyleKey::FontFamily, std::string>;
+        using FontFamily = detail::ModifierArgument<detail::StyleKey, detail::StyleKey::FontFamily, const char *>;
 
         inline Color color(int value) { return {value}; }
         inline BgColor bgColor(int value) { return {value}; }
         inline FontSize fontSize(int value) { return {value}; }
         inline FontWeight fontWeight(int value) { return {value}; }
-        inline FontFamily fontFamily(std::string value) { return {std::move(value)}; }
+        // Borrow a null-terminated string for the declaration's lifetime.
+        inline FontFamily fontFamily(const char * value) { return {value}; }
     }
 
     struct QtOptions;

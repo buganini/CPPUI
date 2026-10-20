@@ -100,7 +100,7 @@ namespace CPPUI {
         inline QString styleSheet(const Node & node, const QtOptions & options) {
             std::map<std::string, std::string> styles;
             if(node.style_fontsize) styles["font"] = std::to_string(*node.style_fontsize) + "pt";
-            if(node.style_fontfamily) styles["font-family"] = *node.style_fontfamily;
+            if(node.style_fontfamily) styles["font-family"] = node.style_fontfamily;
             if(node.style_color) styles["color"] = QColor(*node.style_color).name().toStdString();
             if(node.style_bgcolor) styles["background-color"] = QColor(*node.style_bgcolor).name().toStdString();
             if(options.StyleSheet) for(const auto & entry: *options.StyleSheet) styles[entry.first] = entry.second;

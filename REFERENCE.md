@@ -179,16 +179,25 @@ CPPUI::Label("Body").style(style::fontFamily("Sans"));
 
 The layout argument helpers are `width(int)`, `height(int)`, `weight(int)`,
 `padding(...)` and `margin(...)`. The style helpers are `color(int)`,
-`bgColor(int)`, `fontSize(int)`, `fontWeight(int)` and `fontFamily(std::string)`.
+`bgColor(int)`, `fontSize(int)`, `fontWeight(int)` and `fontFamily(const char*)`.
 `padding`/`margin` accept an `Insets` or one to four integers in the order
-described below. `fontFamily` accepts string literals directly and owns its
-string value.
+described below. `fontFamily` borrows a null-terminated string without copying
+its contents. Use a string literal or keep the caller's buffer alive at the same
+address for the entire node declaration lifetime, including while retained or
+hidden. For a caller-owned `std::string`, pass `.c_str()` and keep that string
+alive without operations that invalidate its buffer. Do not pass a temporary
+string's `.c_str()`.
+
+For font family, `nullptr` means omitted and `""` means an explicit empty value.
+Neither argument form copies or owns the supplied text; native toolkits may
+copy it when applying the style. Owning results such as dialog text still use
+`OptionalText` (`Optional<std::string>`).
 
 Each helper produces a distinct argument type. The modifier dispatches by type,
 without string keys, maps or runtime key lookup; numeric and inset argument
 wrappers require no heap allocation. Node fields use inline `Optional<T>`
 storage, so numeric and inset modifiers need no additional heap allocation in
-either argument form. String contents may still allocate.
+either argument form. Font family is stored as a nullable borrowed pointer.
 Wrong argument domains (such as `style::color` in `.layout()`) fail to compile.
 Named and positional arguments cannot be mixed within one call, but separate
 calls can use either form. Repeated keys apply left to right, with the last value
@@ -200,7 +209,7 @@ an argument. The names below describe the order, not C++ assignment syntax:
 
 ```cpp
 .layout(width = {}, height = {}, weight = {}, padding = {}, margin = {})
-.style(color = {}, bgColor = {}, fontSize = {}, fontWeight = {}, fontFamily = {})
+.style(color = {}, bgColor = {}, fontSize = {}, fontWeight = {}, fontFamily = nullptr)
 .qt(const CPPUI::QtOptions & options)
 ```
 
@@ -216,8 +225,8 @@ axis, and padding adds spacing. Start with the defaults for ordinary controls;
 see the backend mappings below when a design needs more control.
 
 Dimensions, weight, colors and font size/weight use `Optional<int>`; padding and
-margin use `Optional<Insets>`, and font family uses `OptionalText`. Strings and
-option maps are copied. Repeated calls merge supplied values on that declaration.
+margin use `Optional<Insets>`, and font family uses a borrowed `const char*`.
+Qt option maps are copied. Repeated calls merge supplied values on that declaration.
 A fresh declaration without a formerly supplied property restores the native
 default during redraw. Zero is an explicit value, including black (`0x000000`),
 zero size, zero weight and `Insets(0)`. Dimensions/weights/font sizes reject
@@ -226,15 +235,15 @@ negative values. Modifiers return the borrowed `Node&` for immediate chaining.
 ```cpp
 for(auto column: CPPUI::VBox().layout({}, {}, 1, CPPUI::Insets(12))) {
     CPPUI::Label("Heading").style(0x336699, {}, 20);
-    CPPUI::Label("Body").layout(200, 40).style({}, {}, {}, {}, std::string("Sans"));
+    CPPUI::Label("Body").layout(200, 40).style({}, {}, {}, {}, "Sans");
 }
 ```
 
 `Insets` accepts one value (all sides), two (vertical, horizontal), three
 (top, horizontal, bottom), or four (top, right, bottom, left). With positional
 arguments, pass an explicit `Insets(...)`; C++ cannot implicitly convert an
-integer through both Insets and Optional. Use `std::string(...)` for a positional
-font-family literal for the same reason. Named helpers avoid these conversions.
+integer through both Insets and Optional. Named inset helpers avoid these
+conversions. Both font-family forms accept a string literal directly.
 **Reference limitations:** `margin` and `fontWeight` are stored but not applied
 by the pinned PUI Qt implementation. CPPUI's Qt backend keeps that behavior;
 other backends apply properties according to their native support.

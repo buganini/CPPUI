@@ -26,7 +26,8 @@ namespace {
                     auto & label = CPPUI::Label("text"); label.id("label");
                     if(phase == 0) label
                         .layout(CPPUI::layout::height(45), CPPUI::layout::weight(2), CPPUI::layout::width(160))
-                        .style(CPPUI::style::fontSize(20), CPPUI::style::bgColor(0x123456), CPPUI::style::color(0xff0000));
+                        .style(CPPUI::style::fontSize(20), CPPUI::style::bgColor(0x123456),
+                               CPPUI::style::color(0xff0000), CPPUI::style::fontFamily("Montserrat"));
                     if(phase == 1) label.layout(0, 0, 0).style(0, 0);
                     CPPUI::Button("styled").style(0xffff00, {}, 20).id("button");
                     const auto vertical = phase == 0 ? CPPUI::Optional<bool>() : CPPUI::Optional<bool>(phase == 1);

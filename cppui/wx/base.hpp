@@ -268,7 +268,7 @@ namespace CPPUI { namespace Wx {
             }
             auto font = native->font;
             if(style_fontsize && *style_fontsize > 0) font.SetPointSize(*style_fontsize);
-            if(style_fontfamily) font.SetFaceName(wxString::FromUTF8(*style_fontfamily));
+            if(style_fontfamily) font.SetFaceName(wxString::FromUTF8(style_fontfamily));
             if(style_fontweight) font.SetWeight(*style_fontweight >= 600 ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
             if(ui->GetFont() != font) ui->SetFont(font);
             auto foreground = style_color ? colour(*style_color) : native->foreground;

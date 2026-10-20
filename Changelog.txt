@@ -1,4 +1,5 @@
 2026-10-20
+    * Style: borrow fontFamily as a nullable const char pointer in both named and positional APIs; callers retain string storage while owning dialog and model results keep OptionalText
     * Optional: store values inline with C++11 union storage, eliminating per-value wrapper allocations; preserve empty/moved-from semantics and test alignment, allocation counts, move-only values and throwing construction
     * Modifiers: add C++11 typed named layout/style arguments in arbitrary order, with compile-time domain checks and direct field application; retain positional APIs and demonstrate named calls in shared cookbook recipes
     * Qt Scroll: clamp unspecified native size hints before setting minimum dimensions, eliminating negative-size warnings during responsive gallery changes

@@ -160,7 +160,8 @@ public:
     void content() override {
         for(auto w: CPPUI::Window().size(width,240)) for(auto v: CPPUI::VBox()) {
             auto & field=CPPUI::TextField(text).id("column-field");
-            if(explicitSize) field.layout(CPPUI::layout::height(44),CPPUI::layout::width(160));
+            if(explicitSize) field.layout(CPPUI::layout::height(44),CPPUI::layout::width(160))
+                                 .style(CPPUI::style::fontFamily("Monospace"));
             for(auto row: CPPUI::HBox()) {
                 CPPUI::Label("Field").id("row-label");
                 CPPUI::TextField(text).id("row-field");
@@ -173,6 +174,7 @@ static void textFieldSizing(int argc,char **argv) {
     TextFieldSizingRoot root(argc,argv);root.sync();pump();
     auto column=ui<wxTextCtrl>(root,"column-field");
     auto row=ui<wxTextCtrl>(root,"row-field");
+    const auto originalFont=column->GetFont();
     for(auto field: {column,row}) {
         require(field->GetMinSize()==wxDefaultSize, "TextField imposed a default minimum size");
         require(field->GetSize().GetWidth()>field->GetBestSize().GetWidth(), "TextField did not expand horizontally");
@@ -189,11 +191,14 @@ static void textFieldSizing(int argc,char **argv) {
         && column->GetSize().GetHeight()==columnSize.GetHeight() && row->GetSize().GetHeight()==rowSize.GetHeight(),
         "TextField resize did not preserve horizontal expansion at native height");
     root.explicitSize=true;root.sync();pump();
+    auto requestedFont=originalFont;requestedFont.SetFaceName("Monospace");
     require(column->GetMinSize()==wxSize(160,44) && column->GetSize().GetHeight()==44,
         "TextField ignored explicit layout dimensions");
+    require(column->GetFont()==requestedFont, "borrowed font family was not applied");
     root.explicitSize=false;root.sync();pump();
     require(column->GetMinSize()==wxDefaultSize && column->GetSize().GetHeight()==columnSize.GetHeight(),
         "TextField retained removed layout dimensions");
+    require(column->GetFont()==originalFont, "omitted font family did not restore the default");
 }
 static void htmlSizing(int argc,char **argv) {
     HtmlSizingRoot root(argc,argv);root.sync();pump();

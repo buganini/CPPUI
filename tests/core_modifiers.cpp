@@ -1,4 +1,5 @@
 #include "cppui/node.hpp"
+#include <cstring>
 #include <iostream>
 #include <type_traits>
 #include <utility>
@@ -40,6 +41,8 @@ namespace {
     static_assert(!AcceptsLayout<std::string>::value && !AcceptsStyle<std::string>::value, "untyped strings accepted");
     static_assert(std::is_trivially_copyable<CPPUI::layout::Width>::value, "numeric arguments should be plain values");
     static_assert(std::is_trivially_copyable<CPPUI::layout::Padding>::value, "inset arguments should be plain values");
+    static_assert(std::is_trivially_copyable<CPPUI::style::FontFamily>::value, "font family arguments should only borrow text");
+    static_assert(!AcceptsStyle<int, int, int, int, std::string>::value, "owning strings should require an explicit borrowed pointer");
 
     template<class Action>
     void rejects(Action action) {
@@ -60,7 +63,7 @@ int main() {
             .style(style::fontFamily("Sans"), style::fontWeight(700), style::bgColor(0x222222),
                    style::fontSize(16), style::color(0xffffff));
         positional.layout(200, 40, 2, CPPUI::Insets(8, 12), CPPUI::Insets(1, 2, 3, 4))
-                  .style(0xffffff, 0x222222, 16, 700, std::string("Sans"));
+                  .style(0xffffff, 0x222222, 16, 700, "Sans");
         require(&result == &named, "named modifiers did not return the borrowed node");
         require(*named.layout_width == *positional.layout_width && *named.layout_height == *positional.layout_height &&
                 *named.layout_weight == *positional.layout_weight &&
@@ -68,7 +71,7 @@ int main() {
                 equal(*named.layout_margin, *positional.layout_margin), "named layout differs from positional layout");
         require(*named.style_color == *positional.style_color && *named.style_bgcolor == *positional.style_bgcolor &&
                 *named.style_fontsize == *positional.style_fontsize && *named.style_fontweight == *positional.style_fontweight &&
-                *named.style_fontfamily == *positional.style_fontfamily, "named style differs from positional style");
+                std::strcmp(named.style_fontfamily, positional.style_fontfamily) == 0, "named style differs from positional style");
 
         named.layout(layout::width(0)).layout({}, {}, 0).style(style::color(0)).style({}, {}, 20);
         named.layout().style().layout({}).style({});
@@ -79,12 +82,20 @@ int main() {
         require(*named.layout_width == 30 && *named.style_fontsize == 18, "duplicate arguments did not apply left-to-right");
 
         const auto width = layout::width(250);
-        auto family = style::fontFamily(std::string(80, 'A'));
+        std::string familyOwner(80, 'A');
+        auto family = style::fontFamily(familyOwner.c_str());
         named.layout(width).style(family);
-        family.value[0] = 'B';
-        require(*named.layout_width == 250 && named.style_fontfamily->front() == 'A', "saved arguments do not own independent values");
+        require(*named.layout_width == 250 && named.style_fontfamily == familyOwner.c_str(),
+                "font family was copied instead of borrowed");
+        familyOwner[0] = 'B';
+        require(named.style_fontfamily[0] == 'B', "font family no longer refers to the caller's storage");
+        named.style(style::fontFamily(nullptr)).style({}, {}, {}, {}, nullptr);
+        require(named.style_fontfamily == familyOwner.c_str(), "null font family cleared a previous override");
         named.style(style::fontFamily(""));
-        require(named.style_fontfamily && named.style_fontfamily->empty(), "empty font family was treated as absent");
+        require(named.style_fontfamily && !*named.style_fontfamily, "empty font family was treated as absent");
+        positional.style({}, {}, {}, {}, familyOwner.c_str());
+        require(positional.style_fontfamily == familyOwner.c_str(), "positional font family was copied");
+        positional.style({}, {}, {}, {}, "");
 
         require(equal(layout::padding(4).value, CPPUI::Insets(4)) &&
                 equal(layout::padding(1, 2, 3).value, CPPUI::Insets(1, 2, 3)) &&

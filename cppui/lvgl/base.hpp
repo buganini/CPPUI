@@ -3,6 +3,7 @@
 
 #include <lvgl.h>
 #include <cstdio>
+#include <cstring>
 #include <memory>
 
 #ifndef CPPUI_LVGL_BASE
@@ -244,7 +245,7 @@ namespace CPPUI {
         };
 
         inline const lv_font_t * Node::resolveFont() const {
-            if(style_fontfamily && !style_fontfamily->empty() && *style_fontfamily != "Montserrat")
+            if(style_fontfamily && *style_fontfamily && std::strcmp(style_fontfamily, "Montserrat") != 0)
                 throw std::invalid_argument("LVGL style fontFamily supports only configured Montserrat fonts");
             const lv_font_t * best = LV_FONT_DEFAULT;
             if(!style_fontsize) return best;

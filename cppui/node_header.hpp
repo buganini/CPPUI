@@ -120,7 +120,7 @@ namespace CPPUI {
         Optional<int> layout_width, layout_height, layout_weight;
         Optional<Insets> layout_padding, layout_margin;
         Optional<int> style_color, style_bgcolor, style_fontsize, style_fontweight;
-        OptionalText style_fontfamily;
+        const char * style_fontfamily = nullptr;
 
         Node & layout(Optional<int> width = {}, Optional<int> height = {}, Optional<int> weight = {},
                       Optional<Insets> padding = {}, Optional<Insets> margin = {}) {
@@ -134,7 +134,7 @@ namespace CPPUI {
             return *this;
         }
         Node & style(Optional<int> color = {}, Optional<int> bgColor = {}, Optional<int> fontSize = {},
-                     Optional<int> fontWeight = {}, OptionalText fontFamily = {}) {
+                     Optional<int> fontWeight = {}, const char * fontFamily = nullptr) {
             if(fontSize && *fontSize < 0) throw std::invalid_argument("Font size must be non-negative");
             if(color) style_color = color;
             if(bgColor) style_bgcolor = bgColor;
@@ -179,7 +179,9 @@ namespace CPPUI {
         void applyModifier(CPPUI::style::BgColor argument) { style_bgcolor = argument.value; }
         void applyModifier(CPPUI::style::FontSize argument) { style_fontsize = argument.value; }
         void applyModifier(CPPUI::style::FontWeight argument) { style_fontweight = argument.value; }
-        void applyModifier(CPPUI::style::FontFamily argument) { style_fontfamily = std::move(argument.value); }
+        void applyModifier(CPPUI::style::FontFamily argument) {
+            if(argument.value) style_fontfamily = argument.value;
+        }
 
         template<class... Arguments>
         Node & applyModifiers(Arguments &&... arguments) {
