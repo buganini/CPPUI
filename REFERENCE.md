@@ -144,6 +144,21 @@ need `Optional<T>`: `disabled` defaults to false, and an omitted or empty
 placeholder both mean no hint. Existing positional layout/style modifiers keep
 their `Optional<T>` arguments and `{}` omission syntax below.
 
+`Optional<T>` stores its value inline in aligned union storage plus a presence
+flag. An empty Optional does not construct `T`; holding, copying or moving a
+scalar value requires no separate heap allocation. The Optional reserves room
+for `T` even while empty. Strings, containers and other payloads can still
+allocate their own contents.
+
+Copies own independent values. A successful move empties the source; transfer
+uses a copy when `T` has a potentially throwing move and supports copying.
+Move operations are `noexcept` only when the selected transfer constructor is
+non-throwing. Assignment first constructs its incoming value, then replaces the
+old one: failure to construct the incoming value preserves the destination;
+failure during the final replacement leaves the destination empty and usable.
+Payload pointers/references do not follow moves to another Optional and must
+not be retained across replacement, reset or destruction.
+
 ## PUI modifiers
 
 Nodes expose PUI's `.layout(...)`, `.style(...)` and `.qt(...)` APIs. These are
@@ -171,9 +186,9 @@ string value.
 
 Each helper produces a distinct argument type. The modifier dispatches by type,
 without string keys, maps or runtime key lookup; numeric and inset argument
-wrappers require no heap allocation. Node fields still use the existing
-`Optional<T>` storage, which allocates when holding a value. Named arguments do
-not remove those allocations or any allocations required by string contents.
+wrappers require no heap allocation. Node fields use inline `Optional<T>`
+storage, so numeric and inset modifiers need no additional heap allocation in
+either argument form. String contents may still allocate.
 Wrong argument domains (such as `style::color` in `.layout()`) fail to compile.
 Named and positional arguments cannot be mixed within one call, but separate
 calls can use either form. Repeated keys apply left to right, with the last value
