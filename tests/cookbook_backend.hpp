@@ -16,6 +16,7 @@ namespace Cookbook {
     bool editTable(CPPUI::Node & node, int row, int column, const std::string & value);
     bool atScrollEnd(CPPUI::Node & node);
     bool selectCombo(CPPUI::Node & node, int index);
+    bool typeCombo(CPPUI::Node & node, const std::string & text);
     bool selectRadio(CPPUI::Node & node);
     bool editTextField(CPPUI::Node & node, const std::string & text, bool commit);
     bool clickButton(CPPUI::Node & node, const std::string & text);

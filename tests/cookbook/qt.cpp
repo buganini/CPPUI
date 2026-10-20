@@ -62,6 +62,13 @@ namespace Cookbook { namespace TestBackend {
         if(!combo || !combo->ui) return false;
         static_cast<QComboBox *>(combo->ui)->setCurrentIndex(index); return true;
     }
+    bool typeCombo(CPPUI::Node & node, const std::string & text) {
+        auto combo = dynamic_cast<CPPUI::Qt::ComboBox *>(&node);
+        if(!combo || !combo->ui) return false;
+        auto editor = static_cast<QComboBox *>(combo->ui)->lineEdit();
+        if(!editor) return false;
+        editor->selectAll(); editor->insert(QString::fromStdString(text)); return true;
+    }
     bool selectRadio(CPPUI::Node & node) {
         auto widget = dynamic_cast<CPPUI::Qt::BaseWidget *>(&node);
         auto radio = widget ? qobject_cast<QRadioButton *>(widget->ui) : nullptr;

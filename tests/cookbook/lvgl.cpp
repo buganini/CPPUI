@@ -41,6 +41,13 @@ namespace Cookbook { namespace TestBackend {
         lv_obj_send_event(dropdown, LV_EVENT_VALUE_CHANGED, nullptr);
         return true;
     }
+    bool typeCombo(CPPUI::Node & node, const std::string & text) {
+        auto combo = dynamic_cast<CPPUI::LVGL::ComboBox *>(&node);
+        if(!combo || !combo->ui) return false;
+        auto editor = lv_obj_get_child(static_cast<lv_obj_t *>(combo->ui), 0);
+        if(!editor || !lv_obj_check_type(editor, &lv_textarea_class)) return false;
+        lv_textarea_set_text(editor, text.c_str()); return true;
+    }
     bool wheelCanvas(CPPUI::Node & node, int delta) {
         auto canvas = dynamic_cast<CPPUI::LVGL::Canvas *>(&node);
         if(!canvas || !canvas->ui) return false;

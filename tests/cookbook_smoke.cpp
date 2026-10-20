@@ -266,6 +266,16 @@ namespace Cookbook {
                         TestBackend::settle(); require(hasText(gallery, "Autocomplete value: TPE"), "autocomplete stored its label instead of the code");
                         require(click(gallery, "Clear autocomplete"), "autocomplete clear missing");
                         TestBackend::settle(); require(hasText(gallery, "Autocomplete value: (empty)"), "autocomplete clear failed");
+                        require(TestBackend::typeCombo(*find(gallery, "combo-autocomplete"), "  TAI\t tok  "), "autocomplete editor missing");
+                        TestBackend::settle();
+                        auto candidates = find(gallery, "combo-autocomplete");
+                        require(candidates->children->size() == 4, "application whitespace/OR matching did not retain four candidates");
+                        require(TestBackend::selectCombo(*candidates, 2), "filtered autocomplete choice missing");
+                        TestBackend::settle(); require(hasText(gallery, "Autocomplete value: HND"), "filtered candidate used wrong index/value");
+                        require(click(gallery, "Clear autocomplete"), "autocomplete clear missing after selection");
+                        TestBackend::settle();
+                        require(find(gallery, "combo-autocomplete")->children->size() == 9 && hasText(gallery, "Autocomplete value: (empty)"),
+                            "clear did not reset both query and selected value");
                     }
                     if(std::string(recipes()[i].key) == "heavycanvas" && recipes()[i].render) {
                         // The chart deliberately disables zoom below 320x360.
