@@ -128,11 +128,10 @@ namespace Cookbook { namespace TestBackend {
     }
     void prepareLayoutCheck(CPPUI::Node & root) {
         auto window = static_cast<QMainWindow *>(find(root, "cookbook")->outer());
-        if(!window->isMaximized() || window->windowTitle() != QString::fromStdString(title)) {
-            throw std::runtime_error("cookbook should open maximized with its window title");
+        if(window->isMaximized() || window->size()!=QSize(1024,768) || window->windowTitle() != QString::fromStdString(title)) {
+            throw std::runtime_error("cookbook should open at 1024x768 without maximizing, with its window title");
         }
         // Force an overflowing list independently of the host's screen size.
-        window->showNormal();
         window->resize(800, 600);
         settle();
     }
@@ -149,12 +148,9 @@ namespace Cookbook { namespace TestBackend {
         auto sidebar = static_cast<QWidget *>(find(root, "menu-container")->outer());
         auto result = static_cast<QWidget *>(find(root, "result")->outer());
         auto scroll = static_cast<QScrollArea *>(find(root, "menu-scroller")->outer());
-        const auto size=find(root,"cookbook")->size().get();
-        const bool horizontal=size && size->width>=1000;
-        if((horizontal ? sidebar->geometry().right() >= result->geometry().left()
-                       : sidebar->geometry().bottom() >= result->geometry().top())
-           || (horizontal && result->width() <= sidebar->width()) || result->width() < 200 || result->height() < 200) {
-            throw std::runtime_error("cookbook must place the menu beside/above the result at its width breakpoint");
+        if(sidebar->geometry().right() >= result->geometry().left()
+           || result->width() <= sidebar->width() || result->width() < 200 || result->height() < 200) {
+            throw std::runtime_error("cookbook must keep the menu beside the expanding result");
         }
         if(scroll->verticalScrollBar()->maximum() <= 0 || !scroll->widget()
            || scroll->widget()->findChildren<QLabel *>().size() != static_cast<int>(recipes().size())) {

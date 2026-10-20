@@ -21,6 +21,11 @@ namespace Cookbook {
                 CPPUI::TextField(model.adaptiveName).id("adaptive-wide-input");
                 CPPUI::Label("Shared input state");
             }
+            CPPUI::Label("Wide layout/style overrides").id("adaptive-overrides")
+                .style(CPPUI::style::color(0x777777),CPPUI::style::fontSize(12))
+                .wideStyle(600,CPPUI::style::color(0x228855),CPPUI::style::fontSize(18))
+                .layout(CPPUI::layout::padding(2))
+                .wideLayout(600,CPPUI::layout::padding(12));
             CPPUI::Label("HVBox: one input, retained while the direction changes");
             for(auto box:CPPUI::HVBox(600).id("adaptive-hvbox")) {
                 CPPUI::Label("Name");

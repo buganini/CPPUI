@@ -18,14 +18,16 @@ including bound Tab selection. Each executable links only its selected toolkit.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are audited through committed local PUI `efda649` (2026-10-20);
+Native additions are audited through committed PUI `2b4b528` (2026-10-20),
+matching local HEAD and public main at inspection;
 uncommitted PUI work, AI development and Web/Pyodide changes are excluded.
 See the [sync audit](../doc/pui-sync-2026-10-20.md).
 Adaptive displays reactive container dimensions and switches compact/wide layouts
 at 600 logical pixels while sharing input state on Qt, wx and LVGL. It also
 shows a retained input in `HVBox(600)` and height-dependent `VHBox(500)` labels.
-The gallery shell uses `HVBox(1000)`: menu beside the result on wide windows,
-above it on narrower windows.
+Its `wideLayout`/`wideStyle` label changes padding, color and font size at the
+same 600-pixel threshold. The gallery shell stays horizontal at narrow widths,
+with the menu beside the result, and opens at 1024×768 without maximizing.
 Window titles and sidebar headings identify the active backend: `Cookbook (Qt)`,
 `Cookbook (wxWidgets)`, `Cookbook (LVGL SDL2)` or `Cookbook (LVGL X11)`.
 State Binding now uses an external getter/setter and shows the latest 100
@@ -75,8 +77,8 @@ Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources remain pending. Move, leave and wheel callbacks work on SDL2 and X11. See the [Canvas reference](../REFERENCE.md#canvas)
 for font/color differences and callback ownership.
 The gallery preserves the reference's scrollable cookbook sidebar and expanding
-**Result** pane. Qt and wx also keep the nested example menus and initially maximized
-window. Only the source-code pane is omitted. Recipe spacing, weighted columns,
+**Result** pane. Qt and wx also keep the nested example menus.
+Only the source-code pane is omitted. Recipe spacing, weighted columns,
 divider, and styled examples follow the reference on the available pages.
 
 Pages awaiting a CPPUI implementation show “Not yet ported to this backend”;

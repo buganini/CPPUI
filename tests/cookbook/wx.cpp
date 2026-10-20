@@ -42,8 +42,11 @@ namespace Cookbook { namespace TestBackend {
     bool selectPage(CPPUI::Node & node){auto link=dynamic_cast<CPPUI::Wx::Label *>(&node);if(!link||!link->ui)return false;
         for(auto parent=link->ui->GetParent();parent;parent=parent->GetParent())if(auto scroll=dynamic_cast<wxScrolledWindow *>(parent)){int x,y;scroll->GetViewStart(&x,&y);auto point=scroll->ScreenToClient(link->ui->ClientToScreen(wxPoint(0,0)));scroll->Scroll(x,std::max(0,y+point.y));}
         wxMouseEvent event(wxEVT_LEFT_DOWN);event.SetEventObject(link->ui);link->ui->ProcessWindowEvent(event);return true;}
-    void prepareLayoutCheck(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());if(frame->GetTitle()!=wxString::FromUTF8(title))throw std::runtime_error("cookbook window title missing");frame->Maximize(false);frame->SetSize(800,600);
-        // The window manager may deliver unmaximize/resize after the first idle
+    void prepareLayoutCheck(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());
+        if(frame->IsMaximized() || frame->GetSize()!=wxSize(1024,768) || frame->GetTitle()!=wxString::FromUTF8(title))
+            throw std::runtime_error("cookbook should open at 1024x768 without maximizing, with its window title");
+        frame->SetSize(800,600);
+        // The window manager may deliver resize after the first idle
         // cycle. Wait for the native client size before checking child layout.
         wxStopWatch clock;
         do {
@@ -59,9 +62,7 @@ namespace Cookbook { namespace TestBackend {
     }
     bool pageVisible(CPPUI::Node & root,const std::string & key){auto scroll=static_cast<wxScrolledWindow *>(find(root,"menu-scroller")->outer());auto label=static_cast<wxWindow *>(find(root,"page:"+key)->outer());auto center=scroll->ScreenToClient(label->ClientToScreen(wxPoint(label->GetSize().x/2,label->GetSize().y/2)));return wxRect(wxPoint(0,0),scroll->GetClientSize()).Contains(center);}
     void checkLayout(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());auto sidebar=static_cast<CPPUI::Wx::Layout *>(find(root,"menu-container"))->sizer();auto result=static_cast<CPPUI::Wx::Layout *>(find(root,"result"))->sizer();auto scroll=static_cast<wxScrolledWindow *>(find(root,"menu-scroller")->outer());
-        const auto size=find(root,"cookbook")->size().get();
-        const bool horizontal=size && size->width>=1000;
-        if((horizontal ? sidebar->GetPosition().x+sidebar->GetSize().x>result->GetPosition().x : sidebar->GetPosition().y+sidebar->GetSize().y>result->GetPosition().y)||(horizontal && result->GetSize().x<=sidebar->GetSize().x)||result->GetSize().x<200||result->GetSize().y<200)throw std::runtime_error("cookbook layout: frame="+std::to_string(frame->GetSize().x)+"x"+std::to_string(frame->GetSize().y)+"; panel="+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().x)+"x"+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().y)+"; sidebar x="+std::to_string(sidebar->GetPosition().x)+" width="+std::to_string(sidebar->GetSize().x)+"; result x="+std::to_string(result->GetPosition().x)+" width="+std::to_string(result->GetSize().x)+" height="+std::to_string(result->GetSize().y));
+        if(sidebar->GetPosition().x+sidebar->GetSize().x>result->GetPosition().x||result->GetSize().x<=sidebar->GetSize().x||result->GetSize().x<200||result->GetSize().y<200)throw std::runtime_error("cookbook layout: frame="+std::to_string(frame->GetSize().x)+"x"+std::to_string(frame->GetSize().y)+"; panel="+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().x)+"x"+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().y)+"; sidebar x="+std::to_string(sidebar->GetPosition().x)+" width="+std::to_string(sidebar->GetSize().x)+"; result x="+std::to_string(result->GetPosition().x)+" width="+std::to_string(result->GetSize().x)+" height="+std::to_string(result->GetSize().y));
         if(scroll->GetVirtualSize().y<=scroll->GetClientSize().y)throw std::runtime_error("cookbook page list must scroll");
         auto bar=frame->GetMenuBar();if(!bar||bar->GetMenuCount()!=2||bar->GetMenu(0)->GetMenuItemCount()!=3||bar->GetMenu(1)->GetMenuItemCount()!=2)throw std::runtime_error("reference menus missing");
         if(find(root,"code"))throw std::runtime_error("source code pane must be omitted");

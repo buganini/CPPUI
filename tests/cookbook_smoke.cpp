@@ -64,14 +64,15 @@ namespace Cookbook {
             }
             auto sidebar = find(gallery, "menu-scroller")->outer();
             auto container = find(gallery,"gallery")->outer();
+            auto windowSize=find(gallery,"cookbook")->size();
             for(int width:{1200,800,1200,800}) {
                 TestBackend::resizeWindow(gallery,width,600);
                 for(int pass=0;pass<4;++pass) TestBackend::settle();
-                const auto size=find(gallery,"cookbook")->size().get();
-                require(size && (size->width>=1000)==(width>=1000),"gallery resize did not cross the measured breakpoint");
+                const auto size=windowSize.get();
+                require(size && (size->width>=1000)==(width>=1000),"gallery did not retain the requested width");
                 TestBackend::checkLayout(gallery);
                 require(find(gallery,"gallery")->outer()==container && find(gallery,"menu-scroller")->outer()==sidebar,
-                        "gallery direction change replaced a native container");
+                        "gallery resize replaced a native container");
             }
             // Revisit pages to exercise replacement and retired callback cleanup.
             for(int cycle = 0; cycle < 3; ++cycle) {
@@ -90,6 +91,10 @@ namespace Cookbook {
                         auto size=find(gallery,"adaptive-container")->size().get();
                         require(bool(size),"adaptive container size was not measured");
                         const bool wide=size->width>=600;
+                        auto overrides=find(gallery,"adaptive-overrides");
+                        require(overrides && *overrides->style_color==(wide ? 0x228855 : 0x777777) &&
+                                *overrides->style_fontsize==(wide ? 18 : 12) &&
+                                overrides->layout_padding->left==(wide ? 12 : 2),"adaptive recipe wide overrides differ from the measured width");
                         require(find(gallery,"adaptive-wide")->is_visible==wide &&
                                 find(gallery,"adaptive-compact")->is_visible!=wide,"adaptive cookbook branch differs from measured size");
                         auto field=find(gallery,wide ? "adaptive-wide-input" : "adaptive-compact-input");

@@ -24,18 +24,12 @@ namespace Cookbook {
 
     void Gallery::content() {
         const auto & page = recipes().at(static_cast<int>(selected));
-        auto & host = CPPUI::Window().title(Cookbook::title());
+        auto & host = CPPUI::Window().title(Cookbook::title()).size(1024,768);
         host.ref("cookbook.window").id("cookbook");
-#if CPPUI_HAS_WINDOW_COMMANDS
-        host.maximize();
-#endif
-        const auto size=host.size().get();
-        const bool compact=!size || size->width<1000;
         for(auto window: host) {
             menus();
-            for(auto row: CPPUI::HVBox(1000).id("gallery")) {
-                // A compact column needs an allocated viewport for the page list.
-                for(auto menu: CPPUI::VBox().layout(200,compact ? CPPUI::Optional<int>(160) : CPPUI::Optional<int>()).id("menu-container")) {
+            for(auto row: CPPUI::HBox().id("gallery")) {
+                for(auto menu: CPPUI::VBox().layout(200).id("menu-container")) {
                     CPPUI::Label(Cookbook::title());
                     for(auto scroll: CPPUI::Scroll().layout(200, 0, 1).id("menu-scroller")) {
                         for(auto list: CPPUI::VBox().id("menu-list")) {
