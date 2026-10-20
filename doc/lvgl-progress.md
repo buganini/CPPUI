@@ -1,5 +1,11 @@
 # LVGL implementation progress and remaining work
 
+The 2026-10-21 sync applies PUI's ComboBox candidate contract through `0dc72e2`
+to LVGL: `.autoexpand()`, `.editModel()` and `.input()` share the Qt/wx API.
+The backend displays application-declared candidates, replacing its old prefix
+filter. Editor keys navigate/accept candidates and Escape preserves the draft.
+See the [sync audit and remaining platform checks](pui-sync-2026-10-21.md).
+
 The 2026-10-20 sync adds `HVBox(minWidth)` and `VHBox(minHeight)`, retaining
 native containers and editor state across direction changes. The shared Adaptive
 recipe and cookbook shell follow committed local PUI `efda649`; see the
@@ -79,7 +85,7 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: committed local PUI `efda649` (2026-10-20). See the
+Previous native delta audit: committed local PUI `efda649` (2026-10-20). See the
 [component audit and exclusions](pui-sync-2026-10-20.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and
@@ -144,7 +150,7 @@ and TextField `.placeholder(text)` using the native textarea hint. The former
 enabled setter is removed. Omission on a fresh declaration restores enabled/empty defaults. Both
 SDL2/X11 cookbooks include the TextField hint; regressions cover native reuse,
 reactive button state, hint clearing and active draft/cursor preservation.
-ComboBox now supports index/value bindings, editable prefix suggestions, retained
+ComboBox now supports index/value bindings, editable candidate menus, retained
 keyed selection and independently redrawn items. The shared recipe runs on both
 drivers.
 

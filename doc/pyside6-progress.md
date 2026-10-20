@@ -1,5 +1,11 @@
 # Qt implementation alignment with PUI/PySide6
 
+The 2026-10-21 sync ports ComboBox candidate menus, `.autoexpand()`,
+`.editModel()` and `.input()` from PUI through `0dc72e2`. Candidates follow
+application declarations without a second native filter. Reactive edits retain
+the editor/caret, and typed item values remain free text. See the
+[sync audit and remaining platform checks](pui-sync-2026-10-21.md).
+
 The 2026-10-20 sync adds `HVBox(minWidth)` and `VHBox(minHeight)`, retaining
 native containers and editor state across direction changes. The shared Adaptive
 recipe and cookbook shell follow committed local PUI `efda649`; see the
@@ -32,7 +38,7 @@ Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
 continuous painting and full-frame color changes. Overlay removal and repeat
 painting are covered by native regressions.
 
-Latest native delta audit: committed local PUI `efda649` (2026-10-20). See the
+Previous native delta audit: committed local PUI `efda649` (2026-10-20). See the
 [component audit and exclusions](pui-sync-2026-10-20.md). Native Options,
 optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
 portable inbound drops and directory filters. AI development tooling and

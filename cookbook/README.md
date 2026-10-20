@@ -18,12 +18,14 @@ including bound Tab selection. Each executable links only its selected toolkit.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are audited through committed local PUI `55afcdf` (2026-10-20);
-public main was still at `2b4b528` at inspection. The latest commit documents
-responsive layout; the CPPUI [guide](../REFERENCE.md#responsive-layout) and
-README example now cover the native APIs. No cookbook behavior changed;
-uncommitted PUI work, AI development and Web/Pyodide changes are excluded.
-See the [sync audit](../doc/pui-sync-2026-10-20.md).
+Native additions are audited through committed local PUI `0dc72e2` (2026-10-21);
+public main was at `520430c` at inspection. ComboBox now demonstrates
+`.autoexpand(false)` and a separate `.editModel(query)` binding. Its application
+matching splits whitespace and OR-matches airport labels: `tai tok` yields four
+Taipei/Tokyo candidates on Qt, wx and LVGL, with their original airport codes.
+Clear resets both query and destination. Uncommitted PUI work, AI development
+and Web/Pyodide changes remain excluded. See the
+[sync audit](../doc/pui-sync-2026-10-21.md).
 Adaptive displays reactive container dimensions and switches compact/wide layouts
 at 600 logical pixels while sharing input state on Qt, wx and LVGL. It also
 shows a retained input in `HVBox(600)` and height-dependent `VHBox(500)` labels.
@@ -256,7 +258,11 @@ resize, repeat painting, callback replacement, exceptions, self-removal, native
 deletion, parent deletion and capture cleanup. Its Valgrind variant checks the
 same cases. `lvgl.canvas_input` checks local move/leave/wheel events, hit testing,
 window exit and callback/device teardown. `lvgl.combobox` checks binding precedence,
-editable suggestions, duplicate/empty values, scoped keyed items and self-removal.
+declared candidates, edit/input bindings, expansion toggles, keyboard acceptance,
+duplicate/empty values, scoped keyed items and self-removal. `qt.combobox` and
+`wx.combobox` cover their native completion controls, including reactive edits
+and cursor/selection retention. The shared smoke tests exercise whitespace/OR
+matching and selection against the filtered airport list.
 The cookbook smoke test checks Canvas size and rendered pixels and drives
 HeavyCanvas zoom through actual SDL2/X11 input queues.
 `lvgl.modifiers` checks explicit/omitted/zero dimensions, padding, weights,

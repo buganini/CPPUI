@@ -69,6 +69,11 @@ remain usable.
 across selection changes; the shared cookbook demonstrates both forms.
 Qt [Tabs](REFERENCE.md#tabs) also supports these selection models.
 
+[ComboBox](REFERENCE.md#combobox) supports application-defined candidate lists,
+an input-only `.editModel(query)` binding, `.input()` callbacks and configurable
+`.autoexpand()`. The airport cookbook demonstrates whitespace/OR matching on
+Qt, wx and LVGL.
+
 [MaskedField](REFERENCE.md#maskedfield) provides password input on all three
 backends. All three include the HeavyCanvas cookbook with up to 1,000,000 synthetic
 sessions, hover inspection and wheel zoom. Qt/wx also support decorated Table cells.

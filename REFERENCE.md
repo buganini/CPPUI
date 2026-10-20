@@ -793,6 +793,32 @@ automatically. Its children are
 Labels and values are owned strings, with labels used as default node IDs.
 Use explicit IDs to distinguish duplicate labels or retain a renamed item.
 
+`.editModel(Binding<std::string>)` receives user typing before `.input(callback)`.
+It is an input-only binding: changing it externally does not set the displayed
+text, and choosing a candidate does not write its item value to this binding.
+Use it for the query that determines which `ComboBoxItem` children to declare.
+CPPUI retains its typed index/text constructor overloads; PUI's keyword-only
+`edit_model` is represented by this named modifier. Both `.input(callback)` and
+`.change(callback)` take callbacks with no arguments.
+
+`.autoexpand(bool = true)` defaults to true and opens candidates while typing.
+Qt, wx and LVGL display the application-declared children in order, with no
+additional prefix/substring filtering or automatic first-result insertion.
+`.autoexpand(false)` keeps free typing and the manual dropdown. Escape closes
+the popup without changing the draft. In the [cookbook](cookbook/combobox.cpp),
+application code splits the query on whitespace and uses case-insensitive OR
+matching: `tai tok` declares four Taipei/Tokyo entries. Empty queries show all
+destinations. Clearing autocomplete resets both the selected value and query.
+
+```cpp
+// destination and query are State<std::string> members of the view.
+for(auto combo: CPPUI::ComboBox(true, destination).editModel(query).autoexpand()) {
+    // Declare the candidates selected by your application's matching rule.
+    CPPUI::ComboBoxItem("Taipei Taoyuan", "TPE");
+    CPPUI::ComboBoxItem("Tokyo Haneda", "HND");
+}
+```
+
 `.disabled(bool = true)` defaults to false and follows PUI `d7dc23a`. Disabling preserves
 selection, editable/non-editable mode and native identity; programmatic model
 updates still apply without change callbacks. Omitting it on a fresh declaration
@@ -805,22 +831,33 @@ selection displays the item's label. Typing free text clears the index binding
 to -1 and writes the text binding; with no text binding, the native widget retains
 the edit buffer. Unbound selection follows the selected item's key through
 reorders and label changes, including items in independently redrawn subviews.
+While editing, text equal to an item value stays free text through redraws.
+Selection maps to the index/value of the current declared children; use values
+as stable identifiers when filtering a larger dataset.
 
-LVGL uses a dropdown for non-editable selection and a textarea with a dropdown for
-editable input. Typing filters suggestions by label prefix (ASCII case-insensitive)
-while retaining original indices/raw values. Opening the arrow restores the full
-list. Empty lists disable the selector, leaving the editor usable. Labels
-containing newlines display on one
-line because LVGL uses newlines as option separators. Switching editable mode
-remounts the native control. Create a default LVGL focus group before mounting
-controls to enable keyboard navigation.
-`.change(callback)` has no arguments. A selected item's label-change signal is
-ignored, so selection writes the stored value and calls the callback once.
+Qt uses an unfiltered QCompleter popup. wx uses a non-grabbing popup list while
+the native ComboBox keeps keyboard focus; Up/Down highlights and Enter accepts.
+LVGL uses a dropdown for non-editable selection and a textarea with a dropdown
+for editable input. Its editor forwards candidate navigation/acceptance and
+intercepts Escape before textarea insertion. Empty LVGL lists disable the
+selector while leaving the editor usable; labels containing newlines display
+on one line because LVGL uses newlines as option separators. wx/LVGL remount
+when editable mode changes. Create a default LVGL focus group before mounting
+controls to enable keyboard navigation. A selected item's label-change signal
+is ignored, so selection writes its stored value and calls `.change()` once.
 
 Unchanged declarations preserve user edits; changing/reordering items refreshes
 labels/data and reapplies bound selection without feedback writes. Native
 callbacks read owned item values and snapshot bindings before user code. Raw
 non-string values and typed event payloads remain deferred.
+
+Validation covers reactive candidate changes, retained editors/carets, input
+binding order, free text equal to an item value, acceptance/dismissal, automatic
+expansion toggles and removal from callbacks. Actual Chinese IME composition,
+screen-reader behavior, platform-specific focus/clipboard interactions and the
+full DPI/theme/scrolling matrix remain unverified; see the
+[sync audit](doc/pui-sync-2026-10-21.md). API availability does not imply that
+those platform cases have passed.
 
 ## RadioButton
 
