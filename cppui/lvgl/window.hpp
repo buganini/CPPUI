@@ -12,8 +12,15 @@ namespace CPPUI {
     namespace LVGL {
         class Window: public Node {
             OptionalText caption;
+            Optional<Size> dimensions;
             public:
             Window & title(const std::string & text) { caption = text; return *this; }
+            using ::CPPUI::Node::size;
+            Window & size(int width, int height) {
+                if(width <= 0 || height <= 0) throw std::invalid_argument("Window dimensions must be positive");
+                dimensions = Size(width, height);
+                return *this;
+            }
             bool supportsVisibility() const override { return false; }
             void update(Node * prev) {
                 if(prev && prev->ui) {
@@ -21,10 +28,16 @@ namespace CPPUI {
                 } else {
                     ui = lv_screen_active();
                 }
-                if(auto title = windowTitle(this, caption)) {
+                auto previous = static_cast<Window *>(prev);
+                const bool resize = dimensions && (!previous || !previous->dimensions || !(*dimensions == *previous->dimensions));
+                auto title = windowTitle(this, caption);
+                if(title || resize) {
                     auto root = static_cast<::CPPUI::Node *>(this);
                     while(root->parent && root->parent != root) root = root->parent;
-                    if(auto host = dynamic_cast<DisplayHost *>(root)) host->displayTitle(*title);
+                    if(auto host = dynamic_cast<DisplayHost *>(root)) {
+                        if(resize) host->displaySize(dimensions->width, dimensions->height);
+                        if(title) host->displayTitle(*title);
+                    }
                 }
             }
 

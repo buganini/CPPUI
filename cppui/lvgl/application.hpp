@@ -17,6 +17,7 @@ namespace CPPUI {
         Application & title(const std::string & text) { caption = text; return *this; }
         const std::string & applicationTitle() const override { return caption; }
         void displayTitle(const std::string & text) override { runtime.setTitle(text); }
+        void displaySize(int width, int height) override { runtime.setSize(width, height); }
         ~Application() override {
             // Declarations, timers and input observers must die before the host.
             destroyed = true;

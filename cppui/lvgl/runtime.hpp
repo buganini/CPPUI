@@ -21,6 +21,7 @@ namespace CPPUI { namespace LVGL {
         public:
         virtual ~DisplayHost() = default;
         virtual void displayTitle(const std::string & title) = 0;
+        virtual void displaySize(int width, int height) = 0;
     };
 
     class Runtime {
@@ -130,6 +131,18 @@ namespace CPPUI { namespace LVGL {
                 reset();
                 throw;
             }
+        }
+
+        void setSize(int width, int height) {
+            if(!display || !ownsDisplay) return;
+#if LV_USE_X11
+            auto native = static_cast<_x11_user_hdr_t *>(lv_display_get_driver_data(display));
+            XResizeWindow(native->display, cppui_lvgl_x11_window_id(display), width, height);
+            XFlush(native->display);
+#endif
+            // SDL resizes its window on LV_EVENT_RESOLUTION_CHANGED; X11 only
+            // reallocates its draw buffers, so its host must be resized above.
+            lv_display_set_resolution(display, width, height);
         }
 
         void setTitle(const std::string & title) {

@@ -358,6 +358,11 @@ SDL2/X11 display plus pointer/keyboard input when no display exists. Constructio
 alone does not open a window. `Application::title()` supplies a fallback title;
 `Window::title()` overrides it for an application-owned desktop host. X11 builds
 use `cmake/CPPUILVGLX11.cmake` for the pinned driver's lifecycle and window bridge.
+`Window::size(width, height)` sets a positive pixel size for that owned desktop
+window and its LVGL display. Unchanged declarations preserve a user's resized
+window; changing the declared size applies the new dimensions. Omitting the
+size preserves the current dimensions. Borrowed displays keep their resolution,
+including embedded framebuffers; their owner controls sizing.
 Application teardown destroys its declarations before its input, display and
 owned LVGL runtime. An existing display/runtime is borrowed; its host, input and
 focus group remain owned by the caller and must outlive the application.
@@ -1503,8 +1508,9 @@ measures the content area excluding padding/borders. Measurements are coalesced
 and published after layout; unchanged dimensions do not trigger another redraw.
 Only nodes used by `.size()`, constrained `.visible()`, adaptive boxes or
 `.wideLayout()`/`.wideStyle()` install observers.
-Existing Qt/wx `Window::size(width, height)` and Qt `Modal::size(width, height)`
-continue to set the preferred size; zero arguments observe the actual size.
+`Window::size(width, height)` sets window dimensions (owned desktop displays for
+LVGL), and Qt `Modal::size(width, height)` sets modal dimensions; zero arguments
+observe the actual content size.
 
 Use `VisibilityBounds` for PUI's optional width/height limits:
 
