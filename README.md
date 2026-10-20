@@ -77,81 +77,28 @@ and LVGL CMake projects. It keeps PUI's scrollable Example sidebar and Result
 pane, plus the Qt/wx menus; only the source-code pane is omitted. `--list` reports
 available recipes and prerequisites for pages that are not ported yet.
 
-From the repository root, build and run a cookbook with `make qt`, `make wx`,
-`make lvgl_sdl2`, or `make lvgl_x11`. Each target configures its CMake project
-and builds `build-cookbook-<backend>/cppui_cookbook_<backend>` with `-j $(nproc)`,
-then launches the executable after a successful build.
-The default build type is `RelWithDebInfo`; override settings with, for example,
-`make qt BUILD_TYPE=Debug JOBS=4`. LVGL targets automatically clone v9.6.0 into
-`lvgl-9.6.0` in the repository root if the sources are missing; existing sources
-are reused. Run `make lvgl-checkout` to obtain only the sources, or use
-`CPPUI_LVGL_SOURCE_DIR=/path/to/lvgl` for another checkout location.
-Pass extra CMake configure options with `CMAKE_ARGS='-DOPTION=value'`.
-Toolkit dependencies must be installed as described below.
-
-With Qt 6 development packages installed:
+From the repository root, choose a backend and build/run its cookbook:
 
 ```sh
-cmake -S cookbook/qt -B build-cookbook-qt -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-qt
-./build-cookbook-qt/cppui_cookbook_qt
-ctest --test-dir build-cookbook-qt --output-on-failure
+make qt          # Qt 6 development packages
+make wx          # wxWidgets 3.2 development packages
+make lvgl_sdl2   # SDL2 development packages
+make lvgl_x11    # X11 development packages and an available X display
 ```
 
-The root `CPPUI_BUILD_QT=ON` build also includes `cppui_cookbook_qt`. Qt smoke tests
-use the offscreen platform automatically.
+Each target builds with `-j $(nproc)` and launches the cookbook after a
+successful build. The default build type is `RelWithDebInfo`; override settings
+with, for example, `make qt BUILD_TYPE=Debug JOBS=4`.
 
-With wxWidgets 3.2 development packages installed (`libwxgtk3.2-dev` on
-Debian/Ubuntu, or `brew install wxwidgets` on macOS):
+LVGL targets automatically clone v9.6.0 into `lvgl-9.6.0` if the sources are
+missing and reuse an existing checkout. Use `make lvgl-checkout` to obtain only
+the sources, or set `CPPUI_LVGL_SOURCE_DIR=/path/to/lvgl` for another location.
+Pass extra configure options with `CMAKE_ARGS='-DOPTION=value'`.
 
-```sh
-cmake -S cookbook/wx -B build-cookbook-wx -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-wx
-./build-cookbook-wx/cppui_cookbook_wx
-ctest --test-dir build-cookbook-wx --output-on-failure
-```
-
-The root `CPPUI_BUILD_WX=ON` build also includes `cppui_cookbook_wx`.
-Interactive and smoke runs require a display; on Linux CI, use
-`xvfb-run -a ctest --test-dir build-cookbook-wx --output-on-failure`.
-
-For direct LVGL CMake builds, first obtain the [v9.6.0 sources](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39)
-with `make lvgl-checkout` or clone them manually:
-
-```sh
-git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0
-```
-
-With SDL2 development packages installed, build and run the SDL2 cookbook:
-
-```sh
-cmake -S cookbook/lvgl_sdl2 -B build-cookbook-lvgl_sdl2 \
-  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl_sdl2
-./build-cookbook-lvgl_sdl2/cppui_cookbook_lvgl_sdl2
-ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
-```
-
-With X11 development packages installed and an X display available, build and
-run the X11 cookbook:
-
-```sh
-cmake -S cookbook/lvgl_x11 -B build-cookbook-lvgl_x11 \
-  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl_x11
-./build-cookbook-lvgl_x11/cppui_cookbook_lvgl_x11
-ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
-```
-
-Both LVGL builds use their selected driver for the gallery and the separate
-`_smoke` test executable. CTest runs SDL2 with its dummy video/software-renderer drivers;
-X11 tests use `DISPLAY` (a desktop X server or Xvfb). All four cookbook projects
-accept `-DCPPUI_VALGRIND_TESTS=ON` to register memory tests. Both LVGL backends use
-16 ms display/input timers. X11 uses a monotonic clock and applies native-cursor
-and display-thread cleanup fixes to a build copy of the v9.6.0 driver. See the
-[cookbook documentation](cookbook/README.md) for capabilities and validation limits.
-Remaining implementation work is tracked in the [Qt plan](doc/pyside6-progress.md)
-and [LVGL plan](doc/lvgl-progress.md).
+See the [cookbook documentation](cookbook/README.md) for dependencies,
+capabilities and validation limits. Remaining implementation work is tracked in
+the [Qt plan](doc/pyside6-progress.md), [wx plan](doc/wx-progress.md) and
+[LVGL plan](doc/lvgl-progress.md).
 
 # Memory checks
 

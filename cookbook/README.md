@@ -102,7 +102,8 @@ recipe. See the [modifier reference](../REFERENCE.md#pui-modifiers) for the type
 The gallery smoke test checks horizontal and vertical Spacer expansion and the
 Canvas drawing area in addition to page navigation.
 
-The root Makefile provides `make qt`, `make wx`, `make lvgl_sdl2`, and
+Run the following commands from the repository root. The Makefile provides
+`make qt`, `make wx`, `make lvgl_sdl2`, and
 `make lvgl_x11` as shortcuts for configuring, building, and running each cookbook
 executable in `build-cookbook-<backend>`. Each target launches the executable
 after a successful build. Builds use `-j $(nproc)` and default
@@ -111,15 +112,13 @@ to `RelWithDebInfo`. Override `JOBS`, `BUILD_TYPE`, `CPPUI_LVGL_SOURCE_DIR`
 options through `CMAKE_ARGS` as needed. LVGL targets automatically run
 `make lvgl-checkout` to clone v9.6.0 if its sources are missing; existing sources
 are reused. Install the toolkit development packages first.
-The equivalent direct CMake commands follow.
 
 ## Qt
 
+Requires Qt 6 development packages.
+
 ```sh
-cmake -S cookbook/qt -B build-cookbook-qt -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-qt
-./build-cookbook-qt/cppui_cookbook_qt
-ctest --test-dir build-cookbook-qt --output-on-failure
+make qt
 ```
 
 The repository's root `CPPUI_BUILD_QT=ON` build also includes this executable and
@@ -129,18 +128,13 @@ its smoke test. CTest selects Qt's offscreen platform automatically.
 
 Requires wxWidgets 3.2 development files including core, base and HTML libraries.
 Install `libwxgtk3.2-dev` on Debian/Ubuntu or `brew install wxwidgets` on macOS.
-Run these commands from the repository root:
 
 ```sh
-cmake -S cookbook/wx -B build-cookbook-wx -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-wx
-./build-cookbook-wx/cppui_cookbook_wx
-ctest --test-dir build-cookbook-wx --output-on-failure
+make wx
 ```
 
 The root `CPPUI_BUILD_WX=ON` build includes the same executable and smoke test.
-Native wx controls require a display. Linux CI can use
-`xvfb-run -a ctest --test-dir build-cookbook-wx --output-on-failure`.
+Native wx controls require a display; Linux CI can supply one with Xvfb.
 The gallery's `--list` reports the enabled recipes; the separate `_smoke`
 executable navigates and tests them.
 Add `-DCPPUI_VALGRIND_TESTS=ON` to a non-sanitized build for memory checks.
@@ -157,12 +151,7 @@ Reference: [PUI/wx at 2e4f0eb](https://github.com/buganini/PUI/tree/2e4f0eb82996
 
 Use an [LVGL 9.6.0 source checkout](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39).
 The Makefile's LVGL targets clone these sources automatically if missing.
-Run `make lvgl-checkout` to obtain just the sources. Direct CMake builds require
-the sources to be supplied explicitly, using that target or a manual clone:
-
-```sh
-git clone --depth 1 --branch v9.6.0 https://github.com/lvgl/lvgl.git lvgl-9.6.0
-```
+Run `make lvgl-checkout` to obtain just the sources.
 
 Table editing uses native LVGL textareas/dropdowns over the selected cell:
 double-click or Enter opens the editor, Enter/choice activation commits, and Esc
@@ -177,11 +166,7 @@ rollback and callback-driven redraw/removal.
 Install SDL2 development packages, then run:
 
 ```sh
-cmake -S cookbook/lvgl_sdl2 -B build-cookbook-lvgl_sdl2 \
-  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl_sdl2
-./build-cookbook-lvgl_sdl2/cppui_cookbook_lvgl_sdl2
-ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
+make lvgl_sdl2
 ```
 
 CTest uses SDL's dummy video and software-renderer drivers. To watch the same
@@ -193,16 +178,11 @@ directory without those driver overrides.
 Install X11 development packages and use an available X display:
 
 ```sh
-cmake -S cookbook/lvgl_x11 -B build-cookbook-lvgl_x11 \
-  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl_x11
-./build-cookbook-lvgl_x11/cppui_cookbook_lvgl_x11
-ctest --test-dir build-cookbook-lvgl_x11 --output-on-failure
+make lvgl_x11
 ```
 
-Both interactive and `_smoke` executables use `DISPLAY`. On CI, an Xvfb server can
-supply that display, for example `xvfb-run -a ctest --test-dir
-build-cookbook-lvgl_x11 --output-on-failure`.
+Both interactive and `_smoke` executables use `DISPLAY`. On CI, an Xvfb server
+can supply that display.
 
 The X11 build uses a native arrow cursor, so pointer movement is independent of
 LVGL rendering and remote desktop frame delivery. Both LVGL backends refresh
@@ -234,6 +214,10 @@ runtime, display, input devices and focus group. Window uses the active screen
 and assumes exclusive ownership of its CPPUI content.
 
 ## Tests and memory checks
+
+The Makefile targets build and run the interactive cookbook only. The checks
+below require a separate test build; see the root README for
+[Qt/wx build and test instructions](../README.md#build-and-test-the-core).
 
 `CPPUI_COOKBOOK_TRACE=1` prints per-page smoke progress for diagnostics.
 The new native cases exercise masked drafts/commit/clear, decorated price cells,
