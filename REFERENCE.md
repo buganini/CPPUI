@@ -141,8 +141,9 @@ follow bound model changes without firing click/change callbacks.
 Use `Optional<T>` when absence has its own meaning, such as an unset dimension,
 an unselected page or a cancelled dialog. A defaulted option does not itself
 need `Optional<T>`: `disabled` defaults to false, and an omitted or empty
-placeholder both mean no hint. Existing positional layout/style modifiers keep
-their `Optional<T>` arguments and `{}` omission syntax below.
+placeholder both mean no hint. Named layout/style calls pass only the helpers
+needed. Their positional overloads retain `Optional<T>` arguments and `{}` for
+omission; font family uses a nullable borrowed `const char*`.
 
 `Optional<T>` stores its value inline in aligned union storage plus a presence
 flag. An empty Optional does not construct `T`; holding, copying or moving a
@@ -174,7 +175,7 @@ CPPUI::Label("Hello")
     .layout(layout::width(200), layout::weight(1), layout::padding(8, 12))
     .style(style::color(0xffffff), style::bgColor(0x222222), style::fontSize(16));
 
-CPPUI::Label("Body").style(style::fontFamily("Sans"));
+CPPUI::Label("Body").style(style::fontFamily("Sans")); // Qt/wx; LVGL accepts "Montserrat".
 ```
 
 The layout argument helpers are `width(int)`, `height(int)`, `weight(int)`,
@@ -204,15 +205,6 @@ calls can use either form. Repeated keys apply left to right, with the last valu
 winning. A negative dimension/weight/font size rejects the whole call before
 changing any fields.
 
-The existing positional arguments follow the Python keyword order; `{}` omits
-an argument. The names below describe the order, not C++ assignment syntax:
-
-```cpp
-.layout(width = {}, height = {}, weight = {}, padding = {}, margin = {})
-.style(color = {}, bgColor = {}, fontSize = {}, fontWeight = {}, fontFamily = nullptr)
-.qt(const CPPUI::QtOptions & options)
-```
-
 Sizing follows each component's defaults and its parent's native layout rules
 unless overridden. Qt and wx TextField controls expand horizontally at their
 native height; Spacer consumes flexible space along its HBox/VBox's main axis.
@@ -224,33 +216,52 @@ hints or dimensions, weight controls flexible space along the parent's main
 axis, and padding adds spacing. Start with the defaults for ordinary controls;
 see the backend mappings below when a design needs more control.
 
-Dimensions, weight, colors and font size/weight use `Optional<int>`; padding and
-margin use `Optional<Insets>`, and font family uses a borrowed `const char*`.
-Qt option maps are copied. Repeated calls merge supplied values on that declaration.
+Node fields store dimensions, weight, colors and font size/weight in
+`Optional<int>`, padding and margin in `Optional<Insets>`, and font family as a
+borrowed `const char*`. Named helpers carry plain `int`/`Insets` values or the
+borrowed pointer; callers do not wrap them in Optional. Qt option maps are
+copied. Repeated calls merge supplied values on that declaration.
 A fresh declaration without a formerly supplied property restores the native
 default during redraw. Zero is an explicit value, including black (`0x000000`),
 zero size, zero weight and `Insets(0)`. Dimensions/weights/font sizes reject
 negative values. Modifiers return the borrowed `Node&` for immediate chaining.
 
 ```cpp
-for(auto column: CPPUI::VBox().layout({}, {}, 1, CPPUI::Insets(12))) {
-    CPPUI::Label("Heading").style(0x336699, {}, 20);
-    CPPUI::Label("Body").layout(200, 40).style({}, {}, {}, {}, "Sans");
+for(auto column: CPPUI::VBox().layout(layout::weight(1), layout::padding(12))) {
+    CPPUI::Label("Heading").style(style::color(0x336699), style::fontSize(20));
+    CPPUI::Label("Body").layout(layout::width(200), layout::height(40));
 }
 ```
 
 `Insets` accepts one value (all sides), two (vertical, horizontal), three
-(top, horizontal, bottom), or four (top, right, bottom, left). With positional
-arguments, pass an explicit `Insets(...)`; C++ cannot implicitly convert an
-integer through both Insets and Optional. Named inset helpers avoid these
-conversions. Both font-family forms accept a string literal directly.
+(top, horizontal, bottom), or four (top, right, bottom, left). Named
+`layout::padding(...)` and `layout::margin(...)` accept these same forms directly.
+
+The positional overloads remain available with these declarations:
+
+```cpp
+Node & layout(Optional<int> width = {}, Optional<int> height = {},
+              Optional<int> weight = {}, Optional<Insets> padding = {},
+              Optional<Insets> margin = {});
+Node & style(Optional<int> color = {}, Optional<int> bgColor = {},
+             Optional<int> fontSize = {}, Optional<int> fontWeight = {},
+             const char * fontFamily = nullptr);
+```
+
+For example, `.style(0x336699, {}, 20)` is equivalent to
+`.style(style::color(0x336699), style::fontSize(20))`. `{}` omits a positional
+argument. Positional padding/margin need an explicit `Insets(...)`; C++ cannot
+implicitly convert an integer through both Insets and Optional. Both
+font-family forms accept a string literal directly.
+
 **Reference limitations:** `margin` and `fontWeight` are stored but not applied
 by the pinned PUI Qt implementation. CPPUI's Qt backend keeps that behavior;
 other backends apply properties according to their native support.
 Virtual/model-only nodes have no native size or appearance to modify.
 
-`.wideLayout(minWidth, ...)` and `.wideStyle(minWidth, ...)` apply the same
-positional or typed named arguments when the nearest non-virtual parent's
+`.wideLayout(minWidth, ...)` and `.wideStyle(minWidth, ...)` take the threshold
+first, followed by the same typed named arguments (or positional arguments)
+as `.layout()` and `.style()`. They apply when the nearest non-virtual parent's
 content width is at least `minWidth`. Unknown parent sizes do not match.
 Reading that size subscribes the containing view, so resizing rebuilds the
 declaration from its base settings and restores them below the threshold.
@@ -283,7 +294,7 @@ options.HorizontalPolicy = QSizePolicy::Fixed;
 options.VerticalPolicy = QSizePolicy::Preferred;
 options.SizeConstraint = QLayout::SetMinimumSize;
 options.StyleSheet = CPPUI::QtStyleSheet{{"background-color", "#eeeeee"}};
-CPPUI::VBox().layout(200).qt(options);
+CPPUI::VBox().layout(CPPUI::layout::width(200)).qt(options);
 ```
 
 `StyleSheet` is an optional map of CSS properties and overrides generic `.style()`
@@ -553,11 +564,13 @@ path and pixmap, reuses the native label, and reloads when the path or file
 modification time changes. It uses the image's natural size. Click replacement,
 removal and native lifetime follow Label. A missing path throws during declaration
 building, preserving the mounted image on a failed redraw; undecodable existing
-files produce an empty Qt pixmap. `.layout(width, height)` scales the source
+files produce an empty Qt pixmap.
+`.layout(CPPUI::layout::width(w), CPPUI::layout::height(h))` scales the source
 pixmap with its aspect ratio preserved; with one dimension, the other is inferred.
 The original pixels remain cached so changing or omitting dimensions rescales
 from the source. Positive weight enables native scaled contents. The shared
-cookbook uses `.layout(400)` and PUI's public-domain Rijksmuseum windmill image.
+cookbook sets a width of 400 and uses PUI's public-domain Rijksmuseum windmill
+image; the named form is `.layout(CPPUI::layout::width(400))`.
 
 Include `cppui/lvgl/image.hpp` for the same `Image(path)` API on LVGL 9.6.
 The native image retains decoded pixels across redraws, visibility changes and
@@ -946,9 +959,10 @@ native objects. Native deletion clears its observer, and declaration teardown
 detaches that observer before a parent deletes its children. Qt uses QSpacerItem
 with Expanding policy on the box axis and Preferred on the other axis. Its
 layout owns mounted items; direct removal deletes detached items, and layout
-destruction invalidates the declaration's observer. `.layout({}, {}, weight)`
-changes the default weight of one. Fixed-size spacing remains unimplemented
-for Qt's non-widget spacer, as in the pinned PUI reference.
+destruction invalidates the declaration's observer.
+`.layout(CPPUI::layout::weight(value))` changes the default weight of one.
+Fixed-size spacing remains unimplemented for Qt's non-widget spacer, as in the
+pinned PUI reference.
 
 ## Divider
 
@@ -1222,8 +1236,16 @@ true requests a frame on the next LVGL refresh interval. Teardown cancels the
 timer and releases captures, and the native object retains its buffer until
 deletion, including when an ancestor owns that deletion. Run callbacks on the
 UI thread without nested event loops or display/runtime teardown.
-Use `.layout(width, height).style({}, backgroundColor)` for the canvas size and
-background; the shared cookbook uses `.layout(100, 100).style({}, 0x555555)`.
+Use `layout::width`/`layout::height` for the canvas size and `style::bgColor` for
+its background. The shared cookbook's 100×100 gray canvas settings can be written
+with named arguments as:
+
+```cpp
+CPPUI::Canvas([](CPPUI::CanvasPainter &) {})
+    .layout(CPPUI::layout::width(100), CPPUI::layout::height(100))
+    .style(CPPUI::style::bgColor(0x555555));
+```
+
 Qt, wx and LVGL provide `.mousemove(callback)`, `.mouseleave(callback)` and
 `.wheel(callback)`. Move/wheel callbacks receive `const CanvasPointerEvent&`
 from `cppui/canvas_input.hpp`; leave takes no arguments. `x`/`y` are local logical

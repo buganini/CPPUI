@@ -133,10 +133,29 @@ of flexible space, or custom padding. Width and height map to preferred sizes,
 minimum sizes or object dimensions depending on the backend; the
 [modifier reference](REFERENCE.md#pui-modifiers) describes these mappings.
 
-PUI's `.layout(...)`, `.style(...)` and `.qt(...)` modifiers are available on
-CPPUI nodes. For example, `Label("Title").layout(200, 40).style(0x336699, {}, 20)`
-sets a preferred Qt size and text style. See the [modifier reference](REFERENCE.md#pui-modifiers)
-for argument order, typed Qt options, redraw resets and LVGL mappings.
+Use typed named arguments for `.layout(...)` and `.style(...)`. Supply only the
+settings you need, in any order:
+
+```cpp
+namespace layout = CPPUI::layout;
+namespace style = CPPUI::style;
+
+CPPUI::Label("Title")
+    .layout(layout::width(200), layout::height(40), layout::padding(8))
+    .style(style::fontSize(20), style::color(0x336699))
+    .wideLayout(600, layout::width(320))
+    .wideStyle(600, style::fontSize(24));
+```
+
+`wideLayout` and `wideStyle` apply their settings when the nearest non-virtual
+parent's content width reaches the first argument. Resizing below that threshold
+restores the base declaration's settings.
+
+`style::fontFamily(const char*)` borrows its string; use a string literal or keep
+the caller's buffer alive for the node declaration's lifetime. `nullptr` means
+omitted. Positional overloads remain available. See the
+[modifier reference](REFERENCE.md#pui-modifiers) for all named helpers, borrowed
+string rules, typed `.qt(...)` options, redraw resets and backend mappings.
 
 # View Hierarchy Construction
 ```c++

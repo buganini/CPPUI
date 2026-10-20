@@ -92,13 +92,19 @@ or custom implementation. The Python-only DrawShapely and Matplotlib recipes
 are intentionally excluded (won't-do).
 The [Qt plan](../doc/pyside6-progress.md) and
 [LVGL plan](../doc/lvgl-progress.md) and [wx plan](../doc/wx-progress.md) track remaining components and public APIs.
-Recipes use public CPPUI components and PUI's `.layout(...)` / `.style(...)`
-modifiers for sizes, padding, weights, colors and fonts. There is no separate
-cookbook component namespace. Backend helpers handle startup, optional menus
+Recipes use public CPPUI components and `.layout(...)` / `.style(...)`
+modifiers for sizes, padding, weights, colors and fonts. Use typed named helpers,
+for example `.layout(CPPUI::layout::width(200), CPPUI::layout::padding(8))`
+and `.style(CPPUI::style::fontSize(20), CPPUI::style::color(0x336699))`.
+The Adaptive recipe uses the same helpers after the width threshold in
+`.wideLayout(600, ...)` / `.wideStyle(600, ...)`. Positional calls also remain
+supported. There is no separate cookbook component namespace.
+Backend helpers handle startup, optional menus
 and native test access. Qt, wx and LVGL sidebars use public Scroll; LVGL's basic
 Scroll does not yet implement the complete axis/offset contract of the Scroll
-recipe. See the [modifier reference](../REFERENCE.md#pui-modifiers) for the typed
-`.qt(...)` options and LVGL's compiled-font approximation.
+recipe. See the [modifier reference](../REFERENCE.md#pui-modifiers) for all named
+helpers, borrowed `fontFamily` strings, typed `.qt(...)` options and LVGL's
+compiled-font approximation.
 The gallery smoke test checks horizontal and vertical Spacer expansion and the
 Canvas drawing area in addition to page navigation.
 
