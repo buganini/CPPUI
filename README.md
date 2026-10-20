@@ -11,6 +11,28 @@ chosen backend.
 
 [PUI: Python Version](https://github.com/buganini/PUI)
 
+# Responsive / adaptive layout
+
+Qt, wx and LVGL can adapt to a parent container's measured content size: switch
+between rows and columns, show or hide content at breakpoints, and override
+layout or style settings. Thresholds use native logical pixels.
+
+```cpp
+// Inside content(), with the selected backend's headers included:
+for(auto box: CPPUI::HVBox(600)) {
+    CPPUI::Label("Title")
+        .style(CPPUI::style::fontSize(14))
+        .wideStyle(900, CPPUI::style::fontSize(20));
+    CPPUI::Button("Save");
+}
+```
+
+Use `HVBox` / `VHBox` for direction changes, `.visible(true, bounds)` for
+width/height limits, and `.wideLayout()` / `.wideStyle()` for width-dependent
+settings. See the [responsive layout guide](REFERENCE.md#responsive-layout)
+for API choices and sizing behavior, and the
+[Adaptive cookbook](cookbook/adaptive.cpp) for a runnable example.
+
 # Build and test the core
 
 CPPUI is header-only. Link the CMake interface target `CPPUI::cppui`, or add this

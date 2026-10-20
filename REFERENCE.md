@@ -1496,6 +1496,65 @@ backend runtime. Qt uses queued dispatch and precise timers, wx uses CallAfter
 and native timers, and LVGL drains its thread-safe queue on the UI timer loop.
 The Refs cookbook demonstrates a 500 ms delayed increment.
 
+## Responsive layout
+
+Qt, wx and LVGL evaluate adaptive declarations using the nearest non-virtual
+parent's measured content area. Nested panels therefore respond to their own
+parent's size. Conditions use its full content area, rather than the space
+remaining after siblings. Thresholds and measurements use native logical pixels.
+
+| Goal | API |
+| --- | --- |
+| Switch row/column direction | [`HVBox(minWidth)` / `VHBox(minHeight)`](#adaptive-box-layouts) |
+| Show or hide by width/height | [`.visible(true, VisibilityBounds{...})`](#reactive-size-and-adaptive-visibility) |
+| Override dimensions, weight or spacing | [`.wideLayout(minWidth, ...)`](#pui-modifiers) |
+| Override colors or fonts | [`.wideStyle(minWidth, ...)`](#pui-modifiers) |
+| Make custom C++ decisions | [`container.size().get()`](#reactive-size-and-adaptive-visibility), returning `Optional<Size>` |
+
+Declare base settings first, then overrides. Wide thresholds include the
+boundary; when several match, the last supplied value wins in declaration
+order, regardless of threshold order. Resizing below a threshold rebuilds
+the declaration with its base settings. Before the first measurement, size
+is empty and wide overrides do not apply. Visibility minima are inclusive,
+maxima exclusive, and bounded visibility is false until size is known.
+
+```cpp
+// Inside content(), with the selected backend's headers included:
+for(auto panel: CPPUI::VBox().layout(CPPUI::layout::weight(1))) {
+    CPPUI::Label("Title")
+        .style(CPPUI::style::fontSize(14))
+        .wideStyle(600, CPPUI::style::fontSize(18))
+        .wideStyle(1000, CPPUI::style::fontSize(24));
+    CPPUI::Button("Save")
+        .layout(CPPUI::layout::width(120))
+        .wideLayout(600, CPPUI::layout::width(160), CPPUI::layout::padding(8));
+    for(auto box: CPPUI::HVBox(600)) {
+        CPPUI::Label("Name");
+        CPPUI::Label("Details").visible(true, CPPUI::VisibilityBounds{600});
+    }
+}
+```
+
+Each condition reads its own nearest physical parent: the `HVBox` above reads
+the outer `VBox`, while the Details label reads the `HVBox`. The same threshold
+can therefore match differently if the two containers receive different widths.
+
+Size observation starts lazily when needed. Native layout reports a measurement,
+size State notifies subscribed views, and those views rerun `content()`.
+Conditions are evaluated during C++ declaration construction; there is no stored
+breakpoint table. Matched nodes retain their size State. Identical measurements
+do not notify, but a changed size can rebuild a subscribed view even when it
+stays on the same side of a breakpoint.
+
+Adaptive declarations choose settings before the normal native layout runs.
+They keep the same properties and backend limitations as ordinary layout/style,
+including sibling weights and size hints. The modifiers do not change node
+identity; matched native controls remain retained. Content-dependent parent
+sizing can feed back into a breakpoint, so prefer a parent whose size is set by
+its surrounding layout. No arbitrary size cap is added, and very small
+containers can still overflow. See the [Adaptive cookbook](cookbook/adaptive.cpp)
+and the detailed APIs below.
+
 ## Visibility
 
 `.visible(bool = true)` hides an ordinary widget or layout without removing its
