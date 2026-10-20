@@ -33,7 +33,56 @@ int main() {
         require(!bounds.matches({}) && bounds.matches(CPPUI::Size(100,50)) && !bounds.matches(CPPUI::Size(200,50))
             && !bounds.matches(CPPUI::Size(100,100)) && !bounds.matches(CPPUI::Size(99,60)),"breakpoint boundaries differ from PUI");
         {
+            namespace layout=CPPUI::layout;
+            namespace style=CPPUI::style;
+            Node orphan;
+            require(&orphan.wideLayout(0,layout::width(200)).wideStyle(0,style::color(0))==&orphan
+                && !orphan.layout_width && !orphan.style_color,"parentless overrides should not match");
+            Root root;bool present=true;
+            const char * family="Sans";
+            root.build=[&]() {
+                if(!present) return;
+                for(auto container:node()) {
+                    auto & wrapper=node();wrapper.is_virtual=true;
+                    for(auto scope:wrapper) {
+                        node().layout(layout::width(100),layout::padding(2))
+                            .style(style::color(0x111111),style::fontSize(12))
+                            .wideLayout(600,layout::width(200),layout::weight(0),layout::padding(8))
+                            .wideStyle(600,style::color(0),style::fontSize(18),style::fontFamily(family))
+                            .wideLayout(800,300).wideLayout(600,{},30)
+                            .wideLayout(800,layout::height(40)).wideLayout(600,layout::height(35))
+                            .wideStyle(800,0x222222).wideStyle(600,0)
+                            .wideStyle(600,style::fontFamily(nullptr));
+                    }
+                }
+            };
+            root.redraw();
+            auto state=root.children->front()->sizeState;
+            auto child=[&]() {return root.children->front()->children->front()->children->front();};
+            require(state && *child()->layout_width==100 && !child()->layout_height &&
+                    *child()->style_fontsize==12 && !child()->style_fontfamily,"unknown width matched an override");
+            auto identity=child()->ui;
+            for(int width:{599,600,800,400,600}) {
+                state->publish(width,400);
+                auto current=child();const bool wide=width>=600;
+                require(current->ui==identity && *current->layout_width==(width>=800 ? 300 : wide ? 200 : 100),
+                        "wide layout changed identity or selected the wrong threshold");
+                require(bool(current->layout_height)==wide && (!wide || *current->layout_height==35) &&
+                        bool(current->layout_weight)==wide && (!wide || *current->layout_weight==0) &&
+                        current->layout_padding->left==(wide ? 8 : 2),"wide layout merge/restore/order failed");
+                require(*current->style_color==(wide ? 0 : 0x111111) &&
+                        *current->style_fontsize==(wide ? 18 : 12) &&
+                        current->style_fontfamily==(wide ? family : nullptr),"wide style merge/borrow/restore/order failed");
+                require(!root.children->front()->children->front()->sizeState,"wide override observed a virtual parent");
+            }
+            int before=root.builds;state->publish(600,400);
+            require(root.builds==before,"stable width rebuilt conditional modifiers");
+            present=false;root.redraw();before=root.builds;state->publish(900,400);
+            require(root.builds==before,"removed wide override kept its size subscription");
+        }
+        {
             Root root;bool remove=false,fail=false;CPPUI::State<int> external(0);
+            const int initialStarts=starts,initialStops=stops;
             root.build=[&]() {
                 if(remove) return;
                 auto & container=node();container.id("container");container.size().get();
@@ -47,7 +96,7 @@ int main() {
             require(!binding.get() && container->children->front()->children->empty(),"unmeasured branch mounted content");
             auto callback=[state](int w,int h) {state->publish(w,h);};
             callback(700,300);container=root.children->front();
-            require(container->sizeState==state && starts==1 && stops==0,"size observer/state not retained");
+            require(container->sizeState==state && starts==initialStarts+1 && stops==initialStops,"size observer/state not retained");
             require(!container->children->front()->is_visible && container->children->back()->is_visible,"wide breakpoint failed");
             auto identity=container->children->back()->children->front()->ui;
             callback(599,300);require(root.children->front()->children->front()->is_visible,"compact breakpoint failed");
@@ -61,7 +110,7 @@ int main() {
             require(root.children->front()->children->front()->is_visible,"failed build detached the mounted size state");
             callback(-20,-5);require(binding.get()->width==0 && binding.get()->height==0,"negative size was not clamped");
             remove=true;root.redraw();before=root.builds;callback(800,300);
-            require(root.builds==before && stops==1,"removed observer continued publishing or failed cleanup");
+            require(root.builds==before && stops==initialStops+1,"removed observer continued publishing or failed cleanup");
         }
         {
             Root root;bool present=true;

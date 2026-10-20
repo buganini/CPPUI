@@ -155,7 +155,31 @@ namespace CPPUI {
             return applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
         }
 
+        Node & wideLayout(int minWidth, Optional<int> width = {}, Optional<int> height = {},
+                          Optional<int> weight = {}, Optional<Insets> padding = {}, Optional<Insets> margin = {}) {
+            if(wideMatches(minWidth)) layout(width, height, weight, padding, margin);
+            return *this;
+        }
+        Node & wideStyle(int minWidth, Optional<int> color = {}, Optional<int> bgColor = {},
+                         Optional<int> fontSize = {}, Optional<int> fontWeight = {}, const char * fontFamily = nullptr) {
+            if(wideMatches(minWidth)) style(color, bgColor, fontSize, fontWeight, fontFamily);
+            return *this;
+        }
+        template<class First, class... Rest>
+        typename std::enable_if<detail::AreModifierArguments<detail::LayoutKey, First, Rest...>::value, Node &>::type
+        wideLayout(int minWidth, First && first, Rest &&... rest) {
+            if(wideMatches(minWidth)) layout(std::forward<First>(first), std::forward<Rest>(rest)...);
+            return *this;
+        }
+        template<class First, class... Rest>
+        typename std::enable_if<detail::AreModifierArguments<detail::StyleKey, First, Rest...>::value, Node &>::type
+        wideStyle(int minWidth, First && first, Rest &&... rest) {
+            if(wideMatches(minWidth)) style(std::forward<First>(first), std::forward<Rest>(rest)...);
+            return *this;
+        }
+
         private:
+        bool wideMatches(int minWidth);
         template<class Argument>
         static void validateModifier(const Argument &) {}
         static void validateModifier(CPPUI::layout::Width argument) {

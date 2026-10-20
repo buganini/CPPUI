@@ -27,7 +27,25 @@ namespace {
         template<class> static std::false_type check(...);
         static const bool value = decltype(check<CPPUI::Node>(0))::value;
     };
+    template<class Argument>
+    struct AcceptsWideLayout {
+        template<class T>
+        static auto check(int) -> decltype(std::declval<T &>().wideLayout(600,std::declval<Argument>()),std::true_type());
+        template<class> static std::false_type check(...);
+        static const bool value=decltype(check<CPPUI::Node>(0))::value;
+    };
+    template<class Argument>
+    struct AcceptsWideStyle {
+        template<class T>
+        static auto check(int) -> decltype(std::declval<T &>().wideStyle(600,std::declval<Argument>()),std::true_type());
+        template<class> static std::false_type check(...);
+        static const bool value=decltype(check<CPPUI::Node>(0))::value;
+    };
 
+    static_assert(AcceptsWideLayout<CPPUI::layout::Width>::value && AcceptsWideStyle<CPPUI::style::Color>::value,
+                  "wide modifiers rejected named arguments");
+    static_assert(!AcceptsWideLayout<CPPUI::style::Color>::value && !AcceptsWideStyle<CPPUI::layout::Width>::value,
+                  "wide modifiers accepted the wrong argument domain");
     static_assert(AcceptsLayout<CPPUI::layout::Padding, const CPPUI::layout::Width &>::value, "named layout arguments rejected");
     static_assert(AcceptsStyle<const CPPUI::style::FontFamily &, CPPUI::style::Color>::value, "named style arguments rejected");
     static_assert(AcceptsLayout<int, CPPUI::Optional<int>>::value, "positional layout arguments rejected");

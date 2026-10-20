@@ -96,6 +96,10 @@ namespace CPPUI {
         }
     }
 
+    inline bool Node::wideMatches(int minWidth) {
+        return detail::adaptiveHorizontal(*this,minWidth,true);
+    }
+
     inline Node & Node::visible(bool value,const VisibilityBounds & bounds) {
         if(bounds.constrained()) {
             auto owner=parent;

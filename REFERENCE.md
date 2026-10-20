@@ -249,6 +249,25 @@ by the pinned PUI Qt implementation. CPPUI's Qt backend keeps that behavior;
 other backends apply properties according to their native support.
 Virtual/model-only nodes have no native size or appearance to modify.
 
+`.wideLayout(minWidth, ...)` and `.wideStyle(minWidth, ...)` apply the same
+positional or typed named arguments when the nearest non-virtual parent's
+content width is at least `minWidth`. Unknown parent sizes do not match.
+Reading that size subscribes the containing view, so resizing rebuilds the
+declaration from its base settings and restores them below the threshold.
+Calls apply in declaration order: the last matching supplied value wins,
+regardless of threshold order. Omitted values leave earlier settings unchanged.
+Font family retains the borrowed `const char*` contract above. These methods
+keep node identity and evaluate directly during construction, without storing
+a breakpoint table. Normal native layout sizing and overflow limits apply.
+
+```cpp
+CPPUI::Label("Title")
+    .style(CPPUI::style::fontSize(12), CPPUI::style::color(0x777777))
+    .wideStyle(600, CPPUI::style::fontSize(18), CPPUI::style::color(0x228855))
+    .layout(CPPUI::layout::padding(2))
+    .wideLayout(600, CPPUI::layout::padding(12));
+```
+
 Qt dimensions override preferred `sizeHint()`, not minimum/maximum dimensions;
 a parent can allocate a different actual size. Explicit dimensions select the
 Preferred size policy unless `.qt(...)` overrides it. Padding sets widget
@@ -1482,7 +1501,8 @@ Qt measures the content rectangle minus layout margins; Window uses its central
 widget. wx measures a sizer's allocated size or a window's client size. LVGL
 measures the content area excluding padding/borders. Measurements are coalesced
 and published after layout; unchanged dimensions do not trigger another redraw.
-Only nodes used by `.size()`, constrained `.visible()` or adaptive boxes install observers.
+Only nodes used by `.size()`, constrained `.visible()`, adaptive boxes or
+`.wideLayout()`/`.wideStyle()` install observers.
 Existing Qt/wx `Window::size(width, height)` and Qt `Modal::size(width, height)`
 continue to set the preferred size; zero arguments observe the actual size.
 

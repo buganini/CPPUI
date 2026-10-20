@@ -74,6 +74,27 @@ struct BoxesRoot:Root {
                 CPPUI::SubView<BoxContents>();
     }
 };
+struct WideContents:CPPUI::Backend::View {
+    void content() override {
+        CPPUI::Label("responsive").id("override")
+            .layout(CPPUI::layout::width(100),CPPUI::layout::padding(2))
+            .style(CPPUI::style::color(0x111111),CPPUI::style::fontSize(12))
+            .wideLayout(600,CPPUI::layout::width(200),CPPUI::layout::padding(8))
+            .wideStyle(600,CPPUI::style::color(0),CPPUI::style::fontSize(18))
+            .wideLayout(800,300).wideLayout(600,{},40);
+    }
+};
+struct OverridesRoot:Root {
+    using Root::Root;
+    void content() override {
+        ++builds;
+        for(auto window:CPPUI::Window().id("window"))
+            for(auto container:CPPUI::VBox().id("container").layout({}, {},1,CPPUI::Insets(10))) {
+                CPPUI::SubView<WideContents>().id("virtual");
+                CPPUI::Spacer();
+            }
+    }
+};
 static void resize(Root & root,int width,int height=400) {
 #if defined(CPPUI_TEST_QT)
     auto window=static_cast<QWidget *>(find(root,"window")->outer());window->resize(width,height);window->show();
@@ -128,6 +149,44 @@ int main(int argc,char ** argv) {
         lv_obj_clean(lv_screen_active());
 #endif
         pump(); // Queued measurements must tolerate externally destroyed native objects.
+        {
+            OverridesRoot overrides(argc,argv);overrides.mount();resize(overrides,450);
+            auto native=find(overrides,"override")->outer();
+            for(int width:{850,1100,450,850,450}) {
+                resize(overrides,width);
+                auto measured=find(overrides,"container")->size().get();
+                require(bool(measured),"wide modifiers did not observe their physical parent");
+                const bool wide=measured->width>=600;
+                const int expectedWidth=measured->width>=800 ? 300 : wide ? 200 : 100;
+                const int padding=wide ? 8 : 2,color=wide ? 0 : 0x111111;
+                auto label=find(overrides,"override");
+                require(label->outer()==native && *label->layout_width==expectedWidth &&
+                        *label->style_color==color && bool(label->layout_height)==wide,
+                        "resizing did not restore wide overrides on the retained node");
+                require(!find(overrides,"virtual")->sizeState,"wide modifiers measured the virtual view");
+#if defined(CPPUI_TEST_QT)
+                auto widget=static_cast<QWidget *>(native);
+                require(widget->sizeHint().width()==expectedWidth &&
+                        widget->contentsMargins()==QMargins(padding,padding,padding,padding) &&
+                        widget->font().pointSize()==(wide ? 18 : 12) &&
+                        widget->styleSheet().contains(wide ? "color:#000000;" : "color:#111111;"),
+                        "Qt did not apply/restore conditional dimensions, padding or style");
+#elif defined(CPPUI_TEST_WX)
+                auto widget=static_cast<wxWindow *>(native);
+                require(widget->GetMinSize().GetWidth()==expectedWidth &&
+                        widget->GetFont().GetPointSize()==(wide ? 18 : 12) &&
+                        widget->GetForegroundColour()==wxColour(wide ? 0 : 17,wide ? 0 : 17,wide ? 0 : 17),
+                        "wx did not apply/restore conditional dimensions or style");
+#else
+                auto object=static_cast<lv_obj_t *>(native);
+                require(lv_obj_get_width(object)==expectedWidth &&
+                        lv_obj_get_style_pad_left(object,LV_PART_MAIN)==padding &&
+                        lv_color_to_u32(lv_obj_get_style_text_color(object,LV_PART_MAIN))==(wide ? 0xff000000 : 0xff111111) &&
+                        lv_obj_get_style_text_font(object,LV_PART_MAIN)==(wide ? &lv_font_montserrat_28 : &lv_font_montserrat_14),
+                        "LVGL did not apply/restore conditional dimensions, padding or style");
+#endif
+            }
+        }
         {
             BoxesRoot boxes(argc,argv);boxes.mount();resize(boxes,850,700);
             auto hv=find(boxes,"hv")->outer(),vh=find(boxes,"vh")->outer();
