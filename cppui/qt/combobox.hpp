@@ -8,9 +8,9 @@
 #include <QSignalBlocker>
 #include <QPointer>
 #include <QStringList>
-#include <QStringListModel>
 #include <QCompleter>
 #include <QAbstractItemView>
+#include <QAbstractProxyModel>
 #include <QLineEdit>
 
 namespace CPPUI { namespace Qt {
@@ -24,14 +24,19 @@ namespace CPPUI { namespace Qt {
         QVariant selectedKey;
         QString freeText;
         bool editing = false, committing = false, autoexpand = true;
+        QPointer<QCompleter> candidates;
         void complete() {
-            auto completion = completer();
+            auto completion = candidates.data();
             if(!autoexpand || !isEnabled() || !isVisible() || !completion) return;
             if(count()) completion->complete();
             else completion->popup()->hide();
         }
+        void showPopup() override {
+            if(candidates) candidates->popup()->hide();
+            QComboBox::showPopup();
+        }
         void hideEvent(QHideEvent * event) override {
-            if(completer()) completer()->popup()->hide();
+            if(candidates) candidates->popup()->hide();
             QComboBox::hideEvent(event);
         }
     };
@@ -68,17 +73,30 @@ namespace CPPUI { namespace Qt {
                 editorSelection = editor->selectionStart(); editorSelectionLength = editor->selectedText().size();
             }
             combo->setEditable(editable);
+            combo->setInsertPolicy(QComboBox::NoInsert);
             combo->autoexpand = expand;
+            // Keep completion independent of QLineEdit's built-in completer:
+            // that implementation inserts highlighted rows before acceptance.
+            if(editable && combo->completer()) combo->setCompleter(nullptr);
             if(editable && expand) {
-                if(!combo->completer() || !combo->completer()->property("cppuiCandidates").toBool()) {
-                    auto completion = new QCompleter(combo);
-                    completion->setModel(new QStringListModel(completion));
-                    completion->setProperty("cppuiCandidates", true);
-                    combo->setCompleter(completion);
+                if(!combo->candidates) {
+                    auto completion = new QCompleter(combo->model(), combo);
+                    combo->candidates = completion;
+                    completion->setCompletionColumn(combo->modelColumn());
+                    completion->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
+                    QPointer<ComboBoxWidget> alive(combo);
+                    QObject::connect(completion, QOverload<const QModelIndex &>::of(&QCompleter::activated), combo,
+                        [alive](const QModelIndex & index) {
+                            if(!alive || !alive->isEnabled() || !alive->candidates || !index.isValid()) return;
+                            auto proxy = qobject_cast<QAbstractProxyModel *>(alive->candidates->completionModel());
+                            if(!proxy) return;
+                            auto source = proxy->mapToSource(index);
+                            if(source.isValid() && source.model() == alive->model()) alive->setCurrentIndex(source.row());
+                        });
                 }
-                combo->completer()->setCompletionMode(QCompleter::UnfilteredPopupCompletion);
-            } else if(editable) combo->setCompleter(nullptr);
-            if(isDisabled && combo->completer()) combo->completer()->popup()->hide();
+                if(combo->candidates->widget() != combo->lineEdit()) combo->candidates->setWidget(combo->lineEdit());
+            } else if(combo->candidates) delete combo->candidates.data();
+            if(isDisabled && combo->candidates) combo->candidates->popup()->hide();
             ui->setDisabled(isDisabled);
         }
         void addChild(int index, Node * child) override;
@@ -129,13 +147,7 @@ namespace CPPUI { namespace Qt {
                 combo->declaredText = text.toStdString();
             }
             combo->itemsChanged = false;
-            if(editable && combo->completer()) {
-                auto model = static_cast<QStringListModel *>(combo->completer()->model());
-                QStringList labels;
-                for(int i = 0; i < combo->count(); ++i) labels.append(combo->itemText(i));
-                if(model->stringList() != labels) model->setStringList(labels);
-                if(labels.isEmpty()) combo->completer()->popup()->hide();
-            }
+            if(combo->candidates && !combo->count()) combo->candidates->popup()->hide();
             auto indexBinding = indexModel;
             auto textBinding = textModel;
             auto callback = onChange;
@@ -189,12 +201,7 @@ namespace CPPUI { namespace Qt {
                 catch(...) { std::cerr << "CPPUI ComboBox text: unknown exception\n"; }
                 if(alive) {
                     alive->committing = false;
-                    // Query writes may rebuild the candidate items synchronously.
-                    if(auto completion = alive->completer()) {
-                        QStringList labels;
-                        for(int i = 0; i < alive->count(); ++i) labels.append(alive->itemText(i));
-                        static_cast<QStringListModel *>(completion->model())->setStringList(labels);
-                    }
+                    // The native model already contains the latest declared rows.
                     if(user) alive->complete();
                 }
             };

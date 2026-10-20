@@ -72,7 +72,7 @@ namespace {
     public:
         using Application::Application;
         CPPUI::State<std::string> value{std::string()}, query{std::string("not the display")};
-        bool show = true, enabled = true, expand = true, filter = false, empty = false;
+        bool show = true, enabled = true, expand = true, filter = false, empty = false, duplicates = false;
         int inputs = 0, changes = 0;
         std::function<void()> action;
         void content() override {
@@ -82,13 +82,13 @@ namespace {
                         .input([this]() { ++inputs; if(action) action(); }).change([this]() { ++changes; })) {
                     if(!empty) {
                         // Deliberately unrelated to the query: matching belongs to the application.
-                        CPPUI::ComboBoxItem("Amsterdam", "AMS");
-                        if(!filter || input.empty()) CPPUI::ComboBoxItem("Tokyo Haneda", "HND");
+                        CPPUI::ComboBoxItem(duplicates ? "Duplicate" : "Amsterdam", "AMS").id("first");
+                        if(!filter || input.empty()) CPPUI::ComboBoxItem(duplicates ? "Duplicate" : "Tokyo Haneda", "HND").id("second");
                     }
                 }
             }
         }
-        QComboBox * native() { return static_cast<QComboBox *>(children->front()->children->front()->outer()); }
+        CPPUI::Qt::ComboBoxWidget * native() { return static_cast<CPPUI::Qt::ComboBoxWidget *>(children->front()->children->front()->outer()); }
     };
 }
 int main(int argc, char ** argv) {
@@ -103,29 +103,37 @@ int main(int argc, char ** argv) {
             require(root.native() == combo && combo->lineEdit() == editor && editor->text() == "tai tok"
                 && static_cast<std::string>(root.value) == "tai tok" && static_cast<std::string>(root.query) == "tai tok"
                 && root.inputs == 7 && root.changes == 7, "reactive typing lost text, bindings, editor or callback count");
-            require(combo->count() == 1 && combo->completer()->completionModel()->rowCount() == 1
-                && combo->completer()->popup()->isVisible(), "application candidates were filtered again or failed to open");
+            require(combo->count() == 1 && combo->candidates->completionModel()->rowCount() == 1
+                && combo->candidates->popup()->isVisible(), "application candidates were filtered again or failed to open");
             editor->setSelection(1, 3); root.sync(); settle();
             require(editor->selectionStart() == 1 && editor->selectedText() == "ai ", "redraw lost editor selection");
             root.filter = false; root.sync(); settle();
-            QTest::keyClick(combo->completer()->popup(), ::Qt::Key_Escape); settle();
-            require(editor->text() == "tai tok" && !combo->completer()->popup()->isVisible(), "Escape changed draft or left candidates open");
+            QTest::keyClick(combo->candidates->popup(), ::Qt::Key_Escape); settle();
+            require(editor->text() == "tai tok" && !combo->candidates->popup()->isVisible(), "Escape changed draft or left candidates open");
             editor->selectAll(); QTest::keyClicks(editor, "AMS"); settle();
             require(editor->text() == "AMS" && combo->currentIndex() == -1, "typing an item value replaced it with the label");
-            auto popup = combo->completer()->popup();
+            auto popup = combo->candidates->popup();
             QTest::keyClick(popup, ::Qt::Key_Down); QTest::keyClick(popup, ::Qt::Key_Return); settle();
             require(editor->text() == "Amsterdam" && static_cast<std::string>(root.value) == "AMS"
                 && static_cast<std::string>(root.query) == "AMS", "candidate selection lost label/value or wrote edit model");
+            root.duplicates = true; root.sync(); editor->selectAll(); QTest::keyClicks(editor, "dup"); settle();
+            popup = combo->candidates->popup();
+            popup->setCurrentIndex(combo->candidates->completionModel()->index(1, 0));
+            require(editor->text() == "dup" && static_cast<std::string>(root.value) == "dup",
+                "highlighting a completion changed the draft/model before acceptance");
+            QTest::keyClick(popup, ::Qt::Key_Return); settle();
+            require(editor->text() == "Duplicate" && static_cast<std::string>(root.value) == "HND"
+                && static_cast<std::string>(root.query) == "dup", "completion collapsed duplicate labels or changed the query");
             root.expand = false; root.sync(); settle();
-            require(!combo->completer() && combo->lineEdit() == editor, "autoexpand toggle replaced editor or retained completion");
+            require(!combo->candidates && combo->lineEdit() == editor, "autoexpand toggle replaced editor or retained completion");
             editor->selectAll(); QTest::keyClicks(editor, "free"); settle();
             require(editor->text() == "free" && static_cast<std::string>(root.query) == "free", "autoexpand off blocked free input");
             root.expand = true; root.empty = true; root.sync();
             QTest::keyClicks(editor, "x"); settle();
-            require(!combo->completer()->popup()->isVisible(), "empty candidates opened a popup");
+            require(!combo->candidates->popup()->isVisible(), "empty candidates opened a popup");
             root.empty = false; root.sync(); QTest::keyClicks(editor, "y"); settle();
             root.enabled = false; root.sync(); settle();
-            require(!combo->completer()->popup()->isVisible(), "disabling left candidates visible");
+            require(!combo->candidates->popup()->isVisible(), "disabling left candidates visible");
             root.enabled = true; root.sync();
             QPointer<QWidget> removed(combo);
             root.action = [&]() { root.show = false; root.sync(); };
