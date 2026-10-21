@@ -21,10 +21,11 @@
 #include "radiobutton.hpp"
 #include "combobox.hpp"
 #include "scroll.hpp"
+#include "splitter.hpp"
 #include "timeline.hpp"
 
 #define CPPUI_HAS_TREE 0
-#define CPPUI_HAS_SPLITTER 0
+#define CPPUI_HAS_SPLITTER 1
 #define CPPUI_HAS_DIALOG 0
 #define CPPUI_HAS_DROP 0
 #define CPPUI_HAS_SCROLL_ANCHOR 0

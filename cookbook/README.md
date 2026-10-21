@@ -61,8 +61,11 @@ SDL2/X11 use the same recipe and native Canvas input. Image resources and custom
 font loading remain separate LVGL Canvas work.
 
 Button, Label, HBox, VBox, Canvas, Checkbox, RadioButton, ProgressBar, TimelineView,
-Text, Image, Tab, Table and Table(Adapter) share their recipe implementations
+Text, Image, Tab, Table, Table(Adapter) and Splitter share their recipe implementations
 across all three backends.
+LVGL Splitter supports nested horizontal/vertical panes and pointer/touch drag
+handles. Redraw retains pane sizes and controls; changing composition or
+orientation resets the allocation, and window resizing preserves proportions.
 LVGL Image uses the bundled PNG/baseline-JPEG decoders and preserves the windmill's
 aspect ratio at its declared width. Canvas image resources remain separate work.
 Views also shares internal and bound selection examples across all backends.

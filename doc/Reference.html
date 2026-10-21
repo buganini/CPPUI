@@ -202,7 +202,7 @@ are described in the component sections and backend plans.</p>
 <tr>
 <td><a href="#splitter">Splitter</a></td>
 <td>QSplitter</td>
-<td>—</td>
+<td>Resizable objects with drag handles</td>
 <td>nested wxSplitterWindow</td>
 </tr>
 <tr>
@@ -1597,6 +1597,20 @@ splitter chain and distribute space equally, matching PUI; retained panes and
 their controls keep identity and editor drafts. Native sash gravity shares later
 resize deltas across the panes. Independent virtual-view redraws also reconcile
 the physical container. Native MDI and nonblocking Modal remain separate wx work.</p>
+<p>For LVGL, include <code>cppui/lvgl/splitter.hpp</code> and use the same
+<code>Splitter(vertical = false)</code> scope. It fills the available parent area
+and supports any number of widget/layout panes, flattened virtual views and
+nested splitters. Native pointer/touch handles resize the two adjacent panes.
+Unchanged redraw preserves handles, pane sizes and editor state; changing the
+pane order/count/type or orientation distributes the space equally again.
+Window resizing preserves the current pane proportions. A single pane fills
+the container; an empty splitter has no handles.</p>
+<p>Splitter allocates each child's width and height, with child margins inset
+inside that allocation and padding inside the child. A hidden child keeps its
+pane allocation. Handles are 12 logical pixels; dragging keeps adjacent panes
+at least one pixel wide/high when space permits. Very small containers shrink
+the handles and may leave zero-sized panes. The shared Splitter cookbook runs
+on both SDL2 and X11.</p>
 <h2 id="wx-controls">wx controls</h2>
 <p>wx HBox centers compact children vertically; VBox aligns compact children to
 the left. Children requesting cross-axis expansion still fill that axis.

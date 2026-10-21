@@ -7,6 +7,39 @@
 #endif
 
 namespace Cookbook { namespace TestBackend {
+    void dragDivider(lv_obj_t * handle,int dx,int dy) {
+        lv_area_t area;lv_obj_get_coords(handle,&area);
+        int x=(area.x1+area.x2)/2,y=(area.y1+area.y2)/2;
+        auto display=lv_obj_get_display(handle);
+        for(int step=0;step<4;++step) {
+            if(step==2) {x+=dx;y+=dy;}
+#if LV_USE_SDL
+            const auto window=SDL_GetWindowID(lv_sdl_window_get_window(display));
+            SDL_Event event{};
+            if(step==0) {
+                event.type=SDL_WINDOWEVENT;event.window.windowID=window;event.window.event=SDL_WINDOWEVENT_ENTER;
+                SDL_PushEvent(&event);event=SDL_Event{};
+            }
+            if(step==0 || step==2) {
+                event.type=SDL_MOUSEMOTION;event.motion.windowID=window;
+                event.motion.x=x;event.motion.y=y;event.motion.state=step==2 ? SDL_BUTTON_LMASK : 0;
+            } else {
+                event.type=step==1 ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+                event.button.windowID=window;event.button.button=SDL_BUTTON_LEFT;
+                event.button.state=step==1 ? SDL_PRESSED : SDL_RELEASED;event.button.x=x;event.button.y=y;
+            }
+            SDL_PushEvent(&event);
+#elif LV_USE_X11
+            auto connection=static_cast<_x11_user_hdr_t *>(lv_display_get_driver_data(display))->display;
+            XEvent event{};
+            if(step==0 || step==2) {event.type=MotionNotify;event.xmotion.x=x;event.xmotion.y=y;}
+            else {event.type=step==1 ? ButtonPress : ButtonRelease;event.xbutton.button=Button1;event.xbutton.x=x;event.xbutton.y=y;}
+            XPutBackEvent(connection,&event);
+            if(step==0) {event=XEvent{};event.type=EnterNotify;XPutBackEvent(connection,&event);}
+#endif
+            settle();settle();
+        }
+    }
     bool viewSelected(CPPUI::Node & node, const std::string & key) {
         auto views = dynamic_cast<Views *>(&node);
         if(!views || !views->ui) return false;
@@ -212,6 +245,21 @@ namespace Cookbook { namespace TestBackend {
             throw std::runtime_error("cookbook page list must scroll and include every recipe");
         }
         if(find(root, "code")) throw std::runtime_error("source code pane must be omitted");
+        if(auto split=find(root,"example-splitter")) {
+            auto outer=static_cast<lv_obj_t *>(split->outer());
+            auto inner=static_cast<lv_obj_t *>(find(root,"splitter-horizontal")->outer());
+            if(lv_obj_get_child_count(outer)!=3 || lv_obj_get_child_count(inner)!=5
+               || lv_obj_get_height(inner)<100 || lv_obj_get_width(inner)<200)
+                throw std::runtime_error("Splitter recipe must mount three horizontal panes inside a vertical split");
+            auto left=lv_obj_get_child(inner,0),right=lv_obj_get_child(inner,2);
+            const int leftWidth=lv_obj_get_width(left),rightWidth=lv_obj_get_width(right),topHeight=lv_obj_get_height(inner);
+            dragDivider(lv_obj_get_child(inner,1),25,0);
+            if(lv_obj_get_width(left)!=leftWidth+25 || lv_obj_get_width(right)!=rightWidth-25)
+                throw std::runtime_error("native driver did not drag the horizontal splitter handle");
+            dragDivider(lv_obj_get_child(outer,1),0,20);
+            if(lv_obj_get_height(inner)!=topHeight+20)
+                throw std::runtime_error("native driver did not drag the vertical splitter handle");
+        }
         if(auto row = find(root, "spacer-row")) {
             auto box = static_cast<lv_obj_t *>(row->outer());
             auto gap = static_cast<lv_obj_t *>(find(root, "row-gap")->outer());

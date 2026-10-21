@@ -1,3 +1,6 @@
+2026-10-22
+    * LVGL Splitter: add nested horizontal/vertical panes with draggable handles, retained sizes/editor state, proportional resize, keyed/virtual child updates and SDL2/X11 cookbook coverage
+
 2026-10-20
     * PUI audit: review committed local 2544344, a Textual-only tLayout/tStyle rename; update reference terminology and sync records without native code changes
     * Cookbook: sync PUI 2b4b528 wide modifier example, keep the gallery horizontal at narrow widths, and open all four native variants at 1024x768 without maximizing

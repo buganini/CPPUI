@@ -23,8 +23,6 @@ results out of this document.
   implementation for the currently rejected combination.
 - [ ] Add optional bound selection to Tabs, including cleared/unknown selection
   and model updates from native tab changes.
-- [ ] Implement Splitter with resizable panes and retained sash positions, or
-  make an explicit scope decision to omit it.
 - [ ] Implement Tree and Tree(Adapter) against the shared typed adapter contract,
   including hierarchy, expansion, selection, editing and retained model identity.
 
