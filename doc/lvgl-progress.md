@@ -1,458 +1,85 @@
-# LVGL implementation progress and remaining work
+# LVGL remaining alignment work
 
-Cookbook glyph fix (2026-10-21): both desktop builds attach matching 14/28-pixel
-Montserrat fallback bitmaps for `×`, `·`, `–` and `→`. These characters were absent
-from LVGL's built-in subset and appeared as placeholder squares. ASCII and icon
-glyphs retain their original fonts and metrics. Generated sources and the OFL
-license are checked in under `cppui/lvgl/fonts`; ordinary builds need no font
-converter or system font installation. To regenerate with `lv_font_conv` 1.5.3:
-`python3 scripts/generate_lvgl_symbols.py --lvgl-source /path/to/lvgl-9.6.0`.
-Verification: both desktop targets build and pass all 30 CTests each. The glyph
-regression rejects placeholders and checks bitmap availability and matching
-baseline metrics at both sizes; it passes Valgrind with no errors or leaks.
-Native canvas rendering confirms the symbols align with surrounding text.
+This file tracks only open gaps against the shared CPPUI/PUI contracts for
+LVGL 9.6.0. Remove resolved items; keep change history and completed verification
+results out of this document.
 
-Adaptive Grid first-visit fix (2026-10-21): Scroll cancels stale native scroll
-animations and clamps its offset when content or viewport geometry changes.
-This prevents initial focus scrolling from hiding the grid after responsive
-column reflow. The cookbook regression opens the page before any resize;
-`lvgl.scroll` also covers both axes, viewport growth, retained offsets and
-ordinary animated scrolling. Both desktop targets build and pass all 29 CTests
-each; the Scroll regression passes Valgrind with no errors or remaining allocations.
+## Text and fonts
 
-The latest 2026-10-21 sync through PUI `d07abf5` adds reversible ordinary/adaptive
-boxes and `.wideGrid()` child placement. Qt adopts shared expansion priorities;
-wx dividers now retain native thickness and update orientation. See the
-[layout sync audit](pui-sync-2026-10-21-layout.md).
+- [ ] Implement interactive text selection for Label/Text.
+- [ ] Implement formatted HTML and Markdown rendering; the current wrappers
+  display raw source.
+- [ ] Add runtime font loading, family selection, font-weight handling and
+  Unicode fallback beyond the compiled Montserrat subset. Define exact size and
+  display-density behavior for widgets and Canvas text.
 
-The follow-up 2026-10-21 sync through PUI `974b88b` adds automatic Grid placement,
-`.columns(n, grid::dense(mode))`, `.wideColumns()` and named child `.grid()`
-modifiers. All three backfill modes retain controls through reflow, hidden-item
-compaction and independent virtual-child updates. Manual and Adaptive Grid
-recipes are shared across native targets; see the [Grid sync audit](pui-sync-2026-10-21-grid.md).
+## Containers and data widgets
 
-The 2026-10-21 sync applies PUI's ComboBox candidate contract through `0dc72e2`
-to LVGL: `.autoexpand()`, `.editModel()` and `.input()` share the Qt/wx API.
-The backend displays application-declared candidates, replacing its old prefix
-filter. Editor keys navigate/accept candidates and Escape preserves the draft.
-See the [sync audit and remaining platform checks](pui-sync-2026-10-21.md).
+- [ ] Add Scroll `.scrollX()`/`.scrollY()` and the shared signed-zero end anchor,
+  including declarative offset retention through content replacement, growth,
+  shrinkage and viewport resize.
+- [ ] Support mixed forced/automatic scrollbar policies. LVGL exposes one
+  scrollbar visibility mode per object; choose an adapter or custom scrollbar
+  implementation for the currently rejected combination.
+- [ ] Add optional bound selection to Tabs, including cleared/unknown selection
+  and model updates from native tab changes.
+- [ ] Implement Splitter with resizable panes and retained sash positions, or
+  make an explicit scope decision to omit it.
+- [ ] Implement Tree and Tree(Adapter) against the shared typed adapter contract,
+  including hierarchy, expansion, selection, editing and retained model identity.
 
-The 2026-10-20 sync adds `HVBox(minWidth)` and `VHBox(minHeight)`, retaining
-native containers and editor state across direction changes. The shared Adaptive
-recipe and cookbook shell follow committed local PUI `efda649`; see the
-[sync audit](pui-sync-2026-10-20.md).
+## Drawing and desktop interactions
 
-The 2026-10-19 sync adds frozen hidden subtrees, reactive content-size observation
-and adaptive visibility bounds, with a shared Adaptive cookbook. It follows the
-committed PUI `b4771b8` snapshot; see the [sync audit](pui-sync-2026-10-19.md).
-
-PUI `97e442c` adds the backend name to the cookbook window title and sidebar
-heading: `Cookbook (LVGL SDL2)` or `Cookbook (LVGL X11)`.
-
-The native sync through PUI `1c7b45c` adds the shared Binding log viewer and
-editable Table cookbook markers, with the existing LVGL Table editors.
-The shared DOM offset cache was adopted after native measurement; see the
-[earlier audit](pui-sync-2026-10-18.md) and [performance decision](dom-offset-performance.md).
-
-Table now implements the shared declarative and typed-adapter interfaces on
-native `lv_table`, with text/numeric editors, boolean/choice dropdowns, header
-fallbacks, ragged cells, decorations and autofit. Double-click or Enter opens an
-editor; submission writes the raw typed value and Esc cancels. Redraw discards
-an unfinished draft. Headers scroll with cells and native display strings are
-copied eagerly. Tree remains unported. See the [Table contract](../REFERENCE.md#table).
-
-Table verification (2026-10-18): both drivers build with `-j "$(nproc)"`;
-all 23 CTests pass on each, including shared Table/Table(Adapter) cookbook
-edits. New regressions exercise real pointer/keypad input, focus loss, numeric
-validation, duplicate/unknown choices, scrolled editor geometry, callback-driven
-redraw/removal, shared State updates, adapter replacement and invalid-snapshot
-rollback. Both new tests pass Valgrind with zero errors and zero remaining
-allocations. Both rebuilt desktop cookbooks were launched.
-
-Image now implements the shared `Image(path)` interface using native `lv_image`,
-owned decoded pixels, path/file-stamp reuse, aspect-preserving declared dimensions,
-weighted stretching, visibility and click callbacks. PNG and baseline JPEG are
-enabled in both desktop configurations. Invalid files fail before reconciliation;
-source storage survives declaration replacement and native parent deletion.
-Both drivers enable the shared windmill recipe. See the
-[Image contract](../REFERENCE.md#image) for decoder configuration and memory cost.
-
-Image verification (2026-10-18): SDL2 and X11 build with `-j "$(nproc)"`;
-all 21 CTests pass on each, including the shared cookbook. Image and Canvas
-regressions pass Valgrind with zero errors and zero remaining allocations.
-Image tests cover transparent PNG rendering, JPEG edge tiles, resizing, source
-replacement with native caches enabled, invalid-file rollback, callback removal
-and external/native-parent deletion. Both rebuilt desktop cookbooks were launched.
-
-Grid is now implemented with the existing public row/column/span fields,
-content measurement including spanning cells, equal fractional tracks on
-allocated axes, margins, nested padding and retained hidden cells. Both SDL2/X11
-enable the shared Grid cookbook. No new shared placement API is required.
-See the [Grid contract](../REFERENCE.md#grid-and-stack) for sizing behavior.
-
-Stack uses a shared native grid cell, with retained layers,
-keyed drawing/input order, nested padding, margins and automatic/fixed sizing.
-Hidden or removed layers no longer contribute to automatic size. Both SDL2/X11
-enable the shared Stack cookbook. Stack was implemented independently of the
-public Grid wrapper; both are now available.
-
-Grid/Stack verification (2026-10-18): both drivers build with `-j "$(nproc)"`,
-including C++11 and independent-header checks; all 20 CTests pass for each
-driver. The Grid regression also passes Valgrind with definite/indirect leaks
-treated as errors, including descriptor access during parent-subtree deletion.
-Both rebuilt desktop cookbooks were launched.
-
-The preceding follow-up adds `.visible()`, delayed UI callbacks through `getPoster()`,
-and typed tab placement with the shared `Side` enum. Hidden content retains native
-state; callbacks run on the UI loop and stop executing after target removal. LVGL
-tab placement is now applied to the native tabview on redraw.
-
-Named node refs follow PUI `d83bbe2`: UI-thread lookup, retained binders and
-queued selection commands are ported, with Qt/wx desktop window commands and
-a shared Refs recipe. Worker submission, redraw and removal are tested. Native
-State-ref inspection publishers (Web/AI tooling) remain excluded.
-
-Canvas/HeavyCanvas now follow PUI `39759a2`/`e46cb43`: completed-draw FPS,
-continuous painting and full-frame color changes. Overlay removal and repeat
-painting are covered by native regressions.
-
-Previous native delta audit: committed local PUI `efda649` (2026-10-20). See the
-[component audit and exclusions](pui-sync-2026-10-20.md). Native Options,
-optional Landlock, Canvas FPS and refs are ported; Qt/wx additionally include
-portable inbound drops and directory filters. AI development tooling and
-Web/Pyodide remain excluded. The earlier native baseline follows below.
-
-Previous native delta audit: PUI `f0c1cf5` (2026-10-17). Shared controls use
-`disabled` (`d7dc23a`) and HeavyCanvas includes fourteen presets through
-1,000,000 (`18d1c5e`), with index labels above 500,000. Web/Pyodide changes
-remain excluded. Flet/Tkinter-only caches and PUI release-note consolidation
-require no CPPUI implementation changes. Older gaps below remain open.
-
-Canvas scopes follow PUI `cae7713`/`10fe513`/`f0c1cf5`: Qt restores native
-state, wx restores CPPUI pen/brush choices, and LVGL provides compatibility
-no-ops. The new redundant-setter guards were evaluated in native C++ and are
-intentionally not adopted: benefits were small or inconsistent. See the
-[benchmark method and decision](canvas-performance.md). Browser event/command
-changes remain excluded.
-
-## Baseline and scope
-
-Plan prepared on 2026-10-12 against:
-
-- [CPPUI at 5befe3353d7f372dee4418cd439b833d5f15f93a](https://github.com/buganini/CPPUI/commit/5befe3353d7f372dee4418cd439b833d5f15f93a).
-- [PUI at 009e9b9c3fbd724f0b73c862f8213ddc4742405c](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c),
-  for shared reactive behavior and [cookbook examples](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
-- [LVGL 9.6.0 at 80ca777e37a2b176770726a02e07a6fb79ef0b39](https://github.com/lvgl/lvgl/tree/80ca777e37a2b176770726a02e07a6fb79ef0b39),
-  for native objects, events, widgets, displays, and SDL2/X11 integration.
-
-The pinned PUI tree has no LVGL backend. This is a plan for CPPUI's existing
-`cppui/lvgl/` implementation, not a claim of direct Python/LVGL parity. Preserve
-shared C++11 declarations and recipes while mapping behavior explicitly onto
-LVGL. Desktop-only features need a stated LVGL capability or omission.
-
-Coordinate shared-core work and public binding/layout/event contracts with the
-[Qt alignment plan](pyside6-progress.md). Do not create competing backend-specific
-public APIs to work around an unresolved common contract. Record blockers below
-and continue independent tasks. Keep this document limited to remaining work
-and current contracts; summarize completed changes briefly in `Changelog.txt`.
-
-## Current basis and remaining acceptance
-
-Use **not yet ported** for missing CPPUI implementations and **partial** for
-implemented behavior with remaining gaps. An unchecked task remains work to do.
-Reserve **native limitation** for a verified LVGL API constraint, with its source
-and the adapter or custom implementation needed. A missing dedicated widget does
-not establish that a feature is impossible. **Excluded** means an explicit scope
-decision, such as the Python-only integrations below. An unresolved design choice
-must name the choice; it must not be reported as toolkit non-support. Call work
-**blocked** only when a specific dependency prevents progress, and name that
-dependency. Routine implementation choices remain part of the porting work.
-
-Public LVGL headers currently cover Application, Window, HBox/VBox, HVBox/VHBox, Grid/Stack, Label,
-Button, Checkbox, RadioButton, TextField, MaskedField, ComboBox, Spacer, Divider, plain Text with raw-source
-Html/MarkDown fallbacks, Image, basic Scroll, Tabs/Tab, Views, ProgressBar, TimelineView
-and Canvas drawing. Shared recipes use the
-public PUI layout/style modifiers; see the
-[component reference](../REFERENCE.md#pui-modifiers) for native mappings and limits.
-
-Shared options from PUI `d7dc23a`/`184ffcd` map to Button, Checkbox, RadioButton
-and ComboBox `.disabled(bool = true)` (default false) using `LV_STATE_DISABLED`,
-and TextField `.placeholder(text)` using the native textarea hint. The former
-enabled setter is removed. Omission on a fresh declaration restores enabled/empty defaults. Both
-SDL2/X11 cookbooks include the TextField hint; regressions cover native reuse,
-reactive button state, hint clearing and active draft/cursor preservation.
-ComboBox now supports index/value bindings, editable candidate menus, retained
-keyed selection and independently redrawn items. The shared recipe runs on both
-drivers.
-
-The previous native PUI delta audit through `8a8ef99` (2026-10-16) adds MaskedField
-(`139d070`) through native textarea password mode. It shares TextField's string
-model/draft, placeholder, callback and lifetime behavior. Both SDL2/X11 enable
-the shared password and HeavyCanvas cookbooks. HeavyCanvas includes 1,000–1,000,000
-synthetic sessions, hover details, wheel zoom and regenerate/reset controls.
-Canvas handles move, leave and wheel input on SDL2/X11 through the bundled LVGL
-input bridge. SDL2 enables pointer wheel delivery; X11 uses its encoder device.
-Application display-name/title fallback belongs to the desktop wrappers; LVGL
-host titles remain pending. Table decorations are now implemented on LVGL as
-well. Web/Pyodide changes are excluded at the user's request.
-
-| Area | Current basis | Remaining acceptance / phase |
-| --- | --- | --- |
-| Core integration | Shared reconciliation, nested virtual views, standalone view cleanup and top-level builder recovery | Nested partial-sync failure recovery needs a shared contract |
-| Native lifetime | Views own declarations; primary/secondary native observers clear on deletion; callbacks detach on retirement | Define external remount and shared-screen ownership before broadening interop (2, 6) |
-| Application and native drivers | Loop returns when the last display closes; LVGL delay callback; separate SDL2/X11 startup and cleanup | Define explicit quit/host-driven pumping and borrowed-runtime ownership; handle SDL2 direct exit (2) |
-| Label/Button | Owned text, styles and current button/label callbacks | Input payloads follow the deferred common contract (3) |
-| Stack | Shared native grid cell, retained keyed layers, automatic/allocated sizing, margins, visibility and cookbook | Implemented; broader display/density coverage follows general validation (3) |
-| Grid | Native rows/columns, spanning content measurement, equal allocated tracks, margins, retained cells and cookbook | Implemented; broader display/density coverage follows general validation (3) |
-| ProgressBar/Text/Image | ProgressBar with hundredths, clamping and busy animation; plain wrapping Text and raw Html/MarkDown fallbacks in the shared cookbook | Text selection/formatting and Image replacement/resource lifetime remain to port (4) |
-| Bound controls | Boolean Checkbox, typed RadioButton, string TextField and editable/read-only ComboBox with Binding/State | Shared text conversion and event payloads remain deferred (4) |
-| Scroll/Splitter | Basic public Scroll | Map mixed forced/automatic axis policies, add anchoring and decide splitter capability (5) |
-| Views | Retained native pages, internal/optional bound selection, keyed reuse and shared cookbook | Real-display input/layout checks remain part of general validation |
-| Modal/dialog/menu/window features | Active-screen Window only | Agree LVGL overlays and desktop-only omissions; use shared Optional results and preserve borrowed-screen ownership (5) |
-| Timeline/Canvas/resources | Cancellable TimelineView timers; Canvas primitives, text, native-resolution buffers and move/leave/wheel callbacks | Add image resources, font/density capabilities and remaining input events (6) |
-| Table/adapters | Native table, overlay text/choice editors, typed bindings/adapters, shared cookbook and lifecycle/input tests | Implemented; headers scroll with cells and display values are eagerly copied (6) |
-| Tree/interop | Shared typed tree adapter interface; LVGL Tree wrapper not yet ported | Implement tree behavior and define interop borrowing (6) |
-| Validation | Independent headers, C++11, lifecycle and cookbook CTest; sanitizer/Valgrind runs | Expand component/input cases, real SDL2/X11 interaction, multiple resolutions and target-device validation (2–6) |
-
-## Ownership contract
-
-- Factory results remain borrowed construction references. Applications keep
-  State and stable IDs, not nodes across reconciliation. Do not add public weak
-  wrappers or reference-counted node ownership.
-- Declarations own their tree and callback data. Native `.ui` access observes
-  an LVGL object; LVGL's parent tree owns child native objects. Make that access
-  typed and invalidate every associated observer before its native owner dies.
-- On reuse, transfer native access and install current callbacks before releasing
-  the predecessor. Internal retired-node forwarding is valid only while the
-  framework still owns both declarations.
-- Cancel events/timers and detach subscriptions before destroying declarations.
-  Snapshot active user callbacks. Define safe completion of callbacks which
-  redraw, remove themselves, or request application shutdown.
-- `Window` currently borrows the display's active screen and assumes exclusive
-  ownership of its CPPUI content. It must not delete the screen. This is not yet
-  an arbitrary shared-screen, multi-window, or externally replaced-screen API.
-- Application content must be released before input devices/displays, then SDL,
-  then LVGL. Application owns resources it creates lazily; externally supplied
-  displays, input devices, groups and host-owned LVGL runtime remain borrowed.
-- Confine state mutation, reconciliation and LVGL access to the owning UI thread.
-  Background work must marshal there; scheduler APIs need the shared completion
-  and error-delivery contract.
-
-## Implementation sequence
-
-### Phase 2 — Runtime, SDL2/X11 and input
-
-Reference: [LVGL SDL event loop](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_window.c),
-[keyboard driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/sdl/lv_sdl_keyboard.c),
-and [X11 driver](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/src/drivers/x11/lv_x11_display.c).
-
-The X11 cookbook uses a native arrow cursor, a monotonic `steady_clock` tick
-callback, and a sleeping delay callback. Both desktop backends use 16 ms
-display/input timers. It builds a corrected copy of the v9.6.0 display driver
-to install the native cursor and stop and join its tick thread during
-programmatic deletion, with an atomic stop flag. The clock callback supersedes
-the thread's simulated ticks.
-Review this version-specific workaround when updating LVGL. The application loop
-returns after the last display is deleted and uses LVGL's delay callback.
-X11 window-manager close invalidates native handles, releases declarations, then
-returns to startup for remaining input/runtime cleanup. Lifetime tests cover
-no-display entry, last-display close and multiple-display loop ownership.
-
-- [ ] Add explicit quit and host-driven pumping beyond last-display loop exit.
-  Define tick, delay, idle and host ownership responsibilities.
-- [ ] Route SDL2 direct exit through application cleanup and define borrowed
-  display/runtime close ownership. Test pending work, repeated quit and teardown
-  from an active callback; verify the host's runtime survives borrowed use.
-- [ ] Extend host-facing focus-group and keyboard/encoder ownership contracts.
-  The SDL2 cookbook owns its default pointer/keyboard group, and X11 uses the
-  driver's group; TextField borrows these through native object membership.
-  Exercise SDL2/X11 pointer,
-  wheel and keyboard input through the native driver, including scrolling to
-  clipped sidebar pages and focus after page changes.
-- [ ] Verify real-display rendering/input at multiple sizes and on an embedded
-  display/input target. Dummy-driver smoke checks do not validate physical input.
-
-Acceptance: native close returns through application cleanup; no event reaches
-retired declarations or a deleted display; keyboard focus reaches usable controls.
-
-### Phase 3 — Public layout, styling and existing widgets
-
-Reference: shared [HBox](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/hbox.py),
-[VBox](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/vbox.py),
-[Grid](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/grid.py),
-[Stack](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/stack.py),
-[Label](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/label.py)
-and [Button](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/button.py) cases.
-
-- [x] Add public Stack independently of Grid; verify automatic sizing and
-  shrinkage, allocated sizing, nested padding, margins, keyed order, hidden
-  layers, pointer targeting and retained editor state.
-- [x] Add public Grid using existing placement fields; verify row/column spans,
-  span-only content, nested padding, margins, native resizing, fixed-to-auto
-  sizing, visibility, independent view redraws, pointer input and native lifetime.
-- [ ] Add input payloads after the deferred common event contract is addressed.
-- [ ] Verify layout/style geometry at multiple display sizes and densities;
-  define runtime font resources beyond the current compiled-font approximation.
-
-### Phase 4 — Text, progress, images and bound controls
-
-- [ ] Implement interactive text selection and choose rich-text/Markdown
-  renderers. The shared `text.cpp` page is enabled on SDL2/X11 with plain wrapping
-  Text and raw-source Html/MarkDown fallbacks. Fallback calls warn at compile
-  time, the page displays a formatting notice, and `--list` marks it partial.
-  This does not implement formatted rendering or selection.
-- [x] Add file Image with owned source lifetime, decoding failure behavior,
-  declared dimensions and replacement cleanup. The shared API takes host paths;
-  borrowed native descriptors are not exposed.
-- [ ] Automatic collection observation and value-based Checkbox overloads remain
-  tied to the shared collection contract; explicit boolean membership adapters
-  work now.
-
-Acceptance: port [text.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/text.py),
-[image.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/image.py)
-and the binding/control pages. Assert one commit per edit, no feedback loop,
-native reuse, valid model retention after invalid input, and resource reclamation.
-
-### Phase 5 — Containers and window interactions
-
-Views adopts the shared PUI behavior introduced in `e5927cb` and `65f2c02`:
-unique non-empty child IDs, internal or optional bound selection, retained page
-state, and blank content for cleared or unknown keys without rewriting the model.
-Each page is an LVGL VBox; hidden pages remain mounted and can redraw independently.
-Selection dispatch follows the current declaration across synchronous redraws,
-and stops safely if a model setter removes the container or destroys its owner.
-The shared cookbook uses TextField and a Change text button to exercise retained
-state and native editor reuse.
-
-- [ ] Extend basic Scroll with `.scrollX()`/`.scrollY()`, the shared signed-zero
-  end anchor and position retention through resize, growth, shrinkage and content
-  replacement. Resolve mixed forced/automatic axis policies before supporting
-  that combination; it currently throws explicitly.
-- [ ] Implement Splitter with custom resizable panes, or record an explicit scope
-  decision to omit it. The missing CPPUI wrapper is not a proven LVGL limitation.
-  Do not duplicate the shared splitter recipe to hide capability differences.
-- [ ] Agree modal overlays, dialogs, menus/toolbars and Window capabilities
-  suitable for LVGL before implementing them. Desktop native dialogs, MDI,
-  window-manager flags and Qt embedding have no automatic LVGL equivalent.
-
-Acceptance: port [scroll.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/scroll.py),
-[tab.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tab.py),
-[splitter.py](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/splitter.py)
-and agreed modal/dialog cases, or report the omitted capability explicitly.
-
-### Phase 6 — Timers, drawing, data widgets and embedding
-
-- [ ] Add LVGL ImageResource/loadImage/drawImage after agreeing source ownership,
-  decoder availability and file access; test crop/scale, source regions, opacity,
+- [ ] Add LVGL ImageResource, `loadImage()` and Canvas `drawImage()`. Define source
+  ownership, decoder/file access and behavior for cropping, scaling, opacity,
   replacement and missing images.
-- [ ] Define Canvas font loading and display-density scaling. Basic text scales
-  the object's bitmap font to a pixel line height; Qt uses font points. Verify
-  device rendering/antialiasing expectations before promising equivalent output.
-  Move/leave/wheel follow the shared Canvas input API; other pointer events
-  remain tied to the deferred shared input contract.
-- [x] Implement Table against the public typed adapter interface, with native
-  text/choice editors, declarations, headers, shared ownership and cookbook.
-- [ ] Implement Tree against the public typed adapter interface; investigate
-  custom tree behavior separately from LVGL's table widget. Preserve adapter/data
-  ownership; arbitrary mixed/custom values remain a shared gap.
-- [ ] Define native-object/display embedding and external owner deletion before
-  exposing interop. Support shared-screen content only under an explicit scope.
+- [ ] Add remaining Canvas pointer callbacks after the shared input-event
+  contract is defined.
+- [ ] Define LVGL mappings or explicit exclusions for modal overlays, dialogs,
+  menus/toolbars, MDI and desktop Window commands. Port applicable shared recipes
+  with the shared result/selection contracts.
+- [ ] Define and implement inbound file/text/URL drops for desktop LVGL hosts,
+  including acceptance, filtering and callback lifetime.
 
-Acceptance: use the reference [Canvas](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/canvas.py),
-[ragged table](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py)
-and [tree sync](https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/tree_sync.py)
-cases where the agreed LVGL capability supports them. **Won't do — Shapely and
-Matplotlib:** the Python-only Canvas.drawShapely and MatplotlibCanvas integrations
-and their cookbook recipes are excluded from CPPUI.
+## Runtime, ownership and interop
 
-## Implementation choices and native constraints
+- [ ] Add explicit application quit and host-driven event-loop pumping. Specify
+  tick, delay, idle and host ownership responsibilities.
+- [ ] Route SDL2 `SDL_QUIT` through ordered application cleanup instead of the
+  driver's direct shutdown/exit path. Cover pending work, repeated quit and
+  shutdown from callbacks without destroying a borrowed host runtime.
+- [ ] Define host-facing focus-group and keyboard/encoder ownership for embedded
+  and externally supplied input devices.
+- [ ] Define scoped content roots, screen switching, multiple displays and
+  remount behavior after external native deletion. Active-screen content still
+  assumes exclusive use; arbitrary shared-screen/native-object embedding needs
+  an explicit ownership contract.
+- [ ] Define scheduler completion and error delivery for background submissions,
+  cancellation and shutdown while keeping all LVGL access on the UI thread.
 
-- **Scroll policy mapping:** Qt now follows PUI's Optional<bool> axis policies,
-  signed-zero end anchor and pre-sync position capture. LVGL has one scrollbar
-  visibility mode for an object. Basic public Scroll rejects a forced axis paired
-  with an automatic axis; choose a mapping or custom scrollbar implementation for
-  that mixed case. The offset representation needs no further shared decision.
-- **Grid sizing (implemented):** existing node coordinates/spans drive native
-  placement. The wrapper owns descriptor arrays across retained declarations.
-  Automatic axes include spanning content and margins; allocated axes use
-  equal fractional tracks. Grid size/weight controls allocation by its parent;
-  per-cell weights do not alter track proportions. See the
-  [Grid contract](../REFERENCE.md#grid-and-stack) and pinned
-  [native API](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/layouts/lv_grid.h).
-- **Selection controls:** LVGL's [dropdown](https://github.com/lvgl/lvgl/blob/80ca777e37a2b176770726a02e07a6fb79ef0b39/include/lvgl/widgets/lv_dropdown.h)
-  takes newline-separated labels and exposes an unsigned selected index; it does
-  not supply Qt's editable text field or negative-index empty selection contract.
-  Choose a restricted native control versus a composite implementation.
-  RadioButton already uses LVGL 9.6's native sibling exclusion via
-  `lv_obj_set_radio_button`; separate layouts form separate groups. General
-  focus-group ownership remains in the runtime/input tasks above.
-- **Shared contracts:** use the shared Binding/State adapters and follow the Qt plan's
-  default reset for omitted properties, stderr render errors, Optional dialog
-  results and PUI virtual Tab mapping. Input payloads are explicitly deferred;
-  remaining subscription/value types, retained-view inputs and nested-sync
-  recovery stay coordinated there. Inspect reference code/tests before raising
-  any further decision; do not block independent work on those gaps.
-- **Runtime ownership and stop:** Application returns when the last display closes;
-  LVGL's SDL2 driver can still call `exit`. Choose host-owned versus
-  backend-owned pumping and native-event interception for an explicit quit API.
-  Native resources must outlive declarations in both modes.
-- **Screen ownership:** active-screen content is currently exclusive. Choose
-  scoped content roots, screen switching, multiple displays and external-delete
-  remount behavior before broadening Window or interop.
-- **Editor commits:** TextField preserves active drafts and commits on Enter or
-  focus loss, with adapter readback for rejected/normalized values. Idle draft
-  synchronization uses a cancellable LVGL async task after reconciliation;
-  native events keep lifetime state across synchronous redraws and stop after
-  removal. The shared string model/draft API is ported. Shared numeric conversion
-  and typed input/change payloads remain deferred across backends.
-- **Capability differences:** decide rich text and
-  selection, font/image resources, custom splitters/trees, and desktop features
-  independently. State verified native limits separately from unfinished wrappers;
-  pixel-identical desktop rendering is not implied by sharing recipe source.
+## Shared-core dependencies
 
-## Shared cookbook and verification
+Coordinate these gaps with the [shared/Qt plan](pyside6-progress.md); do not add
+competing LVGL-specific public contracts.
 
-All cookbook source/header files live in `cookbook/`, with one source list for
-Qt, wx and both LVGL drivers. Select SDL2 or X11 through the CMake projects in
-`cookbook/lvgl_sdl2/` or `cookbook/lvgl_x11/`; `cookbook/lvgl/` contains only
-CMake helpers. The public `cppui/backend.hpp` facade selects toolkit headers and
-exposes feature capabilities. Native startup belongs to the backend; native smoke
-helpers live in `tests/cookbook/` and are linked only into separate test executables.
-Preserve the cookbook sidebar, scrolling list,
-Result pane and recipe layouts. Only the reference's source-code pane is omitted;
-`--list` reports unfinished wrappers as `not ported` and enabled recipes with gaps
-as `partial`. Record any verified toolkit limitation separately in the docs.
+- [ ] Recover from nested builder failures after native reconciliation starts.
+- [ ] Deliver changed inputs to retained, parameterized subviews.
+- [ ] Add Binding conversion/validation helpers, external-change subscriptions
+  and notification ownership. TextField numeric conversion and typed
+  input/change payloads depend on these contracts.
+- [ ] Define batched mutation and unchanged-value notification behavior.
+- [ ] Add observable list/map updates, element bindings and value-based Checkbox
+  overloads under the shared collection contract.
+- [ ] Define remaining keyboard/button/modifier event payloads and arbitrary
+  Table/Tree cell-value adapters.
 
-SDL2 C++11 build and tests (requires SDL2 development packages):
+## Remaining validation
 
-```sh
-cmake -S cookbook/lvgl_sdl2 -B build-cookbook-lvgl_sdl2 \
-  -DCPPUI_LVGL_SOURCE_DIR=lvgl-9.6.0 -DCMAKE_BUILD_TYPE=RelWithDebInfo
-cmake --build build-cookbook-lvgl_sdl2
-ctest --test-dir build-cookbook-lvgl_sdl2 --output-on-failure
-```
-
-For X11, substitute `lvgl_x11` for `lvgl_sdl2` in both source/build paths; install
-X11 development packages and provide `DISPLAY`. See the [cookbook instructions](../cookbook/README.md)
-for full commands and the shallow v9.6.0 checkout. Both executables use their
-selected native driver for separate `_smoke` test executables and interactive runs. CTest uses dummy
-video/software rendering for `cookbook.lvgl_sdl2`; `cookbook.lvgl_x11` uses an
-X server, optionally Xvfb. Keep interactive close, physical input/focus and
-embedded-device checks pending until explicitly tested.
-
-Enable `CPPUI_VALGRIND_TESTS=ON` in a non-sanitized build and run
-`ctest --test-dir build-cookbook-lvgl_sdl2 -L valgrind --output-on-failure` (or use
-the X11 build directory). New cases
-must use `cppui_add_test` so memory checks cover them. Run ASan/UBSan/leak checks
-in a separate build with both the LVGL C library and CPPUI C++ code instrumented.
-Keep per-allocation libc tracking in the host test configuration. No invalid
-accesses or definite/indirect/possible leaks are acceptable; reachable library
-globals are reported separately. Do not hide framework leaks with suppressions.
-
-After each completed change, update component/build docs, examples and tests;
-remove its finished tasks from this plan; add a concise component-prefixed
-change summary to `Changelog.txt`, merging related work into milestone entries;
-then commit before the next change. Keep detailed validation commands/results
-in tests, documentation or commit messages.
-Update the Qt plan only for shared contracts or shared-core gaps, keeping
-LVGL-specific remaining work here.
+- [ ] Verify physical SDL2/X11 pointer, wheel and keyboard interactions, clipped
+  controls, focus traversal and page changes across multiple display sizes.
+- [ ] Verify real IME composition, accessibility, themes and HiDPI layout/text
+  rendering; compile-time font selection and dummy-display tests do not cover
+  these behaviors.
+- [ ] Verify rendering, input and teardown on an embedded display/input target.
+- [ ] Verify supported desktop hosts beyond Linux.
+- [ ] Investigate X11 application/cookbook startup crashes under Xvfb.
