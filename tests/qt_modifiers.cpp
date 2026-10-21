@@ -24,6 +24,8 @@ namespace {
     class Root: public CPPUI::Qt::QtView {
         public:
         int phase = 0;
+        CPPUI::Optional<int> weight{700};
+        bool overrideWeight=false;
         QStyle * nativeStyle = nullptr;
         std::string image;
         void content() override {
@@ -44,7 +46,7 @@ namespace {
                         options.StyleSheet = CPPUI::QtStyleSheet{{"border-width", "2px"}};
                         label.layout(CPPUI::layout::weight(3), CPPUI::layout::width(160)).layout({}, 45)
                             .style(CPPUI::style::fontFamily("Sans"), CPPUI::style::fontSize(20),
-                                   CPPUI::style::color(0xff0000), CPPUI::style::bgColor(0x123456));
+                                   CPPUI::style::color(0xff0000), CPPUI::style::bgColor(0x123456), CPPUI::style::fontWeight(600));
                         label.qt(options);
                         CPPUI::QtOptions replacement;
                         replacement.StyleSheet = CPPUI::QtStyleSheet{{"color", "#000000"}, {"font", "16pt"}};
@@ -59,6 +61,17 @@ namespace {
                     }
                     (new Child())->id("subview");
                     CPPUI::Button("button").id("button");
+                    auto & weighted=CPPUI::Label("weight only");weighted.id("weighted");
+                    if(weight) weighted.style(CPPUI::style::fontWeight(*weight));
+                    if(overrideWeight) {
+                        CPPUI::QtOptions options;
+                        options.StyleSheet=CPPUI::QtStyleSheet{{"font-weight","300"}};
+                        weighted.qt(options);
+                    }
+                    for(auto inherited:CPPUI::VBox().style(CPPUI::style::fontSize(18),CPPUI::style::fontWeight(700))) {
+                        CPPUI::Label("inherited bold").id("inherited");
+                        CPPUI::Label("normal child").style(CPPUI::style::fontWeight(400)).id("normal-child");
+                    }
                     auto & picture = CPPUI::Image(image); picture.id("image");
                     if(phase == 0) picture.layout({}, 40);
                     if(phase == 1) picture.layout({}, 20);
@@ -85,8 +98,14 @@ int main(int argc, char ** argv) {
             require(label->sizePolicy().horizontalPolicy() == QSizePolicy::Fixed
                 && label->sizePolicy().verticalPolicy() == QSizePolicy::Maximum, "Qt policies were not applied");
             require(label->styleSheet().contains("color:#000000;") && label->styleSheet().contains("background-color:#123456;")
-                && label->font().pointSize() == 16 && !label->styleSheet().contains("border-width"),
+                && label->font().pointSize() == 16 && label->font().weight()==QFont::DemiBold && !label->styleSheet().contains("border-width"),
                 "style or Qt stylesheet replacement/precedence failed");
+            auto weighted=root.native("weighted");weighted->ensurePolished();
+            require(weighted->font().weight()==QFont::Bold && weighted->font().pointSize()==app.font().pointSize(),"weight-only style changed size or failed to apply");
+            root.native("inherited")->ensurePolished();root.native("normal-child")->ensurePolished();
+            require(root.native("inherited")->font().weight()==QFont::Bold
+                && root.native("normal-child")->font().weight()==QFont::Normal
+                && root.native("normal-child")->font().pointSize()==18,"font weight inheritance/override failed");
             require(static_cast<QLabel *>(root.native("image"))->pixmap().size() == QSize(80, 40), "image did not scale to requested height");
             auto subview = static_cast<Child *>(find(root, "subview"));
             subview->weight = 5; subview->sync();
@@ -98,12 +117,21 @@ int main(int argc, char ** argv) {
                 "zero padding or omitted Qt constraint did not reset");
             require(label->sizePolicy().horizontalPolicy() == QSizePolicy::Preferred && label->font().pointSize() == app.font().pointSize(),
                 "omitted Qt policy/font did not reset");
+            require(label->font().weight()==app.font().weight(),"omitted font weight did not reset");
             require(label->styleSheet().contains("color:#000000;"), "explicit empty Qt stylesheet did not clear previous overrides");
             require(static_cast<QLabel *>(root.native("image"))->pixmap().size() == QSize(40, 20), "image sizing change reused a stale scaled pixmap");
             root.phase = 2; root.sync();
             require(label->sizeHint() != QSize(0, 0) && label->styleSheet().isEmpty()
                 && root.native("box")->contentsMargins() == QMargins(11, 11, 11, 11), "omitted layout/style did not restore defaults");
             require(static_cast<QLabel *>(root.native("image"))->pixmap().size() == QSize(100, 50), "omitted image size did not restore source pixels");
+            for(int weight:{100,200,300,400,500,600,700,800,900,400}) {
+                root.weight=weight;root.sync();
+                require(root.native("weighted")==weighted && int(weighted->font().weight())==weight,"numeric weight change replaced widget or failed to apply");
+            }
+            root.weight=700;root.overrideWeight=true;root.sync();
+            require(weighted->font().weight()==QFont::Light,"Qt font-weight override lost precedence");
+            root.overrideWeight=false;root.weight.reset();root.sync();
+            require(weighted->font().weight()==app.font().weight(),"removed weight retained a stale native font");
             for(int i = 0; i < 20; ++i) { root.phase = i % 3; root.sync(); }
             root.clearChildren();
         }

@@ -127,7 +127,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header adaptive application runtime base button canvas checkbox combobox divider grid image label layout progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline views window)
+    foreach(header adaptive application runtime base button canvas checkbox combobox divider font grid image label layout progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

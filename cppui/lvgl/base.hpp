@@ -1,5 +1,6 @@
 #include "../view.hpp"
 #include "adaptive.hpp"
+#include "font.hpp"
 
 #include <lvgl.h>
 #include <cstdio>
@@ -100,7 +101,7 @@ namespace CPPUI {
                     lv_obj_set_style_bg_color(object, lv_color_hex(*style_bgcolor), 0);
                     lv_obj_set_style_bg_opa(object, LV_OPA_COVER, 0);
                 }
-                if(style_fontsize || style_fontfamily) {
+                if(style_fontsize || style_fontfamily || style_fontweight) {
                     // LVGL uses configured bitmap fonts; choose the closest enabled
                     // Montserrat size to the requested point size at 96 dpi.
                     const auto font = resolveFont();
@@ -108,6 +109,7 @@ namespace CPPUI {
                 }
             }
             const lv_font_t * resolveFont() const;
+            const lv_font_t * resolveFontSize() const;
             static void event(lv_event_t * event) {
                 auto observer = static_cast<Observer *>(lv_event_get_user_data(event));
                 auto node = observer->owner;
@@ -245,10 +247,15 @@ namespace CPPUI {
         };
 
         inline const lv_font_t * Node::resolveFont() const {
+            const auto inherited=lv_obj_get_style_text_font(static_cast<lv_obj_t *>(ui),LV_PART_MAIN);
+            const bool bold=style_fontweight ? *style_fontweight>=600 : Fonts::isBoldFont(inherited);
+            return Fonts::withFontWeight(resolveFontSize(),bold);
+        }
+        inline const lv_font_t * Node::resolveFontSize() const {
             if(style_fontfamily && *style_fontfamily && std::strcmp(style_fontfamily, "Montserrat") != 0)
                 throw std::invalid_argument("LVGL style fontFamily supports only configured Montserrat fonts");
+            if(!style_fontsize) return lv_obj_get_style_text_font(static_cast<lv_obj_t *>(ui),LV_PART_MAIN);
             const lv_font_t * best = LV_FONT_DEFAULT;
-            if(!style_fontsize) return best;
             const int pixels = (*style_fontsize * 4 + 1) / 3;
             int distance = std::abs(int(best->line_height) - pixels);
 #if LV_FONT_MONTSERRAT_8

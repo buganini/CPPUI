@@ -1,6 +1,6 @@
-# Add the symbols used by shared cookbook text to both desktop font sizes.
+# Add symbols and bold variants to both desktop font sizes.
 # Keep the SDK and its ASCII/icon glyphs unchanged; compile copies with fallbacks.
-function(cppui_lvgl_symbol_fonts target)
+function(cppui_lvgl_fonts target)
     get_target_property(sources ${target} SOURCES)
     foreach(size 14 28)
         set(name "lv_font_montserrat_${size}.c")
@@ -24,7 +24,9 @@ function(cppui_lvgl_symbol_fonts target)
         file(WRITE "${patched}" "#include \"lvgl.h\"\nLV_FONT_DECLARE(cppui_font_symbols_${size})\n${code}")
         list(REMOVE_ITEM sources "${source}")
         list(APPEND sources "${patched}"
-            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../cppui/lvgl/fonts/cppui_font_symbols_${size}.c")
+            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../cppui/lvgl/fonts/cppui_font_symbols_${size}.c"
+            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../cppui/lvgl/fonts/cppui_font_montserrat_bold_${size}.c")
     endforeach()
     set_property(TARGET ${target} PROPERTY SOURCES "${sources}")
+    target_compile_definitions(${target} INTERFACE CPPUI_LVGL_BOLD_FONTS=1)
 endfunction()

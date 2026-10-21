@@ -174,6 +174,9 @@ namespace Cookbook { namespace TestBackend {
     }
     void answerPrompt(const std::string &, bool) {}
     bool modalVisible(CPPUI::Node &) { return false; }
+    bool pageActive(CPPUI::Node & node) {
+        return CPPUI::LVGL::Fonts::isBoldFont(lv_obj_get_style_text_font(static_cast<lv_obj_t *>(node.outer()),LV_PART_MAIN));
+    }
     bool selectPage(CPPUI::Node & node) {
         auto link = dynamic_cast<CPPUI::LVGL::Label *>(&node);
         if(!link) return false;

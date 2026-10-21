@@ -515,9 +515,10 @@ Node &amp; style(Optional&lt;int&gt; color = {}, Optional&lt;int&gt; bgColor = {
 argument. Positional padding/margin need an explicit <code>Insets(...)</code>; C++ cannot
 implicitly convert an integer through both Insets and Optional. Both
 font-family forms accept a string literal directly.</p>
-<p><strong>Reference limitations:</strong> <code>margin</code> and <code>fontWeight</code> are stored but not applied
-by the pinned PUI Qt implementation. CPPUI's Qt backend keeps that behavior;
-other backends apply properties according to their native support.
+<p>Qt applies <code>fontWeight</code> as a native stylesheet weight (100–900), independently
+of font size and family. Omitting it on the next declaration restores the native
+default or inherited weight; <code>.qt(StyleSheet)</code> can override it.
+The Qt backend still stores <code>margin</code> without applying it.
 Virtual/model-only nodes have no native size or appearance to modify.</p>
 <p><code>.wideLayout(minWidth, ...)</code> and <code>.wideStyle(minWidth, ...)</code> take the threshold
 first, followed by the same typed named arguments (or positional arguments)
@@ -567,8 +568,17 @@ cannot produce arbitrary exact sizes. <code>fontFamily</code> accepts empty/defa
 <code>&quot;Montserrat&quot;</code>; other families throw. Font data remains owned by the configured
 LVGL runtime. The SDL2/X11 desktop builds supplement the 14/28-pixel fonts with
 <code>×</code>, <code>·</code>, <code>–</code> and <code>→</code> used by the shared cookbook. Other Unicode coverage depends
-on the configured fonts. Runtime font loading and display-density mapping remain
-pending.
+on the configured fonts. <code>fontWeight</code> values below 600 select the normal
+weight; values of 600 or more select compiled Montserrat Bold at the closest
+available size (14 or 28 pixels). A weight-only change preserves the inherited
+size when that size is available. A size-only change preserves inherited bold
+weight, and omission restores the prior local or inherited font. Bold fonts keep
+the normal fonts' line metrics and use them as fallbacks for icon glyphs.
+Desktop CMake builds include these fonts automatically. Custom LVGL hosts can
+enable the normal 14/28-pixel fonts, compile the two
+<code>cppui/lvgl/fonts/cppui_font_montserrat_bold_*.c</code> files and define
+<code>CPPUI_LVGL_BOLD_FONTS=1</code>; requesting bold without them throws.
+Runtime font loading and display-density mapping remain pending.
 wx applies layout sizing, padding/weight and font/color modifiers, resetting
 omitted values to native defaults. <code>.qt()</code> is specific to the Qt backend.</p>
 <h2 id="application">Application</h2>

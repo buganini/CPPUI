@@ -22,6 +22,12 @@ Native additions are audited through committed local/public PUI `c50b33f` (2026-
 Grid now displays a manual colored mosaic. Adaptive Grid demonstrates
 `.columns()` / `.wideColumns()` at 384/576/768 logical pixels, the three backfill
 modes, hidden-item compaction, child span expansion, bound reversal and a retained text editor.
+The active sidebar page uses bold text while retaining the theme's colors.
+Qt applies native font weights; LVGL desktop builds include 14/28-pixel Montserrat
+Bold fonts, with symbol coverage and icon fallback. Font data is checked in, so
+normal builds need no font converter. To regenerate the bold fonts, run
+`python3 scripts/generate_lvgl_bold.py --lvgl-source /path/to/lvgl-9.6.0`
+with `lv_font_conv` 1.5.3 installed (or pass `--converter /path/to/lv_font_conv`).
 The gallery uses a horizontal Splitter for the Code and Result panes on all
 backends. CMake defines `CPPUI_COOKBOOK_SOURCE_DIR` as the absolute cookbook
 directory. Selecting a recipe or pressing **Reload** reads its C++ source from

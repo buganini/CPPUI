@@ -46,6 +46,7 @@ namespace Cookbook { namespace TestBackend {
     };
     void answerPrompt(const std::string & text,bool accepted){new PromptAnswer(text,accepted);}
     bool modalVisible(CPPUI::Node &){return false;}
+    bool pageActive(CPPUI::Node & node){return static_cast<wxWindow *>(node.outer())->GetFont().GetWeight()==wxFONTWEIGHT_BOLD;}
     bool selectPage(CPPUI::Node & node){auto link=dynamic_cast<CPPUI::Wx::Label *>(&node);if(!link||!link->ui)return false;
         for(auto parent=link->ui->GetParent();parent;parent=parent->GetParent())if(auto scroll=dynamic_cast<wxScrolledWindow *>(parent)){int x,y;scroll->GetViewStart(&x,&y);auto point=scroll->ScreenToClient(link->ui->ClientToScreen(wxPoint(0,0)));scroll->Scroll(x,std::max(0,y+point.y));}
         wxMouseEvent event(wxEVT_LEFT_DOWN);event.SetEventObject(link->ui);link->ui->ProcessWindowEvent(event);return true;}

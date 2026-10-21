@@ -9,7 +9,7 @@ results out of this document.
 - [ ] Implement interactive text selection for Label/Text.
 - [ ] Implement formatted HTML and Markdown rendering; the current wrappers
   display raw source.
-- [ ] Add runtime font loading, family selection, font-weight handling and
+- [ ] Add runtime font loading, family selection and
   Unicode fallback beyond the compiled Montserrat subset. Define exact size and
   display-density behavior for widgets and Canvas text.
 

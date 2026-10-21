@@ -121,6 +121,11 @@ namespace Cookbook { namespace TestBackend {
         return modal && modal->ui && modal->ui->isVisible()
             && static_cast<QDialog *>(modal->ui)->isModal();
     }
+    bool pageActive(CPPUI::Node & node) {
+        auto label=static_cast<QWidget *>(node.outer());
+        label->ensurePolished();
+        return label->font().weight()==QFont::Bold;
+    }
     bool selectPage(CPPUI::Node & node) {
         auto link = dynamic_cast<CPPUI::Qt::Label *>(&node);
         if(!link) return false;

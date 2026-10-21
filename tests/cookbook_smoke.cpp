@@ -31,6 +31,14 @@ namespace Cookbook {
     void require(bool value, const char * message) {
         if(!value) throw std::runtime_error(message);
     }
+    void checkActivePage(Gallery & gallery) {
+        for(std::size_t i=0;i<recipes().size();++i) {
+            auto link=find(gallery,std::string("page:")+recipes()[i].key);
+            require(link && TestBackend::pageActive(*link)==(int(i)==static_cast<int>(gallery.selected)),
+                "sidebar active page did not use the correct native font weight");
+            require(!link->style_color && !link->style_bgcolor,"sidebar selection replaced theme colors");
+        }
+    }
 
     int runSmoke(int argc, char ** argv) {
         try {
@@ -48,6 +56,7 @@ namespace Cookbook {
             Gallery gallery(argc, argv);
             gallery.sync();
             TestBackend::settle();
+            checkActivePage(gallery);
             TestBackend::prepareLayoutCheck(gallery);
             if(heavySmoke) {
                 TestBackend::resizeWindow(gallery,1200,800);
@@ -96,6 +105,7 @@ namespace Cookbook {
                     require(link && TestBackend::selectPage(*link), "sidebar page link is missing");
                     TestBackend::settle();
                     require(static_cast<int>(gallery.selected) == static_cast<int>(i), "sidebar did not select the page");
+                    checkActivePage(gallery);
                     require(find(gallery, std::string("recipe:") + recipes()[i].key), "page selection did not render");
                     const auto file = recipes()[i].sourceFile();
                     const auto path = std::string(CPPUI_COOKBOOK_SOURCE_DIR) + "/" + file;

@@ -26,6 +26,7 @@ namespace Cookbook {
     void answerPrompt(const std::string & text, bool accepted);
     bool modalVisible(CPPUI::Node & node);
     bool selectPage(CPPUI::Node & node);
+    bool pageActive(CPPUI::Node & node);
     void prepareLayoutCheck(CPPUI::Node & root);
     void resizeWindow(CPPUI::Node & root,int width,int height);
     void resizeCodePane(CPPUI::Node & root,int width);
