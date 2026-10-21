@@ -4,7 +4,7 @@
 #include "../grid.hpp"
 #include <wx/gbsizer.h>
 namespace CPPUI { namespace Wx {
-class Grid: public detail::GridLayout<Layout> {
+class Grid: public ::CPPUI::detail::GridLayout<Layout> {
     int growable=0;
     void detach() {
         if(!wxSizerObject) return;

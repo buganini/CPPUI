@@ -7,7 +7,7 @@
 #include <limits>
 
 namespace CPPUI { namespace LVGL {
-    class Grid: public detail::GridLayout<Layout> {
+    class Grid: public ::CPPUI::detail::GridLayout<Layout> {
         // LVGL borrows the descriptor arrays. Retained declarations share their
         // storage, including while native callbacks run during reconciliation.
         struct Tracks {

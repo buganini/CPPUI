@@ -6,7 +6,7 @@
 #include <QGridLayout>
 
 namespace CPPUI { namespace Qt {
-    class Grid: public detail::GridLayout<LayoutWidget> {
+    class Grid: public ::CPPUI::detail::GridLayout<LayoutWidget> {
         protected:
         void clearNative() override { qtlayout = nullptr; gridChildren.clear(); BaseWidget::clearNative(); }
         public:
