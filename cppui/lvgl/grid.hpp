@@ -3,10 +3,11 @@
 
 #include "base.hpp"
 #include "spacer.hpp"
+#include "../grid.hpp"
 #include <limits>
 
 namespace CPPUI { namespace LVGL {
-    class Grid: public Layout {
+    class Grid: public detail::GridLayout<Layout> {
         // LVGL borrows the descriptor arrays. Retained declarations share their
         // storage, including while native callbacks run during reconciliation.
         struct Tracks {
@@ -25,7 +26,7 @@ namespace CPPUI { namespace LVGL {
         std::vector<int32_t> measure(bool horizontal,bool fill) const {
             struct Item {int start,count,size;};
             std::vector<Item> items;
-            int count=1;
+            int count=horizontal ? std::max(1,grid_columns) : 1;
             auto object=static_cast<lv_obj_t *>(ui);
             const int gap=horizontal ? lv_obj_get_style_pad_column(object,LV_PART_MAIN) : lv_obj_get_style_pad_row(object,LV_PART_MAIN);
             for(uint32_t i=0;i<lv_obj_get_child_count(object);++i) {
@@ -106,6 +107,7 @@ namespace CPPUI { namespace LVGL {
         }
         void update(Node * previous) override {
             auto prev=static_cast<Grid *>(previous);
+            retainGrid(prev && prev->ui ? prev : nullptr);
             if(prev) tracks=prev->tracks;
             ui=prev && prev->ui ? prev->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));
             auto object=static_cast<lv_obj_t *>(ui);
@@ -118,15 +120,22 @@ namespace CPPUI { namespace LVGL {
             lv_obj_set_grid_dsc_array(object,tracks->columns.data(),tracks->rows.data());
         }
         void layoutChild(Node * child) override {
+            // Automatic cells are assigned together after child reconciliation.
+            if(grid_columns) return;
+            placeChild(child,GridCell(child->grid_row,child->grid_column,
+                                     span(child->grid_rowspan),span(child->grid_columnspan)));
+        }
+        void placeChild(Node * child,const GridCell & cell) {
             if(!ui || !child->ui || child->is_outoforder) return;
             auto object=static_cast<lv_obj_t *>(child->outer());
             if(dynamic_cast<Spacer *>(child)) {
                 lv_obj_set_ignore_layout(object,true);lv_obj_set_size(object,0,0);return;
             }
-            const int columns=span(child->grid_columnspan),rows=span(child->grid_rowspan);
-            validate(child->grid_column,columns);validate(child->grid_row,rows);
-            lv_obj_set_grid_cell(object,tracks->fillX ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,child->grid_column,columns,
-                                       tracks->fillY ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,child->grid_row,rows);
+            const int columns=cell.columnspan,rows=cell.rowspan;
+            validate(cell.column,columns);validate(cell.row,rows);
+            lv_obj_set_ignore_layout(object,false);
+            lv_obj_set_grid_cell(object,tracks->fillX ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.column,columns,
+                                       tracks->fillY ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.row,rows);
             const auto margin=child->layout_margin.valueOr(Insets(0));
             lv_obj_set_style_margin_top(object,margin.top,0);lv_obj_set_style_margin_right(object,margin.right,0);
             lv_obj_set_style_margin_bottom(object,margin.bottom,0);lv_obj_set_style_margin_left(object,margin.left,0);
@@ -134,9 +143,19 @@ namespace CPPUI { namespace LVGL {
         }
         void addChild(int index,Node * child) override {
             if(child->is_outoforder) return;
+            mountGrid(index,child);
             Node::addChild(index,child);layoutChild(child);
         }
-        void postSync() override {configure();}
+        void removeChild(int index,Node * child) override {
+            if(child->is_outoforder) return;
+            unmountGrid(index,child);
+            if(child->ui) lv_obj_set_ignore_layout(static_cast<lv_obj_t *>(child->outer()),true);
+            Node::removeChild(index,child);
+        }
+        void postSync() override {
+            for(const auto & item:cells()) placeChild(static_cast<Node *>(item.node),item.cell);
+            configure();
+        }
         void postUpdate() override {Node::postUpdate();configure();}
     };
 }}

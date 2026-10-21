@@ -101,7 +101,7 @@ namespace CPPUI {
     }
 
     inline void prepare_dom(Node * node, std::vector<Node *> * dom) {
-        if(node->is_grid_layout) {
+        if(node->is_grid_layout && !node->grid_columns) {
             // Unplaced declarations never mount, but still require C++ teardown.
             std::vector<Node *> unplaced;
             for(auto child: *dom) {
@@ -373,6 +373,8 @@ namespace CPPUI {
             child->postUpdate();
         }
         node->postSync();
+        if(node->is_virtual && dom_parent!=node && dom_parent->is_grid_layout)
+            dom_parent->getNode()->postSync();
 
         for(Node * oldNode: toBeDeleted) {
             recur_delete(oldNode, true);

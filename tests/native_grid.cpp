@@ -1,0 +1,146 @@
+#if defined(CPPUI_TEST_QT)
+#include "cppui/qt/backend.hpp"
+#elif defined(CPPUI_TEST_WX)
+#include "cppui/wx/backend.hpp"
+#else
+#include "cppui/lvgl/backend.hpp"
+#endif
+#include <thread>
+static void require(bool value,const char * message) {if(!value) throw std::runtime_error(message);}
+static CPPUI::Node * find(CPPUI::Node & root,const std::string & id) {
+    if(root._id==id) return &root;
+    for(auto child:*root.children) if(auto result=find(*child,id)) return result;
+    return nullptr;
+}
+static void pump() {
+    for(int i=0;i<15;++i) {
+#if defined(CPPUI_TEST_QT)
+        QCoreApplication::processEvents();QCoreApplication::sendPostedEvents(nullptr,QEvent::LayoutRequest);
+#elif defined(CPPUI_TEST_WX)
+        wxTheApp->Yield(true);wxTheApp->ProcessPendingEvents();wxTheApp->ProcessIdle();
+#else
+        lv_tick_inc(LV_DEF_REFR_PERIOD+1);lv_timer_handler();lv_obj_update_layout(lv_screen_active());
+#endif
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+struct Fragment:CPPUI::Backend::View {
+    bool extra=false;
+    void content() override {
+        CPPUI::Label("fragment one").id("fragment-one");
+        if(extra) CPPUI::Label("fragment two").id("fragment-two");
+    }
+};
+struct Root:CPPUI::Application {
+    using Application::Application;
+    int columns=3,builds=0;
+    bool hidden=false,reverse=false,automatic=true,responsive=false,present=true;
+    CPPUI::Optional<bool> dense{true};
+    CPPUI::State<std::string> text{std::string("retained")};
+    void content() override {
+        ++builds;
+        for(auto window:CPPUI::Window().id("window")) for(auto box:CPPUI::VBox().id("box")) {
+            if(!present) continue;
+            auto & grid=CPPUI::Grid();
+            if(automatic) grid.columns(columns,CPPUI::grid::dense(dense));
+            if(responsive) grid.columns(1).wideColumns(600,3).wideColumns(800,4);
+            for(auto scope:grid.id("grid").layout(CPPUI::layout::weight(1))) {
+                const std::vector<std::string> keys=reverse ? std::vector<std::string>{"c","b","a"} : std::vector<std::string>{"a","b","c"};
+                for(const auto & key:keys) CPPUI::Label(key).id(key)
+                    .grid(CPPUI::grid::row(key=="b" ? 1 : 0),CPPUI::grid::column(key=="c" ? 2 : 0),CPPUI::grid::columnspan(key=="c" ? 1 : 2))
+                    .visible(!(hidden && key=="a"));
+                CPPUI::TextField(text).id("editor").grid(CPPUI::grid::row(2),CPPUI::grid::column(0));
+                if(automatic) CPPUI::SubView<Fragment>().id("fragment");
+            }
+        }
+    }
+    void mount() {
+#if defined(CPPUI_TEST_QT) || defined(CPPUI_TEST_WX)
+        sync();
+#else
+        redraw();
+#endif
+        pump();
+    }
+};
+static void draft(CPPUI::Node * node) {
+#if defined(CPPUI_TEST_QT)
+    auto editor=static_cast<QLineEdit *>(node->outer());editor->setText("draft");editor->setSelection(1,2);
+#elif defined(CPPUI_TEST_WX)
+    auto editor=static_cast<wxTextCtrl *>(node->outer());editor->ChangeValue("draft");editor->SetSelection(1,3);
+#else
+    auto editor=static_cast<lv_obj_t *>(node->outer());lv_textarea_set_text(editor,"draft");lv_textarea_set_cursor_pos(editor,2);
+#endif
+}
+static void checkDraft(CPPUI::Node * node) {
+#if defined(CPPUI_TEST_QT)
+    auto editor=static_cast<QLineEdit *>(node->outer());require(editor->text()=="draft" && editor->selectionStart()==1 && editor->selectedText()=="ra","Qt editor draft/selection lost");
+#elif defined(CPPUI_TEST_WX)
+    auto editor=static_cast<wxTextCtrl *>(node->outer());long start,end;editor->GetSelection(&start,&end);require(editor->GetValue()=="draft" && start==1 && end==3,"wx editor draft/selection lost");
+#else
+    auto editor=static_cast<lv_obj_t *>(node->outer());require(std::string(lv_textarea_get_text(editor))=="draft" && lv_textarea_get_cursor_pos(editor)==2,"LVGL editor draft/caret lost");
+#endif
+}
+static void checkNative(CPPUI::Node * node) {
+    require(bool(node->grid_cell),"missing effective grid cell");const auto cell=*node->grid_cell;
+#if defined(CPPUI_TEST_QT)
+    auto owner=static_cast<CPPUI::Qt::Grid *>(node->dom_parent);int row,col,rows,cols;
+    owner->qtlayout->getItemPosition(owner->qtlayout->indexOf(static_cast<QWidget *>(node->outer())),&row,&col,&rows,&cols);
+    require(CPPUI::GridCell(row,col,rows,cols)==cell,"Qt native cell differs from placement");
+#elif defined(CPPUI_TEST_WX)
+    auto owner=static_cast<CPPUI::Wx::Grid *>(node->dom_parent);auto sizer=static_cast<wxGridBagSizer *>(owner->sizer());
+    auto item=sizer->FindItemAtPosition(wxGBPosition(cell.row,cell.column));require(item && item->GetSpan()==wxGBSpan(cell.rowspan,cell.columnspan),"wx native cell differs from placement");
+#else
+    auto object=static_cast<lv_obj_t *>(node->outer());
+    require(lv_obj_get_style_grid_cell_row_pos(object,LV_PART_MAIN)==cell.row && lv_obj_get_style_grid_cell_column_pos(object,LV_PART_MAIN)==cell.column
+        && lv_obj_get_style_grid_cell_row_span(object,LV_PART_MAIN)==cell.rowspan && lv_obj_get_style_grid_cell_column_span(object,LV_PART_MAIN)==cell.columnspan,"LVGL native cell differs from placement");
+#endif
+}
+static void resize(Root & root,int width) {
+#if defined(CPPUI_TEST_QT)
+    auto window=static_cast<QWidget *>(find(root,"window")->outer());window->resize(width,500);window->show();
+#elif defined(CPPUI_TEST_WX)
+    auto window=static_cast<wxWindow *>(find(root,"window")->outer());window->SetClientSize(width,500);window->Show();
+#else
+    (void)root;lv_display_set_resolution(lv_display_get_default(),width,500);
+#endif
+    pump();
+}
+int main(int argc,char ** argv) {
+#if !defined(CPPUI_TEST_QT) && !defined(CPPUI_TEST_WX)
+    lv_init();lv_display_create(900,500);
+#endif
+    int result=0;
+    try {
+        Root root(argc,argv);root.mount();resize(root,900);
+        require(*find(root,"c")->grid_cell==CPPUI::GridCell(0,2),"dense placement wrong");checkNative(find(root,"c"));
+        auto editor=find(root,"editor")->outer();auto a=find(root,"a")->outer();draft(find(root,"editor"));
+        for(int count:{1,3,2,3}) {
+            root.columns=count;root.mount();
+            require(find(root,"editor")->outer()==editor && find(root,"a")->outer()==a,"column reflow recreated native controls");
+            require(find(root,"a")->grid_cell->columnspan==std::min(2,count) && find(root,"a")->grid_columnspan==2,"span clamp changed declared span");
+            checkDraft(find(root,"editor"));checkNative(find(root,"b"));
+        }
+        root.hidden=true;root.mount();require(!find(root,"a")->grid_cell && find(root,"a")->outer()==a,"hidden item was removed or occupied a cell");
+        require(find(root,"b")->grid_cell->row==0 && find(root,"b")->grid_cell->column==0,"hidden cell did not compact");
+        root.reverse=true;root.mount();checkDraft(find(root,"editor"));checkNative(find(root,"c"));
+        auto fragment=static_cast<Fragment *>(find(root,"fragment"));fragment->extra=true;fragment->redraw();pump();
+        auto added=find(root,"fragment-two");require(added && added->grid_cell,"independent virtual child did not reflow");checkNative(added);
+        fragment->extra=false;fragment->redraw();pump();require(!find(root,"fragment-two"),"virtual child removal failed");
+        root.hidden=false;root.reverse=false;root.dense=false;root.mount();require(*find(root,"c")->grid_cell==CPPUI::GridCell(1,2),"forward mode did not move candidate");
+        root.dense.reset();root.mount();checkNative(find(root,"c"));
+        root.automatic=false;root.mount();require(find(root,"editor")->outer()==editor,"auto-to-manual replaced editor");checkDraft(find(root,"editor"));checkNative(find(root,"a"));
+        root.automatic=true;root.responsive=true;root.mount();
+        for(int width:{450,750,950,450,950}) {
+            resize(root,width);require(find(root,"grid")->grid_columns==(width==450 ? 1 : width==750 ? 3 : 4),"parent-width breakpoint did not reflow");
+            require(find(root,"editor")->outer()==editor,"responsive reflow replaced editor");checkDraft(find(root,"editor"));checkNative(find(root,"c"));
+        }
+        int before=root.builds;pump();require(root.builds==before,"stable grid kept redrawing");
+        root.present=false;root.mount();root.present=true;root.mount();
+        std::cout<<"native grid passed\n";
+    } catch(const std::exception & error) {std::cerr<<error.what()<<'\n';result=1;}
+#if !defined(CPPUI_TEST_QT) && !defined(CPPUI_TEST_WX)
+    lv_deinit();
+#endif
+    return result;
+}

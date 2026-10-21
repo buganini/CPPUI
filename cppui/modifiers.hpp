@@ -17,6 +17,7 @@ namespace CPPUI {
     namespace detail {
         enum class LayoutKey { Width, Height, Weight, Padding, Margin };
         enum class StyleKey { Color, BgColor, FontSize, FontWeight, FontFamily };
+        enum class GridKey { Row, Column, RowSpan, ColumnSpan };
 
         // The key is part of the type, so applying an argument needs no lookup.
         template<class Key, Key key, class T>
@@ -72,6 +73,27 @@ namespace CPPUI {
         inline FontFamily fontFamily(const char * value) { return {value}; }
     }
 
+    namespace grid {
+        using Row = detail::ModifierArgument<detail::GridKey, detail::GridKey::Row, int>;
+        using Column = detail::ModifierArgument<detail::GridKey, detail::GridKey::Column, int>;
+        using RowSpan = detail::ModifierArgument<detail::GridKey, detail::GridKey::RowSpan, int>;
+        using ColumnSpan = detail::ModifierArgument<detail::GridKey, detail::GridKey::ColumnSpan, int>;
+        inline Row row(int value) { return {value}; }
+        inline Column column(int value) { return {value}; }
+        inline RowSpan rowspan(int value) { return {value}; }
+        inline ColumnSpan columnspan(int value) { return {value}; }
+        struct Dense { Optional<bool> value; };
+        inline Dense dense(Optional<bool> value) { return {value}; }
+    }
+
+    struct GridCell {
+        int row, column, rowspan, columnspan;
+        GridCell(int row=0,int column=0,int rowspan=1,int columnspan=1)
+            :row(row),column(column),rowspan(rowspan),columnspan(columnspan) {}
+        bool operator==(const GridCell & other) const {
+            return row==other.row && column==other.column && rowspan==other.rowspan && columnspan==other.columnspan;
+        }
+    };
     struct QtOptions;
 }
 #endif

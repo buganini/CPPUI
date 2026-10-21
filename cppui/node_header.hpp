@@ -45,6 +45,8 @@ namespace CPPUI {
         int grid_column = -1;
         int grid_rowspan = -1;
         int grid_columnspan = -1;
+        int grid_columns = 0; // Zero keeps manual placement.
+        Optional<GridCell> grid_cell; // Effective placement; never part of identity.
 
         Node * dom_parent = nullptr;
         bool destroyed = false;
@@ -178,6 +180,12 @@ namespace CPPUI {
             return *this;
         }
 
+        template<class First, class... Rest>
+        typename std::enable_if<detail::AreModifierArguments<detail::GridKey, First, Rest...>::value, Node &>::type
+        grid(First && first, Rest &&... rest) {
+            return applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
+        }
+
         private:
         bool wideMatches(int minWidth);
         template<class Argument>
@@ -194,6 +202,22 @@ namespace CPPUI {
         static void validateModifier(CPPUI::style::FontSize argument) {
             if(argument.value < 0) throw std::invalid_argument("Font size must be non-negative");
         }
+        static void validateModifier(CPPUI::grid::Row argument) {
+            if(argument.value<0) throw std::invalid_argument("Grid coordinates must be non-negative");
+        }
+        static void validateModifier(CPPUI::grid::Column argument) {
+            if(argument.value<0) throw std::invalid_argument("Grid coordinates must be non-negative");
+        }
+        static void validateModifier(CPPUI::grid::RowSpan argument) {
+            if(argument.value<1) throw std::invalid_argument("Grid spans must be positive");
+        }
+        static void validateModifier(CPPUI::grid::ColumnSpan argument) {
+            if(argument.value<1) throw std::invalid_argument("Grid spans must be positive");
+        }
+        void applyModifier(CPPUI::grid::Row argument) { grid_row=argument.value; }
+        void applyModifier(CPPUI::grid::Column argument) { grid_column=argument.value; }
+        void applyModifier(CPPUI::grid::RowSpan argument) { grid_rowspan=argument.value; }
+        void applyModifier(CPPUI::grid::ColumnSpan argument) { grid_columnspan=argument.value; }
         void applyModifier(CPPUI::layout::Width argument) { layout_width = argument.value; }
         void applyModifier(CPPUI::layout::Height argument) { layout_height = argument.value; }
         void applyModifier(CPPUI::layout::Weight argument) { layout_weight = argument.value; }
@@ -250,6 +274,7 @@ namespace CPPUI {
 
         virtual void addChild(int idx, Node *child);
         virtual void removeChild(int idx, Node *child);
+        virtual void rebindChild(Node *, Node *) {}
 
         Node * getNode(void);
         // Tokens identify an owner's current structure without retaining it.

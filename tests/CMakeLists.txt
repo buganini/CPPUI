@@ -1,3 +1,8 @@
+add_executable(cppui_core_grid core_grid.cpp)
+target_link_libraries(cppui_core_grid PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_grid PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.grid cppui_core_grid)
+
 # Link this header in isolation as well as compiling it: size bindings use the
 # view dependency protocol without requiring a caller to include view.hpp.
 add_executable(cppui_core_node_size core_node_size.cpp)
@@ -13,6 +18,10 @@ cppui_add_test(core.adaptive cppui_core_adaptive)
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_grid native_grid.cpp)
+    target_compile_definitions(cppui_wx_grid PRIVATE CPPUI_TEST_WX)
+    target_link_libraries(cppui_wx_grid PRIVATE CPPUI::wx Threads::Threads)
+    cppui_add_test(wx.grid cppui_wx_grid)
     add_executable(cppui_wx_adaptive native_adaptive.cpp)
     target_compile_definitions(cppui_wx_adaptive PRIVATE CPPUI_TEST_WX)
     target_link_libraries(cppui_wx_adaptive PRIVATE CPPUI::wx Threads::Threads)
@@ -146,7 +155,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header adaptive context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop landlock side poster)
+foreach(header grid adaptive context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop landlock side poster)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -159,6 +168,10 @@ foreach(header adaptive context_header context node_header node view_header view
 endforeach()
 
 if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_grid native_grid.cpp)
+    target_compile_definitions(cppui_qt_grid PRIVATE CPPUI_TEST_QT)
+    target_link_libraries(cppui_qt_grid PRIVATE CPPUI::qt Threads::Threads)
+    cppui_add_test(qt.grid cppui_qt_grid)
     add_executable(cppui_qt_adaptive native_adaptive.cpp)
     target_compile_definitions(cppui_qt_adaptive PRIVATE CPPUI_TEST_QT)
     target_link_libraries(cppui_qt_adaptive PRIVATE CPPUI::qt Threads::Threads)

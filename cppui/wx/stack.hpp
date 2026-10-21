@@ -29,8 +29,8 @@ public:
         if(prev) mounts=std::move(prev->mounts);
         else ui->SetSizer(new StackSizer());
     }
-    void rebindChild(Node * previous,Node * current) override {
-        for(auto & mount:mounts) if(mount.node==previous) mount.node=current;
+    void rebindChild(::CPPUI::Node * previous,::CPPUI::Node * current) override {
+        for(auto & mount:mounts) if(mount.node==previous) mount.node=static_cast<Node *>(current);
     }
     void addChild(int index,::CPPUI::Node * value) override {
         if(value->is_outoforder) return;

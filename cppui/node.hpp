@@ -176,6 +176,8 @@ namespace CPPUI {
             if(prev->sizeObserver && prev->outer()!=outer()) prev->stopObservingSize();
             sizeObserver=std::move(prev->sizeObserver);
             prev->retired_by = this;
+            if(dom_parent && dom_parent!=this && !is_outoforder)
+                dom_parent->getNode()->rebindChild(prev,this);
             if(prev->refTarget) { refTarget=prev->refTarget; std::lock_guard<std::mutex> lock(refTarget->mutex); refTarget->node=this; }
         }
         sizeMounted=true;

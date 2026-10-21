@@ -38,8 +38,8 @@ public:
             previousVertical=prev->previousVertical;
         } else ui->SetSizer(new wxBoxSizer(wxVERTICAL));
     }
-    void rebindChild(Node * previous,Node * current) override {
-        for(auto & pane:panes) if(pane.mount.node==previous) pane.mount.node=current;
+    void rebindChild(::CPPUI::Node * previous,::CPPUI::Node * current) override {
+        for(auto & pane:panes) if(pane.mount.node==previous) pane.mount.node=static_cast<Node *>(current);
     }
     void addChild(int index,::CPPUI::Node * value) override {
         if(value->is_outoforder) return;
