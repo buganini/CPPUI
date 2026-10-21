@@ -99,7 +99,7 @@ namespace {
             c.drawPolyline({}, 0xff0000);
             c.drawEllipse(10,10,0,0,0xffffff);
             c.drawText(0,100,std::string("Canvas"),-1,-1,12);
-            c.drawText(90,100,"Rotate",60,40,12,"white",45,CPPUI::Anchor::CENTER);
+            c.drawText(90,100,"Rotate",60,40,12,"white",45,CPPUI::Anchor::Center);
         };
         root.redraw();
         auto object = root.native();
@@ -150,12 +150,12 @@ namespace {
         require(pixels(object) == before, "throwing callback replaced the last successful frame");
         root.fail = false;
         root.draw = [](CPPUI::CanvasPainter & c) {
-            c.drawText(40,40,"Anchor",-1,-1,-1,0xffffff,90,CPPUI::Anchor::LEFT_TOP);
+            c.drawText(40,40,"Anchor",-1,-1,-1,0xffffff,90,CPPUI::Anchor::LeftTop);
         };
         root.redraw(); step(2);
         const auto left = pixels(object);
         root.draw = [](CPPUI::CanvasPainter & c) {
-            c.drawText(40,40,"Anchor",-1,-1,-1,0xffffff,90,CPPUI::Anchor::RIGHT_BOTTOM);
+            c.drawText(40,40,"Anchor",-1,-1,-1,0xffffff,90,CPPUI::Anchor::RightBottom);
         };
         root.redraw(); step(2);
         require(left != pixels(object), "text anchor did not change its rotation pivot");

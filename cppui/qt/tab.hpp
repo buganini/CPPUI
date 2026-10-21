@@ -26,10 +26,10 @@ namespace CPPUI {
             bool initialized = false, syncing = true;
             int applied = -1;
             static QTabWidget::TabPosition nativePosition(Side position) {
-                if(position == Side::TOP) return QTabWidget::North;
-                if(position == Side::BOTTOM) return QTabWidget::South;
-                if(position == Side::RIGHT) return QTabWidget::East;
-                if(position == Side::LEFT) return QTabWidget::West;
+                if(position == Side::Top) return QTabWidget::North;
+                if(position == Side::Bottom) return QTabWidget::South;
+                if(position == Side::Right) return QTabWidget::East;
+                if(position == Side::Left) return QTabWidget::West;
                 throw std::invalid_argument("Unknown tab position");
             }
             static std::string key(const Node * node) {
@@ -39,7 +39,7 @@ namespace CPPUI {
             public:
             Side tabposition;
 
-            explicit Tabs(Side tabposition = Side::TOP): tabposition(tabposition) {
+            explicit Tabs(Side tabposition = Side::Top): tabposition(tabposition) {
                 expandX=expandY=2;
                 nativePosition(tabposition);
                 if(!dynamic_cast<QtView *>(cppui_root)) throw std::logic_error("Tabs requires a Qt Application or QtView");
@@ -113,9 +113,9 @@ namespace CPPUI {
             void select(const char * key) { select(key ? OptionalText(std::string(key)) : OptionalText()); }
         };
     }
-    inline Qt::Tabs & Tabs(Side tabposition = Side::TOP) { return *new Qt::Tabs(tabposition); }
+    inline Qt::Tabs & Tabs(Side tabposition = Side::Top) { return *new Qt::Tabs(tabposition); }
     inline Qt::Tabs & Tabs(Side tabposition, Binding<OptionalText> model) { return *new Qt::Tabs(tabposition, model); }
-    inline Qt::Tabs & Tabs(Binding<OptionalText> model) { return *new Qt::Tabs(Side::TOP, model); }
+    inline Qt::Tabs & Tabs(Binding<OptionalText> model) { return *new Qt::Tabs(Side::Top, model); }
     inline Qt::Tab & Tab(const std::string & label) { return *new Qt::Tab(label); }
 }
 #endif

@@ -2,6 +2,7 @@
 #define CPPUI_MODIFIERS
 
 #include "optional.hpp"
+#include "font_weight.hpp"
 #include <type_traits>
 
 namespace CPPUI {
@@ -69,6 +70,7 @@ namespace CPPUI {
         inline BgColor bgColor(int value) { return {value}; }
         inline FontSize fontSize(int value) { return {value}; }
         inline FontWeight fontWeight(int value) { return {value}; }
+        inline FontWeight fontWeight(CPPUI::FontWeight value) { return fontWeight(static_cast<int>(value)); }
         // Borrow a null-terminated string for the declaration's lifetime.
         inline FontFamily fontFamily(const char * value) { return {value}; }
     }

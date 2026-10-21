@@ -35,7 +35,7 @@ namespace {
         CPPUI::State<CPPUI::OptionalText> first{CPPUI::OptionalText("b")}, second{CPPUI::OptionalText("a")};
         int writes = 0;
         std::function<void()> action;
-        CPPUI::Side position = CPPUI::Side::TOP;
+        CPPUI::Side position = CPPUI::Side::Top;
         std::vector<Page> pages{{"a", "A"}, {"b", "B"}, {"c", "C"}};
         ~Root() {
             clearChildren();
@@ -131,13 +131,13 @@ namespace {
             root.checkSinglePages();
             require(root.native() == tabs && tabs->currentIndex() == -1, "empty tabs lost native identity");
             root.pages = {{"a", "Again"}};
-            root.position = CPPUI::Side::BOTTOM;
+            root.position = CPPUI::Side::Bottom;
             root.sync();
             root.checkSinglePages();
             require(tabs->tabPosition() == QTabWidget::South, "south tab position was not applied");
             auto page = tabs->widget(0);
             for(const auto & position: std::map<CPPUI::Side, QTabWidget::TabPosition>{
-                    {CPPUI::Side::TOP, QTabWidget::North}, {CPPUI::Side::BOTTOM, QTabWidget::South}, {CPPUI::Side::RIGHT, QTabWidget::East}, {CPPUI::Side::LEFT, QTabWidget::West}}) {
+                    {CPPUI::Side::Top, QTabWidget::North}, {CPPUI::Side::Bottom, QTabWidget::South}, {CPPUI::Side::Right, QTabWidget::East}, {CPPUI::Side::Left, QTabWidget::West}}) {
                 root.position = position.first; root.sync();
                 require(root.native() == tabs && tabs->tabPosition() == position.second
                     && tabs->currentWidget() == page, "tab placement change replaced native content or selection");
@@ -149,7 +149,7 @@ namespace {
                 require(rejected && root.native() == tabs && tabs->currentWidget() == page
                     && declarations == 1, "invalid tab placement damaged mounted content");
             }
-            root.position = CPPUI::Side::TOP;
+            root.position = CPPUI::Side::Top;
             root.show = false;
             root.sync();
             settle();

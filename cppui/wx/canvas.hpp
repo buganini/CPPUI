@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_CANVAS
 #define CPPUI_WX_CANVAS
 #include "base.hpp"
+#include "../anchor.hpp"
 #include "../canvas_input.hpp"
 #include "../frame_rate.hpp"
 #include "image_resource.hpp"
@@ -13,7 +14,6 @@
 #include <stdexcept>
 #include <vector>
 namespace CPPUI {
-enum class Anchor { LEFT_TOP,LEFT_CENTER,LEFT_BOTTOM,CENTER_TOP,CENTER,CENTER_BOTTOM,RIGHT_TOP,RIGHT_CENTER,RIGHT_BOTTOM };
 class CanvasColor {
     wxColour color;
     bool present=false;
@@ -78,7 +78,7 @@ public:
     }
     CanvasPainter(const CanvasPainter &)=delete;
     CanvasPainter & operator=(const CanvasPainter &)=delete;
-    void drawText(double x,double y,const std::string & text,int w=-1,int h=-1,int size=12,CanvasColor color={},double rotate=0,Anchor anchor=Anchor::LEFT_TOP){
+    void drawText(double x,double y,const std::string & text,int w=-1,int h=-1,int size=12,CanvasColor color={},double rotate=0,Anchor anchor=Anchor::LeftTop){
         (void)w;(void)h;SavedState saved(painter);
         auto lines=wxSplit(wxString::FromUTF8(text),'\n');double tw=0,th=0,lineHeight=0;
         textFont(-1,foreground);

@@ -1,4 +1,5 @@
 #include "cppui/node.hpp"
+#include "cppui/side.hpp"
 #include <cstring>
 #include <iostream>
 #include <type_traits>
@@ -50,6 +51,9 @@ namespace {
     static_assert(AcceptsStyle<const CPPUI::style::FontFamily &, CPPUI::style::Color>::value, "named style arguments rejected");
     static_assert(AcceptsLayout<int, CPPUI::Optional<int>>::value, "positional layout arguments rejected");
     static_assert(AcceptsStyle<int, CPPUI::Optional<int>>::value, "positional style arguments rejected");
+    static_assert(AcceptsStyle<int, int, int, CPPUI::FontWeight>::value, "positional enum font weight rejected");
+    static_assert(!AcceptsStyle<int, int, int, CPPUI::Side>::value, "unrelated enum accepted as font weight");
+    static_assert(!std::is_convertible<CPPUI::FontWeight, int>::value, "font weight must remain a scoped enum");
     static_assert(!AcceptsLayout<CPPUI::style::Color>::value, "style accepted by layout");
     static_assert(!AcceptsLayout<CPPUI::layout::Width, CPPUI::style::Color>::value, "mixed domains accepted");
     static_assert(!AcceptsStyle<CPPUI::layout::Width>::value, "layout accepted by style");
@@ -78,7 +82,7 @@ int main() {
         auto & result = named
             .layout(layout::margin(1, 2, 3, 4), layout::weight(2), layout::height(40),
                     layout::padding(8, 12), layout::width(200))
-            .style(style::fontFamily("Sans"), style::fontWeight(700), style::bgColor(0x222222),
+            .style(style::fontFamily("Sans"), style::fontWeight(CPPUI::FontWeight::Bold), style::bgColor(0x222222),
                    style::fontSize(16), style::color(0xffffff));
         positional.layout(200, 40, 2, CPPUI::Insets(8, 12), CPPUI::Insets(1, 2, 3, 4))
                   .style(0xffffff, 0x222222, 16, 700, "Sans");
@@ -90,6 +94,21 @@ int main() {
         require(*named.style_color == *positional.style_color && *named.style_bgcolor == *positional.style_bgcolor &&
                 *named.style_fontsize == *positional.style_fontsize && *named.style_fontweight == *positional.style_fontweight &&
                 std::strcmp(named.style_fontfamily, positional.style_fontfamily) == 0, "named style differs from positional style");
+
+        const auto normal = CPPUI::FontWeight::Normal;
+        Node weighted;
+        require(&weighted.style({}, {}, {}, normal, "Sans") == &weighted && *weighted.style_fontweight == 400,
+                "positional enum font weight did not preserve chaining or its numeric value");
+        weighted.style({}, {}, {}, {}).wideStyle(0, {}, {}, {}, {});
+        require(*weighted.style_fontweight == 400 && !weighted.style_color && !weighted.style_fontsize,
+                "omitted weight changed the declaration");
+        weighted.style(style::fontWeight(550));
+        require(*weighted.style_fontweight == 550, "custom numeric font weight rejected or rounded");
+        weighted.style({}, {}, {}, CPPUI::FontWeight::SemiBold);
+        require(*weighted.style_fontweight == 600 && std::strcmp(weighted.style_fontfamily, "Sans") == 0,
+                "enum alias or positional merge failed");
+        weighted.style(style::fontWeight(CPPUI::FontWeight::Regular));
+        require(*weighted.style_fontweight == 400, "regular font weight alias differs from normal");
 
         named.layout(layout::width(0)).layout({}, {}, 0).style(style::color(0)).style({}, {}, 20);
         named.layout().style().layout({}).style({});

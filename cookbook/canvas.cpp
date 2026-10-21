@@ -11,7 +11,7 @@ namespace Cookbook {
             }
             CPPUI::Canvas([angle](CPPUI::CanvasPainter & canvas) {
                 canvas.drawText(50, 50, "___", -1, -1, 12, 0xFFF7E6);
-                canvas.drawText(50, 50, "PUI", -1, -1, 12, 0xFFF7E6, angle, CPPUI::Anchor::CENTER);
+                canvas.drawText(50, 50, "PUI", -1, -1, 12, 0xFFF7E6, angle, CPPUI::Anchor::Center);
                 canvas.drawLine(20, 30, 70, 80, 0xD3B98B);
                 canvas.drawPolyline({{10, 50}, {50, 10}, {70, 70}, {10, 50}}, 0x8FA38A);
                 canvas.drawCubicBezier({10, 80}, {25, 20}, {75, 80}, {90, 20}, 0x366C91, 2);

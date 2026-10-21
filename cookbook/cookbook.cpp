@@ -52,7 +52,7 @@ namespace Cookbook {
                         for(auto list: CPPUI::VBox().id("menu-list")) {
                             for(std::size_t i = 0; i < recipes().size(); ++i) {
                                 auto & link = CPPUI::Label(recipes()[i].title);
-                                link.id(std::string("page:") + recipes()[i].key).style(CPPUI::style::fontWeight(i==static_cast<std::size_t>(static_cast<int>(selected)) ? 700 : 400));
+                                link.id(std::string("page:") + recipes()[i].key).style(CPPUI::style::fontWeight(i==static_cast<std::size_t>(static_cast<int>(selected)) ? CPPUI::FontWeight::Bold : CPPUI::FontWeight::Normal));
                                 link.click([this, i]() { selected = static_cast<int>(i); });
                             }
                             CPPUI::Spacer();

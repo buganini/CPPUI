@@ -46,9 +46,10 @@ int main() {
                     auto & wrapper=node();wrapper.is_virtual=true;
                     for(auto scope:wrapper) {
                         node().layout(layout::width(100),layout::padding(2))
-                            .style(style::color(0x111111),style::fontSize(12))
+                            .style(style::color(0x111111),style::fontSize(12),style::fontWeight(CPPUI::FontWeight::Normal))
                             .wideLayout(600,layout::width(200),layout::weight(0),layout::padding(8))
-                            .wideStyle(600,style::color(0),style::fontSize(18),style::fontFamily(family))
+                            .wideStyle(600,style::color(0),style::fontSize(18),style::fontFamily(family),style::fontWeight(CPPUI::FontWeight::DemiBold))
+                            .wideStyle(800,{}, {}, {},CPPUI::FontWeight::Bold)
                             .wideLayout(800,300).wideLayout(600,{},30)
                             .wideLayout(800,layout::height(40)).wideLayout(600,layout::height(35))
                             .wideStyle(800,0x222222).wideStyle(600,0)
@@ -60,7 +61,7 @@ int main() {
             auto state=root.children->front()->sizeState;
             auto child=[&]() {return root.children->front()->children->front()->children->front();};
             require(state && *child()->layout_width==100 && !child()->layout_height &&
-                    *child()->style_fontsize==12 && !child()->style_fontfamily,"unknown width matched an override");
+                    *child()->style_fontsize==12 && *child()->style_fontweight==400 && !child()->style_fontfamily,"unknown width matched an override");
             auto identity=child()->ui;
             for(int width:{599,600,800,400,600}) {
                 state->publish(width,400);
@@ -72,6 +73,7 @@ int main() {
                         current->layout_padding->left==(wide ? 8 : 2),"wide layout merge/restore/order failed");
                 require(*current->style_color==(wide ? 0 : 0x111111) &&
                         *current->style_fontsize==(wide ? 18 : 12) &&
+                        *current->style_fontweight==(width>=800 ? 700 : wide ? 600 : 400) &&
                         current->style_fontfamily==(wide ? family : nullptr),"wide style merge/borrow/restore/order failed");
                 require(!root.children->front()->children->front()->sizeState,"wide override observed a virtual parent");
             }

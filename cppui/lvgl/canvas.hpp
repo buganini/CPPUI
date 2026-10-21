@@ -1,6 +1,7 @@
 #ifndef CPPUI_LVGL_CANVAS
 #define CPPUI_LVGL_CANVAS
 
+#include "../anchor.hpp"
 #include "../canvas_input.hpp"
 #include "../frame_rate.hpp"
 
@@ -18,11 +19,6 @@
 #include <vector>
 
 namespace CPPUI {
-    enum class Anchor {
-        LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM,
-        CENTER_TOP, CENTER, CENTER_BOTTOM,
-        RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM
-    };
     struct CanvasPoint { double x; double y; };
 
     class CanvasColor {
@@ -257,7 +253,7 @@ namespace CPPUI {
             drawPolygon(points, fill, stroke, width);
         }
         void drawText(double x, double y, const std::string & text, int w = -1, int h = -1,
-                      int size = 12, CanvasColor color = {}, double rotate = 0, Anchor anchor = Anchor::LEFT_TOP) {
+                      int size = 12, CanvasColor color = {}, double rotate = 0, Anchor anchor = Anchor::LeftTop) {
             if(w < 0) w = width;
             if(h < 0) h = height;
             if(w == 0 || h == 0 || size == 0 || text.empty()) return;

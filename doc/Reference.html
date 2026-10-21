@@ -454,7 +454,8 @@ CPPUI::Label(&quot;Body&quot;).style(style::fontFamily(&quot;Sans&quot;)); // Qt
 </code></pre>
 <p>The layout argument helpers are <code>width(int)</code>, <code>height(int)</code>, <code>weight(int)</code>,
 <code>padding(...)</code> and <code>margin(...)</code>. The style helpers are <code>color(int)</code>,
-<code>bgColor(int)</code>, <code>fontSize(int)</code>, <code>fontWeight(int)</code> and <code>fontFamily(const char*)</code>.
+<code>bgColor(int)</code>, <code>fontSize(int)</code>, <code>fontWeight(int)</code>,
+<code>fontWeight(CPPUI::FontWeight)</code> and <code>fontFamily(const char*)</code>.
 <code>padding</code>/<code>margin</code> accept an <code>Insets</code> or one to four integers in the order
 described below. <code>fontFamily</code> borrows a null-terminated string without copying
 its contents. Use a string literal or keep the caller's buffer alive at the same
@@ -466,6 +467,31 @@ string's <code>.c_str()</code>.</p>
 Neither argument form copies or owns the supplied text; native toolkits may
 copy it when applying the style. Owning results such as dialog text still use
 <code>OptionalText</code> (<code>Optional&lt;std::string&gt;</code>).</p>
+<p><code>CPPUI::FontWeight</code> is a scoped enum in <code>cppui/font_weight.hpp</code>,
+also included by the style API. Its values use the Web/Qt 6 numeric scale:</p>
+<table>
+<thead><tr><th>Weight</th><th>FontWeight members</th></tr></thead>
+<tbody>
+<tr><td>100</td><td><code>Thin</code>, <code>Hairline</code></td></tr>
+<tr><td>200</td><td><code>ExtraLight</code>, <code>UltraLight</code></td></tr>
+<tr><td>300</td><td><code>Light</code></td></tr>
+<tr><td>400</td><td><code>Normal</code>, <code>Regular</code></td></tr>
+<tr><td>500</td><td><code>Medium</code></td></tr>
+<tr><td>600</td><td><code>DemiBold</code>, <code>SemiBold</code></td></tr>
+<tr><td>700</td><td><code>Bold</code></td></tr>
+<tr><td>800</td><td><code>ExtraBold</code>, <code>UltraBold</code></td></tr>
+<tr><td>900</td><td><code>Black</code>, <code>Heavy</code></td></tr>
+<tr><td>950</td><td><code>ExtraBlack</code>, <code>UltraBlack</code></td></tr>
+</tbody>
+</table>
+<p>Both <code>.style()</code> and <code>.wideStyle()</code> accept the enum through
+<code>style::fontWeight(...)</code> or as the positional font-weight argument.
+Numeric weights remain supported, including values between the named weights.
+Available rendered weights depend on the backend and font.</p>
+<pre><code class="language-cpp">CPPUI::Label(&quot;Heading&quot;).style(style::fontWeight(CPPUI::FontWeight::Bold));
+CPPUI::Label(&quot;Body&quot;).style({}, {}, {}, CPPUI::FontWeight::Normal);
+CPPUI::Label(&quot;Custom&quot;).style(style::fontWeight(550));
+</code></pre>
 <p>Each helper produces a distinct argument type. The modifier dispatches by type,
 without string keys, maps or runtime key lookup; numeric and inset argument
 wrappers require no heap allocation. Node fields use inline <code>Optional&lt;T&gt;</code>
@@ -1393,7 +1419,7 @@ selected backend. Use normal construction scopes:</p>
 <p>Qt follows <a href="https://github.com/buganini/PUI/blob/65f2c02/PUI/selection.py">PUI's selection contract</a>:
 <code>Tabs()</code> keeps an internal selection; <code>Tabs(Binding&lt;OptionalText&gt;)</code> or
 <code>Tabs(State&lt;OptionalText&gt;&amp;)</code> accepts an external model. Use
-<code>Tabs(Side::BOTTOM, model)</code> to combine placement and binding. The selection key is a Tab's
+<code>Tabs(Side::Bottom, model)</code> to combine placement and binding. The selection key is a Tab's
 non-empty <code>.id()</code>, falling back to its label. The first matching key wins.
 Native selection and <code>.select(key)</code> write through the current model. Binding
 updates, insertion, removal and reordering do not write back during reconciliation.</p>
@@ -1408,8 +1434,8 @@ page, and multiple controls or virtual subviews stay together on that page.
 Direct children of Tabs must be Tab declarations; invalid children are rejected
 before native reconciliation. Keyed moves and selection changes preserve native
 pages, local view state and controls. Removed pages are reclaimed normally.</p>
-<p><code>Tabs(tabposition = Side::TOP)</code> accepts the shared <code>CPPUI::Side</code> enum:
-<code>TOP</code>, <code>RIGHT</code>, <code>BOTTOM</code>, and <code>LEFT</code> (<code>cppui/side.hpp</code>). Raw strings are no
+<p><code>Tabs(tabposition = Side::Top)</code> accepts the shared <code>CPPUI::Side</code> enum:
+<code>Top</code>, <code>Right</code>, <code>Bottom</code>, and <code>Left</code> (<code>cppui/side.hpp</code>). Raw strings are no
 longer accepted. Qt and LVGL update native placement on redraw while preserving
 pages; wx recreates its notebook when the side changes.</p>
 <p>LVGL still uses virtual Tab declarations: each physical descendant creates a
@@ -1491,9 +1517,12 @@ no-ops because every recorded command owns its style.</p>
 exceptions. Native access is not intercepted: finish raw drawing and pop before
 resuming CPPUI helpers. A native operation should set its own styles explicitly.
 CPPUI painter objects remain borrowed for this invocation only.</p>
-<p><code>drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0, anchor = Anchor::LEFT_TOP)</code> uses canvas dimensions for negative w/h and keeps
-the native font for negative size. <code>Anchor</code> has the reference's nine positions;
-it selects the text rotation pivot while x/y is the unrotated text origin.</p>
+<p><code>drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0, anchor = Anchor::LeftTop)</code> uses canvas dimensions for negative w/h and keeps
+the native font for negative size. The shared <code>CPPUI::Anchor</code> enum in
+<code>cppui/anchor.hpp</code> has nine positions: <code>LeftTop</code>, <code>LeftCenter</code>,
+<code>LeftBottom</code>, <code>CenterTop</code>, <code>Center</code>, <code>CenterBottom</code>,
+<code>RightTop</code>, <code>RightCenter</code>, and <code>RightBottom</code>.
+It selects the text rotation pivot while x/y is the unrotated text origin.</p>
 <p>The LVGL 9.6 backend uses an owned ARGB8888 buffer at native pixel resolution
 (<code>pixel_density == 1</code>). Native size changes replace the buffer and request a
 frame; the initial size is 100x100 until a parent/layout overrides it. Its

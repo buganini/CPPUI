@@ -28,12 +28,12 @@ namespace {
                     if(phase == 0) label
                         .layout(CPPUI::layout::height(45), CPPUI::layout::weight(2), CPPUI::layout::width(160))
                         .style(CPPUI::style::fontSize(20), CPPUI::style::bgColor(0x123456),
-                               CPPUI::style::color(0xff0000), CPPUI::style::fontFamily("Montserrat"), CPPUI::style::fontWeight(700));
+                               CPPUI::style::color(0xff0000), CPPUI::style::fontFamily("Montserrat"), CPPUI::style::fontWeight(CPPUI::FontWeight::Bold));
                     if(phase == 1) label.layout(0, 0, 0).style(0, 0);
-                    CPPUI::Button("styled").style(0xffff00, {}, 20, 700).id("button");
+                    CPPUI::Button("styled").style(0xffff00, {}, 20, CPPUI::FontWeight::Bold).id("button");
                     auto & weighted=CPPUI::Label("weight only");weighted.id("weighted");
                     if(weight) weighted.style(CPPUI::style::fontWeight(*weight));
-                    for(auto inherited:CPPUI::VBox().style(CPPUI::style::fontSize(20),CPPUI::style::fontWeight(700))) {
+                    for(auto inherited:CPPUI::VBox().style(CPPUI::style::fontSize(20),CPPUI::style::fontWeight(CPPUI::FontWeight::Bold))) {
                         auto & child=CPPUI::Label("child weight");child.id("child-weight");
                         if(weight) child.style(CPPUI::style::fontWeight(*weight));
                         CPPUI::Label("smaller bold child").style(CPPUI::style::fontSize(10)).id("small-child");

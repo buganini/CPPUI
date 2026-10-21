@@ -29,7 +29,7 @@ namespace {
         public:
         bool show = true;
         std::function<void()> action;
-        CPPUI::Side position = CPPUI::Side::TOP;
+        CPPUI::Side position = CPPUI::Side::Top;
         std::vector<Page> pages{{"a", "A"}, {"b", "B"}, {"c", "C"}};
         void content() override {
             for(auto window: CPPUI::Window()) if(show) for(auto tabs: CPPUI::Tabs(position)) {
@@ -106,12 +106,12 @@ namespace {
             require(lv_obj_get_child_count(lv_tabview_get_content(tabs)) == 0 && lv_obj_get_child_count(tabs) == 2,
                     "empty Tabs retained wrappers or staged content");
             root.pages = {{"a", "Again"}};
-            root.position = CPPUI::Side::BOTTOM;
+            root.position = CPPUI::Side::Bottom;
             root.redraw();
             root.check();
             for(const auto & placement: std::map<CPPUI::Side, lv_dir_t>{
-                    {CPPUI::Side::TOP, LV_DIR_TOP}, {CPPUI::Side::RIGHT, LV_DIR_RIGHT},
-                    {CPPUI::Side::BOTTOM, LV_DIR_BOTTOM}, {CPPUI::Side::LEFT, LV_DIR_LEFT}}) {
+                    {CPPUI::Side::Top, LV_DIR_TOP}, {CPPUI::Side::Right, LV_DIR_RIGHT},
+                    {CPPUI::Side::Bottom, LV_DIR_BOTTOM}, {CPPUI::Side::Left, LV_DIR_LEFT}}) {
                 root.position = placement.first; root.redraw();
                 require(root.native() == tabs && lv_tabview_get_tab_bar_position(tabs) == placement.second,
                         "tab position change lost native identity or placement");

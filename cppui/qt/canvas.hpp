@@ -2,6 +2,7 @@
 #define CPPUI_QT_CANVAS
 
 #include "base.hpp"
+#include "../anchor.hpp"
 #include "../canvas_input.hpp"
 #include <QWheelEvent>
 #include <QLabel>
@@ -20,11 +21,6 @@
 #include <vector>
 
 namespace CPPUI {
-    enum class Anchor {
-        LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM,
-        CENTER_TOP, CENTER, CENTER_BOTTOM,
-        RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM
-    };
 
     class CanvasColor {
         QColor color;
@@ -105,7 +101,7 @@ namespace CPPUI {
         CanvasPainter & operator=(const CanvasPainter &) = delete;
 
         void drawText(double x, double y, const std::string & text, int w = -1, int h = -1,
-                      int size = 12, CanvasColor color = {}, double rotate = 0, Anchor anchor = Anchor::LEFT_TOP) {
+                      int size = 12, CanvasColor color = {}, double rotate = 0, Anchor anchor = Anchor::LeftTop) {
             SavedState saved(painter);
             if(w < 0) w = width;
             if(h < 0) h = height;

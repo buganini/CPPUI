@@ -49,8 +49,8 @@ namespace {
             canvas.drawCubicBezier({40, 40}, {50, 40}, {70, 40}, {80, 40}, 0x00FFFF, 2);
             canvas.drawPolygon({{10, 45}, {30, 45}, {20, 60}}, 0xFFFF00);
             canvas.drawEllipse(60, 60, 10, 5, 0x0000FF);
-            canvas.drawText(0, 80, "Canvas", -1, -1, 12, 0x000000, 0, CPPUI::Anchor::CENTER);
-            canvas.drawText(90, 75, "Rotate", 60, 60, 12, 0x000000, 45, CPPUI::Anchor::RIGHT_BOTTOM);
+            canvas.drawText(0, 80, "Canvas", -1, -1, 12, 0x000000, 0, CPPUI::Anchor::Center);
+            canvas.drawText(90, 75, "Rotate", 60, 60, 12, 0x000000, 45, CPPUI::Anchor::RightBottom);
             canvas.drawImage(cropped, 100, 10, 8, 8);
             canvas.drawImage(image, 110, 30, -1, -1, 4, 0, -1, -1);
             canvas.drawImage(image, 100, 50, 8, 8, 0, 0, 4, 4, 0.5);

@@ -17,12 +17,12 @@ class Tabs: public Widget {
     wxWindow * selected=nullptr;
     Side position;
     static long flags(Side position) {
-        if(position==Side::TOP)return wxNB_TOP;if(position==Side::BOTTOM)return wxNB_BOTTOM;
-        if(position==Side::RIGHT)return wxNB_RIGHT;if(position==Side::LEFT)return wxNB_LEFT;
+        if(position==Side::Top)return wxNB_TOP;if(position==Side::Bottom)return wxNB_BOTTOM;
+        if(position==Side::Right)return wxNB_RIGHT;if(position==Side::Left)return wxNB_LEFT;
         throw std::invalid_argument("Unknown tab position");
     }
 public:
-    explicit Tabs(Side position=Side::TOP):position(position){flags(position);is_terminal=false;expandX=expandY=2;}
+    explicit Tabs(Side position=Side::Top):position(position){flags(position);is_terminal=false;expandX=expandY=2;}
     bool refSelection() const override { return true; }
     bool refEmptySelection() const override { return true; }
     void refCommand(RefCommand,const OptionalText & key,bool) override {
@@ -56,7 +56,7 @@ public:
     }
 };
 }
-inline Wx::Tabs & Tabs(Side position=Side::TOP){return *new Wx::Tabs(position);}
+inline Wx::Tabs & Tabs(Side position=Side::Top){return *new Wx::Tabs(position);}
 inline Wx::Tab & Tab(const std::string & label){return *new Wx::Tab(label);}
 }
 #endif

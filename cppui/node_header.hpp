@@ -158,6 +158,15 @@ namespace CPPUI {
             return applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
         }
 
+        // Deduce only explicit enum arguments so an omitted weight ({}) still
+        // selects the Optional<int> overload without ambiguity.
+        template<class Weight>
+        typename std::enable_if<std::is_same<Weight, FontWeight>::value, Node &>::type
+        style(Optional<int> color, Optional<int> bgColor, Optional<int> fontSize,
+              Weight fontWeight, const char * fontFamily = nullptr) {
+            return style(color, bgColor, fontSize, static_cast<int>(fontWeight), fontFamily);
+        }
+
         Node & wideLayout(int minWidth, Optional<int> width = {}, Optional<int> height = {},
                           Optional<int> weight = {}, Optional<Insets> padding = {}, Optional<Insets> margin = {}) {
             if(wideMatches(minWidth)) layout(width, height, weight, padding, margin);
@@ -167,6 +176,12 @@ namespace CPPUI {
                          Optional<int> fontSize = {}, Optional<int> fontWeight = {}, const char * fontFamily = nullptr) {
             if(wideMatches(minWidth)) style(color, bgColor, fontSize, fontWeight, fontFamily);
             return *this;
+        }
+        template<class Weight>
+        typename std::enable_if<std::is_same<Weight, FontWeight>::value, Node &>::type
+        wideStyle(int minWidth, Optional<int> color, Optional<int> bgColor,
+                  Optional<int> fontSize, Weight fontWeight, const char * fontFamily = nullptr) {
+            return wideStyle(minWidth, color, bgColor, fontSize, static_cast<int>(fontWeight), fontFamily);
         }
         template<class First, class... Rest>
         typename std::enable_if<detail::AreModifierArguments<detail::LayoutKey, First, Rest...>::value, Node &>::type

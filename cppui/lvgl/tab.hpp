@@ -47,15 +47,15 @@ namespace CPPUI {
             public:
             static lv_dir_t nativePosition(Side position) {
                 switch(position) {
-                    case Side::TOP: return LV_DIR_TOP;
-                    case Side::RIGHT: return LV_DIR_RIGHT;
-                    case Side::BOTTOM: return LV_DIR_BOTTOM;
-                    case Side::LEFT: return LV_DIR_LEFT;
+                    case Side::Top: return LV_DIR_TOP;
+                    case Side::Right: return LV_DIR_RIGHT;
+                    case Side::Bottom: return LV_DIR_BOTTOM;
+                    case Side::Left: return LV_DIR_LEFT;
                 }
                 throw std::invalid_argument("Unknown tab position");
             }
             Side tabposition;
-            explicit Tabs(Side tabposition = Side::TOP): tabposition(tabposition) { nativePosition(tabposition); }
+            explicit Tabs(Side tabposition = Side::Top): tabposition(tabposition) { nativePosition(tabposition); }
             bool refSelection() const override { return true; }
             bool refEmptySelection() const override { return true; }
             void refCommand(RefCommand,const OptionalText & key,bool) override {
@@ -150,7 +150,7 @@ namespace CPPUI {
             }
         };
     }
-    inline LVGL::Tabs & Tabs(Side tabposition = Side::TOP) { return *new LVGL::Tabs(tabposition); }
+    inline LVGL::Tabs & Tabs(Side tabposition = Side::Top) { return *new LVGL::Tabs(tabposition); }
     inline LVGL::Tab & Tab(const std::string & label) { return *new LVGL::Tab(label); }
 }
 #endif

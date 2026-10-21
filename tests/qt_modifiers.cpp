@@ -46,7 +46,7 @@ namespace {
                         options.StyleSheet = CPPUI::QtStyleSheet{{"border-width", "2px"}};
                         label.layout(CPPUI::layout::weight(3), CPPUI::layout::width(160)).layout({}, 45)
                             .style(CPPUI::style::fontFamily("Sans"), CPPUI::style::fontSize(20),
-                                   CPPUI::style::color(0xff0000), CPPUI::style::bgColor(0x123456), CPPUI::style::fontWeight(600));
+                                   CPPUI::style::color(0xff0000), CPPUI::style::bgColor(0x123456), CPPUI::style::fontWeight(CPPUI::FontWeight::DemiBold));
                         label.qt(options);
                         CPPUI::QtOptions replacement;
                         replacement.StyleSheet = CPPUI::QtStyleSheet{{"color", "#000000"}, {"font", "16pt"}};
@@ -68,9 +68,9 @@ namespace {
                         options.StyleSheet=CPPUI::QtStyleSheet{{"font-weight","300"}};
                         weighted.qt(options);
                     }
-                    for(auto inherited:CPPUI::VBox().style(CPPUI::style::fontSize(18),CPPUI::style::fontWeight(700))) {
+                    for(auto inherited:CPPUI::VBox().style(CPPUI::style::fontSize(18),CPPUI::style::fontWeight(CPPUI::FontWeight::Bold))) {
                         CPPUI::Label("inherited bold").id("inherited");
-                        CPPUI::Label("normal child").style(CPPUI::style::fontWeight(400)).id("normal-child");
+                        CPPUI::Label("normal child").style(CPPUI::style::fontWeight(CPPUI::FontWeight::Normal)).id("normal-child");
                     }
                     auto & picture = CPPUI::Image(image); picture.id("image");
                     if(phase == 0) picture.layout({}, 40);

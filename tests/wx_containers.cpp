@@ -18,7 +18,7 @@ public:
     int rows=50,builds=0,version=1,calls=0;
     bool reverse=false,showMenu=true,ticking=false;
     double offset=CPPUI::ScrollEnd;
-    CPPUI::Side side=CPPUI::Side::TOP;
+    CPPUI::Side side=CPPUI::Side::Top;
     void content() override {
         ++builds;
         for(auto w:CPPUI::Window().size(420,240).maximize(false).fullscreen(true).id("window")) {
@@ -71,8 +71,8 @@ int main(int argc,char **argv){
         auto notebook=static_cast<wxNotebook *>(find(root,"tabs")->outer());auto first=notebook->GetPage(0);notebook->ChangeSelection(0);
         root.reverse=true;root.sync();pump();require(notebook->GetPage(1)==first&&notebook->GetSelection()==1,"keyed tab reorder lost page/selection");
         for(const auto & placement: std::vector<std::pair<CPPUI::Side,long>>{
-                {CPPUI::Side::BOTTOM,wxNB_BOTTOM},{CPPUI::Side::LEFT,wxNB_LEFT},
-                {CPPUI::Side::RIGHT,wxNB_RIGHT},{CPPUI::Side::TOP,wxNB_TOP}}) {
+                {CPPUI::Side::Bottom,wxNB_BOTTOM},{CPPUI::Side::Left,wxNB_LEFT},
+                {CPPUI::Side::Right,wxNB_RIGHT},{CPPUI::Side::Top,wxNB_TOP}}) {
             root.side=placement.first;root.sync();pump();
             notebook=static_cast<wxNotebook *>(find(root,"tabs")->outer());
             require((notebook->GetWindowStyleFlag() & placement.second)==placement.second && notebook->GetPageCount()==2,

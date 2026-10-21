@@ -19,7 +19,7 @@ namespace Cookbook {
                         CPPUI::Button("Tab 1").click([this]() { choose("first"); });
                         CPPUI::Button("Tab 2").click([this]() { choose("Tab 2"); });
                     }
-                    for(auto tabs: CPPUI::Tabs(CPPUI::Side::TOP).layout({}, {}, 1).id("example-tabs").ref("cookbook.tabs")) pages();
+                    for(auto tabs: CPPUI::Tabs(CPPUI::Side::Top).layout({}, {}, 1).id("example-tabs").ref("cookbook.tabs")) pages();
 #if CPPUI_HAS_TAB_BINDING
                     const auto key = static_cast<CPPUI::OptionalText>(selection);
                     CPPUI::Label("Select by state: " + (key ? *key : "None"));
@@ -27,7 +27,7 @@ namespace Cookbook {
                         CPPUI::Button("Tab 1 (state)").click([this]() { selection = CPPUI::OptionalText("first"); });
                         CPPUI::Button("Tab 2 (state)").click([this]() { selection = CPPUI::OptionalText("Tab 2"); });
                     }
-                    for(auto tabs: CPPUI::Tabs(CPPUI::Side::BOTTOM, selection).layout({}, {}, 1).id("bound-tabs")) pages();
+                    for(auto tabs: CPPUI::Tabs(CPPUI::Side::Bottom, selection).layout({}, {}, 1).id("bound-tabs")) pages();
 #endif
                 }
             }
