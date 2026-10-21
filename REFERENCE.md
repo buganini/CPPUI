@@ -314,7 +314,10 @@ Omission restores prior local styles or theme defaults. `fontSize` selects the
 nearest compiled Montserrat bitmap font, approximating points at 96 dpi; it
 cannot produce arbitrary exact sizes. `fontFamily` accepts empty/default or
 `"Montserrat"`; other families throw. Font data remains owned by the configured
-LVGL runtime. Runtime font loading and display-density mapping remain pending.
+LVGL runtime. The SDL2/X11 desktop builds supplement the 14/28-pixel fonts with
+`×`, `·`, `–` and `→` used by the shared cookbook. Other Unicode coverage depends
+on the configured fonts. Runtime font loading and display-density mapping remain
+pending.
 wx applies layout sizing, padding/weight and font/color modifiers, resetting
 omitted values to native defaults. `.qt()` is specific to the Qt backend.
 

@@ -1,5 +1,17 @@
 # LVGL implementation progress and remaining work
 
+Cookbook glyph fix (2026-10-21): both desktop builds attach matching 14/28-pixel
+Montserrat fallback bitmaps for `×`, `·`, `–` and `→`. These characters were absent
+from LVGL's built-in subset and appeared as placeholder squares. ASCII and icon
+glyphs retain their original fonts and metrics. Generated sources and the OFL
+license are checked in under `cppui/lvgl/fonts`; ordinary builds need no font
+converter or system font installation. To regenerate with `lv_font_conv` 1.5.3:
+`python3 scripts/generate_lvgl_symbols.py --lvgl-source /path/to/lvgl-9.6.0`.
+Verification: both desktop targets build and pass all 30 CTests each. The glyph
+regression rejects placeholders and checks bitmap availability and matching
+baseline metrics at both sizes; it passes Valgrind with no errors or leaks.
+Native canvas rendering confirms the symbols align with surrounding text.
+
 Adaptive Grid first-visit fix (2026-10-21): Scroll cancels stale native scroll
 animations and clamps its offset when content or viewport geometry changes.
 This prevents initial focus scrolling from hiding the grid after responsive
