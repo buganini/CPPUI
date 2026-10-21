@@ -28,6 +28,8 @@ namespace Cookbook {
             return text;
         }
         CPPUI::State<std::string> adaptiveName{std::string("Ada")};
+        CPPUI::State<std::string> gridMode{std::string("ordered")},gridText{std::string("This editor survives reflow")};
+        CPPUI::State<bool> gridShowC{true},gridReverse{false};
         CPPUI::State<int> postedCallbacks{0};
         CPPUI::State<bool> greetingVisible{true};
         CPPUI::State<bool> rejectDrop{false};
@@ -68,6 +70,7 @@ namespace Cookbook {
         const char * remaining;
     };
     void adaptive(Model &);
+    void adaptiveGrid(Model &);
     void binding(Model &);
     void drop(Model &);
     void refs(Model &);

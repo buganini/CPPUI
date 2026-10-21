@@ -107,6 +107,28 @@ namespace Cookbook {
                         TestBackend::settle();
                         require(static_cast<std::string>(gallery.model.adaptiveName)=="Ada","adaptive box input did not share model state");
                     }
+                    if(std::string(recipes()[i].key) == "adaptive_grid") {
+                        auto editor=find(gallery,"grid-editor")->outer();
+                        TestBackend::resizeWindow(gallery,1250,800);
+                        for(int pass=0;pass<4;++pass) TestBackend::settle();
+                        require(find(gallery,"adaptive-grid")->grid_columns==4,"adaptive grid did not reach four columns");
+                        const std::vector<std::pair<std::string,int>> modes={{"ordered",3},{"dense",2},{"forward",4}};
+                        for(const auto & mode:modes) {
+                            gallery.model.gridMode=mode.first;TestBackend::settle();
+                            require(find(gallery,"F")->grid_cell->row==mode.second,"adaptive grid backfill mode differs from PUI");
+                            require(find(gallery,"grid-editor")->outer()==editor,"mode change replaced grid editor");
+                        }
+                        gallery.model.gridShowC=false;TestBackend::settle();
+                        require(!find(gallery,"C")->grid_cell,"hidden grid tile still has a cell");
+                        require(click(gallery,"Reverse tiles"),"grid reverse button missing");TestBackend::settle();
+                        require(find(gallery,"grid-editor")->outer()==editor,"tile reorder replaced editor");
+                        require(TestBackend::editTextField(*find(gallery,"grid-editor"),"retained grid input",true),"grid editor missing");
+                        TestBackend::settle();
+                        require(static_cast<std::string>(gallery.model.gridText)=="retained grid input","grid editor did not write model");
+                        gallery.model.gridMode=std::string("ordered");gallery.model.gridShowC=true;gallery.model.gridReverse=false;
+                        TestBackend::resizeWindow(gallery,800,600);TestBackend::settle();
+                        require(find(gallery,"adaptive-grid")->grid_columns<4 && find(gallery,"grid-editor")->outer()==editor,"narrow grid did not retain editor");
+                    }
                     if(std::string(recipes()[i].key) == "refs") {
                         const int before=gallery.model.postedCallbacks;
                         const auto start=std::chrono::steady_clock::now();

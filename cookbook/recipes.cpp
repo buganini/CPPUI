@@ -117,6 +117,7 @@ namespace Cookbook {
             {"hbox", "HBox", hbox, ""},
             {"stack", "Stack", nullptr, "Stack and layout options"},
             {"grid", "Grid", nullptr, "Grid placement API"},
+            {"adaptive_grid", "Adaptive Grid", adaptiveGrid, ""},
             {"label", "Label", label, ""},
             {"text", "Text", nullptr, "Text, Html and MarkDown"},
             {"button", "Button", button, ""},

@@ -219,17 +219,22 @@ namespace Cookbook { namespace TestBackend {
         }
         if(auto grid = find(root, "example-grid")) {
             auto object = static_cast<lv_obj_t *>(grid->outer());
-            auto a = static_cast<lv_obj_t *>(find(root, "grid-0-0")->outer());
-            auto b = static_cast<lv_obj_t *>(find(root, "grid-1-0")->outer());
-            auto c = static_cast<lv_obj_t *>(find(root, "grid-0-1")->outer());
-            auto d = static_cast<lv_obj_t *>(find(root, "grid-2-1")->outer());
-            if(lv_obj_get_x(a) != 0 || lv_obj_get_y(a) != 0 || lv_obj_get_y(c) != 0
-               || lv_obj_get_x(b) != lv_obj_get_x(a) || lv_obj_get_x(c) != lv_obj_get_width(a) + 6
-               || lv_obj_get_x(d) != lv_obj_get_x(c) || lv_obj_get_y(b) != lv_obj_get_height(a) + 6
-               || lv_obj_get_y(d) != lv_obj_get_y(b) + lv_obj_get_height(b) + 6
-               || lv_obj_get_style_grid_cell_row_span(c, LV_PART_MAIN) != 2
-               || lv_obj_get_height(object) != lv_obj_get_y(d) + lv_obj_get_height(d))
-                throw std::runtime_error("Grid recipe must retain its two columns, three rows and spanning cell");
+            auto native=[&](const char * id) {
+                auto node=find(*grid,id);
+                if(!node || !node->outer()) throw std::runtime_error("Manual Grid tile is missing");
+                return static_cast<lv_obj_t *>(node->outer());
+            };
+            auto a=native("A"),b=native("B"),c=native("C"),d=native("D"),e=native("E");
+            if(lv_obj_get_x(a)!=0 || lv_obj_get_y(a)!=0 || lv_obj_get_y(b)!=0
+               || lv_obj_get_x(b)!=lv_obj_get_width(a)+6 || lv_obj_get_x(c)!=lv_obj_get_x(b)
+               || lv_obj_get_y(c)!=lv_obj_get_height(b)+6 || lv_obj_get_y(d)!=lv_obj_get_y(c)
+               || lv_obj_get_x(d)!=lv_obj_get_x(c)+lv_obj_get_width(c)+6
+               || lv_obj_get_x(e)!=0 || lv_obj_get_y(e)!=lv_obj_get_height(a)+6
+               || lv_obj_get_width(b)!=lv_obj_get_width(c)+6+lv_obj_get_width(d)
+               || lv_obj_get_width(e)!=lv_obj_get_width(a)+6+lv_obj_get_width(c)
+               || lv_obj_get_y(d)+lv_obj_get_height(d)!=lv_obj_get_y(e)+lv_obj_get_height(e)
+               || lv_obj_get_height(object)!=lv_obj_get_y(e)+lv_obj_get_height(e))
+                throw std::runtime_error("Manual Grid mosaic must preserve its three tracks and spanning tiles");
         }
         if(auto stack = find(root, "example-stack")) {
             auto object = static_cast<lv_obj_t *>(stack->outer());
