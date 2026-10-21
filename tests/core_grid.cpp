@@ -44,6 +44,26 @@ int main() {
         a.is_visible=true;a.grid_rowspan=0;threw=false;
         try {CPPUI::detail::gridCells(items,3);}catch(const std::invalid_argument &) {threw=true;}
         require(threw,"automatic grid accepted zero span");
+        Item base,responsive;
+        base.grid(CPPUI::grid::row(0),CPPUI::grid::column(0));
+        responsive.grid(CPPUI::grid::row(0),CPPUI::grid::column(0)).wideGrid(600,CPPUI::grid::row(2));
+        responsive.grid_row=2; // Simulate a matching responsive override without native geometry.
+        require(base==responsive,"responsive coordinates changed base identity");
+        responsive.grid(CPPUI::grid::columnspan(2));
+        require(!(base==responsive),"later base grid call did not update identity");
+        base.grid(CPPUI::grid::columnspan(2));require(base==responsive,"base grid merged responsive coordinates into identity");
+        Item owner;owner.update(nullptr);owner.size();
+        for(int width:{599,600,800,400,600}) {
+            owner.sizeState->publish(width,400);
+            Item field;field.parent=&owner;
+            field.grid(CPPUI::grid::row(0),CPPUI::grid::column(0))
+                .wideGrid(600,CPPUI::grid::row(1),CPPUI::grid::column(1),CPPUI::grid::columnspan(2))
+                .wideGrid(800,CPPUI::grid::rowspan(2)).wideGrid(600,CPPUI::grid::column(0)).id("field").ref("field");
+            require(field.grid_row==(width>=600 ? 1 : 0) && field.grid_column==0
+                && field.grid_columnspan==(width>=600 ? 2 : -1) && field.grid_rowspan==(width>=800 ? 2 : -1),
+                "wideGrid boundary or override order differs");
+            require(*field.grid_identity==CPPUI::GridCell(0,0,-1,-1),"wideGrid/id/ref changed the base cell");
+        }
         Item tiles[7];items.clear();
         const int spans[7][2]={{2,1},{1,1},{3,2},{3,1},{1,2},{1,1},{2,2}};
         for(int i=0;i<7;++i) {tiles[i].grid_rowspan=spans[i][0];tiles[i].grid_columnspan=spans[i][1];items.push_back(&tiles[i]);}

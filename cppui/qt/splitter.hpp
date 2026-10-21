@@ -10,7 +10,7 @@ namespace CPPUI {
             public:
             bool vertical;
 
-            explicit Splitter(bool vertical = false): vertical(vertical) {}
+            explicit Splitter(bool vertical = false): vertical(vertical) { expandX=expandY=2; }
 
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new Widget<QSplitter>();

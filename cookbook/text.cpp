@@ -7,7 +7,7 @@ namespace Cookbook {
             CPPUI::Text("HTML and Markdown formatting is not yet implemented; raw source is shown below.");
         for(auto column: CPPUI::VBox().layout({}, {}, 1)) {
             CPPUI::Text("Multiple\nLines\nText");
-            CPPUI::Html("<i>HTML</i> <span style=\"color:red\">support</span>");
+            CPPUI::Html("<i>HTML</i> <span style=\"color:#244b5a\">support</span>").style(0x1C2A30,0xFFF7E6);
             CPPUI::MarkDown("# H1\n## H2\n* item 1\n* item 2");
             CPPUI::Spacer();
         }

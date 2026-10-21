@@ -123,11 +123,12 @@ namespace CPPUI {
         if(typecode() != obj.typecode() || refName != obj.refName) {
             return false;
         }
-        const bool placed = grid_row >= 0 && grid_column >= 0;
-        const bool otherPlaced = obj.grid_row >= 0 && obj.grid_column >= 0;
+        const auto cell=grid_identity.valueOr(GridCell(grid_row,grid_column,grid_rowspan,grid_columnspan));
+        const auto other=obj.grid_identity.valueOr(GridCell(obj.grid_row,obj.grid_column,obj.grid_rowspan,obj.grid_columnspan));
+        const bool placed = cell.row >= 0 && cell.column >= 0;
+        const bool otherPlaced = other.row >= 0 && other.column >= 0;
         if(placed != otherPlaced) return false;
-        if(placed && std::make_tuple(grid_row, grid_column, grid_rowspan, grid_columnspan)
-           != std::make_tuple(obj.grid_row, obj.grid_column, obj.grid_rowspan, obj.grid_columnspan)) return false;
+        if(placed && !(cell==other)) return false;
         if(has_id || obj.has_id) {
             return has_id && obj.has_id && _id == obj._id;
         }

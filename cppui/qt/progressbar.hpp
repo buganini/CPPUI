@@ -24,7 +24,7 @@ namespace CPPUI {
             int maximum;
 
             explicit ProgressBar(double progress, double maximum = 1.0)
-                : progress(hundredths(progress)), maximum(hundredths(maximum)) {}
+                : progress(hundredths(progress)), maximum(hundredths(maximum)) { expandX=1; }
 
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new Widget<QProgressBar>();

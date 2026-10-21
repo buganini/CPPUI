@@ -10,7 +10,7 @@ namespace CPPUI { namespace Qt {
         void clearNative() override { qtlayout = nullptr; BaseWidget::clearNative(); }
         public:
         QStackedLayout * qtlayout = nullptr;
-        Stack() { is_reversed_order = true; }
+        Stack() { is_reversed_order = true; expandX=expandY=2; }
         void update(BaseWidget * previous) override {
             auto prev = static_cast<Stack *>(previous);
             if(prev && prev->ui) { ui = prev->ui; qtlayout = prev->qtlayout; }

@@ -120,8 +120,7 @@ namespace CPPUI {
 
             void restoreOptions() {
                 if(!ui) return;
-                if(layout_width || layout_height || qtParams.HorizontalPolicy || qtParams.VerticalPolicy)
-                    ui->setSizePolicy(defaultPolicy);
+                ui->setSizePolicy(defaultPolicy);
                 if(layout_padding) ui->setContentsMargins(defaultMargins);
                 if(qtParams.Style) ui->setStyle(nullptr);
                 if(qtParams.SizeConstraint && ui->layout()) ui->layout()->setSizeConstraint(defaultConstraint);
@@ -170,6 +169,19 @@ namespace CPPUI {
             }
 
             public:
+            int expandX=0, expandY=0;
+            int layoutPriority(bool horizontal) const {
+                const auto & policy=horizontal ? qtParams.HorizontalPolicy : qtParams.VerticalPolicy;
+                if(!policy) return horizontal ? expandX : expandY;
+                return *policy==QSizePolicy::Expanding || *policy==QSizePolicy::MinimumExpanding || *policy==QSizePolicy::Ignored ? 3
+                    : *policy==QSizePolicy::Preferred || *policy==QSizePolicy::Minimum ? 1 : 0;
+            }
+            void applyExpansion(bool horizontal,bool main,bool cross) {
+                auto policy=ui->sizePolicy();
+                policy.setHorizontalPolicy(qtParams.HorizontalPolicy.valueOr((horizontal ? main : cross) ? QSizePolicy::Expanding : QSizePolicy::Preferred));
+                policy.setVerticalPolicy(qtParams.VerticalPolicy.valueOr((horizontal ? cross : main) ? QSizePolicy::Expanding : QSizePolicy::Preferred));
+                ui->setSizePolicy(policy);
+            }
             // This observer is valid only within the explicit native lifetime.
             QWidget * ui = nullptr;
 
@@ -252,7 +264,7 @@ namespace CPPUI {
             }
             public:
             QSpacerItem * ui = nullptr;
-            Spacer() { is_terminal = true; is_movable = false; }
+            Spacer() { is_terminal = true; is_movable = false; layout_weight=1; }
             ~Spacer() override { QObject::disconnect(nativeDestroyed); }
             void update(Node * previous) override;
             void postUpdate() override;
@@ -277,9 +289,11 @@ namespace CPPUI {
         };
 
         class BaseLayout: public LayoutWidget {
+            std::vector<Node *> mountedChildren;
             protected:
             void clearNative() override {
                 qtlayout = nullptr;
+                mountedChildren.clear();
                 BaseWidget::clearNative();
             }
 
@@ -287,37 +301,79 @@ namespace CPPUI {
             QBoxLayout * qtlayout = nullptr;
 
             void update(BaseWidget * prev) override {
+                if(prev && prev->ui) mountedChildren=std::move(static_cast<BaseLayout *>(prev)->mountedChildren);
                 update(static_cast<BaseLayout *>(prev));
                 qtlayout->setContentsMargins(0, 0, 0, 0);
                 applyPadding();
             }
             virtual void update(BaseLayout * prev) = 0;
+            bool reflowChildren() const override { return true; }
+            void rebindChild(Node * previous,Node * current) override {
+                for(auto & child:mountedChildren) if(child==previous) child=current;
+            }
+            void postSync() override {
+                if(!qtlayout) return;
+                const auto direction=qtlayout->direction();
+                const bool horizontal=direction==QBoxLayout::LeftToRight || direction==QBoxLayout::RightToLeft;
+                auto mounted=[](Node * child) {
+                    if(auto spacer=dynamic_cast<Spacer *>(child)) return spacer->ui!=nullptr;
+                    auto widget=dynamic_cast<BaseWidget *>(child);
+                    return widget && widget->ui;
+                };
+                auto priority=[horizontal](Node * child) {
+                    if(child->layout_weight) return *child->layout_weight>0 ? 4 : 0;
+                    auto widget=dynamic_cast<BaseWidget *>(child);
+                    return widget ? widget->layoutPriority(horizontal) : 0;
+                };
+                int highest=0;
+                for(auto child:mountedChildren) if(mounted(child) && child->layoutVisible()) highest=std::max(highest,priority(child));
+                const auto leading=horizontal ? ::Qt::AlignLeft : ::Qt::AlignTop;
+                const auto crossAlignment=horizontal ? ::Qt::AlignVCenter : ::Qt::AlignLeft;
+                qtlayout->setAlignment(highest ? ::Qt::Alignment() : leading);
+                for(std::size_t i=0;i<mountedChildren.size();++i) {
+                    auto child=mountedChildren[i];
+                    if(!mounted(child)) continue;
+                    auto spacer=dynamic_cast<Spacer *>(child);
+                    auto widget=dynamic_cast<BaseWidget *>(child);
+                    int index=static_cast<int>(i);
+                    auto item=qtlayout->itemAt(index);
+                    // External QWidget deletion can remove a native item before
+                    // its declaration is reconciled. Keep independent views safe.
+                    if(spacer && item!=spacer->ui) index=qtlayout->indexOf(spacer->ui);
+                    if(widget && (!item || item->widget()!=widget->ui)) index=qtlayout->indexOf(widget->ui);
+                    if(index<0) continue;
+                    const bool expands=child->layoutVisible() && highest>0 && priority(child)==highest;
+                    qtlayout->setStretch(index,expands ? child->layout_weight.valueOr(1) : 0);
+                    if(spacer) {
+                        const auto main=expands ? QSizePolicy::Expanding : QSizePolicy::Fixed;
+                        spacer->ui->changeSize(0,0,horizontal ? main : QSizePolicy::Minimum,horizontal ? QSizePolicy::Minimum : main);
+                    } else if(widget) {
+                        const bool cross=widget->layoutPriority(!horizontal)>0;
+                        qtlayout->itemAt(index)->setAlignment((expands ? ::Qt::Alignment() : leading) |
+                                                                 (cross ? ::Qt::Alignment() : crossAlignment));
+                        widget->applyExpansion(horizontal,expands,cross);
+                    }
+                }
+                qtlayout->invalidate();
+            }
+            void postUpdate() override { postSync();BaseWidget::postUpdate(); }
 
             void * inner() override { return qtlayout; }
             void addChild(int idx, Node * child) override {
                 if(child->is_outoforder) return;
+                mountedChildren.insert(mountedChildren.begin()+idx,child);
                 if(auto spacer = dynamic_cast<Spacer *>(child)) qtlayout->insertSpacerItem(idx, spacer->ui);
                 else qtlayout->insertWidget(idx, static_cast<QWidget *>(child->outer()));
             }
-            void removeChild(int, Node * child) override {
+            void removeChild(int index, Node * child) override {
                 if(child->is_outoforder) return;
+                mountedChildren.erase(mountedChildren.begin()+index);
                 if(auto spacer = dynamic_cast<Spacer *>(child)) { if(spacer->ui) qtlayout->removeItem(spacer->ui); }
                 else if(auto widget = static_cast<QWidget *>(child->outer())) widget->setParent(nullptr);
             }
         };
-        inline void updateStretch(Node * node) {
-            auto box = dynamic_cast<BaseLayout *>(node->dom_parent);
-            if(!box || !box->qtlayout || node->is_outoforder) return;
-            const int weight = node->layoutVisible() ? node->layout_weight.valueOr(dynamic_cast<Spacer *>(node) ? 1 : 0) : 0;
-            for(int i = 0; i < box->qtlayout->count(); ++i) {
-                auto item = box->qtlayout->itemAt(i);
-                if((dynamic_cast<Spacer *>(node) && item == node->outer()) || (item->widget() && item->widget() == node->outer())) {
-                    box->qtlayout->setStretch(i, weight); break;
-                }
-            }
-        }
-        inline void BaseWidget::postUpdate() { if(ui && !layoutVisible()) ui->hide(); updateStretch(this); Node::postUpdate(); }
-        inline void Spacer::postUpdate() { updateStretch(this); Node::postUpdate(); }
+        inline void BaseWidget::postUpdate() { if(ui && !layoutVisible()) ui->hide(); Node::postUpdate(); }
+        inline void Spacer::postUpdate() { Node::postUpdate(); }
         inline void Spacer::update(Node * previous) {
             auto box = dynamic_cast<BaseLayout *>(dom_parent);
             if(!dynamic_cast<LayoutWidget *>(dom_parent)) throw std::logic_error("Qt Spacer requires a layout parent");

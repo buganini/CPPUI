@@ -77,8 +77,8 @@ int main(int argc, char ** argv) {
             auto vertical = static_cast<QSpacerItem *>(find(root, "vertical")->outer());
             require(gap->geometry().width() > 300 && vertical->geometry().height() > 250, "spacers did not expand along their box axes");
             require(gap->sizePolicy().horizontalPolicy() == QSizePolicy::Expanding
-                && gap->sizePolicy().verticalPolicy() == QSizePolicy::Preferred, "row spacer policy differs from PUI");
-            require(vertical->sizePolicy().horizontalPolicy() == QSizePolicy::Preferred
+                && gap->sizePolicy().verticalPolicy() == QSizePolicy::Minimum, "row spacer policy differs from PUI");
+            require(vertical->sizePolicy().horizontalPolicy() == QSizePolicy::Minimum
                 && vertical->sizePolicy().verticalPolicy() == QSizePolicy::Expanding, "column spacer policy differs from PUI");
             require(!find(root, "gap")->is_movable && find(root, "gap")->is_terminal, "spacer declaration flags differ from PUI");
             for(int i = 0; i < 20; ++i) { root.sync(); settle(); require(root.gap() == gap && declarations == 2 && items == 2, "redraw leaked/replaced spacers"); }

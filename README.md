@@ -33,11 +33,17 @@ settings. See the [responsive layout guide](REFERENCE.md#responsive-layout)
 for API choices and sizing behavior, and the
 [Adaptive cookbook](cookbook/adaptive.cpp) for a runnable example.
 
+`HBox(true)` / `VBox(true)` reverse visual order while retaining controls;
+`HVBox(600, true, false)` reverses only its horizontal layout.
+
 `Grid().columns(1).wideColumns(400, 2).wideColumns(600, 3)` adds automatic,
 span-aware placement on Qt, wx and LVGL. Use `grid::dense(true)` or
 `grid::dense(false)` as the named second argument to `columns()` to change the
 default row-ordered backfill. See the [Grid API](REFERENCE.md#grid-and-stack)
 and [Adaptive Grid cookbook](cookbook/adaptive_grid.cpp).
+
+A Grid child can use `.wideGrid(600, CPPUI::grid::columnspan(2))` to change
+placement or span at a width breakpoint while preserving its native editor.
 
 # Build and test the core
 

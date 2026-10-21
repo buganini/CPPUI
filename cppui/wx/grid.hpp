@@ -32,6 +32,7 @@ public:
         auto nativeGrid=static_cast<wxGridBagSizer *>(wxSizerObject);
         for(int column=0;column<growable;++column) nativeGrid->RemoveGrowableCol(column);
         growable=grid_columns;
+        int occupiedColumns=0;
         for(auto child:gridChildren) if(!child->is_visible)
             static_cast<Node *>(child)->applyVisibility(false);
         for(const auto & item:placed) {
@@ -40,10 +41,17 @@ public:
             auto wrapper=new wxBoxSizer(wxVERTICAL);
             auto mount=padded(child,wrapper);
             const auto & cell=item.cell;
+            occupiedColumns=std::max(occupiedColumns,cell.column+cell.columnspan);
             mount.item=nativeGrid->Add(wrapper,wxGBPosition(cell.row,cell.column),
                                       wxGBSpan(cell.rowspan,cell.columnspan),wxEXPAND);
             mounts.push_back(mount);
         }
+        // A sparse automatic grid still has all declared columns. GridBagSizer
+        // otherwise discovers only occupied tracks, and rejects growable ones
+        // beyond its last calculated column (including after a span change).
+        if(grid_columns>occupiedColumns)
+            nativeGrid->Add(0,0,wxGBPosition(0,grid_columns-1));
+        nativeGrid->CalcMin();
         for(int column=0;column<growable;++column) nativeGrid->AddGrowableCol(column);
         Layout::postSync();
     }

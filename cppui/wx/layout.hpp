@@ -4,34 +4,54 @@
 #include "grid.hpp"
 #include "stack.hpp"
 namespace CPPUI { namespace Wx {
-    class HBox: public Layout {
+    class Box: public Layout {
+        protected:
+        bool inverse, mountedInverse=false;
         public:
-        HBox() { horizontal = true; expandX = 2; expandY = 1; }
+        explicit Box(bool inverse):inverse(inverse) {}
+        int nativeIndex(int index,bool inserting=false) const override {
+            return mountedInverse ? static_cast<int>(mounts.size())-index-(inserting ? 0 : 1) : index;
+        }
+        void update(::CPPUI::Node * previous) override {
+            auto prev=static_cast<Box *>(previous);
+            mountedInverse=prev && prev->wxSizerObject && prev->mountedInverse;
+            Layout::update(previous);
+            if(mountedInverse!=inverse) {
+                // Reverse native items in place: wrappers, focus and drafts stay alive.
+                wxSizerObject->GetChildren().reverse();
+                mountedInverse=inverse;
+            }
+        }
+    };
+    class HBox: public Box {
+        public:
+        explicit HBox(bool inverse=false):Box(inverse) { horizontal = true; expandX = 2; expandY = 1; }
         wxSizer * createSizer() override { return new wxBoxSizer(wxHORIZONTAL); }
     };
-    class VBox: public Layout {
+    class VBox: public Box {
         public:
-        VBox() { vertical = true; expandX = 1; expandY = 2; }
+        explicit VBox(bool inverse=false):Box(inverse) { vertical = true; expandX = 1; expandY = 2; }
         wxSizer * createSizer() override { return new wxBoxSizer(wxVERTICAL); }
     };
     class AdaptiveBox: public HBox {
         public:
-        AdaptiveBox(int threshold,bool width) {
+        AdaptiveBox(int threshold,bool width,bool inverseH,bool inverseV) {
             horizontal=::CPPUI::detail::adaptiveHorizontal(*this,threshold,width);vertical=!horizontal;
+            inverse=horizontal ? inverseH : inverseV;
             expandX=horizontal ? 2 : 1;expandY=horizontal ? 1 : 2;
         }
         void update(::CPPUI::Node * prev) override {
-            Layout::update(prev);
+            Box::update(prev);
             static_cast<wxBoxSizer *>(wxSizerObject)->SetOrientation(horizontal ? wxHORIZONTAL : wxVERTICAL);
         }
     };
-    class HVBox: public AdaptiveBox { public: explicit HVBox(int minWidth):AdaptiveBox(minWidth,true) {} };
-    class VHBox: public AdaptiveBox { public: explicit VHBox(int minHeight):AdaptiveBox(minHeight,false) {} };
+    class HVBox: public AdaptiveBox { public: explicit HVBox(int minWidth,bool inverseH=false,bool inverseV=false):AdaptiveBox(minWidth,true,inverseH,inverseV) {} };
+    class VHBox: public AdaptiveBox { public: explicit VHBox(int minHeight,bool inverseH=false,bool inverseV=false):AdaptiveBox(minHeight,false,inverseH,inverseV) {} };
 }
-inline Wx::HBox & HBox() { return *new Wx::HBox(); }
-inline Wx::VBox & VBox() { return *new Wx::VBox(); }
-inline Wx::HVBox & HVBox(int minWidth) { return *new Wx::HVBox(minWidth); }
-inline Wx::VHBox & VHBox(int minHeight) { return *new Wx::VHBox(minHeight); }
+inline Wx::HBox & HBox(bool inverse=false) { return *new Wx::HBox(inverse); }
+inline Wx::VBox & VBox(bool inverse=false) { return *new Wx::VBox(inverse); }
+inline Wx::HVBox & HVBox(int minWidth,bool inverseH=false,bool inverseV=false) { return *new Wx::HVBox(minWidth,inverseH,inverseV); }
+inline Wx::VHBox & VHBox(int minHeight,bool inverseH=false,bool inverseV=false) { return *new Wx::VHBox(minHeight,inverseH,inverseV); }
 inline Wx::Spacer & Spacer() { return *new Wx::Spacer(); }
 }
 #endif

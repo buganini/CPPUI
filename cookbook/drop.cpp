@@ -7,7 +7,7 @@
 namespace Cookbook {
     void drop(Model & model) {
         for(auto column:CPPUI::VBox()) {
-            CPPUI::Label("DROP HERE").style({}, {}, 36).drop([&model](CPPUI::DropEvent & event) {
+            CPPUI::Label("DROP HERE").style(0xD3B98B, 0x1C2A30, 36).drop([&model](CPPUI::DropEvent & event) {
                 if(model.rejectDrop) { event.reject("Rejected by the example"); return; }
                 std::ostringstream lines, contents; lines << "Action: " << event.action;
                 for(const auto & file:event.files) {

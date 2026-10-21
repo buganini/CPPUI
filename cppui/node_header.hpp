@@ -47,6 +47,7 @@ namespace CPPUI {
         int grid_columnspan = -1;
         int grid_columns = 0; // Zero keeps manual placement.
         Optional<GridCell> grid_cell; // Effective placement; never part of identity.
+        Optional<GridCell> grid_identity; // Base coordinates before responsive overrides.
 
         Node * dom_parent = nullptr;
         bool destroyed = false;
@@ -183,10 +184,27 @@ namespace CPPUI {
         template<class First, class... Rest>
         typename std::enable_if<detail::AreModifierArguments<detail::GridKey, First, Rest...>::value, Node &>::type
         grid(First && first, Rest &&... rest) {
-            return applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
+            applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
+            if(grid_identity) {
+                const int recorded[] = {0, (recordGridModifier(first), 0), (recordGridModifier(rest), 0)...};
+                (void)recorded;
+            }
+            return *this;
+        }
+
+        template<class First, class... Rest>
+        typename std::enable_if<detail::AreModifierArguments<detail::GridKey, First, Rest...>::value, Node &>::type
+        wideGrid(int minWidth, First && first, Rest &&... rest) {
+            if(!grid_identity) grid_identity=GridCell(grid_row,grid_column,grid_rowspan,grid_columnspan);
+            if(wideMatches(minWidth)) applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
+            return *this;
         }
 
         private:
+        void recordGridModifier(CPPUI::grid::Row argument) { grid_identity->row=argument.value; }
+        void recordGridModifier(CPPUI::grid::Column argument) { grid_identity->column=argument.value; }
+        void recordGridModifier(CPPUI::grid::RowSpan argument) { grid_identity->rowspan=argument.value; }
+        void recordGridModifier(CPPUI::grid::ColumnSpan argument) { grid_identity->columnspan=argument.value; }
         bool wideMatches(int minWidth);
         template<class Argument>
         static void validateModifier(const Argument &) {}
@@ -267,6 +285,7 @@ namespace CPPUI {
         virtual void postUpdate(void);
         virtual void preSync(void);
         virtual void postSync(void);
+        virtual bool reflowChildren() const { return is_grid_layout; }
         virtual void destroy(bool direct) = 0;
 
         virtual void * inner(void);

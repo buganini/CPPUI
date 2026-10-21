@@ -92,7 +92,7 @@ namespace Cookbook {
                         require(bool(size),"adaptive container size was not measured");
                         const bool wide=size->width>=600;
                         auto overrides=find(gallery,"adaptive-overrides");
-                        require(overrides && *overrides->style_color==(wide ? 0x228855 : 0x777777) &&
+                        require(overrides && *overrides->style_color==(wide ? 0x1C2A30 : 0xFFF7E6) &&
                                 *overrides->style_fontsize==(wide ? 18 : 12) &&
                                 overrides->layout_padding->left==(wide ? 12 : 2),"adaptive recipe wide overrides differ from the measured width");
                         require(find(gallery,"adaptive-wide")->is_visible==wide &&
@@ -106,12 +106,20 @@ namespace Cookbook {
                                 TestBackend::editTextField(*retained,"Ada",true),"adaptive box input missing");
                         TestBackend::settle();
                         require(static_cast<std::string>(gallery.model.adaptiveName)=="Ada","adaptive box input did not share model state");
+                        auto input=find(gallery,"adaptive-retained-input")->outer();
+                        for(const char * id:{"adaptive-inverse-h","adaptive-inverse-v"}) {
+                            require(TestBackend::toggleCheckbox(*find(gallery,id)),"adaptive reversal control missing");
+                            TestBackend::settle();
+                            require(find(gallery,"adaptive-retained-input")->outer()==input,"adaptive reversal replaced the editor");
+                        }
+                        gallery.model.adaptiveInverseH=false;gallery.model.adaptiveInverseV=false;TestBackend::settle();
                     }
                     if(std::string(recipes()[i].key) == "adaptive_grid") {
                         auto editor=find(gallery,"grid-editor")->outer();
                         TestBackend::resizeWindow(gallery,1250,800);
                         for(int pass=0;pass<4;++pass) TestBackend::settle();
-                        require(find(gallery,"adaptive-grid")->grid_columns==4,"adaptive grid did not reach four columns");
+                        require(find(gallery,"adaptive-grid")->grid_columns==4 && find(gallery,"grid-editor")->grid_columnspan==2,
+                            "adaptive grid did not reach four columns with a two-column editor");
                         const std::vector<std::pair<std::string,int>> modes={{"ordered",3},{"dense",2},{"forward",4}};
                         for(const auto & mode:modes) {
                             gallery.model.gridMode=mode.first;TestBackend::settle();
@@ -128,6 +136,9 @@ namespace Cookbook {
                         gallery.model.gridMode=std::string("ordered");gallery.model.gridShowC=true;gallery.model.gridReverse=false;
                         TestBackend::resizeWindow(gallery,800,600);TestBackend::settle();
                         require(find(gallery,"adaptive-grid")->grid_columns<4 && find(gallery,"grid-editor")->outer()==editor,"narrow grid did not retain editor");
+                        auto gridSize=find(gallery,"adaptive-grid")->size().get();
+                        require(gridSize && find(gallery,"grid-editor")->grid_columnspan==(gridSize->width>=576 ? 2 : 1),
+                            "adaptive editor span did not follow Grid content width");
                     }
                     if(std::string(recipes()[i].key) == "refs") {
                         const int before=gallery.model.postedCallbacks;

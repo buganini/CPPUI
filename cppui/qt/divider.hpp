@@ -15,6 +15,7 @@ namespace CPPUI {
                 auto box=dynamic_cast<BaseLayout *>(dom_parent);
                 const auto direction=box ? box->qtlayout->direction() : QBoxLayout::LeftToRight;
                 const bool horizontal=direction==QBoxLayout::LeftToRight || direction==QBoxLayout::RightToLeft;
+                expandX=horizontal ? 0 : 1;expandY=horizontal ? 1 : 0;
                 frame->setFrameShape(!box ? QFrame::NoFrame : horizontal ? QFrame::VLine : QFrame::HLine);
                 frame->setFrameShadow(QFrame::Sunken);
             }

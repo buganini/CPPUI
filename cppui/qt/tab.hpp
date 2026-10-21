@@ -40,6 +40,7 @@ namespace CPPUI {
             Side tabposition;
 
             explicit Tabs(Side tabposition = Side::TOP): tabposition(tabposition) {
+                expandX=expandY=2;
                 nativePosition(tabposition);
                 if(!dynamic_cast<QtView *>(cppui_root)) throw std::logic_error("Tabs requires a Qt Application or QtView");
             }

@@ -1,5 +1,10 @@
 # Qt implementation alignment with PUI/PySide6
 
+The latest 2026-10-21 sync through PUI `d07abf5` adds reversible ordinary/adaptive
+boxes and `.wideGrid()` child placement. Qt adopts shared expansion priorities;
+wx dividers now retain native thickness and update orientation. See the
+[layout sync audit](pui-sync-2026-10-21-layout.md).
+
 The follow-up 2026-10-21 sync through PUI `974b88b` adds automatic Grid placement,
 `.columns(n, grid::dense(mode))`, `.wideColumns()` and named child `.grid()`
 modifiers. All three backfill modes retain controls through reflow, hidden-item

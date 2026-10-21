@@ -12,7 +12,7 @@ namespace Cookbook {
                     Button("A").click([&model]() { model.buttonValue = std::string("A"); });
                     Button("B").click([&model]() { model.buttonValue = std::string("B"); });
                     Button("Disabled").disabled().click([&model]() { model.buttonValue = std::string("Disabled"); });
-                    CPPUI::Button("Styled").style(style::color(0xff0000), style::fontSize(20));
+                    CPPUI::Button("Styled").style(style::color(0x244B5A), style::bgColor(0xFFF7E6), style::fontSize(20));
                     CPPUI::Spacer();
                 }
                 CPPUI::Spacer();
@@ -22,32 +22,39 @@ namespace Cookbook {
             for(auto column: CPPUI::VBox().layout(layout::weight(1))) {
                 CPPUI::Checkbox("Show greeting",model.greetingVisible);
                 CPPUI::Label("Hello World").visible(model.greetingVisible);
-                CPPUI::Label("Big Yellow")
-                    .style(style::color(0xffff00), style::bgColor(0xff0000), style::fontSize(20));
+                CPPUI::Label("Color")
+                    .style(style::color(0xD3B98B), style::bgColor(0x1C2A30), style::fontSize(20));
                 CPPUI::Label("No <b>HTML</b>");
                 CPPUI::Spacer();
             }
         }
-        void hbox(Model &) {
+        void hbox(Model & model) {
             for(auto column: CPPUI::VBox()) {
-                for(auto row: CPPUI::HBox().id("spacer-row")) {
+                CPPUI::Checkbox("Reverse horizontal order",model.inverseH).id("hbox-inverse");
+                for(auto row: CPPUI::HBox(model.inverseH).id("spacer-row")) {
                     CPPUI::Label("Column 1");
+                    CPPUI::Divider();
                     CPPUI::Spacer().id("row-gap");
                     CPPUI::Label("Column 2").id("row-end");
                 }
-                for(auto row: CPPUI::HBox()) {
+                for(auto row: CPPUI::HBox(model.inverseH)) {
                     CPPUI::Label("Column 1");
+                    CPPUI::Divider();
                     CPPUI::Label("Column 2").layout(layout::weight(1));
+                    CPPUI::Divider();
                     CPPUI::Label("Column 3");
                 }
             }
             CPPUI::Spacer();
         }
-        void vbox(Model &) {
+        void vbox(Model & model) {
             for(auto column: CPPUI::VBox().layout(layout::weight(1)).id("spacer-column")) {
-                CPPUI::Label("Row 1");
-                CPPUI::Divider();
-                CPPUI::Label("Row 2");
+                CPPUI::Checkbox("Reverse vertical order",model.inverseV).id("vbox-inverse");
+                for(auto reversed:CPPUI::VBox(model.inverseV).layout(layout::weight(1))) {
+                    CPPUI::Label("Row 1");
+                    CPPUI::Divider();
+                    CPPUI::Label("Row 2");
+                }
                 CPPUI::Spacer().id("column-gap");
             }
         }

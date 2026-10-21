@@ -391,13 +391,14 @@ namespace CPPUI { namespace Wx {
             }
             wxSizerObject->SetMinSize(minSize());
         }
-        virtual wxSizerItem * insert(int index, wxSizer * wrapper, Node *) { return wxSizerObject->Insert(index, wrapper); }
+        virtual int nativeIndex(int index,bool inserting=false) const { (void)inserting;return index; }
+        virtual wxSizerItem * insert(int index, wxSizer * wrapper, Node *) { return wxSizerObject->Insert(nativeIndex(index,true), wrapper); }
         void addChild(int index, ::CPPUI::Node * value) override {
             if(value->is_outoforder) return;
             auto child = dynamic_cast<Node *>(value);
             if(!child) throw std::logic_error("wx layout requires wx children");
             Mount mount; mount.node = child;
-            if(dynamic_cast<Spacer *>(child)) mount.item = wxSizerObject->InsertStretchSpacer(index);
+            if(dynamic_cast<Spacer *>(child)) mount.item = wxSizerObject->InsertStretchSpacer(nativeIndex(index,true));
             else {
                 auto wrapper = new wxBoxSizer(wxVERTICAL);
                 mount = padded(child, wrapper); mount.item = insert(index, wrapper, child);
@@ -407,7 +408,7 @@ namespace CPPUI { namespace Wx {
         void removeChild(int index, ::CPPUI::Node * child) override {
             if(child->is_outoforder || !wxSizerObject) return;
             auto mount = mounts.at(index); detachContent(mount);
-            wxSizerObject->Remove(index);
+            wxSizerObject->Remove(nativeIndex(index));
             mounts.erase(mounts.begin() + index);
         }
         virtual void applyChildren() {

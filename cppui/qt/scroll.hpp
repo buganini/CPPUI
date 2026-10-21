@@ -66,7 +66,9 @@ namespace CPPUI { namespace Qt {
         ScrollAxis x, y;
         public:
         static constexpr double END = CPPUI::ScrollEnd;
-        Scroll(Optional<bool> vertical = {}, Optional<bool> horizontal = false): vertical(vertical), horizontal(horizontal) {}
+        Scroll(Optional<bool> vertical = {}, Optional<bool> horizontal = false): vertical(vertical), horizontal(horizontal) {
+            expandX=horizontal && !*horizontal ? 1 : 3;expandY=vertical && !*vertical ? 1 : 3;
+        }
         Scroll & scrollX(double position = 0) {
             (ui ? static_cast<ScrollWidget *>(ui)->x : x).set(position); return *this;
         }

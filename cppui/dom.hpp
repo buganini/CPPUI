@@ -373,7 +373,7 @@ namespace CPPUI {
             child->postUpdate();
         }
         node->postSync();
-        if(node->is_virtual && dom_parent!=node && dom_parent->is_grid_layout)
+        if(node->is_virtual && dom_parent!=node && dom_parent->reflowChildren())
             dom_parent->getNode()->postSync();
 
         for(Node * oldNode: toBeDeleted) {

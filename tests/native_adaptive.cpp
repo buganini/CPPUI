@@ -211,8 +211,8 @@ int main(int argc,char ** argv) {
                     && static_cast<CPPUI::Qt::BaseLayout *>(find(boxes,"vh"))->qtlayout->direction()==(vertical ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight),"Qt box direction differs");
                 require(static_cast<QFrame *>(find(boxes,"divider")->outer())->frameShape()==(horizontal ? QFrame::VLine : QFrame::HLine),"Qt divider did not rotate");
                 auto policy=static_cast<QSpacerItem *>(find(boxes,"spacer")->outer())->sizePolicy();
-                require(policy.horizontalPolicy()==(horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred) &&
-                        policy.verticalPolicy()==(horizontal ? QSizePolicy::Preferred : QSizePolicy::Expanding),"Qt spacer did not rotate");
+                require(policy.horizontalPolicy()==(horizontal ? QSizePolicy::Expanding : QSizePolicy::Minimum) &&
+                        policy.verticalPolicy()==(horizontal ? QSizePolicy::Minimum : QSizePolicy::Expanding),"Qt spacer did not rotate");
                 require(input->text()=="Draft" && input->cursorPosition()==2,"Qt direction change lost editor draft/cursor");
 #elif defined(CPPUI_TEST_WX)
                 require(static_cast<wxBoxSizer *>(hv)->GetOrientation()==(horizontal ? wxHORIZONTAL : wxVERTICAL)

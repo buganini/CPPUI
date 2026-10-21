@@ -27,6 +27,7 @@ namespace Cookbook {
             for(const auto & line:bindingLogs) {if(!text.empty()) text+='\n';text+=line;}
             return text;
         }
+        CPPUI::State<bool> inverseH{false},inverseV{false},adaptiveInverseH{false},adaptiveInverseV{false};
         CPPUI::State<std::string> adaptiveName{std::string("Ada")};
         CPPUI::State<std::string> gridMode{std::string("ordered")},gridText{std::string("This editor survives reflow")};
         CPPUI::State<bool> gridShowC{true},gridReverse{false};

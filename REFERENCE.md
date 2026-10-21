@@ -918,6 +918,22 @@ LVGL theme and does not draw a percentage label.
 
 ## Box layouts
 
+`HBox(bool inverse = false)` and `VBox(bool inverse = false)` reverse visual
+child order when `inverse` is true. The existing widgets, editor drafts and
+selection remain alive. Virtual views participate as flattened children;
+physical child containers keep their own direction. This changes visual order,
+not application data or an explicit keyboard navigation order.
+
+Qt and wx choose flexible children by expansion priority: positive explicit
+weight (4), expanding controls such as Canvas/Table/Tree and horizontal
+TextField (3), boxes along their main axis and Stack/Tabs/Views/Splitter (2),
+then lower-priority containers and cross-axis boxes (1). Only visible children
+with the highest main-axis priority share extra space. Weight zero disables
+that child's main-axis expansion; Spacer defaults to weight one. With no
+expanding children, Qt packs controls at the start at their natural size.
+Qt native `HorizontalPolicy`/`VerticalPolicy` overrides participate in priority
+selection and retain their native policy. Cross-axis expansion is independent.
+
 Qt and LVGL boxes use 11 pixels of outer padding when their physical parent is
 not another layout, and zero padding when nested. Native QBoxLayout margins are
 zero to avoid adding a second layer of spacing. Use `.layout(...)` to override
@@ -946,6 +962,24 @@ positive; validation happens before applying the call. The existing public
 available. Legacy manual fields with absent/zero spans use one cell. Explicit
 coordinates/spans participate in identity; changing them replaces that cell.
 Use a layout to group several controls in one cell.
+
+`.wideGrid(minWidth, grid::row(...), grid::column(...), grid::rowspan(...),
+grid::columnspan(...))` overrides only the supplied coordinates/spans when the
+nearest physical parent's content width reaches the threshold. Its typed
+arguments and validation match `.grid()`. Matching calls merge in declaration
+order; unknown initial geometry uses the base declaration. For a Grid child,
+the measured parent is the Grid itself. Responsive placement preserves base
+identity even when `.id()` or `.ref()` follows it, retaining editor drafts and
+selection in both manual and automatic Grids. Automatic placement still ignores
+row/column overrides but uses responsive spans. Declare base `.grid()` fields
+before the responsive calls; use `.grid()` for later changes to base identity.
+Legacy direct field writes before `.wideGrid()` also establish the base.
+
+```cpp
+CPPUI::TextField(name).grid(CPPUI::grid::row(0), CPPUI::grid::column(0))
+    .wideGrid(600, CPPUI::grid::row(1), CPPUI::grid::columnspan(2))
+    .id("retained-editor");
+```
 
 Automatic placement overrides child coordinates while keeping their declared
 spans. Computed `grid_cell` values never change reconciliation identity:
@@ -989,7 +1023,7 @@ LVGL uses equal fractional tracks when width is allocated, and content tracks
 otherwise. The [manual Grid](cookbook/grid.cpp) and
 [Adaptive Grid](cookbook/adaptive_grid.cpp) cookbooks run on all four targets.
 The latter uses 384/576/768-pixel breakpoints, three backfill modes, hidden tiles,
-keyed reversal and a retained editor. With four columns, original order and C
+keyed reversal and an editor that spans one column below 576 pixels and two above it. With four columns, original order and C
 shown, blue F occupies row 4 (ordered), row 3 (dense), or row 5 (forward), counting
 rows from one.
 
@@ -1052,7 +1086,8 @@ Resize and retained redraw recompute the gap. Like
 the declaration is terminal and non-movable; matching positions reuse their
 native objects. Native deletion clears its observer, and declaration teardown
 detaches that observer before a parent deletes its children. Qt uses QSpacerItem
-with Expanding policy on the box axis and Preferred on the other axis. Its
+with Expanding policy on the box axis when it wins flexible space, Fixed otherwise,
+and Minimum on the other axis. Its
 layout owns mounted items; direct removal deletes detached items, and layout
 destruction invalidates the declaration's observer.
 `.layout(CPPUI::layout::weight(value))` changes the default weight of one.
@@ -1064,7 +1099,13 @@ pinned PUI reference.
 Include `cppui/qt/divider.hpp` and use `Divider()`. Its sunken QFrame is horizontal
 inside a VBox, vertical inside an HBox (including through virtual views), and
 frameless otherwise. Dividers are terminal and non-movable; removal releases the
-native frame using the normal deferred-deletion lifecycle.
+native frame using the normal deferred-deletion lifecycle. Its cross-axis
+expansion follows the current box orientation.
+
+wx Divider uses a native `wxStaticLine` with native thickness instead of a
+15-by-15 minimum. It updates orientation and best size when an adaptive box
+changes direction, retaining the same control. Outside a horizontal box it is
+a horizontal line.
 
 For LVGL, include `cppui/lvgl/divider.hpp`. The same terminal, non-movable
 declaration draws a one-pixel gray separator across its physical flex parent: a
@@ -1601,6 +1642,8 @@ remaining after siblings. Thresholds and measurements use native logical pixels.
 | Goal | API |
 | --- | --- |
 | Switch row/column direction | [`HVBox(minWidth)` / `VHBox(minHeight)`](#adaptive-box-layouts) |
+| Reverse visual order | [`HBox(true)` / `VBox(true)`](#box-layouts), or adaptive `inverseH` / `inverseV` arguments |
+| Change Grid columns or child placement | [`.wideColumns()` / `.wideGrid()`](#grid-and-stack) |
 | Show or hide by width/height | [`.visible(true, VisibilityBounds{...})`](#reactive-size-and-adaptive-visibility) |
 | Override dimensions, weight or spacing | [`.wideLayout(minWidth, ...)`](#pui-modifiers) |
 | Override colors or fonts | [`.wideStyle(minWidth, ...)`](#pui-modifiers) |
@@ -1711,9 +1754,9 @@ its retained controls and refreshes frozen nested views.
 
 ## Adaptive box layouts
 
-`HVBox(int minWidth)` arranges children horizontally when the nearest physical
+`HVBox(int minWidth, bool inverseH = false, bool inverseV = false)` arranges children horizontally when the nearest physical
 parent's content width is at least `minWidth`, and vertically otherwise.
-`VHBox(int minHeight)` arranges them vertically when that parent's content
+`VHBox(int minHeight, bool inverseH = false, bool inverseV = false)` arranges them vertically when that parent's content
 height is at least `minHeight`, and horizontally otherwise. Unknown measurements
 use the second direction. Virtual views are skipped when choosing the parent.
 Thresholds use native logical pixels and compare the parent's whole content
@@ -1729,7 +1772,10 @@ for(auto box: CPPUI::HVBox(600)) {
 
 Qt, wx and LVGL change the existing native container's direction, retaining its
 children, editor drafts and cursor positions. Sizing and modifiers follow
-HBox/VBox. Qt and LVGL dividers/spacers follow the new direction. Like PUI,
-wx Divider keeps its creation-time line orientation. These layouts do not wrap
+HBox/VBox. `inverseH` selects reversed order in the horizontal direction, and
+`inverseV` selects it in the vertical direction. For example,
+`HVBox(600, true, false)` reverses only its wide horizontal layout.
+Dividers and spacers follow direction changes on all three backends.
+These layouts do not wrap
 children into multiple rows. CPPUI has no Textual backend, so PUI's separate
 terminal-cell APIs (`tsize`, `tLayout`, `tStyle` and terminal bounds) are not exposed.

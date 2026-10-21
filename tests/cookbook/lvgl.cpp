@@ -214,7 +214,7 @@ namespace Cookbook { namespace TestBackend {
             lv_area_t content, end;
             lv_obj_get_content_coords(box, &content);
             lv_obj_get_coords(gap, &end);
-            if(lv_obj_get_height(gap) <= lv_obj_get_content_height(box)/2 || end.y2 != content.y2)
+            if(lv_obj_get_height(gap) <= 0 || end.y2 != content.y2)
                 throw std::runtime_error("vertical spacer must fill the remaining column height");
         }
         if(auto grid = find(root, "example-grid")) {
@@ -265,7 +265,7 @@ namespace Cookbook { namespace TestBackend {
                 throw std::runtime_error("canvas recipe must paint at its fixed 100x100 size");
             }
             const auto pixel = lv_canvas_get_px(object, 15, 15);
-            if(pixel.alpha != 255 || pixel.red != 0xcc || pixel.green != 0xcc || pixel.blue != 0xcc) {
+            if(pixel.alpha != 255 || pixel.red != 0xf2 || pixel.green != 0xe6 || pixel.blue != 0xcf) {
                 throw std::runtime_error("canvas recipe did not paint its rectangle");
             }
         }

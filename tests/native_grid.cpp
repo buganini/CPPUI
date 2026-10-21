@@ -63,6 +63,24 @@ struct Root:CPPUI::Application {
         pump();
     }
 };
+struct WideRoot:Root {
+    using Root::Root;
+    bool empty=false;
+    void content() override {
+        for(auto window:CPPUI::Window().id("window")) {
+            auto & grid=CPPUI::Grid();
+            if(automatic) grid.columns(3,CPPUI::grid::dense(true));
+            for(auto scope:grid.id("grid").layout(CPPUI::layout::weight(1))) {
+                if(empty) continue;
+                CPPUI::TextField(text).grid(CPPUI::grid::row(0),CPPUI::grid::column(0))
+                    .wideGrid(600,CPPUI::grid::row(1),CPPUI::grid::column(1),CPPUI::grid::columnspan(2))
+                    .wideGrid(800,CPPUI::grid::rowspan(2)).wideGrid(600,CPPUI::grid::column(0))
+                    .id("editor").ref("wide-grid-editor");
+                CPPUI::Label("other").grid(CPPUI::grid::row(0),CPPUI::grid::column(2)).id("other");
+            }
+        }
+    }
+};
 static void draft(CPPUI::Node * node) {
 #if defined(CPPUI_TEST_QT)
     auto editor=static_cast<QLineEdit *>(node->outer());editor->setText("draft");editor->setSelection(1,2);
@@ -137,6 +155,26 @@ int main(int argc,char ** argv) {
         }
         int before=root.builds;pump();require(root.builds==before,"stable grid kept redrawing");
         root.present=false;root.mount();root.present=true;root.mount();
+        root.present=false;root.mount();
+        for(bool automatic:{true,false}) {
+            WideRoot wide(argc,argv);wide.automatic=automatic;wide.mount();resize(wide,450);
+            auto original=find(wide,"editor")->outer();draft(find(wide,"editor"));
+            for(int width:{450,750,950,450,750}) {
+                resize(wide,width);
+                auto editorNode=find(wide,"editor");
+                const auto size=find(wide,"grid")->size().get();
+                require(bool(size),"wideGrid did not observe its physical parent");
+                const bool matched=size->width>=600,tall=size->width>=800;
+                require(editorNode->outer()==original,"wideGrid changed declaration identity");
+                require(editorNode->grid_column==0 && editorNode->grid_row==int(matched)
+                    && editorNode->grid_columnspan==(matched ? 2 : -1) && editorNode->grid_rowspan==(tall ? 2 : -1),
+                    "wideGrid thresholds, order or fallback differ");
+                require(editorNode->grid_cell->row==(automatic ? 0 : int(matched)),"wideGrid manual/automatic row differs");
+                checkDraft(editorNode);checkNative(editorNode);
+            }
+            wide.empty=true;wide.mount();wide.empty=false;wide.mount();
+            checkNative(find(wide,"editor"));
+        }
         std::cout<<"native grid passed\n";
     } catch(const std::exception & error) {std::cerr<<error.what()<<'\n';result=1;}
 #if !defined(CPPUI_TEST_QT) && !defined(CPPUI_TEST_WX)

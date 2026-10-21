@@ -19,6 +19,7 @@ namespace CPPUI { namespace Qt {
         }
         public:
         Views() {
+            expandX=expandY=2;
             if(!dynamic_cast<QtView *>(cppui_root)) throw std::logic_error("Views requires a Qt Application or QtView");
         }
         explicit Views(Binding<OptionalText> model): Views() {

@@ -9,6 +9,10 @@ namespace Cookbook {
             CPPUI::Label(size ? "Container size: "+std::to_string(size->width)+" × "+std::to_string(size->height)
                               : "Container size: waiting for layout");
             CPPUI::Label("Resize the window: breakpoint = 600");
+            for(auto controls:CPPUI::HBox()) {
+                CPPUI::Checkbox("Reverse horizontal",model.adaptiveInverseH).id("adaptive-inverse-h");
+                CPPUI::Checkbox("Reverse vertical",model.adaptiveInverseV).id("adaptive-inverse-v");
+            }
             for(auto compact:CPPUI::VBox().id("adaptive-compact").visible(true,{{},600})) {
                 CPPUI::Label("Compact layout");
                 CPPUI::Label("Name");
@@ -21,19 +25,22 @@ namespace Cookbook {
                 CPPUI::TextField(model.adaptiveName).id("adaptive-wide-input");
                 CPPUI::Label("Shared input state");
             }
+            CPPUI::Divider();
             CPPUI::Label("Wide layout/style overrides").id("adaptive-overrides")
-                .style(CPPUI::style::color(0x777777),CPPUI::style::fontSize(12))
-                .wideStyle(600,CPPUI::style::color(0x228855),CPPUI::style::fontSize(18))
+                .style(CPPUI::style::color(0xFFF7E6),CPPUI::style::bgColor(0x1C2A30),CPPUI::style::fontSize(12))
+                .wideStyle(600,CPPUI::style::color(0x1C2A30),CPPUI::style::bgColor(0xD3B98B),CPPUI::style::fontSize(18))
                 .layout(CPPUI::layout::padding(2))
                 .wideLayout(600,CPPUI::layout::padding(12));
+            CPPUI::Divider();
             CPPUI::Label("HVBox: one input, retained while the direction changes");
-            for(auto box:CPPUI::HVBox(600).id("adaptive-hvbox")) {
+            for(auto box:CPPUI::HVBox(600,model.adaptiveInverseH,model.adaptiveInverseV).id("adaptive-hvbox")) {
                 CPPUI::Label("Name");
                 CPPUI::TextField(model.adaptiveName).id("adaptive-retained-input");
-                CPPUI::Button("Save");
+                CPPUI::Button("Button");
             }
+            CPPUI::Divider();
             CPPUI::Label("VHBox: vertical when the parent is tall enough");
-            for(auto box:CPPUI::VHBox(500).id("adaptive-vhbox")) {
+            for(auto box:CPPUI::VHBox(500,model.adaptiveInverseH,model.adaptiveInverseV).id("adaptive-vhbox")) {
                 CPPUI::Label("First");
                 CPPUI::Label("Second");
                 CPPUI::Label("Third");

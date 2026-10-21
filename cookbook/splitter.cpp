@@ -12,10 +12,10 @@ namespace Cookbook {
                     CPPUI::Label("item 3");
                     CPPUI::Label("item 4");
                 }
-                CPPUI::Label("pane 2").style({}, 0xCCCCCC);
-                CPPUI::Label("pane 3").style({}, 0xDDDDDD);
+                CPPUI::Label("pane 2").style(0xFFF7E6, 0x244B5A);
+                CPPUI::Label("pane 3").style(0x1C2A30, 0xD3B98B);
             }
-            CPPUI::Text("blah blah").style({}, 0xCCCCCC);
+            CPPUI::Text("blah blah").style(0x1C2A30, 0xF2E6CF);
         }
     }
 }

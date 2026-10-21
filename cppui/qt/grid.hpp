@@ -11,7 +11,7 @@ namespace CPPUI { namespace Qt {
         void clearNative() override { qtlayout = nullptr; gridChildren.clear(); BaseWidget::clearNative(); }
         public:
         QGridLayout * qtlayout = nullptr;
-        Grid() { is_grid_layout = true; }
+        Grid() { is_grid_layout = true; expandX=expandY=1; }
         void update(BaseWidget * previous) override {
             auto prev = static_cast<Grid *>(previous);
             retainGrid(prev && prev->ui ? prev : nullptr);
