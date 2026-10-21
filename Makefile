@@ -6,12 +6,19 @@ JOBS ?= $(shell nproc)
 CPPUI_LVGL_SOURCE_DIR ?= $(CURDIR)/lvgl-9.6.0
 CMAKE_ARGS ?=
 
-.PHONY: help qt wx lvgl-checkout lvgl_sdl2 lvgl_x11
+.PHONY: help qt wx lvgl-checkout lvgl_sdl2 lvgl_x11 docs
 
 help:
 	@printf '%s\n' 'Build and run cookbooks: make qt | make wx | make lvgl_sdl2 | make lvgl_x11' \
 		'LVGL source checkout: make lvgl-checkout (also run by LVGL builds)' \
+		'Reference documentation: make docs (static site in build-docs/)' \
 		'Options: JOBS, BUILD_TYPE, CPPUI_LVGL_SOURCE_DIR, CMAKE_ARGS'
+
+docs:
+	mkdir -p build-docs/doc
+	cp doc/Reference.html build-docs/doc/Reference.html
+	cp doc/Reference.html build-docs/index.html
+	cp .nojekyll build-docs/.nojekyll
 
 qt:
 	$(CMAKE) -S cookbook/qt -B build-cookbook-qt \

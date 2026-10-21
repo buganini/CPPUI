@@ -83,7 +83,7 @@ factories warn at compile time; formatting and interactive selection remain
 unimplemented, so the page is partial on SDL2 and X11.
 The LVGL Canvas page keeps the 100x100 gray drawing area and rotation button.
 Its basic painter uses LVGL software drawing and scaled bitmap text; image
-resources remain pending. Move, leave and wheel callbacks work on SDL2 and X11. See the [Canvas reference](../REFERENCE.md#canvas)
+resources remain pending. Move, leave and wheel callbacks work on SDL2 and X11. See the [Canvas reference](https://buganini.github.io/CPPUI/doc/Reference.html#canvas)
 for font/color differences and callback ownership.
 The gallery preserves the reference's scrollable cookbook sidebar and expanding
 **Result** pane. Qt and wx also keep the nested example menus.
@@ -110,7 +110,7 @@ supported. There is no separate cookbook component namespace.
 Backend helpers handle startup, optional menus
 and native test access. Qt, wx and LVGL sidebars use public Scroll; LVGL's basic
 Scroll does not yet implement the complete axis/offset contract of the Scroll
-recipe. See the [modifier reference](../REFERENCE.md#pui-modifiers) for all named
+recipe. See the [modifier reference](https://buganini.github.io/CPPUI/doc/Reference.html#pui-modifiers) for all named
 helpers, borrowed `fontFamily` strings, typed `.qt(...)` options and LVGL's
 compiled-font approximation.
 The gallery smoke test checks horizontal and vertical Spacer expansion and the

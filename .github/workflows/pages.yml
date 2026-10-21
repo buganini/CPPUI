@@ -1,0 +1,50 @@
+name: Publish reference documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - doc/Reference.html
+      - Makefile
+      - .nojekyll
+      - .github/workflows/pages.yml
+  pull_request:
+    paths:
+      - doc/Reference.html
+      - Makefile
+      - .nojekyll
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build static site
+        run: make docs
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: build-docs
+
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - uses: actions/deploy-pages@v4
+        id: deployment

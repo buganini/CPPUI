@@ -3,13 +3,37 @@ CPPUI is a declarative UI framework with two-way data binding.
 CPPUI doesn't do UI itself, it turns imperative UI libraries into declarative flavor with virtual DOM and aims to maintain interoperability.
 
 Backends are available for Qt, wxWidgets and LVGL. The project is under active
-development, and APIs may evolve. See the [component reference](REFERENCE.md)
+development, and APIs may evolve. See the [component reference on GitHub Pages](https://buganini.github.io/CPPUI/doc/Reference.html)
 and [cookbook](cookbook/README.md) for supported features and examples in your
 chosen backend.
 
 [Slides for SciWork 2023](https://speakerdeck.com/buganini/pui-declarative-ui-framework-for-python)
 
 [PUI: Python Version](https://github.com/buganini/PUI)
+
+# Reference documentation
+
+Read the [CPPUI Reference](https://buganini.github.io/CPPUI/doc/Reference.html)
+for the backend matrix, component APIs and C++ examples. Maintain the
+[HTML file](doc/Reference.html) directly, as in PUI. It also opens locally in a
+browser; syntax highlighting uses highlight.js from a versioned CDN URL.
+
+To prepare and preview the static Pages site:
+
+```sh
+make docs
+python3 -m http.server 8000 --directory build-docs
+```
+
+Open `http://localhost:8000/`. Building the site only copies static files and
+requires no UI toolkit or documentation generator.
+
+The [Pages workflow](.github/workflows/pages.yml) publishes `build-docs/` on
+documentation changes pushed to `main`. Select
+**Settings → Pages → Build and deployment → Source → GitHub Actions** once in
+the repository settings. The published root and `doc/Reference.html` both open
+the reference. A `.nojekyll` marker is included in the repository and the
+published artifact; the workflow uploads static HTML directly.
 
 # Responsive / adaptive layout
 
@@ -29,7 +53,7 @@ for(auto box: CPPUI::HVBox(600)) {
 
 Use `HVBox` / `VHBox` for direction changes, `.visible(true, bounds)` for
 width/height limits, and `.wideLayout()` / `.wideStyle()` for width-dependent
-settings. See the [responsive layout guide](REFERENCE.md#responsive-layout)
+settings. See the [responsive layout guide](https://buganini.github.io/CPPUI/doc/Reference.html#responsive-layout)
 for API choices and sizing behavior, and the
 [Adaptive cookbook](cookbook/adaptive.cpp) for a runnable example.
 
@@ -39,7 +63,7 @@ for API choices and sizing behavior, and the
 `Grid().columns(1).wideColumns(400, 2).wideColumns(600, 3)` adds automatic,
 span-aware placement on Qt, wx and LVGL. Use `grid::dense(true)` or
 `grid::dense(false)` as the named second argument to `columns()` to change the
-default row-ordered backfill. See the [Grid API](REFERENCE.md#grid-and-stack)
+default row-ordered backfill. See the [Grid API](https://buganini.github.io/CPPUI/doc/Reference.html#grid-and-stack)
 and [Adaptive Grid cookbook](cookbook/adaptive_grid.cpp).
 
 A Grid child can use `.wideGrid(600, CPPUI::grid::columnspan(2))` to change
@@ -76,17 +100,17 @@ including Valgrind variants when enabled. The [shared example sources](example/R
 also build with wx and LVGL; the standalone CMake projects under `example/`
 remain usable.
 
-[Views](REFERENCE.md#views) on Qt, wx and LVGL supports internal selection or a
+[Views](https://buganini.github.io/CPPUI/doc/Reference.html#views) on Qt, wx and LVGL supports internal selection or a
 `State<OptionalText>` binding. Pages retain their controls and subview state
 across selection changes; the shared cookbook demonstrates both forms.
-Qt [Tabs](REFERENCE.md#tabs) also supports these selection models.
+Qt [Tabs](https://buganini.github.io/CPPUI/doc/Reference.html#tabs) also supports these selection models.
 
-[ComboBox](REFERENCE.md#combobox) supports application-defined candidate lists,
+[ComboBox](https://buganini.github.io/CPPUI/doc/Reference.html#combobox) supports application-defined candidate lists,
 an input-only `.editModel(query)` binding, `.input()` callbacks and configurable
 `.autoexpand()`. The airport cookbook demonstrates whitespace/OR matching on
 Qt, wx and LVGL.
 
-[MaskedField](REFERENCE.md#maskedfield) provides password input on all three
+[MaskedField](https://buganini.github.io/CPPUI/doc/Reference.html#maskedfield) provides password input on all three
 backends. All three include the HeavyCanvas cookbook with up to 1,000,000 synthetic
 sessions, hover inspection and wheel zoom. Qt/wx also support decorated Table cells.
 
@@ -170,7 +194,7 @@ Exact dimensions depend on the toolkit, platform, font and theme.
 Use `.layout(...)` when a design needs explicit dimensions, a particular share
 of flexible space, or custom padding. Width and height map to preferred sizes,
 minimum sizes or object dimensions depending on the backend; the
-[modifier reference](REFERENCE.md#pui-modifiers) describes these mappings.
+[modifier reference](https://buganini.github.io/CPPUI/doc/Reference.html#pui-modifiers) describes these mappings.
 
 Use typed named arguments for `.layout(...)` and `.style(...)`. Supply only the
 settings you need, in any order:
@@ -193,7 +217,7 @@ restores the base declaration's settings.
 `style::fontFamily(const char*)` borrows its string; use a string literal or keep
 the caller's buffer alive for the node declaration's lifetime. `nullptr` means
 omitted. Positional overloads remain available. See the
-[modifier reference](REFERENCE.md#pui-modifiers) for all named helpers, borrowed
+[modifier reference](https://buganini.github.io/CPPUI/doc/Reference.html#pui-modifiers) for all named helpers, borrowed
 string rules, typed `.qt(...)` options, redraw resets and backend mappings.
 
 # View Hierarchy Construction

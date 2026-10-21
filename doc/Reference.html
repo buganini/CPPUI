@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="CPPUI component APIs, C++ examples and backend support for Qt, wxWidgets and LVGL.">
+    <title>CPPUI Reference</title>
+    <style>
+        :root { color-scheme: light; font-family: system-ui, sans-serif; color: #24292f; background: #fff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; line-height: 1.65; }
+        a { color: #0969da; text-underline-offset: .18em; }
+        a:hover { color: #064a9b; }
+        a:focus-visible, [tabindex]:focus-visible { outline: 2px solid #0969da; outline-offset: 3px; }
+        .skip { position: absolute; left: 1rem; top: -5rem; padding: .5rem 1rem; background: #fff; z-index: 1; }
+        .skip:focus { top: 1rem; }
+        .page { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 48px; max-width: 1440px; margin: auto; padding: 32px; }
+        aside { position: sticky; top: 32px; align-self: start; max-height: calc(100vh - 64px); display: flex; flex-direction: column; }
+        .brand { font-size: 1.5rem; font-weight: 750; color: #24292f; text-decoration: none; }
+        .subtitle { color: #57606a; margin: 0 0 24px; font-size: .9rem; }
+        .contents-label { margin: 0 0 8px; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: #57606a; }
+        nav { overflow-y: auto; min-height: 0; padding-right: 12px; }
+        nav ul { list-style: none; margin: 0; padding: 0; }
+        nav a { display: block; padding: 4px 8px; border-radius: 4px; font-size: .88rem; text-decoration: none; color: #424a53; }
+        nav a:hover, nav a:focus-visible { background: #f0f6ff; color: #0969da; }
+        main { min-width: 0; }
+        header { border-bottom: 1px solid #d0d7de; padding-bottom: 24px; margin-bottom: 32px; }
+        h1 { font-size: 2.25rem; line-height: 1.2; margin: 0 0 12px; letter-spacing: -.035em; }
+        header p { margin: 8px 0 16px; color: #57606a; }
+        .links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: .9rem; }
+        h2 { margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #d8dee4; font-size: 1.55rem; line-height: 1.4; }
+        article > h2:first-child { margin-top: 0; }
+        h3 { margin-top: 32px; font-size: 1.15rem; }
+        h2, h3 { scroll-margin-top: 24px; }
+        h2:target, h3:target { color: #0969da; }
+        p, ul, ol { margin-top: 0; margin-bottom: 16px; }
+        li > p { margin-bottom: 8px; }
+        code { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; font-size: .87em; }
+        :not(pre) > code { padding: .15em .35em; background: #f0f2f4; border-radius: 4px; overflow-wrap: anywhere; }
+        pre { overflow-x: auto; padding: 20px; border: 1px solid #d8dee4; border-radius: 6px; background: #f6f8fa; line-height: 1.55; }
+        pre code { font-size: .83rem; }
+        pre code.hljs { padding: 0; background: transparent; }
+        .table-scroll { overflow-x: auto; margin-bottom: 24px; }
+        table { border-collapse: collapse; width: 100%; font-size: .88rem; text-align: left; }
+        th, td { border: 1px solid #d0d7de; padding: 9px 12px; min-width: 120px; vertical-align: top; }
+        th { background: #f0f3f6; font-weight: 650; }
+        tbody tr:nth-child(even) { background: #f8fafc; }
+        blockquote { margin-left: 0; padding-left: 20px; border-left: 3px solid #d0d7de; color: #57606a; }
+        footer { border-top: 1px solid #d0d7de; margin-top: 48px; padding: 24px 0; color: #57606a; font-size: .88rem; }
+        @media (max-width: 860px) {
+            .page { display: block; padding: 24px 20px; }
+            aside { position: static; max-height: none; margin-bottom: 32px; }
+            .subtitle { margin-bottom: 16px; }
+            nav { max-height: 180px; border: 1px solid #d8dee4; border-radius: 6px; padding: 8px; }
+            nav ul { columns: 2; column-gap: 16px; }
+            nav li { break-inside: avoid; }
+            h1 { font-size: 2rem; }
+            pre { padding: 16px; }
+        }
+        @media (max-width: 480px) { nav ul { columns: 1; } }
+        @media print {
+            .page { display: block; padding: 0; }
+            aside, .skip, .links, footer { display: none; }
+            pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+            .table-scroll { overflow: visible; }
+            th, td { min-width: 0; }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="page">
+    <aside aria-label="Reference navigation">
+        <a class="brand" href="#main">CPPUI</a>
+        <p class="subtitle">C++ declarative UI</p>
+        <h2 class="contents-label" id="contents">On this page</h2>
+        <nav aria-labelledby="contents">
+            <ul>
+<li><a href="#declarative-components">Declarative Components</a></li>
+<li><a href="#optional-arguments">Optional arguments</a></li>
+<li><a href="#pui-modifiers">PUI modifiers</a></li>
+<li><a href="#application">Application</a></li>
+<li><a href="#table">Table</a></li>
+<li><a href="#tree">Tree</a></li>
+<li><a href="#image">Image</a></li>
+<li><a href="#menus-and-toolbars">Menus and toolbars</a></li>
+<li><a href="#mdi">MDI</a></li>
+<li><a href="#timelineview">TimelineView</a></li>
+<li><a href="#window">Window</a></li>
+<li><a href="#binding">Binding</a></li>
+<li><a href="#button">Button</a></li>
+<li><a href="#textfield">TextField</a></li>
+<li><a href="#maskedfield">MaskedField</a></li>
+<li><a href="#scroll">Scroll</a></li>
+<li><a href="#combobox">ComboBox</a></li>
+<li><a href="#radiobutton">RadioButton</a></li>
+<li><a href="#checkbox">Checkbox</a></li>
+<li><a href="#progressbar">ProgressBar</a></li>
+<li><a href="#box-layouts">Box layouts</a></li>
+<li><a href="#grid-and-stack">Grid and Stack</a></li>
+<li><a href="#spacer">Spacer</a></li>
+<li><a href="#divider">Divider</a></li>
+<li><a href="#dialogs">Dialogs</a></li>
+<li><a href="#modal">Modal</a></li>
+<li><a href="#tabs">Tabs</a></li>
+<li><a href="#views">Views</a></li>
+<li><a href="#canvas">Canvas</a></li>
+<li><a href="#label">Label</a></li>
+<li><a href="#text">Text</a></li>
+<li><a href="#splitter">Splitter</a></li>
+<li><a href="#wx-controls">wx controls</a></li>
+<li><a href="#ui-callbacks">UI callbacks</a></li>
+<li><a href="#responsive-layout">Responsive layout</a></li>
+<li><a href="#visibility">Visibility</a></li>
+<li><a href="#reactive-size-and-adaptive-visibility">Reactive size and adaptive visibility</a></li>
+<li><a href="#adaptive-box-layouts">Adaptive box layouts</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main id="main" tabindex="-1">
+        <header>
+            <h1>CPPUI Reference</h1>
+            <p>Component APIs, C++ examples and backend support for Qt, wxWidgets and LVGL.</p>
+            <div class="links">
+                <a href="https://github.com/buganini/CPPUI#build-and-test-the-core">Getting started</a>
+                <a href="https://github.com/buganini/CPPUI/tree/main/cookbook">Cookbook</a>
+                <a href="https://github.com/buganini/CPPUI">GitHub</a>
+                <a href="https://buganini.github.io/PUI/doc/Reference.html">PUI reference</a>
+            </div>
+        </header>
+        <article>
+<h2 id="declarative-components">Declarative Components</h2>
+<p>This table records CPPUI implementations, not the full capabilities of each
+toolkit. <code>—</code> means <strong>not yet implemented in CPPUI</strong>. It does not mean the toolkit
+cannot provide the feature. Partial implementations and specific native limits
+are described in the component sections and backend plans.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
+<thead>
+<tr>
+<th>Generic</th>
+<th>Qt</th>
+<th>lvgl</th>
+<th>wx</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#application">Application</a></td>
+<td>QApplication</td>
+<td>View</td>
+<td>App</td>
+</tr>
+<tr>
+<td><a href="#window">Window</a></td>
+<td>QMainWindow</td>
+<td>screen_active</td>
+<td>wxFrame</td>
+</tr>
+<tr>
+<td><a href="#box-layouts">HBox</a></td>
+<td>QHBoxLayout</td>
+<td>flex_flow</td>
+<td>wxBoxSizer</td>
+</tr>
+<tr>
+<td><a href="#box-layouts">VBox</a></td>
+<td>QVBoxLayout</td>
+<td>flex_flow</td>
+<td>wxBoxSizer</td>
+</tr>
+<tr>
+<td><a href="#adaptive-box-layouts">HVBox / VHBox</a></td>
+<td>QBoxLayout</td>
+<td>flex_flow</td>
+<td>wxBoxSizer</td>
+</tr>
+<tr>
+<td><a href="#grid-and-stack">Grid / Stack</a></td>
+<td>QGridLayout / QStackedLayout</td>
+<td>Native grid / shared native grid cell</td>
+<td>wxGridBagSizer / wxPanel + overlay wxSizer</td>
+</tr>
+<tr>
+<td><a href="#spacer">Spacer</a></td>
+<td>QSpacerItem</td>
+<td>transparent flex item</td>
+<td>wxSizer stretch spacer</td>
+</tr>
+<tr>
+<td><a href="#divider">Divider</a></td>
+<td>QFrame</td>
+<td>flex-axis separator</td>
+<td>wxStaticLine</td>
+</tr>
+<tr>
+<td><a href="#scroll">Scroll</a></td>
+<td>QScrollArea</td>
+<td>scrollable object (basic)</td>
+<td>wxScrolledWindow</td>
+</tr>
+<tr>
+<td><a href="#splitter">Splitter</a></td>
+<td>QSplitter</td>
+<td>—</td>
+<td>nested wxSplitterWindow</td>
+</tr>
+<tr>
+<td><a href="#label">Label</a></td>
+<td>QLabel</td>
+<td>label</td>
+<td>wxStaticText / read-only wxTextCtrl</td>
+</tr>
+<tr>
+<td><a href="#button">Button</a></td>
+<td>QPushButton</td>
+<td>button</td>
+<td>wxButton</td>
+</tr>
+<tr>
+<td><a href="#textfield">TextField</a></td>
+<td>QLineEdit</td>
+<td>single-line lv_textarea</td>
+<td>wxTextCtrl</td>
+</tr>
+<tr>
+<td><a href="#maskedfield">MaskedField</a></td>
+<td>QLineEdit password mode</td>
+<td>lv_textarea password mode</td>
+<td>wxTextCtrl password style</td>
+</tr>
+<tr>
+<td><a href="#combobox">ComboBox / ComboBoxItem</a></td>
+<td>QComboBox</td>
+<td>dropdown / textarea</td>
+<td>wxComboBox</td>
+</tr>
+<tr>
+<td><a href="#radiobutton">RadioButton</a></td>
+<td>QRadioButton</td>
+<td>checkbox (radio mode)</td>
+<td>wxRadioButton</td>
+</tr>
+<tr>
+<td><a href="#checkbox">Checkbox</a></td>
+<td>QCheckBox</td>
+<td>checkbox</td>
+<td>wxCheckBox</td>
+</tr>
+<tr>
+<td><a href="#progressbar">ProgressBar</a></td>
+<td>QProgressBar</td>
+<td>bar / busy animation</td>
+<td>wxGauge</td>
+</tr>
+<tr>
+<td><a href="#text">Text / Html / MarkDown</a></td>
+<td>QLabel</td>
+<td>wrapping label / raw markup fallbacks</td>
+<td>wxStaticText / wxHtmlWindow / raw text fallback</td>
+</tr>
+<tr>
+<td><a href="#canvas">Canvas</a></td>
+<td>QWidget / QPainter</td>
+<td>canvas / software drawing</td>
+<td>wxPanel / wxGraphicsContext</td>
+</tr>
+<tr>
+<td><a href="#image">Image</a></td>
+<td>QLabel / QPixmap</td>
+<td>lv_image / owned decoded pixels</td>
+<td>wxStaticBitmap / wxImage</td>
+</tr>
+<tr>
+<td><a href="#menus-and-toolbars">Menus / Toolbars</a></td>
+<td>QMenuBar / QMenu / QToolBar / QAction</td>
+<td>—</td>
+<td>wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)</td>
+</tr>
+<tr>
+<td><a href="#mdi">MDI</a></td>
+<td>QMdiArea / QMdiSubWindow</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><a href="#timelineview">TimelineView</a></td>
+<td>QTimer / virtual node</td>
+<td>timer / virtual node</td>
+<td>wxTimer / virtual node</td>
+</tr>
+<tr>
+<td><a href="#canvas">ImageResource</a></td>
+<td>QImage</td>
+<td>—</td>
+<td>wxImage</td>
+</tr>
+<tr>
+<td><a href="#tabs">Tabs / Tab</a></td>
+<td>QTabWidget / QWidget</td>
+<td>tabview / virtual node</td>
+<td>wxNotebook / wxPanel</td>
+</tr>
+<tr>
+<td><a href="#views">Views</a></td>
+<td>QStackedWidget</td>
+<td>Retained containers</td>
+<td>wxSimplebook</td>
+</tr>
+<tr>
+<td><a href="#table">Table / TableNode</a></td>
+<td>QTableView / QAbstractTableModel</td>
+<td>lv_table + cell editors</td>
+<td>wxGrid / wxGridTableBase</td>
+</tr>
+<tr>
+<td><a href="#tree">Tree / TreeNode</a></td>
+<td>QTreeView / QAbstractItemModel</td>
+<td>—</td>
+<td>wxDataViewCtrl / wxDataViewModel</td>
+</tr>
+<tr>
+<td><a href="#modal">Modal</a></td>
+<td>QDialog</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><a href="#dialogs">Dialogs</a></td>
+<td>QFileDialog / QMessageBox / QInputDialog</td>
+<td>—</td>
+<td>wxFileDialog / wxMessageDialog / wxTextEntryDialog</td>
+</tr>
+</tbody>
+</table></div>
+<p>Node IDs and Qt button text copy their string arguments, including temporary
+<code>std::string</code> values. An empty explicit ID is distinct from no ID; <code>id(nullptr)</code>
+clears the ID. Factory return values are borrowed construction references: use
+fluent modifiers immediately, and keep application state rather than node
+references across redraws.</p>
+<p>Qt, LVGL and wx native updates participate in the common retirement protocol.
+Internal forwarding is valid only while reconciliation still owns the old
+declaration; the old declaration is then reclaimed. This does not extend the
+lifetime of borrowed factory references.</p>
+<p>Reconciliation compares type and explicit ID within the matched parent/view
+scope. Placed grid nodes also include row, column and both spans in identity.
+Manual Grid declarations without both coordinates are discarded and reclaimed.
+Automatic Grid cells are computed separately and never enter identity. Reversed
+containers preserve native order across repeated redraws; out-of-order children
+do not consume ordinary sibling offsets. Non-movable nodes are never requeued
+to make room for a neighboring move. Terminal children remain unmounted and
+are reclaimed when their declaration is replaced.</p>
+<p>Construction ranges unwind their scope on normal completion, <code>break</code>, <code>return</code>,
+and exceptions. If a top-level <code>content()</code> throws before reconciliation starts,
+the previous declaration tree remains mounted and incomplete declarations are
+released. Recovery from failures during native reconciliation is still pending.</p>
+<p>Qt applications create a <code>QApplication</code> when none exists and otherwise borrow the
+existing one, which must outlive the CPPUI application. Application teardown
+releases declarations and its native roots before destroying an owned Qt
+application. Virtual Qt views do not own a native widget. Qt widgets/layouts use
+typed raw native observers, clear them on parent-driven deletion, and disconnect
+only their own signal connections. Redraw retains other application listeners.
+A button invocation copies its callback and clears the focused widget before
+calling user code, matching PUI's focus/commit ordering. Focus-out handlers may
+synchronously redraw; the active callback remains valid and the next click uses
+the updated callback. External native
+subtree deletion is safe for teardown; automatic remount after that deletion is
+not yet supported.</p>
+<p>wx applications create a wxApp when needed and otherwise borrow the initialized
+host runtime. <code>Wx::View::sync()</code> mounts immediately; State changes queue and
+coalesce redraws. Removed views cancel pending handlers and queued exceptions
+are reported to stderr. Native event contexts transfer on reuse and snapshot
+callbacks, including callbacks which synchronously remove themselves. Controls
+are destroyed after dispatch; sizer ownership and child-window ownership are
+released separately. External native deletion clears observers; automatic
+remount remains outside the supported contract. HBox/VBox use native sizers,
+PUI expansion priorities, four-sided padding and explicit weight overrides.
+Omitted dimensions, colors and fonts reset on redraw. Label supports selectable
+read-only text; changing that native creation mode remounts it. Window supports
+one physical content child, title/icon/size and initial maximize and
+fullscreen. Use a layout to group content. Only Linux/GTK is runtime-verified.</p>
+<p>LVGL views, including standalone views, release their owned declarations. Native
+objects remain parent-owned; deletion clears the primary observer and secondary
+handles such as Button's label. Native event contexts transfer on reuse without replacing listeners during
+active dispatch; teardown detaches only CPPUI's own event callbacks. Active click callbacks are copied before invocation; exceptions are
+reported to stderr at the native event boundary. External native deletion is
+safe for teardown, but does not establish automatic subtree remount support.
+Window borrows the display-owned screen and only clears its content.</p>
+<p>State reads during a successful build replace that view's dependencies. Values
+that are no longer read stop triggering redraws. Assigning, incrementing, or
+decrementing any State during a view builder throws
+<code>StateMutationInViewBuilderError</code> before changing its value. Mutate state in event
+handlers or application code outside construction.</p>
+<p>Qt <code>redraw()</code> requests one update on the GUI event queue; repeated requests and
+State writes coalesce. <code>sync()</code> updates that view immediately and propagates
+exceptions to its caller. Tests can use <code>sync()</code> for a particular view, or process
+Qt events to settle subscribed subviews and lifecycle notifications. A request
+made during reconciliation schedules a follow-up, never a nested update.
+<code>setup()</code> runs once before the first build and may initialize State.
+<code>run()</code> synchronizes immediately before starting the event loop.</p>
+<p>Queued render exceptions are reported to stderr. A failed declaration build
+keeps the mounted UI and the view can retry on a later request; failures after
+native reconciliation starts still need a recovery contract. Removing a view
+cancels its queued work. Core and LVGL redraws remain synchronous.</p>
+<h2 id="optional-arguments">Optional arguments</h2>
+<p>Independent widget options use named fluent setters in C++11, corresponding to
+PUI's keyword arguments: <code>Button(&quot;Save&quot;).disabled()</code> and
+<code>TextField(model).placeholder(&quot;Enter text&quot;)</code>. Required values and model bindings
+remain constructor arguments. Existing calls keep their defaults without adding
+positional placeholders or overloads for every combination of options.</p>
+<p>Setters copy their values into the current declaration and apply them during
+reconciliation. A fresh declaration that omits a setter restores its default;
+repeated calls on one declaration use the last value. Reading a State in a
+setter, such as <code>.disabled(!canSave)</code>, tracks the view's reactive dependency.
+Call widget-specific setters before common modifiers such as <code>.id()</code> or
+<code>.layout()</code>, which return <code>Node&amp;</code> rather than the concrete widget type.
+The terminal <code>.click(callback)</code> call returns void and goes last.</p>
+<p>Button, Checkbox, RadioButton and ComboBox all use <code>.disabled(bool = true)</code> on
+Qt, wx and LVGL. The previous <code>.enabled(...)</code> setter has been removed; migrate
+<code>.enabled(value)</code> to <code>.disabled(!value)</code>. Disabled selection controls still
+follow bound model changes without firing click/change callbacks.</p>
+<p>Use <code>Optional&lt;T&gt;</code> when absence has its own meaning, such as an unset dimension,
+an unselected page or a cancelled dialog. A defaulted option does not itself
+need <code>Optional&lt;T&gt;</code>: <code>disabled</code> defaults to false, and an omitted or empty
+placeholder both mean no hint. Named layout/style calls pass only the helpers
+needed. Their positional overloads retain <code>Optional&lt;T&gt;</code> arguments and <code>{}</code> for
+omission; font family uses a nullable borrowed <code>const char*</code>.</p>
+<p><code>Optional&lt;T&gt;</code> stores its value inline in aligned union storage plus a presence
+flag. An empty Optional does not construct <code>T</code>; holding, copying or moving a
+scalar value requires no separate heap allocation. The Optional reserves room
+for <code>T</code> even while empty. Strings, containers and other payloads can still
+allocate their own contents.</p>
+<p>Copies own independent values. A successful move empties the source; transfer
+uses a copy when <code>T</code> has a potentially throwing move and supports copying.
+Move operations are <code>noexcept</code> only when the selected transfer constructor is
+non-throwing. Assignment first constructs its incoming value, then replaces the
+old one: failure to construct the incoming value preserves the destination;
+failure during the final replacement leaves the destination empty and usable.
+Payload pointers/references do not follow moves to another Optional and must
+not be retained across replacement, reset or destruction.</p>
+<h2 id="pui-modifiers">PUI modifiers</h2>
+<p>Nodes expose PUI's <code>.layout(...)</code>, <code>.style(...)</code> and <code>.qt(...)</code> APIs. These are
+ports of <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/node.py">PUI's node modifiers</a>
+and <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py">Qt parameter application</a>.
+C++ supports typed named arguments in any order on Qt, wx and LVGL:</p>
+<pre><code class="language-cpp">namespace layout = CPPUI::layout;
+namespace style = CPPUI::style;
+
+CPPUI::Label(&quot;Hello&quot;)
+    .layout(layout::width(200), layout::weight(1), layout::padding(8, 12))
+    .style(style::color(0xffffff), style::bgColor(0x222222), style::fontSize(16));
+
+CPPUI::Label(&quot;Body&quot;).style(style::fontFamily(&quot;Sans&quot;)); // Qt/wx; LVGL accepts &quot;Montserrat&quot;.
+</code></pre>
+<p>The layout argument helpers are <code>width(int)</code>, <code>height(int)</code>, <code>weight(int)</code>,
+<code>padding(...)</code> and <code>margin(...)</code>. The style helpers are <code>color(int)</code>,
+<code>bgColor(int)</code>, <code>fontSize(int)</code>, <code>fontWeight(int)</code> and <code>fontFamily(const char*)</code>.
+<code>padding</code>/<code>margin</code> accept an <code>Insets</code> or one to four integers in the order
+described below. <code>fontFamily</code> borrows a null-terminated string without copying
+its contents. Use a string literal or keep the caller's buffer alive at the same
+address for the entire node declaration lifetime, including while retained or
+hidden. For a caller-owned <code>std::string</code>, pass <code>.c_str()</code> and keep that string
+alive without operations that invalidate its buffer. Do not pass a temporary
+string's <code>.c_str()</code>.</p>
+<p>For font family, <code>nullptr</code> means omitted and <code>&quot;&quot;</code> means an explicit empty value.
+Neither argument form copies or owns the supplied text; native toolkits may
+copy it when applying the style. Owning results such as dialog text still use
+<code>OptionalText</code> (<code>Optional&lt;std::string&gt;</code>).</p>
+<p>Each helper produces a distinct argument type. The modifier dispatches by type,
+without string keys, maps or runtime key lookup; numeric and inset argument
+wrappers require no heap allocation. Node fields use inline <code>Optional&lt;T&gt;</code>
+storage, so numeric and inset modifiers need no additional heap allocation in
+either argument form. Font family is stored as a nullable borrowed pointer.
+Wrong argument domains (such as <code>style::color</code> in <code>.layout()</code>) fail to compile.
+Named and positional arguments cannot be mixed within one call, but separate
+calls can use either form. Repeated keys apply left to right, with the last value
+winning. A negative dimension/weight/font size rejects the whole call before
+changing any fields.</p>
+<p>Sizing follows each component's defaults and its parent's native layout rules
+unless overridden. Qt and wx TextField controls expand horizontally at their
+native height; Spacer consumes flexible space along its HBox/VBox's main axis.
+LVGL uses component sizes and native flex layout, with VBox filling unspecified
+child widths. Exact sizes depend on the toolkit, platform, font and theme.</p>
+<p>Use <code>.layout()</code> for intentional overrides: width and height supply native size
+hints or dimensions, weight controls flexible space along the parent's main
+axis, and padding adds spacing. Start with the defaults for ordinary controls;
+see the backend mappings below when a design needs more control.</p>
+<p>Node fields store dimensions, weight, colors and font size/weight in
+<code>Optional&lt;int&gt;</code>, padding and margin in <code>Optional&lt;Insets&gt;</code>, and font family as a
+borrowed <code>const char*</code>. Named helpers carry plain <code>int</code>/<code>Insets</code> values or the
+borrowed pointer; callers do not wrap them in Optional. Qt option maps are
+copied. Repeated calls merge supplied values on that declaration.
+A fresh declaration without a formerly supplied property restores the native
+default during redraw. Zero is an explicit value, including black (<code>0x000000</code>),
+zero size, zero weight and <code>Insets(0)</code>. Dimensions/weights/font sizes reject
+negative values. Modifiers return the borrowed <code>Node&amp;</code> for immediate chaining.</p>
+<pre><code class="language-cpp">for(auto column: CPPUI::VBox().layout(layout::weight(1), layout::padding(12))) {
+    CPPUI::Label(&quot;Heading&quot;).style(style::color(0x336699), style::fontSize(20));
+    CPPUI::Label(&quot;Body&quot;).layout(layout::width(200), layout::height(40));
+}
+</code></pre>
+<p><code>Insets</code> accepts one value (all sides), two (vertical, horizontal), three
+(top, horizontal, bottom), or four (top, right, bottom, left). Named
+<code>layout::padding(...)</code> and <code>layout::margin(...)</code> accept these same forms directly.</p>
+<p>The positional overloads remain available with these declarations:</p>
+<pre><code class="language-cpp">Node &amp; layout(Optional&lt;int&gt; width = {}, Optional&lt;int&gt; height = {},
+              Optional&lt;int&gt; weight = {}, Optional&lt;Insets&gt; padding = {},
+              Optional&lt;Insets&gt; margin = {});
+Node &amp; style(Optional&lt;int&gt; color = {}, Optional&lt;int&gt; bgColor = {},
+             Optional&lt;int&gt; fontSize = {}, Optional&lt;int&gt; fontWeight = {},
+             const char * fontFamily = nullptr);
+</code></pre>
+<p>For example, <code>.style(0x336699, {}, 20)</code> is equivalent to
+<code>.style(style::color(0x336699), style::fontSize(20))</code>. <code>{}</code> omits a positional
+argument. Positional padding/margin need an explicit <code>Insets(...)</code>; C++ cannot
+implicitly convert an integer through both Insets and Optional. Both
+font-family forms accept a string literal directly.</p>
+<p><strong>Reference limitations:</strong> <code>margin</code> and <code>fontWeight</code> are stored but not applied
+by the pinned PUI Qt implementation. CPPUI's Qt backend keeps that behavior;
+other backends apply properties according to their native support.
+Virtual/model-only nodes have no native size or appearance to modify.</p>
+<p><code>.wideLayout(minWidth, ...)</code> and <code>.wideStyle(minWidth, ...)</code> take the threshold
+first, followed by the same typed named arguments (or positional arguments)
+as <code>.layout()</code> and <code>.style()</code>. They apply when the nearest non-virtual parent's
+content width is at least <code>minWidth</code>. Unknown parent sizes do not match.
+Reading that size subscribes the containing view, so resizing rebuilds the
+declaration from its base settings and restores them below the threshold.
+Calls apply in declaration order: the last matching supplied value wins,
+regardless of threshold order. Omitted values leave earlier settings unchanged.
+Font family retains the borrowed <code>const char*</code> contract above. These methods
+keep node identity and evaluate directly during construction, without storing
+a breakpoint table. Normal native layout sizing and overflow limits apply.</p>
+<pre><code class="language-cpp">CPPUI::Label(&quot;Title&quot;)
+    .style(CPPUI::style::fontSize(12), CPPUI::style::color(0x777777))
+    .wideStyle(600, CPPUI::style::fontSize(18), CPPUI::style::color(0x228855))
+    .layout(CPPUI::layout::padding(2))
+    .wideLayout(600, CPPUI::layout::padding(12));
+</code></pre>
+<p>Qt dimensions override preferred <code>sizeHint()</code>, not minimum/maximum dimensions;
+a parent can allocate a different actual size. Explicit dimensions select the
+Preferred size policy unless <code>.qt(...)</code> overrides it. Padding sets widget
+contents margins; weight sets a physical HBox/VBox child's stretch, including
+through a virtual view. Colors are RGB integers and font sizes are points.</p>
+<p>Include <code>cppui/qt/options.hpp</code> (also included by Qt widget headers) for the
+supported native options, with names matching PUI's keyword keys:</p>
+<pre><code class="language-cpp">CPPUI::QtOptions options;
+options.HorizontalPolicy = QSizePolicy::Fixed;
+options.VerticalPolicy = QSizePolicy::Preferred;
+options.SizeConstraint = QLayout::SetMinimumSize;
+options.StyleSheet = CPPUI::QtStyleSheet{{&quot;background-color&quot;, &quot;#eeeeee&quot;}};
+CPPUI::VBox().layout(CPPUI::layout::width(200)).qt(options);
+</code></pre>
+<p><code>StyleSheet</code> is an optional map of CSS properties and overrides generic <code>.style()</code>
+properties. Like PUI, a later <code>.qt(...)</code> call replaces a supplied StyleSheet map
+as a whole; omission keeps it and an explicit <code>QtStyleSheet{}</code> clears it. Other
+supplied Qt option fields merge individually. <code>SizeConstraint</code> applies to the
+widget's native QLayout; requesting it on a widget without a layout throws. <code>Style</code> accepts a borrowed <code>QStyle*</code> for
+widgets; it must outlive them. Omitting Qt options on a replacement declaration
+restores defaults. Native layout pointers are named <code>qtlayout</code> to leave
+<code>.layout(...)</code> available. Non-Qt nodes accept <code>.qt(...)</code> as a no-op; QtOptions
+itself requires Qt headers.</p>
+<p>LVGL dimensions set object sizes in pixels, weight sets flex grow, padding sets
+the four native padding properties, and colors set text/background colors.
+Omission restores prior local styles or theme defaults. <code>fontSize</code> selects the
+nearest compiled Montserrat bitmap font, approximating points at 96 dpi; it
+cannot produce arbitrary exact sizes. <code>fontFamily</code> accepts empty/default or
+<code>&quot;Montserrat&quot;</code>; other families throw. Font data remains owned by the configured
+LVGL runtime. The SDL2/X11 desktop builds supplement the 14/28-pixel fonts with
+<code>×</code>, <code>·</code>, <code>–</code> and <code>→</code> used by the shared cookbook. Other Unicode coverage depends
+on the configured fonts. Runtime font loading and display-density mapping remain
+pending.
+wx applies layout sizing, padding/weight and font/color modifiers, resetting
+omitted values to native defaults. <code>.qt()</code> is specific to the Qt backend.</p>
+<h2 id="application">Application</h2>
+<p>Portable applications can include <code>cppui/backend.hpp</code> and select exactly one of
+<code>CPPUI_BACKEND_QT</code>, <code>CPPUI_BACKEND_WX</code> or <code>CPPUI_BACKEND_LVGL</code> in the build.
+The <code>CPPUI::qt</code> and <code>CPPUI::wx</code> CMake targets set their selector automatically.
+For desktop LVGL, include <code>cmake/CPPUILVGLDesktop.cmake</code>, set
+<code>CPPUI_LVGL_SOURCE_DIR</code> to the LVGL 9.6.0 checkout and call
+<code>cppui_add_lvgl_desktop(lvgl_sdl2)</code> or <code>cppui_add_lvgl_desktop(lvgl_x11)</code>.
+Its <code>CPPUI::lvgl</code> target supplies the selector, SDK, desktop configuration and
+driver fixes. Both the cookbook and standalone examples use this setup.
+Each backend owns its header selection, <code>CPPUI::Backend::View</code>/<code>Views</code> aliases,
+display name and <code>CPPUI_HAS_*</code> feature flags. Use capability flags for optional
+components; application code does not need native toolkit types or startup calls.</p>
+<p>Each backend's <code>base.hpp</code> exposes a constant string: <code>CPPUI::Qt::backendName</code>
+(<code>&quot;Qt&quot;</code>), <code>CPPUI::Wx::backendName</code> (<code>&quot;wxWidgets&quot;</code>) or
+<code>CPPUI::LVGL::backendName</code> (<code>&quot;LVGL&quot;</code>). These are C++11 <code>constexpr char[]</code> values;
+applications can use them in titles or diagnostics without creating a runtime.</p>
+<p>Qt and wx <code>Application::title(text)</code> set the native application display name
+when nonempty and supply the default title for Windows under that logical root.
+<code>Window().title(text)</code> takes precedence, including an explicit empty string.
+Without either title, a retained window keeps its native title. Like the other
+application-wide properties, the display name also affects a borrowed runtime
+and is not restored on teardown.</p>
+<p>Qt <code>Application(argc, argv, iconPath)</code> optionally copies an icon path and sets
+the application-wide default window icon once, during its first synchronization,
+following PUI. Omitting the path (or passing an empty string) preserves a borrowed
+QApplication's icon. An explicit path also applies to a borrowed QApplication;
+it is an application-wide setting and is not restored on CPPUI teardown. Later
+redraws leave native icon changes alone.</p>
+<p><code>.style(...)</code> and <code>.qt(...)</code> also support application-wide font/colors,
+<code>StyleSheet</code> and <code>Style</code>. QApplication takes ownership of an explicitly supplied
+<code>QStyle*</code>, unlike widget-level Style; do not delete it or share its ownership.
+These global settings also affect a borrowed QApplication and remain after the
+CPPUI Application is destroyed. Widget-only size policies and SizeConstraint
+are rejected. Omitting application styling initially preserves a borrowed
+application's existing stylesheet.</p>
+<p>Qt <code>Application::quit()</code> queues event-loop exit so the current handler can return
+first. It can be called before <code>run()</code>; application destruction cancels any
+pending quit. Quitting a borrowed QApplication exits its shared event loop but
+does not destroy it. Application operations, state mutation and redraw belong on
+the GUI thread; marshal background work there before accessing CPPUI state.</p>
+<p>LVGL <code>Application::sync()</code>/<code>run()</code> lazily initializes LVGL and creates an 800x600
+SDL2/X11 display plus pointer/keyboard input when no display exists. Construction
+alone does not open a window. <code>Application::title()</code> supplies a fallback title;
+<code>Window::title()</code> overrides it for an application-owned desktop host. X11 builds
+use <code>cmake/CPPUILVGLX11.cmake</code> for the pinned driver's lifecycle and window bridge.
+<code>Window::size(width, height)</code> sets a positive pixel size for that owned desktop
+window and its LVGL display. Unchanged declarations preserve a user's resized
+window; changing the declared size applies the new dimensions. Omitting the
+size preserves the current dimensions. Borrowed displays keep their resolution,
+including embedded framebuffers; their owner controls sizing.
+Application teardown destroys its declarations before its input, display and
+owned LVGL runtime. An existing display/runtime is borrowed; its host, input and
+focus group remain owned by the caller and must outlive the application.</p>
+<p>LVGL <code>Application::start()</code> pumps timers while at least one LVGL display exists.
+Closing the last display returns from the loop; closing one of several displays
+keeps it running. Delays use LVGL's configured delay callback. Native deletion
+invalidates CPPUI handles, so declaration teardown remains safe after a display
+closes. The caller still owns input-device cleanup and <code>lv_deinit()</code>.</p>
+<h2 id="table">Table</h2>
+<p>Include <code>cppui/qt/table.hpp</code>, <code>cppui/wx/table.hpp</code> or <code>cppui/lvgl/table.hpp</code>.
+<code>Table(autofit = true)</code> contains row
+<code>TableNode()</code> scopes, each containing cell <code>TableNode(value)</code> declarations.
+Cells accept <code>std::string</code> and arithmetic values, <code>State&lt;T&gt;</code> or <code>Binding&lt;T&gt;</code>.
+Bindings make a cell editable; an unbound cell can opt into editing with
+<code>.set(std::function&lt;void(const T &amp;)&gt;)</code>. An explicit setter does not override a
+binding. Qt performs native scalar conversion; arbitrary user-defined values
+remain deferred. External typed adapters are described below.</p>
+<p><code>.display(text)</code> (also accepting a string binding) overrides the displayed value
+without changing the editor's raw value. <code>.choices(std::vector&lt;T&gt;)</code> supplies
+values with default labels; <code>.choices(std::vector&lt;std::pair&lt;T, std::string&gt;&gt;)</code>
+supplies separate labels in declaration order. Editors preserve value types and
+duplicate labels, commit once on activation, and leave unknown values unselected. No selection does not overwrite the model. <code>.click()</code> and
+<code>.dblclick()</code> use no-argument callbacks on each cell.</p>
+<p>Qt, wx and LVGL cell declarations accept <code>.prefix(text)</code>, <code>.suffix(text)</code> and
+<code>.placeholder(text)</code>. Prefix/suffix surround the resolved display text or choice
+label, and appear beside the field while editing; the binding always stores the
+raw value. Placeholders are native empty-field hints (Qt line/choice editors and
+wx/LVGL text editors; wxChoice and LVGL dropdowns have no empty-field hint).
+Omitted options reset to empty on a fresh declaration. Composite editor widgets own their labels and input, with keyboard
+commit/cancel and choice activation routed through the outer editor.</p>
+<p>Table's <code>.columnHeader(labels)</code> and <code>.rowHeader(labels)</code> show optional headers;
+omitting them hides the headers on redraw. <code>.columnCount(n)</code> and <code>.rowCount(n)</code>
+override inference, accepting zero and rejecting negatives. Otherwise counts
+cover the longest row and any supplied headers. Ragged/missing cells are blank,
+inert and not editable. Autofit resizes columns to contents after synchronization.</p>
+<p>The native view/model/delegate are reused and owned by Qt. Each redraw resets
+the model, invalidating its old indexes/selection as in PUI's declarative Table.
+The model copies cell data/callbacks and never stores declaration pointers;
+retirement releases old captures and removal disables edits before deferred
+native deletion. Setters/clicks may redraw or remove their own table, and callback
+exceptions are reported to stderr. Bindings still borrow their model storage.
+Rows/cells are declaration-only children: use direct TableNode scopes, rather
+than nested retained views or native widgets inside a table.</p>
+<p>LVGL uses one native <code>lv_table</code> with an overlaid editor. Single-click selects and
+invokes the cell callback; double-click or Enter starts editing. Text and numeric
+cells use <code>lv_textarea</code>; booleans and choices use <code>lv_dropdown</code>. Enter or focus
+loss submits, Esc cancels, and invalid numeric input leaves the model unchanged.
+Choosing an option writes its raw value, including when labels are duplicates.
+An unknown choice displays its raw value without selecting an option; leaving
+without choosing preserves it. Redraw cancels an active draft before replacing
+bindings/adapter snapshots. Native callbacks keep their state alive across
+synchronous redraw or removal.</p>
+<p>LVGL headers occupy the first row/column with a distinct background and scroll
+with the cells. They are not frozen headers. Counts including headers are limited
+to 65,535 per axis by native selection indexes. Autofit measures native text and
+padding; <code>autofit=false</code> retains native column widths. Editor placement follows
+native measured row heights and scrolling, using LVGL 9.6's private table geometry.
+LVGL copies displayed strings into its native cells on redraw and after edits;
+it does not provide a virtualized/on-demand adapter view. Plain-storage changes
+still require a redraw to refresh other cells or tables.</p>
+<p>Reference: <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/table.py">PUI Table</a>
+and <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/table_ragged.py">ragged-table cases</a>.</p>
+<h3 id="table-adapters">Table adapters</h3>
+<p><code>cppui/table_adapter.hpp</code> provides PUI's <code>BaseTableAdapter&lt;T&gt;</code> interface with
+<code>data</code>, <code>editData</code>, <code>setData</code>, <code>editable</code>, row/column counts and headers, and
+<code>clicked</code>/<code>dblclicked</code> callbacks. Pass <code>std::shared_ptr&lt;YourAdapter&gt;</code> to
+<code>Table(adapter, autofit = true)</code>. <code>T</code> is an arithmetic type or <code>std::string</code>;
+<code>editData</code> defaults to <code>data</code>, cells default to read-only, and headers default to
+<code>Col n</code> / <code>Row n</code>. Data, edit data, counts and headers are const methods; setters
+and callbacks can mutate the source. Each backend converts edits back to <code>T</code> before
+calling <code>setData</code>. Display and editor values remain separate.</p>
+<p>Header methods return <code>OptionalText</code>: absent entries use any declaration header
+fallback, and an axis with no supplied labels is hidden. An explicitly empty
+string is a supplied blank label. Adapter counts determine the grid; declarative
+row/column count overrides and TableNode children apply only without an adapter.</p>
+<p>Tables and native callbacks retain the adapter with shared ownership. The adapter
+must own its data or explicitly borrow storage that outlives it. This does not
+change borrowed CPPUI factory returns. Callbacks copy their owning handle before
+invoking application code, so an edit/click may redraw, replace or remove its
+own table. Removal clears the model's adapter references before deferred native
+deletion; inactive models cannot dispatch edits.</p>
+<p>Each declaration reads adapter dimensions, headers, editability and cell values
+during construction, tracking State dependencies and validating before mounting.
+Native edit reads use the current adapter; Qt/wx also read it for display, while
+LVGL retains display strings until redraw or an edit. Plain storage changes require
+an explicit view redraw; State assignment schedules it automatically when the
+adapter read that State during construction. Structural refresh resets the
+native model and invalidates old indexes. Automatic collection observation and
+arbitrary mixed/custom cell types remain separate work.</p>
+<p>The <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/table_adapter.py">shared table adapter recipe</a>
+is ported in <code>cookbook/table_adapter.cpp</code>: two tables share one matrix; its first
+three rows are editable and its row headers are hidden. CPPUI assigns a copied
+State matrix after editing, replacing PUI's nested mutation plus <code>emit()</code>.</p>
+<h2 id="tree">Tree</h2>
+<p>Include <code>cppui/qt/tree.hpp</code>. <code>Tree()</code> contains nested <code>TreeNode(text)</code> scopes;
+labels accept <code>std::string</code>, <code>State&lt;std::string&gt;</code> or <code>Binding&lt;std::string&gt;</code>.
+The native view has one read-only column and a hidden header. Virtual views can
+group nodes without adding an item to the native hierarchy.</p>
+<p>Tree supports <code>.expandAll()</code>, <code>.collapseAll()</code> and <code>.expandable(bool)</code>. During
+construction these apply after the children synchronize; on a mounted current
+declaration they act immediately. Omitting these operations preserves native
+expansion and expandability, following PUI. TreeNode's <code>.click()</code>, <code>.dblclick()</code>,
+<code>.expand()</code> and <code>.collapse()</code> take no-argument callbacks, replaced on redraw.</p>
+<p>The Qt-owned model retains internal item records across matched declarations.
+Qt indexes refer to those records, never to retired declarations. Reordering
+keyed nodes within their matched parent scope preserves persistent indexes,
+selection and expansion; removal invalidates their indexes. Moving between
+different parent scopes creates new items under the normal reconciliation rules.
+Model layout notifications publish a snapshot after reconciliation, with
+persistent-index remapping. Independently redrawn subviews queue that refresh
+on the GUI event loop; process events before querying their updated model.</p>
+<p>Removal disables callbacks and releases item records and captures; native parent
+deletion clears declaration observers. Callback exceptions are reported to stderr,
+and callbacks may redraw or remove the tree. Factory returns remain borrowed
+construction references. External adapters use the interface below; arbitrary
+display value types and drag/drop payloads remain deferred.</p>
+<p>Reference: <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/tree.py">PUI Tree</a>
+and <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/tests/tree_sync.py">tree synchronization cases</a>.</p>
+<h3 id="tree-adapters">Tree adapters</h3>
+<p><code>cppui/tree_adapter.hpp</code> provides <code>BaseTreeAdapter&lt;T&gt;</code> with PUI's <code>parent</code>,
+<code>child</code>, <code>data</code>, <code>rowCount</code>, <code>clicked</code>, <code>dblclicked</code>, <code>expanded</code> and <code>collapsed</code>
+methods. <code>Handle</code> is <code>std::shared_ptr&lt;T&gt;</code>; it refers to application data, not a
+CPPUI declaration. Getters are const methods, and <code>data</code> returns an owned
+<code>std::string</code>, matching the existing TreeNode label contract.
+Pass <code>std::shared_ptr&lt;YourAdapter&gt;</code> to <code>Tree(adapter)</code>; expansion modifiers work
+as for the declarative tree.</p>
+<p>A null handle denotes the invisible root. <code>child({}, row)</code> enumerates its visible
+children; <code>rowCount({})</code> counts those children. Each non-root child's <code>parent</code>
+must agree with the containing node. An optional application root above the
+visible children stays invisible. Counts must be nonnegative, and visible data
+objects must be non-null, unique and acyclic. Bad hierarchies throw during
+construction, leaving the mounted tree unchanged. CPPUI derives native parent
+indexes and their row numbers from this hierarchy; it does not copy PUI's
+external adapter bug that always uses parent row zero.</p>
+<p>The adapter and its data handles are retained through native callbacks. Own
+children downward and keep parent links non-owning (the cookbook uses weak
+parent links) to avoid data cycles. Removing an item releases its handles after
+index remapping and active callbacks finish; removing/replacing the tree releases
+the source. Factory-returned CPPUI declarations remain borrowed as before.</p>
+<p>Each declaration snapshots the complete external hierarchy during construction,
+then uses the existing Tree model and reconciliation to publish it. This is an
+eager adapter, not lazy loading for very large trees. State reads in getters
+subscribe the surrounding view. Plain data changes need an explicit redraw or
+a State revision update. Stable source/data handles preserve indexes, selection
+and expansion through same-parent reorder; removed nodes and replaced adapters
+invalidate indexes. Moving a node to another parent follows the existing
+reconciliation rule and creates a new item. Do not combine an adapter with
+manual TreeNode children in the same Tree.</p>
+<p><code>cookbook/tree_adapter.cpp</code> ports <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook/tree_adapter.py">PUI's adapter recipe</a>:
+two views share the same application hierarchy, one starts expanded, and Add
+item appends a subtree to both. Drag/drop remains tied to the deferred common
+input-event contract. Both adapter interfaces are toolkit-independent; native
+Table and its adapter cookbook run on Qt, wx and LVGL. Tree and its adapter
+cookbook run on Qt/wx; the LVGL Tree wrapper is not yet implemented.</p>
+<h2 id="image">Image</h2>
+<p>Include <code>cppui/qt/image.hpp</code> for <code>Image(path)</code>. The clickable image label owns its
+path and pixmap, reuses the native label, and reloads when the path or file
+modification time changes. It uses the image's natural size. Click replacement,
+removal and native lifetime follow Label. A missing path throws during declaration
+building, preserving the mounted image on a failed redraw; undecodable existing
+files produce an empty Qt pixmap.
+<code>.layout(CPPUI::layout::width(w), CPPUI::layout::height(h))</code> scales the source
+pixmap with its aspect ratio preserved; with one dimension, the other is inferred.
+The original pixels remain cached so changing or omitting dimensions rescales
+from the source. Positive weight enables native scaled contents. The shared
+cookbook sets a width of 400 and uses PUI's public-domain Rijksmuseum windmill
+image; the named form is <code>.layout(CPPUI::layout::width(400))</code>.</p>
+<p>Include <code>cppui/lvgl/image.hpp</code> for the same <code>Image(path)</code> API on LVGL 9.6.
+The native image retains decoded pixels across redraws, visibility changes and
+keyed moves. Width-only or height-only sizing infers the other dimension; two
+dimensions fit the image inside that box with its aspect ratio preserved.
+Positive weight enables native stretching into the allocated area. Omitting
+dimensions/weight restores natural sizing and aspect-preserving drawing, subject
+to the parent layout's allocation. PNG transparency and <code>.click()</code> are supported.</p>
+<p>LVGL file images are decoded during declaration building. Missing, unsupported
+or corrupt files throw before reconciliation, preserving the mounted tree.
+Matching path, file identity, size and modification timestamp reuse an owned
+source; replacement loads new pixels. Live images of the same unchanged file
+share decoding, with only weak cache entries after removal. Native objects retain
+the pixels until deletion, including parent-subtree teardown. Images occupy their
+full decoded size in memory; no borrowed native-descriptor overload is exposed.</p>
+<p>The SDL2/X11 configuration enables LVGL's bundled LodePNG and TJpgDec decoders
+for PNG and baseline JPEG (<code>.jpg</code>/<code>.jpeg</code>). Other applications must enable suitable
+decoders plus <code>LV_USE_FS_STDIO</code>, a nonzero <code>LV_FS_STDIO_LETTER</code>, and an empty
+<code>LV_FS_STDIO_PATH</code> for the host-path API. Progressive JPEG and other formats need
+additional LVGL decoders. This widget does not add Canvas <code>ImageResource</code> or
+<code>drawImage</code>; those remain separate work.</p>
+<h2 id="menus-and-toolbars">Menus and toolbars</h2>
+<p>Include <code>cppui/qt/menu.hpp</code> and <code>cppui/qt/toolbar.hpp</code>. <code>MenuBar()</code> contains
+<code>Menu(text)</code> and <code>MenuAction(text)</code> scopes/actions; menus can nest.
+<code>ToolBar()</code> contains <code>ToolBarAction(text, iconPath)</code> and ordinary widgets.
+Actions use <code>.trigger(callback)</code> with no arguments. The path is optional;
+omission retains a toolbar action's previous icon, following PUI.</p>
+<p>MenuBar and ToolBar are out-of-order Window children and coexist with central
+content and Modal. Native parents own menus/actions; keyed moves reuse them.
+Callback replacement disconnects only CPPUI's connection, snapshots active
+callbacks and reports trigger exceptions to stderr. Toolbar widget actions
+retain their widgets across moves and are reclaimed when the widget is removed.
+The cookbook gallery uses these public menu components.</p>
+<h2 id="mdi">MDI</h2>
+<p>Include <code>cppui/qt/mdi.hpp</code> for <code>MdiArea()</code> and <code>MdiSubWindow()</code>. The area owns
+native subwindows and preserves their geometry across unchanged redraws. Like
+<a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/mdi.py">PUI</a>,
+a subwindow displays its first physical child; use a VBox/HBox to group content.
+Additional children are hidden and parent-owned for safe teardown. Virtual views
+flatten normally. Closing an explicit subwindow hides it without changing State;
+a redraw does not reopen it.</p>
+<p>A plain widget directly in an MdiArea uses Qt's automatic subwindow wrapper.
+<a href="https://doc.qt.io/qt-6/qmdiarea.html#removeSubWindow">Qt leaves that wrapper behind when removing only its content</a>;
+CPPUI also removes and deletes the empty wrapper. Keyed moves keep the content
+alive while its native ownership transfers. External native deletion clears
+observers for teardown; automatic remount after external deletion is deferred.</p>
+<h2 id="timelineview">TimelineView</h2>
+<p>Include <code>cppui/qt/timeline.hpp</code>. <code>TimelineView(ttlSeconds)</code> is a virtual scope:
+its children occupy their normal parent slots, and a Qt timer requests a queued
+redraw of the owning view. Reconciliation transfers the timer to the current
+declaration; removal or root teardown cancels it. Following the pinned PUI
+implementation, the interval is fixed when mounted, even if a later declaration
+passes a different value; use a new identity to restart it. Intervals are finite,
+nonnegative seconds rounded up to Qt milliseconds; zero runs when the event loop
+is idle. The timer and view remain on the GUI thread.</p>
+<p>LVGL uses the same <code>TimelineView(ttlSeconds)</code> scope via <code>cppui/lvgl/timeline.hpp</code>.
+Its LVGL timer redraws the owning View synchronously on the UI thread. The
+mounted interval is retained across redraws and keyed moves; a new identity
+restarts it. Intervals round up to milliseconds, with a minimum of 1 ms for zero,
+and must fit a signed 32-bit millisecond count. Removal, view teardown and native
+parent/display deletion cancel the timer. Render exceptions are reported to
+stderr without escaping into LVGL; subsequent ticks can retry. Mount the scope
+inside a Window or native container, and release views before deinitializing LVGL.</p>
+<h2 id="window">Window</h2>
+<p>Qt <code>Window().title(text).icon(path).size(width, height)</code> updates a retained native
+window. Its native layout uses <code>SetNoConstraint</code>, so growing content stays within
+the window instead of forcing it to expand beyond the declared or user-set size.
+Text and paths are owned strings. An omitted title uses the nonempty root
+Application title, or preserves the current native title if neither is supplied.
+An explicit empty title clears it. Omitted/empty icons preserve the current icon.
+An unchanged declared size preserves user resizing; changing it, or declaring it
+again after omission, resizes the window. <code>.maximize()</code> and <code>.fullscreen()</code> apply
+only at native creation, including for Modal. Calling either setter on a
+mounted declaration stores a request without changing the live window.
+Redraws preserve native state; use explicit native interop for live changes. A window mouse press clears a
+focused line editor so it can commit. Keypress payloads remain deferred.</p>
+<h2 id="binding">Binding</h2>
+<p>The shared State Binding cookbook demonstrates an external string getter/setter
+and the TextField change callback with a scrollable latest-100-message log.
+It publishes a State revision after commit; getters never mutate State during
+view construction.</p>
+<p><code>cppui/binding.hpp</code> provides a copyable C++11 <code>Binding&lt;T&gt;</code> with <code>get()</code> and
+<code>set(value)</code>. Construct it from a <code>State&lt;T&gt;&amp;</code>, or supply a getter and setter:</p>
+<pre><code class="language-cpp">CPPUI::Binding&lt;int&gt; binding(counter);
+CPPUI::Binding&lt;int&gt; external([&amp;model]() { return model.value; },
+                            [&amp;model](const int &amp; value) { model.value = value; });
+</code></pre>
+<p>The adapter owns its callable captures and borrows the referenced State/model,
+which must outlive its uses. State reads retain ordinary view dependency tracking;
+writes retain State's mutation checks and request the subscribed views' redraws. Rebinding during a
+build replaces those dependencies. Getters/setters are snapshotted for invocation,
+so a setter may cause the declaration holding its adapter to be reclaimed.
+Exceptions propagate to the caller; conversion/validation belongs in the setter.
+External storage does not automatically notify views: redraw explicitly, or read
+reactive State in the getter. Change subscriptions, explicit notification and
+text conversion helpers remain pending; this adapter does not change State's
+copy/move semantics.</p>
+<h2 id="button">Button</h2>
+<p>Include <code>cppui/qt/button.hpp</code>, <code>cppui/wx/button.hpp</code> or <code>cppui/lvgl/button.hpp</code>.
+<code>Button(text).click(callback)</code> owns its text and invokes the current callback.
+<code>.disabled(bool = true)</code> controls native user interaction; the default is false. Disabling
+and re-enabling reuse the native button; omitting the setter on a fresh
+declaration restores enabled state. This follows PUI <code>d7dc23a</code>, with LVGL using
+its native disabled state.</p>
+<h2 id="textfield">TextField</h2>
+<p>Include <code>cppui/qt/textfield.hpp</code>, <code>cppui/wx/textfield.hpp</code> or
+<code>cppui/lvgl/textfield.hpp</code> for <code>TextField(model, editModel)</code>. Both arguments
+use <code>Binding&lt;std::string&gt;</code> or <code>State&lt;std::string&gt;&amp;</code>; the draft binding is optional.
+Typing updates the draft and <code>.input(callback)</code>, while focus loss/Enter commits
+the model and calls <code>.change(callback)</code>. These callbacks take no arguments;
+typed event payloads remain deferred. Redraw/rebinding preserves an active draft,
+and commit uses the current binding. A successful commit reads the model back,
+so an adapter that rejects or normalizes input controls the displayed value.</p>
+<p><code>.placeholder(text)</code> sets the native empty-field hint on Qt, wx and LVGL,
+following PUI <code>184ffcd</code>. It owns the string, updates on redraw and clears when
+given an empty string or omitted on a fresh declaration. Changing the hint
+preserves the model, active draft and cursor and emits no input/change callbacks.
+Visibility while focused follows the native toolkit. The shared cookbook's
+State Model field uses <code>&quot;Enter text&quot;</code>.</p>
+<p>Programmatic updates suppress input/change feedback. The draft is synchronized
+when idle only if its value differs, avoiding repeated queued redraws. Callback
+and setter failures report to stderr; a throwing setter leaves the draft visible.
+Adapters own validation/conversion policy; generic numeric conversion and change
+subscriptions remain undecided. The shared recipe currently demonstrates string
+models and is marked partial for PUI's dynamic numeric conversion/event payloads.</p>
+<p>LVGL uses a single-line <code>lv_textarea</code>. Enter (<code>LV_EVENT_READY</code>) or focus loss
+commits an edited value once; Enter followed by focus loss does not commit it
+again. Idle draft synchronization runs on LVGL's next timer pass, avoiding
+reentrant reconciliation. Pending synchronization is cancelled when the field
+is removed or its native object is deleted. Active drafts survive page hiding,
+redraw and binding replacement. Setters and callbacks may remove their field or
+destroy its owning view.</p>
+<p>The SDL2/X11 cookbooks attach keyboard input to the default LVGL focus group.
+Applications hosting LVGL must likewise create a default group before mounting
+controls and attach their keypad input device to it; the TextField does not own
+the host's input devices or group.</p>
+<h2 id="maskedfield">MaskedField</h2>
+<p>The same backend <code>textfield.hpp</code> headers provide <code>MaskedField(model, editModel)</code>.
+It accepts the string bindings, optional draft, placeholder, input/change
+callbacks and layout options of TextField. Qt uses QLineEdit password echo, wx
+uses wxTE_PASSWORD and LVGL uses textarea password mode. Models and draft
+bindings contain the original text; native rendering masks it. Switching between
+TextField and MaskedField replaces the native control. The shared cookbook shows
+single-model and buffered passwords, lengths and a clear button on all backends.</p>
+<h2 id="scroll">Scroll</h2>
+<p>Include <code>cppui/qt/scroll.hpp</code>. <code>Scroll(vertical, horizontal)</code> takes
+<code>Optional&lt;bool&gt;</code> policies: absent means as-needed, true always-on, false off.
+Defaults are vertical as-needed and horizontal off. Policies are applied only
+when the native widget is created, following PUI. Scroll displays its first
+physical child, with a layout used to group content. Additional children stay
+hidden and native-parent-owned; content replacement detaches surviving widgets
+before QScrollArea can delete them. Like PUI's add/remove contract, removing the
+first child does not automatically promote an unchanged ignored sibling. Use one
+layout child and change its contents, or give replacement content a new identity.</p>
+<p><code>.scrollX(position)</code> / <code>.scrollY(position)</code> use finite doubles: positive zero
+means start anchoring, and negative zero (<code>CPPUI::ScrollEnd</code>, also
+<code>Qt::Scroll::END</code>) means end anchoring. Range changes restore the saved distance
+from that edge. As in the pinned reference, pre-sync captures the current native
+position, and a reused Scroll retains its previous anchor/offset rather than
+reapplying newly declared offsets. Therefore these methods set anchor/offset
+metadata, not an unconditional immediate jump; pre-sync can overwrite their
+numeric offset before child layout, including on initial construction.</p>
+<p>User movement within ten pixels of an edge switches anchoring; if both edges
+are that close, the current anchor is kept. Resize handling reads the mounted
+native child, never a retired/new declaration. Axes declared disabled in the
+current declaration fit the child's size hint, even though scrollbar visibility
+policies are initial-only. All observers belong to the native scroll widget and
+end with it.</p>
+<p>For basic LVGL scrolling, include <code>cppui/lvgl/scroll.hpp</code>. <code>Scroll(vertical = {}, horizontal = false)</code> contains ordinary native children and supports fixed viewport
+sizes through <code>.layout(...)</code>; a disabled axis fits unspecified child dimensions
+to the viewport. False disables an axis, true forces its scrollbar, and <code>{}</code>
+allows automatic visibility. LVGL has one scrollbar mode for both axes, so
+forcing one axis while leaving the other automatic throws instead of silently
+changing the policy. Independent mixed modes, <code>.scrollX()</code>/<code>.scrollY()</code> and signed
+end anchoring remain unimplemented. This public component serves the gallery
+sidebar; the full Scroll recipe is still Qt-only.</p>
+<h2 id="combobox">ComboBox</h2>
+<p>Include <code>cppui/qt/combobox.hpp</code>, <code>cppui/lvgl/combobox.hpp</code> or <code>cppui/wx/combobox.hpp</code>.
+<code>ComboBox(editable, model)</code> accepts an integer index binding or a string value
+binding; <code>ComboBox(editable, index, text)</code> accepts both. State values adapt
+automatically. Its children are
+<code>ComboBoxItem(label, value)</code>; value defaults to label and may explicitly be empty.
+Labels and values are owned strings, with labels used as default node IDs.
+Use explicit IDs to distinguish duplicate labels or retain a renamed item.</p>
+<p><code>.editModel(Binding&lt;std::string&gt;)</code> receives user typing before <code>.input(callback)</code>.
+It is an input-only binding: changing it externally does not set the displayed
+text, and choosing a candidate does not write its item value to this binding.
+Use it for the query that determines which <code>ComboBoxItem</code> children to declare.
+CPPUI retains its typed index/text constructor overloads; PUI's keyword-only
+<code>edit_model</code> is represented by this named modifier. Both <code>.input(callback)</code> and
+<code>.change(callback)</code> take callbacks with no arguments.</p>
+<p><code>.autoexpand(bool = true)</code> defaults to true and opens candidates while typing.
+Qt, wx and LVGL display the application-declared children in order, with no
+additional prefix/substring filtering or automatic first-result insertion.
+<code>.autoexpand(false)</code> keeps free typing and the manual dropdown. Escape closes
+the popup without changing the draft. In the <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/combobox.cpp">cookbook</a>,
+application code splits the query on whitespace and uses case-insensitive OR
+matching: <code>tai tok</code> declares four Taipei/Tokyo entries. Empty queries show all
+destinations. Clearing autocomplete resets both the selected value and query.</p>
+<pre><code class="language-cpp">// destination and query are State&lt;std::string&gt; members of the view.
+for(auto combo: CPPUI::ComboBox(true, destination).editModel(query).autoexpand()) {
+    // Declare the candidates selected by your application's matching rule.
+    CPPUI::ComboBoxItem(&quot;Taipei Taoyuan&quot;, &quot;TPE&quot;);
+    CPPUI::ComboBoxItem(&quot;Tokyo Haneda&quot;, &quot;HND&quot;);
+}
+</code></pre>
+<p><code>.disabled(bool = true)</code> defaults to false and follows PUI <code>d7dc23a</code>. Disabling preserves
+selection, editable/non-editable mode and native identity; programmatic model
+updates still apply without change callbacks. Omitting it on a fresh declaration
+restores enabled state.</p>
+<p>Index binding takes precedence for displayed selection. Negative/out-of-range
+indices produce no selection; an index-change callback for -1 writes empty text,
+never the last item's value. A text-only binding matches stored values. Editable
+selection displays the item's label. Typing free text clears the index binding
+to -1 and writes the text binding; with no text binding, the native widget retains
+the edit buffer. Unbound selection follows the selected item's key through
+reorders and label changes, including items in independently redrawn subviews.
+While editing, text equal to an item value stays free text through redraws.
+Selection maps to the index/value of the current declared children; use values
+as stable identifiers when filtering a larger dataset.</p>
+<p>Qt uses an unfiltered QCompleter popup. wx uses a non-grabbing popup list while
+the native ComboBox keeps keyboard focus; Up/Down highlights and Enter accepts.
+LVGL uses a dropdown for non-editable selection and a textarea with a dropdown
+for editable input. Its editor forwards candidate navigation/acceptance and
+intercepts Escape before textarea insertion. Empty LVGL lists disable the
+selector while leaving the editor usable; labels containing newlines display
+on one line because LVGL uses newlines as option separators. wx/LVGL remount
+when editable mode changes. Create a default LVGL focus group before mounting
+controls to enable keyboard navigation. A selected item's label-change signal
+is ignored, so selection writes its stored value and calls <code>.change()</code> once.</p>
+<p>Unchanged declarations preserve user edits; changing/reordering items refreshes
+labels/data and reapplies bound selection without feedback writes. Native
+callbacks read owned item values and snapshot bindings before user code. Raw
+non-string values and typed event payloads remain deferred.</p>
+<p>Validation covers reactive candidate changes, retained editors/carets, input
+binding order, free text equal to an item value, acceptance/dismissal, automatic
+expansion toggles and removal from callbacks. Actual Chinese IME composition,
+screen-reader behavior, platform-specific focus/clipboard interactions and the
+full DPI/theme/scrolling matrix remain unverified. API availability does not
+imply that those platform cases have passed.</p>
+<h2 id="radiobutton">RadioButton</h2>
+<p>Include <code>cppui/qt/radiobutton.hpp</code> or <code>cppui/lvgl/radiobutton.hpp</code> for
+<code>RadioButton(text, value, model)</code>, accepting
+<code>Binding&lt;T&gt;</code> or <code>State&lt;T&gt;&amp;</code>. Values are copied and must support equality.
+Construction reads the model for dependency tracking; native clicks commit the
+current value before the current <code>.click()</code> callback. Programmatic updates do
+not write the model. Native ownership and callback replacement follow Checkbox.</p>
+<p>PUI uses Qt's automatic exclusivity among radio buttons sharing a physical
+parent. Separate layouts form separate groups. This also preserves a reference
+quirk: setting the model to an unmatched value after selection can leave the
+last radio checked, because Qt refuses to uncheck its only selected button.
+An initially unmatched model has no selected radio.</p>
+<p>LVGL uses its checkbox widget with native radio-button mode and a circular
+indicator. Radio buttons sharing a physical parent form an exclusive group;
+use the same model within that group and separate layouts for independent
+groups. An unmatched model clears selection. Native Up/Right key selection
+commits the value without emitting <code>.click()</code>; clicking an already selected
+radio keeps it selected and commits once. Focus-group setup belongs to the host.</p>
+<h2 id="checkbox">Checkbox</h2>
+<p>Include <code>cppui/qt/checkbox.hpp</code> or <code>cppui/lvgl/checkbox.hpp</code> and use <code>Checkbox(text, Binding&lt;bool&gt;)</code> or pass
+<code>State&lt;bool&gt;&amp;</code> directly. Model reads during construction subscribe the view;
+programmatic updates reuse the native control without writing the model back.
+User changes write once through the current adapter, and <code>.click(callback)</code> runs
+after the checked value changes. Rebinding replaces the old dependency and
+setter. Callback captures are released on redraw/removal; setter exceptions are
+reported to stderr at the native boundary.</p>
+<p>List/map membership can be expressed as <code>Binding&lt;bool&gt;</code> getters/setters. The
+shared Checkbox recipe matches PUI by adding/removing list values or dictionary
+keys, assigning a modified copy to State to notify observers. Automatic nested
+collection observation and a third value argument remain pending.</p>
+<h2 id="progressbar">ProgressBar</h2>
+<p>Include <code>cppui/qt/progressbar.hpp</code> or <code>cppui/lvgl/progressbar.hpp</code> and use
+<code>ProgressBar(progress, maximum = 1.0)</code>.
+Both numbers are multiplied by 100 and truncated toward zero to match PUI:
+<code>ProgressBar(0.125, 0.25)</code> sets native value 12 and maximum 25. Redraw updates
+retained widgets. A zero maximum uses Qt's busy indicator; other range behavior
+follows <code>QProgressBar</code>. Non-finite or unrepresentable values throw
+<code>std::out_of_range</code> during construction. A state read passed as an argument
+subscribes the surrounding view; this component does not require a writable binding.</p>
+<p>LVGL also uses integer hundredths. With a positive scaled maximum, its native bar
+clamps progress to <code>[0, maximum]</code>. A maximum that truncates to zero runs a moving
+segment animation; unchanged redraws preserve its position. Returning to a
+positive maximum stops the animation and applies the declared progress. Native
+deletion also cancels it. Negative maxima and non-finite or unrepresentable
+numbers throw <code>std::out_of_range</code> before changing mounted UI. The bar uses the
+LVGL theme and does not draw a percentage label.</p>
+<h2 id="box-layouts">Box layouts</h2>
+<p><code>HBox(bool inverse = false)</code> and <code>VBox(bool inverse = false)</code> reverse visual
+child order when <code>inverse</code> is true. The existing widgets, editor drafts and
+selection remain alive. Virtual views participate as flattened children;
+physical child containers keep their own direction. This changes visual order,
+not application data or an explicit keyboard navigation order.</p>
+<p>Qt and wx choose flexible children by expansion priority: positive explicit
+weight (4), expanding controls such as Canvas/Table/Tree and horizontal
+TextField (3), boxes along their main axis and Stack/Tabs/Views/Splitter (2),
+then lower-priority containers and cross-axis boxes (1). Only visible children
+with the highest main-axis priority share extra space. Weight zero disables
+that child's main-axis expansion; Spacer defaults to weight one. With no
+expanding children, Qt packs controls at the start at their natural size.
+Qt native <code>HorizontalPolicy</code>/<code>VerticalPolicy</code> overrides participate in priority
+selection and retain their native policy. Cross-axis expansion is independent.</p>
+<p>Qt and LVGL boxes use 11 pixels of outer padding when their physical parent is
+not another layout, and zero padding when nested. Native QBoxLayout margins are
+zero to avoid adding a second layer of spacing. Use <code>.layout(...)</code> to override
+padding/dimensions and set each child's weight. Redraw updates stretch and resets
+omitted properties, including children rebuilt by independent virtual views.
+LVGL boxes use a six-pixel gap and stretch children across the other axis unless
+that dimension is explicit; dividers retain their one-pixel thickness.</p>
+<h2 id="grid-and-stack">Grid and Stack</h2>
+<p>Qt, wx and LVGL expose <code>Grid()</code> through their <code>layout.hpp</code> or <code>grid.hpp</code>.
+Without <code>.columns()</code>, Grid uses explicit child coordinates. Prefer named modifiers:</p>
+<pre><code class="language-cpp">for(auto scope: CPPUI::Grid()) {
+    CPPUI::Label(&quot;A&quot;).grid(CPPUI::grid::row(0), CPPUI::grid::column(0));
+    CPPUI::Label(&quot;B&quot;).grid(CPPUI::grid::row(1), CPPUI::grid::column(0),
+                           CPPUI::grid::columnspan(2));
+}
+</code></pre>
+<p><code>.grid()</code> accepts <code>grid::row()</code>, <code>grid::column()</code>, <code>grid::rowspan()</code> and
+<code>grid::columnspan()</code> in any order. Coordinates must be nonnegative and spans
+positive; validation happens before applying the call. The existing public
+<code>grid_row</code>, <code>grid_column</code>, <code>grid_rowspan</code> and <code>grid_columnspan</code> fields remain
+available. Legacy manual fields with absent/zero spans use one cell. Explicit
+coordinates/spans participate in identity; changing them replaces that cell.
+Use a layout to group several controls in one cell.</p>
+<p><code>.wideGrid(minWidth, grid::row(...), grid::column(...), grid::rowspan(...), grid::columnspan(...))</code> overrides only the supplied coordinates/spans when the
+nearest physical parent's content width reaches the threshold. Its typed
+arguments and validation match <code>.grid()</code>. Matching calls merge in declaration
+order; unknown initial geometry uses the base declaration. For a Grid child,
+the measured parent is the Grid itself. Responsive placement preserves base
+identity even when <code>.id()</code> or <code>.ref()</code> follows it, retaining editor drafts and
+selection in both manual and automatic Grids. Automatic placement still ignores
+row/column overrides but uses responsive spans. Declare base <code>.grid()</code> fields
+before the responsive calls; use <code>.grid()</code> for later changes to base identity.
+Legacy direct field writes before <code>.wideGrid()</code> also establish the base.</p>
+<pre><code class="language-cpp">CPPUI::TextField(name).grid(CPPUI::grid::row(0), CPPUI::grid::column(0))
+    .wideGrid(600, CPPUI::grid::row(1), CPPUI::grid::columnspan(2))
+    .id(&quot;retained-editor&quot;);
+</code></pre>
+<p>Automatic placement overrides child coordinates while keeping their declared
+spans. Computed <code>grid_cell</code> values never change reconciliation identity:</p>
+<pre><code class="language-cpp">for(auto scope: CPPUI::Grid().columns(1, CPPUI::grid::dense(true))
+        .wideColumns(400, 2).wideColumns(600, 3)) {
+    CPPUI::Label(&quot;A&quot;).id(&quot;a&quot;).grid(CPPUI::grid::columnspan(2));
+    CPPUI::Label(&quot;B&quot;).id(&quot;b&quot;).grid(CPPUI::grid::columnspan(2));
+    CPPUI::Label(&quot;C&quot;).id(&quot;c&quot;);
+}
+</code></pre>
+<p><code>.columns(n, grid::dense(mode))</code> requires a positive count. The named <code>dense</code>
+argument accepts an inline <code>Optional&lt;bool&gt;</code>; omitting it resets to ordered mode.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
+<thead>
+<tr>
+<th>Declaration</th>
+<th>Placement search</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.columns(n)</code> or <code>.columns(n, grid::dense({}))</code></td>
+<td>Start at the previous visible item's starting row; may fill holes to its left in that row</td>
+</tr>
+<tr>
+<td><code>.columns(n, grid::dense(true))</code></td>
+<td>Start at the top-left, including holes above the previous item</td>
+</tr>
+<tr>
+<td><code>.columns(n, grid::dense(false))</code></td>
+<td>Move the cursor forward without revisiting earlier holes</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ordered/dense placement can differ from declaration and Tab order. Hidden items
+retain their controls but occupy no automatic cell. Oversized column spans are
+clamped only for placement and restored when more columns become available;
+row spans stay intact. Automatic spans must be positive (omitted means one).
+These are shared row tracks, not independent masonry columns.</p>
+<p><code>.wideColumns(minWidth, n)</code> uses the nearest non-virtual parent's available width,
+with the same reactive measurement as <code>.wideLayout()</code>. Thresholds are inclusive
+native logical pixels; matching calls apply in declaration order, and the last
+match wins. Declare the base <code>.columns()</code> first; unknown initial geometry uses
+that base. Breakpoints change only the count, preserving the dense mode. CPPUI
+has no terminal backend or terminal-unit column modifiers.</p>
+<p>Reflow retains native controls, edit buffers and selection/caret state. Use
+stable IDs for reordered data. Virtual child views flatten into automatic Grid,
+and independent child updates trigger placement again. Qt/wx give columns equal
+stretch factors; native minimum-size hints can still produce unequal tracks.
+LVGL uses equal fractional tracks when width is allocated, and content tracks
+otherwise. The <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/grid.cpp">manual Grid</a> and
+<a href="https://github.com/buganini/CPPUI/blob/main/cookbook/adaptive_grid.cpp">Adaptive Grid</a> cookbooks run on all four targets.
+The latter uses 384/576/768-pixel breakpoints, three backfill modes, hidden tiles,
+keyed reversal and an editor that spans one column below 576 pixels and two above it. With four columns, original order and C
+shown, blue F occupies row 4 (ordered), row 3 (dense), or row 5 (forward), counting
+rows from one.</p>
+<p>Qt Stack uses StackAll mode and reverses initial declaration order, placing
+the last declared layer on top. All layers share the available geometry.
+Unchanged redraws retain the raised layer. Insertions/removals and keyed moves
+let QStackedLayout choose its current layer, as in PUI; moving the current layer
+can raise its neighbor. Grid and Stack share HBox/VBox's nested
+padding rules. PUI ignores Spacer inside these two containers; CPPUI also skips
+its native insertion and explicitly reclaims the unmounted item.</p>
+<p>LVGL exposes <code>Grid()</code> through <code>cppui/lvgl/layout.hpp</code> or <code>grid.hpp</code>
+(<code>LV_USE_GRID</code> required), with the same coordinate/span fields and replacement
+rules. Automatic axes measure visible cells and include their margins. Single
+cells establish each track's size; any additional space needed by a spanning
+cell is shared across its tracks. This also handles grids containing only
+spanning cells, which native <code>LV_GRID_CONTENT</code> alone does not measure. Children
+retain their natural size along automatic axes. Allocated axes use equal
+fractional tracks, stretching cells across their assigned rows/columns and
+gaps, less margins. Explicit Grid dimensions, parent allocation and Grid flex
+weight select allocated axes; child flex weights do not set track proportions.
+The default row/column gap is 6 pixels. Nested padding follows HBox/VBox.
+Hidden cells retain native state without contributing to track sizing; removed
+or hidden trailing cells allow automatic dimensions to shrink. Unplaced manual
+declarations are reclaimed, and placed Spacers are ignored by layout/input.
+The shared Grid cookbook runs on both SDL2 and X11.</p>
+<p>LVGL exposes <code>Stack()</code> through <code>cppui/lvgl/layout.hpp</code> or <code>stack.hpp</code>, using
+one native grid cell shared by all layers (<code>LV_USE_GRID</code> required). The last
+declared layer draws on top and receives overlapping pointer input first;
+keyed moves update that order while retaining native widgets and editor state.
+Hidden layers retain their state and do not contribute to automatic sizing or
+pointer hit testing. Automatic axes fit the largest visible layer plus padding
+and margins, with children retaining their natural size at the padded origin.
+Axes allocated by an explicit size, a parent layout or flex weight stretch
+layers to the available space, less each layer's margins. Resetting an axis to
+automatic, hiding or removing a large layer allows it to shrink again.
+Stack shares HBox/VBox's nested padding rules; Spacer is a zero-size ignored
+layout item and does not intercept input. Both SDL2/X11 run the shared Stack
+cookbook.</p>
+<h2 id="spacer">Spacer</h2>
+<p>Include <code>cppui/qt/spacer.hpp</code> or <code>cppui/lvgl/spacer.hpp</code> (also included by each
+backend's <code>layout.hpp</code>) and use <code>CPPUI::Spacer()</code> inside an HBox or VBox:</p>
+<pre><code class="language-cpp">for(auto row: CPPUI::HBox()) {
+    CPPUI::Label(&quot;Start&quot;);
+    CPPUI::Spacer();
+    CPPUI::Label(&quot;End&quot;);
+}
+</code></pre>
+<p>The invisible, non-interactive item fills the space remaining along its physical
+parent's layout axis. Multiple spacers share it equally. The parent must have
+available space; a container sized only to its content supplies no extra space.
+Resize and retained redraw recompute the gap. Like
+<a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/layout.py">PUI's Spacer</a>,
+the declaration is terminal and non-movable; matching positions reuse their
+native objects. Native deletion clears its observer, and declaration teardown
+detaches that observer before a parent deletes its children. Qt uses QSpacerItem
+with Expanding policy on the box axis when it wins flexible space, Fixed otherwise,
+and Minimum on the other axis. Its
+layout owns mounted items; direct removal deletes detached items, and layout
+destruction invalidates the declaration's observer.
+<code>.layout(CPPUI::layout::weight(value))</code> changes the default weight of one.
+Fixed-size spacing remains unimplemented for Qt's non-widget spacer, as in the
+pinned PUI reference.</p>
+<h2 id="divider">Divider</h2>
+<p>Include <code>cppui/qt/divider.hpp</code> and use <code>Divider()</code>. Its sunken QFrame is horizontal
+inside a VBox, vertical inside an HBox (including through virtual views), and
+frameless otherwise. Dividers are terminal and non-movable; removal releases the
+native frame using the normal deferred-deletion lifecycle. Its cross-axis
+expansion follows the current box orientation.</p>
+<p>wx Divider uses a native <code>wxStaticLine</code> with native thickness instead of a
+15-by-15 minimum. It updates orientation and best size when an adaptive box
+changes direction, retaining the same control. Outside a horizontal box it is
+a horizontal line.</p>
+<p>For LVGL, include <code>cppui/lvgl/divider.hpp</code>. The same terminal, non-movable
+declaration draws a one-pixel gray separator across its physical flex parent: a
+horizontal line in a column, a vertical line in a row, and no line outside flex
+layouts. It has no interactive behavior; native parent deletion reclaims it.</p>
+<h2 id="dialogs">Dialogs</h2>
+<p>Include <code>cppui/qt/dialog.hpp</code>. These functions run a modal Qt dialog and return
+after it closes, following <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/dialog.py">PUI's dialog wrappers</a>:</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Arguments in order (defaults)</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OpenDirectory</code></td>
+<td>title (<code>&quot;Open Directory&quot;</code>), directory (<code>&quot;&quot;</code>)</td>
+<td><code>OptionalText</code></td>
+</tr>
+<tr>
+<td><code>OpenFile</code></td>
+<td>title (<code>&quot;Open File&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>&quot;&quot;</code>)</td>
+<td><code>OptionalText</code></td>
+</tr>
+<tr>
+<td><code>OpenFiles</code></td>
+<td>title (<code>&quot;Open Files&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>&quot;&quot;</code>)</td>
+<td><code>Optional&lt;std::vector&lt;std::string&gt;&gt;</code></td>
+</tr>
+<tr>
+<td><code>SaveFile</code></td>
+<td>default value (absent), title (<code>&quot;Save File&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>&quot;&quot;</code>)</td>
+<td><code>OptionalText</code></td>
+</tr>
+<tr>
+<td><code>Information</code>, <code>Warning</code>, <code>Critical</code></td>
+<td>message (function name), title (function name + <code>&quot; Dialog&quot;</code>)</td>
+<td><code>void</code></td>
+</tr>
+<tr>
+<td><code>Confirm</code></td>
+<td>message (<code>&quot;Confirm&quot;</code>), title (<code>&quot;Confirm Dialog&quot;</code>)</td>
+<td><code>bool</code> (true only for Yes)</td>
+</tr>
+<tr>
+<td><code>Prompt</code></td>
+<td>prompt (<code>&quot;Input&quot;</code>), title (<code>&quot;Input Dialog&quot;</code>), default value (<code>&quot;&quot;</code>)</td>
+<td><code>OptionalText</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>File filters accept <code>|</code> separators, for example <code>&quot;Text files (*.txt)|All files (*)&quot;</code>.
+SaveFile uses its default value as the initial path when directory is empty;
+it accepts an OptionalText or string. Strings and results use UTF-8.</p>
+<p><code>Optional&lt;T&gt;</code> is a C++11 value type in <code>cppui/optional.hpp</code>; <code>OptionalText</code> aliases
+<code>Optional&lt;std::string&gt;</code>. Default construction means no value. Test it with
+<code>if(result)</code> or <code>hasValue()</code>, then use <code>value()</code>, <code>*result</code>, or <code>result-&gt;...</code>.
+Empty access throws <code>std::logic_error</code>. <code>valueOr(fallback)</code> supplies a default;
+<code>reset()</code> releases the value. Copies own independent values; moves transfer them.</p>
+<pre><code class="language-cpp">auto result = CPPUI::Prompt(&quot;Name&quot;, &quot;Edit name&quot;);
+if(result) {
+    // Accepted, including an empty string. Cancellation has no value.
+    name = *result;
+}
+</code></pre>
+<p>All cancelled file/directory dialogs return no value. This intentionally
+normalizes PUI's empty-string directory cancellation to the agreed Optional
+contract. Message dialogs own and release their native dialog before returning.
+Call dialog helpers on the GUI thread from event handlers, outside builders.
+Native desktop dialog integration still needs real-display validation; automated
+tests exercise Qt's widget dialogs, including their nested event loops.</p>
+<h2 id="modal">Modal</h2>
+<p>Include <code>cppui/qt/modal.hpp</code> and declare it inside an Application or QtView.
+<code>Modal(status, offValue = T{})</code> accepts a <code>State&lt;T&gt;&amp;</code>
+or <code>Binding&lt;T&gt;</code>, with a value convertible to bool. True shows a modal QDialog;
+false hides it. Choose an off-value that converts to false. For example:</p>
+<pre><code class="language-cpp">for(auto window: CPPUI::Modal(modalOpen).title(&quot;Modal Window&quot;).size(400, 240)
+        .open([]() { /* opened */ }).close([]() { /* closed */ })) {
+    CPPUI::Button(&quot;Close Modal&quot;).click([&amp;]() { modalOpen = false; });
+}
+</code></pre>
+<p>Following <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/modal.py">PUI's Modal</a>,
+the declaration is physical and out of order: it does not consume a box,
+splitter, tab-page, or Window central-content slot. Its zero-margin VBox groups
+ordinary children. The nearest physical Qt parent owns the native dialog;
+top-level dialogs are application roots. Redraw retains the dialog and replaces
+its binding and callbacks. Native close, Escape/reject, and accept write the
+current off-value; hiding through the binding does not perform another write.
+Removing the declaration hides and detaches it without writing the borrowed
+model during teardown.</p>
+<p><code>.open(callback)</code> and <code>.close(callback)</code> notify once per visibility transition,
+including close on declaration removal. Notifications snapshot the callback at
+the transition and run on the owning view's Qt event context after reconciliation,
+so handlers can mutate State or remove the modal. Destroying that view cancels
+pending notifications and releases their captures; teardown does not invoke
+callbacks into a destroyed model. Exceptions from notifications or native-close
+binding writes are reported to stderr rather than escaping through Qt. Bound
+State changes request a queued redraw.</p>
+<p><code>.title(text)</code> owns UTF-8 text; omission preserves the current title. <code>.size(w,h)</code>
+resizes only when the declared size changes, preserving a user's resize across
+unchanged redraws. Omitting and later restoring the size declares it anew.
+<code>.maximize(bool = true)</code> and <code>.fullscreen(bool = true)</code> set initial flags during
+construction. Calls on mounted declarations do not change live native state.
+Initial flags are not reapplied on redraw; native interop can change live state. Keep state, not borrowed node
+references, between redraws. Window-manager behavior still needs real-display
+validation beyond the automated offscreen tests.</p>
+<h2 id="tabs">Tabs</h2>
+<p>Include <code>cppui/qt/tab.hpp</code>, <code>cppui/lvgl/tab.hpp</code>, or <code>cppui/wx/tab.hpp</code> for the
+selected backend. Use normal construction scopes:</p>
+<pre><code class="language-cpp">for(auto tabs: CPPUI::Tabs()) {
+    for(auto first: CPPUI::Tab(&quot;Tab 1&quot;).id(&quot;first&quot;)) {
+        CPPUI::Label(&quot;Content 1&quot;);
+    }
+    for(auto second: CPPUI::Tab(&quot;Tab 2&quot;)) {
+        CPPUI::Label(&quot;Content 2&quot;);
+    }
+}
+</code></pre>
+<p>Qt follows <a href="https://github.com/buganini/PUI/blob/65f2c02/PUI/selection.py">PUI's selection contract</a>:
+<code>Tabs()</code> keeps an internal selection; <code>Tabs(Binding&lt;OptionalText&gt;)</code> or
+<code>Tabs(State&lt;OptionalText&gt;&amp;)</code> accepts an external model. Use
+<code>Tabs(Side::BOTTOM, model)</code> to combine placement and binding. The selection key is a Tab's
+non-empty <code>.id()</code>, falling back to its label. The first matching key wins.
+Native selection and <code>.select(key)</code> write through the current model. Binding
+updates, insertion, removal and reordering do not write back during reconciliation.</p>
+<p>An absent or unknown key displays the first tab without changing the external
+model; an empty container selects no page. The internal model initially records
+the first available tab's key. Clearing it with <code>.select()</code> displays the first tab;
+unknown keys remain stored and select a matching page if it returns. Empty-string
+keys are allowed for Tabs, including a Tab with an empty label. As with Views,
+<code>select()</code> must use the current mounted declaration, not a saved factory reference.</p>
+<p>Qt <code>Tab(label)</code> is a physical, zero-padding VBox page. Empty Tabs still have a
+page, and multiple controls or virtual subviews stay together on that page.
+Direct children of Tabs must be Tab declarations; invalid children are rejected
+before native reconciliation. Keyed moves and selection changes preserve native
+pages, local view state and controls. Removed pages are reclaimed normally.</p>
+<p><code>Tabs(tabposition = Side::TOP)</code> accepts the shared <code>CPPUI::Side</code> enum:
+<code>TOP</code>, <code>RIGHT</code>, <code>BOTTOM</code>, and <code>LEFT</code> (<code>cppui/side.hpp</code>). Raw strings are no
+longer accepted. Qt and LVGL update native placement on redraw while preserving
+pages; wx recreates its notebook when the side changes.</p>
+<p>LVGL still uses virtual Tab declarations: each physical descendant creates a
+native tabview page, so group multiple controls in an explicit VBox or HBox.
+Empty virtual Tabs create no page. Its legacy label update uses direct declaration
+indexes: two physical children in Tab(&quot;A&quot;) followed by one in Tab(&quot;B&quot;) display
+A, B, B. Keyed moves retain child widgets and selection; removing the selected
+page clamps its index. Empty tabviews retain their native container. The optional
+selection API remains to port to LVGL. The optional
+selection API also remains to port to wx; wx already owns one panel per Tab.</p>
+<h2 id="views">Views</h2>
+<p>Include <code>cppui/qt/views.hpp</code>, <code>cppui/wx/views.hpp</code> or <code>cppui/lvgl/views.hpp</code>.
+<code>Views()</code> owns an internal selection, initially empty;
+<code>Views(Binding&lt;OptionalText&gt;)</code> or <code>Views(State&lt;OptionalText&gt;&amp;)</code> uses an
+external model. Every direct child must have a unique, non-empty <code>.id()</code>.
+Each child receives a native page, including virtual subviews that render zero
+or multiple controls. Switching pages preserves native controls, view instances,
+and local state. Keyed reordering retains pages; removal destroys them.
+Qt uses QStackedWidget with a VBox page per child. wx uses wxSimplebook with a
+wxPanel and zero-padding VBox sizer per child, so empty and multi-root subviews
+remain a single page there too. Both reserve an empty native page for no selection.
+LVGL uses a retained VBox container per child and hides every page when selection
+is empty or unmatched. Each page fills the Views container.</p>
+<p>Set the binding or call <code>.select(&quot;editor&quot;)</code> on the current mounted Views
+declaration. <code>.select()</code> or an empty <code>OptionalText</code> clears the selection.
+Unknown keys display an empty page without changing the model; adding the
+matching page later shows it. Empty strings are rejected. Validation and page
+grouping happen before native reconciliation, so invalid IDs preserve the
+mounted content.</p>
+<p>Unlike Python's retained handles, CPPUI factory references are borrowed and
+must not be saved across redraws. Keep state or resolve the current declaration
+from the owning view when invoking <code>select()</code>. The cookbook demonstrates both
+internal selection and an optional State model with retained editor subviews.
+The Views cookbook page is enabled for Qt, wx, SDL2 and X11. Its TextField and
+Change text button update retained local state on every backend.</p>
+<h2 id="canvas">Canvas</h2>
+<p>Include <code>cppui/qt/canvas.hpp</code>, <code>cppui/wx/canvas.hpp</code> or <code>cppui/lvgl/canvas.hpp</code> for the selected backend.
+A painter receives a <code>CanvasPainter&amp;</code> valid for
+that invocation. It supplies drawing operations and the current logical <code>width</code>,
+<code>height</code>, and <code>pixel_density</code>; it is separate from the borrowed node declaration.</p>
+<pre><code class="language-cpp">CPPUI::Canvas([](CPPUI::CanvasPainter &amp; canvas) {
+    canvas.drawRect(10, 10, 50, 40, 0xCCCCCC, 0xFF00FF, 2);
+    canvas.drawLine(0, 0, 80, 60, &quot;yellow&quot;);
+    canvas.drawCubicBezier({10, 80}, {25, 20}, {75, 80}, {90, 20}, 0x00FFFF, 2);
+});
+</code></pre>
+<p>Callbacks can return void or bool. Returning true requests another native paint;
+false/void waits for an ordinary update. Read reactive State during <code>content()</code>
+and capture its value in the painter so the surrounding view tracks the read.
+Redraw reuses the native widget and replaces its painter. Active callbacks are
+copied before invocation, and queued painting becomes inert on removal.</p>
+<p>All three backends include <code>drawText</code>, <code>drawLine</code>, <code>drawPolyline</code>, <code>drawCubicBezier</code>,
+<code>drawPolygon</code>, <code>drawRect</code> and <code>drawEllipse</code>; Qt and wx also have <code>drawImage</code>. Coordinates are logical
+pixels. Colors accept <code>0xRRGGBB</code>, color names or strings such as <code>&quot;#ff0000&quot;</code>.
+Use <code>{}</code> for an absent color: shape fill and stroke are disabled when absent;
+text uses the frame's default foreground. Rectangles take
+two corners, ellipses take center/radii, and coordinate sequences use
+<code>std::vector&lt;CanvasPoint&gt;</code> or initializer lists.</p>
+<p>Qt caches pens/brushes and wx caches graphics pens/brushes/fonts within each
+paint invocation. Each primitive chooses its own styles; text and images restore
+their temporary transforms and opacity changes. Qt restores native painter state
+when the <code>CanvasPainter</code> is destroyed, including during exception unwinding.
+wx uses a fresh graphics context for each widget paint; its graphics pen, brush
+and font wrapper objects are not part of the native graphics-state stack.
+Caches do not retain resources across frames or widgets. The newer PUI guards
+that skip repeated pen/brush setters were measured separately in C++; they are
+not adopted because the native gains were small or inconsistent.
+See the <a href="https://github.com/buganini/CPPUI/blob/main/doc/canvas-performance.md">benchmark decision</a>.</p>
+<p>All three <code>CanvasPainter</code> implementations expose <code>push()</code> and <code>pop()</code> inside the
+paint callback. Qt saves/restores full native state (pen, brush, font, transform,
+clip and opacity), including nested scopes. wx saves/restores the most recently
+selected CPPUI graphics pen and brush, initially null; it does not save transforms,
+clipping or fonts. When constructing a painter around a preconfigured borrowed wx
+graphics context, choose its styles through CPPUI before pushing: wx provides no
+getters for arbitrary existing graphics pens/brushes. LVGL scopes are compatibility
+no-ops because every recorded command owns its style.</p>
+<p>Balance scopes within the callback; Qt/wx throw <code>std::logic_error</code> for an unmatched
+<code>pop()</code>. Qt unwinds any still-open native scopes at frame teardown, including on
+exceptions. Native access is not intercepted: finish raw drawing and pop before
+resuming CPPUI helpers. A native operation should set its own styles explicitly.
+CPPUI painter objects remain borrowed for this invocation only.</p>
+<p><code>drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0, anchor = Anchor::LEFT_TOP)</code> uses canvas dimensions for negative w/h and keeps
+the native font for negative size. <code>Anchor</code> has the reference's nine positions;
+it selects the text rotation pivot while x/y is the unrotated text origin.</p>
+<p>The LVGL 9.6 backend uses an owned ARGB8888 buffer at native pixel resolution
+(<code>pixel_density == 1</code>). Native size changes replace the buffer and request a
+frame; the initial size is 100x100 until a parent/layout overrides it. Its
+software renderer approximates curves and ellipses with line segments and uses
+even/odd polygon fills, including concave and self-intersecting polygons.
+Pixel-identical Qt antialiasing and stroke joins are not guaranteed.</p>
+<p>LVGL text uses the object's native bitmap font, scaled to <code>size</code> pixels of line
+height (Qt uses font points); negative size preserves the native font. Text
+rotation and all nine anchors are supported. Colors accept RGB integers,
+<code>#RGB</code>, <code>#RRGGBB</code>, <code>#AARRGGBB</code>, the 16 basic HTML color names, <code>grey</code>, <code>magenta</code>,
+<code>cyan</code>, <code>orange</code>, and <code>transparent</code>, case-insensitively. Other names throw
+<code>std::invalid_argument</code>; use RGB values for portable colors outside that set.
+Font loading, LVGL ImageResource/drawImage, and display-density scaling remain
+pending. Basic drawing needs LVGL Canvas and its software drawing support,
+without ThorVG or another vector graphics dependency.</p>
+<p>On Qt, <code>ImageResource::load(path)</code> owns its image data. <code>crop(x, y, width, height)</code> and
+<code>scale(width, height, keepAspectRatio = true, quality = 0)</code> return new values;
+zero quality means fast scaling, other values smooth. Missing files produce an
+empty resource (<code>isNull()</code>); drawing it does nothing. Image resources can also
+be included independently through <code>cppui/qt/image_resource.hpp</code>.
+<code>drawImage(image, x = 0, y = 0, width = -1, height = -1, src_x = 0, src_y = 0, src_width = -1, src_height = -1, opacity = 1)</code> infers negative dimensions from
+the source region. The resource exposes <code>width()</code> and <code>height()</code>.</p>
+<p>Paint contexts must not escape their callback. As with native Qt paint handlers,
+Qt callbacks must not throw through Qt, run nested event loops, or synchronously
+destroy the painting widget or its ancestors. Framework redraw/removal may run
+during the callback; normal deferred native deletion occurs after it returns.
+LVGL records each callback's drawing commands before native rendering. Redraw
+or removal during the callback discards that obsolete frame safely. Exceptions
+are caught at the LVGL timer boundary and reported to stderr; a throwing user
+callback leaves the previous frame intact. False/void pauses the paint timer;
+true requests a frame on the next LVGL refresh interval. Teardown cancels the
+timer and releases captures, and the native object retains its buffer until
+deletion, including when an ancestor owns that deletion. Run callbacks on the
+UI thread without nested event loops or display/runtime teardown.
+Use <code>layout::width</code>/<code>layout::height</code> for the canvas size and <code>style::bgColor</code> for
+its background. The shared cookbook's 100×100 gray canvas settings can be written
+with named arguments as:</p>
+<pre><code class="language-cpp">CPPUI::Canvas([](CPPUI::CanvasPainter &amp;) {})
+    .layout(CPPUI::layout::width(100), CPPUI::layout::height(100))
+    .style(CPPUI::style::bgColor(0x555555));
+</code></pre>
+<p>Qt, wx and LVGL provide <code>.mousemove(callback)</code>, <code>.mouseleave(callback)</code> and
+<code>.wheel(callback)</code>. Move/wheel callbacks receive <code>const CanvasPointerEvent&amp;</code>
+from <code>cppui/canvas_input.hpp</code>; leave takes no arguments. <code>x</code>/<code>y</code> are local logical
+pixels. <code>angleX</code>/<code>angleY</code> preserve native wheel rotation units (normally 120 per
+notch); Qt also supplies native <code>pixelX</code>/<code>pixelY</code> when available, while wx and LVGL leave
+pixel deltas zero. Positive vertical deltas point up. These two delta units are
+separate; consumers may use direction when exact distance is unnecessary.
+Callbacks are replaced on redraw, omitted callbacks are cleared, and dispatch
+copies the callable before invocation so it may redraw/remove its own Canvas.
+Exceptions are reported to stderr. A wheel handler consumes the event; without
+one, native scrolling can handle it. Other pointer events and modifiers remain to port. Qt/wx also support the
+portable drag-enter/drop contract below.</p>
+<p>LVGL input uses native hit testing, including clipping and overlays. SDL2 pointer
+wheel samples (<code>LV_SDL_MOUSEWHEEL_MODE_CROWN</code>) and X11 encoder samples map one
+vertical step to 120 angle units;
+window exit clears hover. The cookbook installs the LVGL 9.6 input bridge through
+<code>cmake/CPPUILVGLInput.cmake</code>. Other hosts must include that file and call
+<code>cppui_lvgl_input_bridge(lvgl &quot;${LVGL_SOURCE_DIR}&quot;)</code>
+after creating their LVGL target. It builds corrected source copies without
+changing the SDK checkout or replacing driver callbacks. Create input devices
+before mounting Canvas, or redraw after adding devices. Input callbacks run on
+the UI thread; they may redraw/remove Canvas, but must not destroy the input
+device, display or LVGL runtime during native input dispatch.</p>
+<p>Canvas <code>.showFps(bool = true)</code> displays the rate of completed native draws, with
+text updates at most twice per second. It defaults to false and resets when
+omitted on redraw. The overlay itself does not request another frame. FPS
+measures Canvas drawing, not compositor presentation. HeavyCanvas includes
+&quot;Run continuously (FPS)&quot; and &quot;Full-frame changes&quot; controls. The latter changes
+explicit command colors each frame while preserving geometry and data.</p>
+<p>The Qt/wx/LVGL HeavyCanvas cookbook uses these callbacks for hover inspection and
+cursor-anchored wheel zoom over 1,000–1,000,000 synthetic sessions. It draws OHLCV,
+Bollinger bands, K/D and RSI and provides regenerate/reset controls. Data is
+repeatable for a seed within the C++ implementation; its random sequence is not
+identical to Python's. SDL2 and X11 use the same recipe and exercise their native
+input queues in the cookbook smoke test. Date labels are retained through
+500,000 sessions; larger datasets use zero-based indices with thousands
+separators (for example <code>999,999</code>). Every session is drawn: the largest presets
+are deliberate rendering stress workloads.
+<strong>Won't do — Shapely and Matplotlib:</strong> Python-only <code>Canvas.drawShapely</code> and
+<code>MatplotlibCanvas</code> integrations are excluded from CPPUI and its cookbook.</p>
+<h2 id="label">Label</h2>
+<p>Qt and LVGL <code>Label(text).click(callback)</code> dispatch a no-argument callback.
+Qt uses mouse press, as PUI does, and commits the focused editor first.
+Redraw replaces or clears the handler and preserves unrelated native listeners.
+The callback may redraw or remove its own declaration. Label owns its literal
+text. Qt supports mouse selection and resets omitted selection/cursor/handler
+properties; interactive selection remains pending on LVGL. Typed input events
+remain deferred on both backends.</p>
+<h2 id="text">Text</h2>
+<p>Include <code>cppui/qt/text.hpp</code> for <code>Text(text, selectable = false)</code>,
+<code>Html(text, selectable = false)</code>, and <code>MarkDown(text, selectable = false)</code>.
+They own their strings and use a wrapping, top-aligned QLabel with explicit
+plain, rich, or Markdown format. Text and selection flags update on retained
+widgets. <code>Label(text, selectable = false)</code> also supports mouse text selection,
+while keeping its literal plain-text format and normal single-line layout.</p>
+<p>For LVGL, include <code>cppui/lvgl/text.hpp</code> and use <code>Text(text)</code>. It owns literal
+text, wraps to its available width and recalculates its content height. Native
+reuse updates the text. <code>selectable=true</code> throws <code>std::invalid_argument</code> because
+interactive selection is not yet implemented in CPPUI's LVGL backend.
+<code>Html</code> and <code>MarkDown</code> are raw-source fallbacks using the same wrapping Text widget.
+Their factories emit call-site compiler warnings through <code>CPPUI_UNSUPPORTED</code>;
+including the header alone is quiet. Their <code>selectable</code> argument has the same
+restriction as Text. Formatted rendering remains unimplemented. The shared Text
+cookbook page is enabled on SDL2/X11, marked partial, and displays a notice above
+the examples identifying these fallbacks.</p>
+<h2 id="splitter">Splitter</h2>
+<p>Include <code>cppui/qt/splitter.hpp</code> and use <code>Splitter(vertical = false)</code> as a child
+construction scope. It defaults to horizontal; <code>Splitter(true)</code> is vertical.
+Redraw updates orientation while retaining the native splitter and its panes.
+Unchanged redraw preserves user-adjusted pane sizes. Keyed children can move,
+be inserted or removed, including flattened virtual subviews. Nested splitters
+are supported; removed panes follow the normal deferred-deletion lifecycle.</p>
+<p>For wx, include <code>cppui/wx/splitter.hpp</code> and use the same <code>Splitter(vertical = false)</code>
+scope. It follows PUI/wx's nested native two-pane splitters to support any number
+of children, including zero and one. Each child has a native pane panel; widgets,
+layouts and flattened virtual views are supported, with their padding and minimum
+size applied inside the pane. A hidden child hides its content but retains its pane.</p>
+<p>Unchanged composition preserves native sashes and user-adjusted positions.
+Keyed insertion/removal/reordering or orientation changes rebuild the native
+splitter chain and distribute space equally, matching PUI; retained panes and
+their controls keep identity and editor drafts. Native sash gravity shares later
+resize deltas across the panes. Independent virtual-view redraws also reconcile
+the physical container. Native MDI and nonblocking Modal remain separate wx work.</p>
+<h2 id="wx-controls">wx controls</h2>
+<p>wx HBox centers compact children vertically; VBox aligns compact children to
+the left. Children requesting cross-axis expansion still fill that axis.
+Omitted background colors preserve native defaults; removing an explicit
+background resets native inheritance with wxNullColour. Tabs retain expansion
+priority 2 on both axes, matching the current PUI/wx behavior.</p>
+<p>wx uses the shared Binding/State signatures for Checkbox, RadioButton, TextField
+and ComboBox. TextField preserves drafts during redraw, commits once on Enter
+or focus loss, and commits a focused editor before button callbacks. Programmatic
+updates do not emit input callbacks. TextField expands horizontally at its native
+height with no forced minimum width; explicit layout dimensions override these
+defaults and reset when omitted. RadioButton uses <code>wxRB_SINGLE</code>, with grouping
+provided by its model as in PUI/wx. ComboBox preserves unbound keyed selection and
+editable free text, maps labels to raw string values, and remounts when its native
+editable style changes. Grid uses existing row/column/span fields. ProgressBar
+uses integer hundredths, clamps to its range and treats a zero maximum as range
+one, matching PUI/wx rather than promising a busy indicator.</p>
+<p>Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
+HTML subset; its selection behavior is native. Its best client size follows the
+parsed content and refreshes when that content changes; it expands on both
+layout axes, subject to sibling expansion priorities. MarkDown displays the
+original source as plain multiline text, following PUI/wx. Its optional
+<code>selectable</code> flag uses a read-only multiline text control. Markdown formatting
+remains unimplemented.
+The shared Text cookbook calls all three public factories directly.</p>
+<p>The wx MarkDown factory has a <code>CPPUI_UNSUPPORTED</code> annotation from
+<code>cppui/diagnostics.hpp</code>. GCC/Clang and MSVC emit a custom deprecation warning at
+each call site, explaining the raw-text fallback. Including the header alone
+does not warn. Normal builds still compile; projects treating deprecation warnings
+as errors must allow this diagnostic explicitly if they want the fallback.</p>
+<p>wx Scroll retains manual offsets and end-relative anchors when content changes.
+Tabs uses wxNotebook with a physical wxPanel per Tab, following PUI/wx; each
+page accepts one widget or layout. Keyed reordering retains the selected page.
+Menus support nested menus and replaceable callbacks. TimelineView
+uses a native wxTimer and stops it on removal. Standard dialogs use the shared
+Optional results; accepted empty text is distinct from cancellation. Prompt and
+paths convert explicitly through UTF-8. Scripted tests cover these interactions,
+including modal acceptance/cancellation and callbacks that remove themselves.</p>
+<p>wx Canvas provides the shared primitive, text, image, opacity and repeating-paint
+API through wxGraphicsContext. Paint callback replacement/removal invalidates
+repeat requests; exceptions are reported at the native event boundary. Coordinates
+use native logical pixels and <code>pixel_density</code> reports content scale. ImageResource
+supports loading, bounded cropping and aspect-preserving scaling; invalid sources
+produce a null resource. Image widgets cache source path/mtime and scale to declared
+dimensions. Native pixel checks and paint self-removal pass sanitizers and Valgrind.</p>
+<p>wx Table and Tree accept the shared declarative nodes and typed adapter handles.
+Table separates raw edit values from display text and choice labels, validates
+scalar conversions and cancels editors when their model generation changes.
+Tree uses model-owned records for native item IDs, retains keyed selection and
+expansion across redraw/reorder, and suppresses callbacks during restoration.
+Adapter reads happen during construction so failed getters preserve the previous
+native UI. Callback snapshots allow synchronous removal; models release adapter
+ownership on teardown. Native edits, retained state and adapter lifetimes pass
+sanitizers and Valgrind on wxGTK.</p>
+<p>wx Stack owns a native panel and overlays padded children at the same size and raises later children
+above earlier ones. It uses native controls and their native background/hit-test
+behavior; it does not rasterize the child hierarchy.</p>
+<h3 id="environment-options">Environment options</h3>
+<p><code>CPPUI::Options()</code> returns a process-local <code>std::map&lt;std::string, std::string&gt;</code>
+initialized from <code>PUI_OPTIONS</code> on first access. The environment syntax is
+<code>#name=value#other=value</code> (the first <code>#</code> is optional). Names and values use UTF-8
+percent encoding; <code>+</code> remains literal, and values remain strings. The last valid
+entry wins. Malformed entries emit a warning and leave valid entries intact.
+<code>loadEnvironmentOptions()</code> replaces the map from the current environment.
+Initialize/reload on the UI thread before sharing values with workers. This is
+host input only; Web URL subscriptions and AI IPC are excluded.</p>
+<h3 id="named-node-references">Named node references</h3>
+<p>Declare <code>.ref(&quot;name&quot;)</code> on a node and look it up with <code>CPPUI::ref(&quot;name&quot;)</code> after
+mounting. Names are process-local; lookup and <code>binder.node()</code> inspection belong
+on the UI thread. Missing names throw <code>std::out_of_range</code>. Keep a binder value
+instead of a borrowed declaration pointer when it must survive redraws.</p>
+<p><code>binder.select(OptionalText)</code> queues selection on Tabs/Views (Qt, wx and LVGL).
+Qt/wx Window binders also provide <code>maximize(bool)</code>, <code>minimize(bool)</code> and
+<code>fullscreen(bool)</code> for live changes. Declaration setters remain initial-only.
+A binder obtained on the UI thread may submit commands from a worker; commands
+never run synchronously. Qt/wx use their native queues; LVGL drains a protected
+queue on its normal refresh timer without calling LVGL from the worker.</p>
+<p>A binder follows matching reconciled declarations. Renaming a ref, changing
+node identity/type, or removing its node expires that binder; already queued
+commands are discarded, and new commands throw <code>std::runtime_error</code>. A missing
+capability throws <code>std::logic_error</code>. Duplicate names resolve to the most recently
+published node; removing an older owner does not erase the current registration.
+A binder does not own a native widget. Join application workers before tearing
+down the backend runtime. wx/LVGL Tabs retain their existing native selection
+contract; their optional State selection models remain an older porting gap.</p>
+<p>The Refs cookbook demonstrates queued selection and desktop window operations.
+State-ref publishing for Web/AI inspection is excluded from this native sync.</p>
+<h3 id="portable-inbound-drops-qtwx">Portable inbound drops (Qt/wx)</h3>
+<p><code>.dragEnter(callback)</code> and <code>.drop(callback)</code> receive a <code>CPPUI::DropEvent &amp;</code>.
+Use <code>.drop(callback, {&quot;.txt&quot;, &quot;.json&quot;})</code> to filter file suffixes (ASCII case
+insensitive, including compound suffixes such as <code>.tar.gz</code>). A supplied list must
+be nonempty. Include <code>&quot;/&quot;</code> to allow directories; an omitted filter accepts both
+files and directories. Directories retain their original path and
+<code>temporary=false</code>; use filesystem inspection to distinguish them. CPPUI does
+not enumerate or copy their contents. One invalid file or disallowed directory
+rejects the entire batch before dispatch. Text and URLs are unaffected by the
+file filter. Disabled targets reject drops.</p>
+<p>Events own <code>files</code> (<code>DropFile{name, path, temporary}</code>), optional <code>text</code>, <code>urls</code>,
+optional local <code>x</code>/<code>y</code>, and an <code>action</code> string (<code>copy</code>, <code>move</code>, <code>link</code>). Native
+files have <code>temporary=false</code>. Call <code>event.accept()</code> explicitly, or
+<code>event.reject(reason)</code>. Returning without accepting rejects the drop; exceptions
+reject and report to stderr. Acceptance never reads, copies, moves or deletes a
+file. The Drop cookbook reads text files in its application callback.</p>
+<p>Qt converts MIME data for widget and scroll-area viewport events. wx negotiates
+file lists, Unicode text and URI lists; drag-enter only has coordinates/action
+before data transfer. Native callbacks are replaced on redraw and cleared on
+removal. Events can be copied for later use, without retaining toolkit events.
+LVGL desktop file-drop bridging and browser uploads are not implemented here.
+Tree-specific outbound drag/model reordering remains a separate porting gap.</p>
+<h3 id="optional-filesystem-policy">Optional filesystem policy</h3>
+<p>Qt/wx/LVGL applications accept <code>run(const LandlockPolicy &amp;)</code> and
+<code>start(const LandlockPolicy &amp;)</code>. Default entrypoints remain unrestricted.
+<code>LandlockPolicy</code> contains <code>read</code>, <code>write</code>, and <code>execute</code> path vectors. Linux
+fails startup if the requested policy cannot be applied. See
+<a href="https://github.com/buganini/CPPUI/blob/main/doc/landlock.md">Landlock semantics and startup requirements</a>, including
+<code>applyLandlock(policy)</code> for application-controlled early initialization.</p>
+<h2 id="ui-callbacks">UI callbacks</h2>
+<p>On the UI thread, call <code>node-&gt;getPoster()</code> on a current mounted widget to obtain
+an independent <code>CPPUI::Poster</code> (<code>cppui/poster.hpp</code>). A worker may copy it and call
+<code>post(callback)</code> or <code>post(callback, delayMilliseconds)</code>; callbacks execute on the
+UI loop. Delay defaults to zero, must be finite and non-negative, and is measured
+from submission using a monotonic clock. Empty callbacks are rejected. Timers may
+run late when the UI is busy; queued time is deducted from the requested delay.</p>
+<p>Posters follow retained native widgets across reconciliation. Removing the target
+cancels pending execution; posting to an expired target is a no-op. Callbacks must
+still keep any other captured objects alive. Stop workers before destroying the
+backend runtime. Qt uses queued dispatch and precise timers, wx uses CallAfter
+and native timers, and LVGL drains its thread-safe queue on the UI timer loop.
+The Refs cookbook demonstrates a 500 ms delayed increment.</p>
+<h2 id="responsive-layout">Responsive layout</h2>
+<p>Qt, wx and LVGL evaluate adaptive declarations using the nearest non-virtual
+parent's measured content area. Nested panels therefore respond to their own
+parent's size. Conditions use its full content area, rather than the space
+remaining after siblings. Thresholds and measurements use native logical pixels.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>API</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Switch row/column direction</td>
+<td><a href="#adaptive-box-layouts"><code>HVBox(minWidth)</code> / <code>VHBox(minHeight)</code></a></td>
+</tr>
+<tr>
+<td>Reverse visual order</td>
+<td><a href="#box-layouts"><code>HBox(true)</code> / <code>VBox(true)</code></a>, or adaptive <code>inverseH</code> / <code>inverseV</code> arguments</td>
+</tr>
+<tr>
+<td>Change Grid columns or child placement</td>
+<td><a href="#grid-and-stack"><code>.wideColumns()</code> / <code>.wideGrid()</code></a></td>
+</tr>
+<tr>
+<td>Show or hide by width/height</td>
+<td><a href="#reactive-size-and-adaptive-visibility"><code>.visible(true, VisibilityBounds{...})</code></a></td>
+</tr>
+<tr>
+<td>Override dimensions, weight or spacing</td>
+<td><a href="#pui-modifiers"><code>.wideLayout(minWidth, ...)</code></a></td>
+</tr>
+<tr>
+<td>Override colors or fonts</td>
+<td><a href="#pui-modifiers"><code>.wideStyle(minWidth, ...)</code></a></td>
+</tr>
+<tr>
+<td>Make custom C++ decisions</td>
+<td><a href="#reactive-size-and-adaptive-visibility"><code>container.size().get()</code></a>, returning <code>Optional&lt;Size&gt;</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Declare base settings first, then overrides. Wide thresholds include the
+boundary; when several match, the last supplied value wins in declaration
+order, regardless of threshold order. Resizing below a threshold rebuilds
+the declaration with its base settings. Before the first measurement, size
+is empty and wide overrides do not apply. Visibility minima are inclusive,
+maxima exclusive, and bounded visibility is false until size is known.</p>
+<pre><code class="language-cpp">// Inside content(), with the selected backend's headers included:
+for(auto panel: CPPUI::VBox().layout(CPPUI::layout::weight(1))) {
+    CPPUI::Label(&quot;Title&quot;)
+        .style(CPPUI::style::fontSize(14))
+        .wideStyle(600, CPPUI::style::fontSize(18))
+        .wideStyle(1000, CPPUI::style::fontSize(24));
+    CPPUI::Button(&quot;Save&quot;)
+        .layout(CPPUI::layout::width(120))
+        .wideLayout(600, CPPUI::layout::width(160), CPPUI::layout::padding(8));
+    for(auto box: CPPUI::HVBox(600)) {
+        CPPUI::Label(&quot;Name&quot;);
+        CPPUI::Label(&quot;Details&quot;).visible(true, CPPUI::VisibilityBounds{600});
+    }
+}
+</code></pre>
+<p>Each condition reads its own nearest physical parent: the <code>HVBox</code> above reads
+the outer <code>VBox</code>, while the Details label reads the <code>HVBox</code>. The same threshold
+can therefore match differently if the two containers receive different widths.</p>
+<p>Size observation starts lazily when needed. Native layout reports a measurement,
+size State notifies subscribed views, and those views rerun <code>content()</code>.
+Conditions are evaluated during C++ declaration construction; there is no stored
+breakpoint table. Matched nodes retain their size State. Identical measurements
+do not notify, but a changed size can rebuild a subscribed view even when it
+stays on the same side of a breakpoint.</p>
+<p>Adaptive declarations choose settings before the normal native layout runs.
+They keep the same properties and backend limitations as ordinary layout/style,
+including sibling weights and size hints. The modifiers do not change node
+identity; matched native controls remain retained. Content-dependent parent
+sizing can feed back into a breakpoint, so prefer a parent whose size is set by
+its surrounding layout. No arbitrary size cap is added, and very small
+containers can still overflow. See the <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/adaptive.cpp">Adaptive cookbook</a>
+and the detailed APIs below.</p>
+<h2 id="visibility">Visibility</h2>
+<p><code>.visible(bool = true)</code> hides an ordinary widget or layout without removing its
+node or native control. Hidden content takes no layout space, including its
+padding/margin and box stretch, and receives no normal user input. Hidden
+subtrees freeze child reconciliation. Initially hidden containers defer child
+creation until shown; already mounted children retain their native state. State
+changes in hidden views are refreshed when the ancestor becomes visible again.
+Callbacks/timers on retained controls continue. Omission on a new declaration
+restores visibility. Explicit Grid coordinates are retained.</p>
+<p>Qt uses native widget visibility and collapses Spacer stretch; wx hides the
+whole padded sizer item and preserves explicitly hidden descendants when an
+ancestor is shown; LVGL uses its hidden flag. Container-specific native sizing
+still applies (for example, Qt Stack computes its preferred size across layers).
+Window, Tab, ComboBoxItem, TableNode and virtual views do not implement this
+modifier; apply it to their physical content instead. The Label cookbook includes
+a Show greeting checkbox.</p>
+<h2 id="reactive-size-and-adaptive-visibility">Reactive size and adaptive visibility</h2>
+<p><code>node.size()</code> returns a read-only <code>SizeBinding</code>. <code>.get()</code> returns
+<code>Optional&lt;Size&gt;</code>: empty before the first native layout measurement, then
+<code>Size { width, height }</code> in native logical pixels. Reading the binding inside
+<code>content()</code> subscribes that view to size changes. A saved binding follows the
+retained node across redraws. Removing the node stops observations; the binding
+can still read its last measurement. Observe physical widgets/layouts, not
+virtual views or item declarations without a native surface.</p>
+<p>Qt measures the content rectangle minus layout margins; Window uses its central
+widget. wx measures a sizer's allocated size or a window's client size. LVGL
+measures the content area excluding padding/borders. Measurements are coalesced
+and published after layout; unchanged dimensions do not trigger another redraw.
+Only nodes used by <code>.size()</code>, constrained <code>.visible()</code>, adaptive boxes or
+<code>.wideLayout()</code>/<code>.wideStyle()</code> install observers.
+<code>Window::size(width, height)</code> sets window dimensions (owned desktop displays for
+LVGL), and Qt <code>Modal::size(width, height)</code> sets modal dimensions; zero arguments
+observe the actual content size.</p>
+<p>Use <code>VisibilityBounds</code> for PUI's optional width/height limits:</p>
+<pre><code class="language-cpp">for(auto scope: CPPUI::VBox()) {
+    for(auto compact: CPPUI::VBox().visible(true, {{}, 600})) {
+        CPPUI::Label(&quot;Compact layout&quot;);
+    }
+    for(auto wide: CPPUI::HBox().visible(true, {600})) {
+        CPPUI::Label(&quot;Wide layout&quot;);
+    }
+}
+</code></pre>
+<p>The fields/constructor arguments are <code>minWidth</code>, <code>maxWidth</code>, <code>minHeight</code>,
+<code>maxHeight</code>, each <code>Optional&lt;int&gt;</code>. <code>{}</code> omits a limit; zero is an explicit bound.
+Minima are inclusive and maxima exclusive. Bounds refer to the nearest physical
+parent's content size, skipping virtual ancestors. Before that size is known,
+constrained branches remain hidden and their children are not mounted. Passing
+<code>false</code> still hides the branch regardless of bounds. Showing it later restores
+its retained controls and refreshes frozen nested views.</p>
+<h2 id="adaptive-box-layouts">Adaptive box layouts</h2>
+<p><code>HVBox(int minWidth, bool inverseH = false, bool inverseV = false)</code> arranges children horizontally when the nearest physical
+parent's content width is at least <code>minWidth</code>, and vertically otherwise.
+<code>VHBox(int minHeight, bool inverseH = false, bool inverseV = false)</code> arranges them vertically when that parent's content
+height is at least <code>minHeight</code>, and horizontally otherwise. Unknown measurements
+use the second direction. Virtual views are skipped when choosing the parent.
+Thresholds use native logical pixels and compare the parent's whole content
+area, not the space remaining after siblings.</p>
+<pre><code class="language-cpp">for(auto box: CPPUI::HVBox(600)) {
+    CPPUI::Label(&quot;Name&quot;);
+    CPPUI::TextField(name);
+    CPPUI::Button(&quot;Save&quot;);
+}
+</code></pre>
+<p>Qt, wx and LVGL change the existing native container's direction, retaining its
+children, editor drafts and cursor positions. Sizing and modifiers follow
+HBox/VBox. <code>inverseH</code> selects reversed order in the horizontal direction, and
+<code>inverseV</code> selects it in the vertical direction. For example,
+<code>HVBox(600, true, false)</code> reverses only its wide horizontal layout.
+Dividers and spacers follow direction changes on all three backends.
+These layouts do not wrap
+children into multiple rows. CPPUI has no Textual backend, so PUI's separate
+terminal-cell APIs (<code>tsize</code>, <code>tLayout</code>, <code>tStyle</code> and terminal bounds) are not exposed.</p>
+
+        </article>
+        <footer>
+            <a href="https://github.com/buganini/CPPUI/blob/main/doc/Reference.html">Edit this reference</a>
+            &middot; Remaining alignment work:
+            <a href="https://github.com/buganini/CPPUI/blob/main/doc/qt-progress.md">Qt</a>,
+            <a href="https://github.com/buganini/CPPUI/blob/main/doc/wx-progress.md">wxWidgets</a>,
+            <a href="https://github.com/buganini/CPPUI/blob/main/doc/lvgl-progress.md">LVGL</a>.
+        </footer>
+    </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script>if (window.hljs) hljs.highlightAll();</script>
+</body>
+</html>
