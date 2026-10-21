@@ -23,15 +23,14 @@ Grid now displays a manual colored mosaic. Adaptive Grid demonstrates
 `.columns()` / `.wideColumns()` at 384/576/768 logical pixels, the three backfill
 modes, hidden-item compaction, keyed reversal and a retained text editor.
 The PUI Code/Result Splitter change is intentionally skipped because CPPUI
-omits the source-code pane. See the [Grid sync audit](../doc/pui-sync-2026-10-21-grid.md).
+omits the source-code pane.
 
 ComboBox demonstrates
 `.autoexpand(false)` and a separate `.editModel(query)` binding. Its application
 matching splits whitespace and OR-matches airport labels: `tai tok` yields four
 Taipei/Tokyo candidates on Qt, wx and LVGL, with their original airport codes.
 Clear resets both query and destination. Uncommitted PUI work, AI development
-and Web/Pyodide changes remain excluded. See the
-[sync audit](../doc/pui-sync-2026-10-21.md).
+and Web/Pyodide changes remain excluded.
 Adaptive displays reactive container dimensions and switches compact/wide layouts
 at 600 logical pixels while sharing input state on Qt, wx and LVGL. It also
 shows a retained input in `HVBox(600)` and height-dependent `VHBox(500)` labels.
@@ -99,7 +98,7 @@ These statuses do not claim that the underlying toolkit lacks the feature.
 Document specific native limitations separately, including any needed adapter
 or custom implementation. The Python-only DrawShapely and Matplotlib recipes
 are intentionally excluded (won't-do).
-The [Qt plan](../doc/pyside6-progress.md) and
+The [Qt plan](../doc/qt-progress.md) and
 [LVGL plan](../doc/lvgl-progress.md) and [wx plan](../doc/wx-progress.md) track remaining components and public APIs.
 Recipes use public CPPUI components and `.layout(...)` / `.style(...)`
 modifiers for sizes, padding, weights, colors and fonts. Use typed named helpers,

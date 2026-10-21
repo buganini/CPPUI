@@ -859,9 +859,8 @@ Validation covers reactive candidate changes, retained editors/carets, input
 binding order, free text equal to an item value, acceptance/dismissal, automatic
 expansion toggles and removal from callbacks. Actual Chinese IME composition,
 screen-reader behavior, platform-specific focus/clipboard interactions and the
-full DPI/theme/scrolling matrix remain unverified; see the
-[sync audit](doc/pui-sync-2026-10-21.md). API availability does not imply that
-those platform cases have passed.
+full DPI/theme/scrolling matrix remain unverified. API availability does not
+imply that those platform cases have passed.
 
 ## RadioButton
 

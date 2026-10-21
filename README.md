@@ -136,7 +136,7 @@ Pass extra configure options with `CMAKE_ARGS='-DOPTION=value'`.
 
 See the [cookbook documentation](cookbook/README.md) for dependencies,
 capabilities and validation limits. Remaining implementation work is tracked in
-the [Qt plan](doc/pyside6-progress.md), [wx plan](doc/wx-progress.md) and
+the [Qt plan](doc/qt-progress.md), [wx plan](doc/wx-progress.md) and
 [LVGL plan](doc/lvgl-progress.md).
 
 # Memory checks

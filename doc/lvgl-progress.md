@@ -59,7 +59,7 @@ results out of this document.
 
 ## Shared-core dependencies
 
-Coordinate these gaps with the [shared/Qt plan](pyside6-progress.md); do not add
+Coordinate these gaps with the [shared/Qt plan](qt-progress.md); do not add
 competing LVGL-specific public contracts.
 
 - [ ] Recover from nested builder failures after native reconciliation starts.
