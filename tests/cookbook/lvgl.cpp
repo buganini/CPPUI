@@ -149,10 +149,23 @@ namespace Cookbook { namespace TestBackend {
         lv_obj_send_event(label, LV_EVENT_CLICKED, nullptr);
         return true;
     }
-    void prepareLayoutCheck(CPPUI::Node &) {
+    void prepareLayoutCheck(CPPUI::Node & root) {
         auto display=lv_display_get_default();
         if(lv_display_get_horizontal_resolution(display)!=1024 || lv_display_get_vertical_resolution(display)!=768)
             throw std::runtime_error("cookbook should open at 1024x768");
+        // Exercise the first visit before resizing or revisiting the page.
+        // Let native focus/scroll animations finish using the normal event loop.
+        selectPage(*find(root,"page:adaptive_grid"));
+        const auto start=lv_tick_get();
+        do { lv_timer_handler();lv_delay_ms(5); } while(lv_tick_elaps(start)<500);
+        auto grid=static_cast<lv_obj_t *>(find(root,"adaptive-grid")->outer());
+        auto viewport=lv_obj_get_parent(grid);
+        if(lv_obj_get_height(grid)>lv_obj_get_content_height(viewport)
+           || lv_obj_get_scroll_y(viewport)!=0
+           || !lv_obj_is_visible(static_cast<lv_obj_t *>(find(root,"A")->outer()))
+           || !lv_obj_is_visible(static_cast<lv_obj_t *>(find(root,"grid-editor")->outer())))
+            throw std::runtime_error("adaptive grid must be visible on its first visit without a resize");
+        selectPage(*find(root,"page:adaptive"));settle();
         lv_display_set_resolution(display,800,600);settle();
     }
     void resizeWindow(CPPUI::Node &,int width,int height) {

@@ -6,6 +6,17 @@
 namespace CPPUI { namespace LVGL {
     class Scroll: public Node {
         Optional<bool> vertical, horizontal;
+        void nativeEvent(lv_event_t * event) override {
+            const auto code=lv_event_get_code(event);
+            if(code==LV_EVENT_SIZE_CHANGED || code==LV_EVENT_CHILD_CHANGED || code==LV_EVENT_CHILD_DELETED) {
+                // Focus scrolling can start before responsive content reflows.
+                // Its old destination must not scroll past the new content bounds.
+                auto object=static_cast<lv_obj_t *>(ui);
+                lv_obj_stop_scroll_anim(object);
+                lv_obj_readjust_scroll(object,LV_ANIM_OFF);
+            }
+            Node::nativeEvent(event);
+        }
         public:
         Scroll(Optional<bool> vertical = {}, Optional<bool> horizontal = false): vertical(vertical), horizontal(horizontal) {
             if((vertical && *vertical && !horizontal) || (horizontal && *horizontal && !vertical))

@@ -1,5 +1,13 @@
 # LVGL implementation progress and remaining work
 
+Adaptive Grid first-visit fix (2026-10-21): Scroll cancels stale native scroll
+animations and clamps its offset when content or viewport geometry changes.
+This prevents initial focus scrolling from hiding the grid after responsive
+column reflow. The cookbook regression opens the page before any resize;
+`lvgl.scroll` also covers both axes, viewport growth, retained offsets and
+ordinary animated scrolling. Both desktop targets build and pass all 29 CTests
+each; the Scroll regression passes Valgrind with no errors or remaining allocations.
+
 The latest 2026-10-21 sync through PUI `d07abf5` adds reversible ordinary/adaptive
 boxes and `.wideGrid()` child placement. Qt adopts shared expansion priorities;
 wx dividers now retain native thickness and update orientation. See the
