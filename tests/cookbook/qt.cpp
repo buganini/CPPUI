@@ -145,6 +145,10 @@ namespace Cookbook { namespace TestBackend {
     void resizeWindow(CPPUI::Node & root,int width,int height) {
         static_cast<QWidget *>(find(root,"cookbook")->outer())->resize(width,height);
     }
+    void resizeCodePane(CPPUI::Node & root,int width) {
+        auto panes = static_cast<QSplitter *>(find(root,"example-panes")->outer());
+        panes->setSizes({width,panes->width()-panes->handleWidth()-width});
+    }
     bool pageVisible(CPPUI::Node & root, const std::string & key) {
         auto scroll = static_cast<QScrollArea *>(find(root, "menu-scroller")->outer());
         auto label = static_cast<QWidget *>(find(root, "page:" + key)->outer());
@@ -154,10 +158,18 @@ namespace Cookbook { namespace TestBackend {
         auto window = static_cast<QMainWindow *>(find(root, "cookbook")->outer());
         auto sidebar = static_cast<QWidget *>(find(root, "menu-container")->outer());
         auto result = static_cast<QWidget *>(find(root, "result")->outer());
+        auto code = static_cast<QWidget *>(find(root, "code")->outer());
+        auto panes = static_cast<QSplitter *>(find(root, "example-panes")->outer());
         auto scroll = static_cast<QScrollArea *>(find(root, "menu-scroller")->outer());
-        if(sidebar->geometry().right() >= result->geometry().left()
-           || result->width() <= sidebar->width() || result->width() < 200 || result->height() < 200) {
-            throw std::runtime_error("cookbook must keep the menu beside the expanding result");
+        if(sidebar->mapTo(window, QPoint(sidebar->width(), 0)).x() > code->mapTo(window, QPoint()).x()
+           || code->mapTo(window, QPoint(code->width(), 0)).x() > result->mapTo(window, QPoint()).x()
+           || code->width() < 100 || result->width() < 150 || result->height() < 200
+           || panes->count() != 2 || panes->orientation() != ::Qt::Horizontal) {
+            throw std::runtime_error("cookbook Code/Result geometry: code=" + std::to_string(code->width()) +
+                "; result=" + std::to_string(result->width()) + "x" + std::to_string(result->height()) +
+                "; sidebar end=" + std::to_string(sidebar->mapTo(window, QPoint(sidebar->width(), 0)).x()) +
+                "; code start=" + std::to_string(code->mapTo(window, QPoint()).x()) +
+                "; result start=" + std::to_string(result->mapTo(window, QPoint()).x()));
         }
         if(scroll->verticalScrollBar()->maximum() <= 0 || !scroll->widget()
            || scroll->widget()->findChildren<QLabel *>().size() != static_cast<int>(recipes().size())) {
@@ -170,6 +182,5 @@ namespace Cookbook { namespace TestBackend {
            || menus[1]->menu()->actions().size() != 2) {
             throw std::runtime_error("reference menus are missing or duplicated");
         }
-        if(find(root, "code")) throw std::runtime_error("source code pane must be omitted");
     }
 }}

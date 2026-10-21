@@ -19,7 +19,13 @@ namespace Cookbook { namespace TestBackend {
     void settle(){wxStopWatch clock;do{wxTheApp->Yield(true);wxTheApp->ProcessPendingEvents();wxTheApp->ProcessIdle();wxMilliSleep(1);}while(clock.Time()<25);}
     void command(wxWindow * window,wxEventType type){wxCommandEvent e(type,window->GetId());e.SetEventObject(window);window->ProcessWindowEvent(e);}
     bool clickButton(CPPUI::Node & node,const std::string & text){auto button=dynamic_cast<CPPUI::Wx::Button *>(&node);if(!button||button->text!=text)return false;command(button->ui,wxEVT_BUTTON);return true;}
-    bool labelHasText(CPPUI::Node & node,const std::string & text){auto label=dynamic_cast<CPPUI::Wx::Label *>(&node);return label&&label->ui&&(label->selectable?static_cast<wxTextCtrl *>(label->ui)->GetValue():label->ui->GetLabel())==wxString::FromUTF8(text);}
+    bool labelHasText(CPPUI::Node & node,const std::string & text) {
+        auto label=dynamic_cast<CPPUI::Wx::Label *>(&node);
+        if(!label || !label->ui) return false;
+        const auto value=label->selectable ? static_cast<wxTextCtrl *>(label->ui)->GetValue()
+            : dynamic_cast<CPPUI::Wx::Text *>(label) ? static_cast<wxStaticText *>(label->ui)->GetLabelText() : label->ui->GetLabel();
+        return value==wxString::FromUTF8(text);
+    }
     bool selectTab(CPPUI::Node & node,int index,const std::string & text){auto tabs=dynamic_cast<CPPUI::Wx::Tabs *>(&node);if(!tabs||!tabs->ui)return false;auto ui=static_cast<wxNotebook *>(tabs->ui);if(index<0||index>=int(ui->GetPageCount())||ui->GetPageText(index)!=wxString::FromUTF8(text))return false;ui->SetSelection(index);return ui->GetSelection()==index&&ui->GetPage(index)->IsShown();}
     bool toggleCheckbox(CPPUI::Node & node){auto box=dynamic_cast<CPPUI::Wx::Checkbox *>(&node);if(!box||!box->ui)return false;auto ui=static_cast<wxCheckBox *>(box->ui);ui->SetValue(!ui->GetValue());command(ui,wxEVT_CHECKBOX);return true;}
     bool selectRadio(CPPUI::Node & node){auto widget=dynamic_cast<CPPUI::Wx::Widget *>(&node);auto radio=widget?dynamic_cast<wxRadioButton *>(widget->ui):nullptr;if(!radio)return false;radio->SetValue(true);command(radio,wxEVT_RADIOBUTTON);return true;}
@@ -46,6 +52,7 @@ namespace Cookbook { namespace TestBackend {
     void prepareLayoutCheck(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());
         if(frame->IsMaximized() || frame->GetSize()!=wxSize(1024,768) || frame->GetTitle()!=wxString::FromUTF8(title))
             throw std::runtime_error("cookbook should open at 1024x768 without maximizing, with its window title");
+        checkLayout(root);
         frame->SetSize(800,600);
         // The window manager may deliver resize after the first idle
         // cycle. Wait for the native client size before checking child layout.
@@ -61,12 +68,28 @@ namespace Cookbook { namespace TestBackend {
     void resizeWindow(CPPUI::Node & root,int width,int height) {
         static_cast<wxFrame *>(find(root,"cookbook")->outer())->SetClientSize(width,height);
     }
+    void resizeCodePane(CPPUI::Node & root,int width) {
+        auto host=static_cast<wxWindow *>(find(root,"example-panes")->outer());
+        auto panes=static_cast<wxSplitterWindow *>(host->GetSizer()->GetItem(std::size_t(0))->GetWindow());
+        panes->SetSashPosition(width);panes->UpdateSize();
+    }
     bool pageVisible(CPPUI::Node & root,const std::string & key){auto scroll=static_cast<wxScrolledWindow *>(find(root,"menu-scroller")->outer());auto label=static_cast<wxWindow *>(find(root,"page:"+key)->outer());auto center=scroll->ScreenToClient(label->ClientToScreen(wxPoint(label->GetSize().x/2,label->GetSize().y/2)));return wxRect(wxPoint(0,0),scroll->GetClientSize()).Contains(center);}
     void checkLayout(CPPUI::Node & root){auto frame=static_cast<wxFrame *>(find(root,"cookbook")->outer());auto sidebar=static_cast<CPPUI::Wx::Layout *>(find(root,"menu-container"))->sizer();auto result=static_cast<CPPUI::Wx::Layout *>(find(root,"result"))->sizer();auto scroll=static_cast<wxScrolledWindow *>(find(root,"menu-scroller")->outer());
-        if(sidebar->GetPosition().x+sidebar->GetSize().x>result->GetPosition().x||result->GetSize().x<=sidebar->GetSize().x||result->GetSize().x<200||result->GetSize().y<200)throw std::runtime_error("cookbook layout: frame="+std::to_string(frame->GetSize().x)+"x"+std::to_string(frame->GetSize().y)+"; panel="+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().x)+"x"+std::to_string(static_cast<CPPUI::Wx::Window *>(find(root,"cookbook"))->panel->GetSize().y)+"; sidebar x="+std::to_string(sidebar->GetPosition().x)+" width="+std::to_string(sidebar->GetSize().x)+"; result x="+std::to_string(result->GetPosition().x)+" width="+std::to_string(result->GetSize().x)+" height="+std::to_string(result->GetSize().y));
+        auto code=static_cast<CPPUI::Wx::Layout *>(find(root,"code"))->sizer();
+        auto host=static_cast<wxWindow *>(find(root,"example-panes")->outer());
+        auto panes=dynamic_cast<wxSplitterWindow *>(host->GetSizer()->GetItem(std::size_t(0))->GetWindow());
+        const auto codeOrigin=code->GetContainingWindow()->ClientToScreen(code->GetPosition());
+        const auto resultOrigin=result->GetContainingWindow()->ClientToScreen(result->GetPosition());
+        const auto sidebarOrigin=sidebar->GetContainingWindow()->ClientToScreen(sidebar->GetPosition());
+        if(!panes || !panes->IsSplit() || panes->GetSplitMode()!=wxSPLIT_VERTICAL
+           || sidebarOrigin.x+sidebar->GetSize().x>codeOrigin.x || codeOrigin.x+code->GetSize().x>resultOrigin.x
+           || code->GetSize().x<100 || result->GetSize().x<150 || result->GetSize().y<200)
+            throw std::runtime_error("cookbook Code/Result geometry: code="+std::to_string(code->GetSize().x)+
+                "; result="+std::to_string(result->GetSize().x)+"x"+std::to_string(result->GetSize().y)+
+                "; sidebar end="+std::to_string(sidebarOrigin.x+sidebar->GetSize().x)+
+                "; code start="+std::to_string(codeOrigin.x)+"; result start="+std::to_string(resultOrigin.x));
         if(scroll->GetVirtualSize().y<=scroll->GetClientSize().y)throw std::runtime_error("cookbook page list must scroll");
         auto bar=frame->GetMenuBar();if(!bar||bar->GetMenuCount()!=2||bar->GetMenu(0)->GetMenuItemCount()!=3||bar->GetMenu(1)->GetMenuItemCount()!=2)throw std::runtime_error("reference menus missing");
-        if(find(root,"code"))throw std::runtime_error("source code pane must be omitted");
         if(auto node=find(root,"example-splitter")) {
             auto host=static_cast<wxWindow *>(node->outer());
             auto outer=dynamic_cast<wxSplitterWindow *>(host->GetSizer()->GetItem(std::size_t(0))->GetWindow());

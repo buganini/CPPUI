@@ -22,8 +22,14 @@ Native additions are audited through committed local/public PUI `974b88b` (2026-
 Grid now displays a manual colored mosaic. Adaptive Grid demonstrates
 `.columns()` / `.wideColumns()` at 384/576/768 logical pixels, the three backfill
 modes, hidden-item compaction, keyed reversal and a retained text editor.
-The PUI Code/Result Splitter change is intentionally skipped because CPPUI
-omits the source-code pane.
+The gallery uses a horizontal Splitter for the Code and Result panes on all
+backends. CMake defines `CPPUI_COOKBOOK_SOURCE_DIR` as the absolute cookbook
+directory. Selecting a recipe or pressing **Reload** reads its C++ source from
+disk, so source display updates do not require a rebuild and do not depend on
+the process's working directory. Each recipe displays `<recipe-key>.cpp`,
+including separate Button, Label, HBox and VBox files. The Code pane shows plain
+text in a scrollable area. Missing files show their expected path. Keep the source
+checkout at its build-time location; the executable does not bundle these files.
 
 ComboBox demonstrates
 `.autoexpand(false)` and a separate `.editModel(query)` binding. Its application
@@ -36,7 +42,7 @@ at 600 logical pixels while sharing input state on Qt, wx and LVGL. It also
 shows a retained input in `HVBox(600)` and height-dependent `VHBox(500)` labels.
 Its `wideLayout`/`wideStyle` label changes padding, color and font size at the
 same 600-pixel threshold. The gallery shell stays horizontal at narrow widths,
-with the menu beside the result, and opens at 1024×768 without maximizing.
+with the menu beside the Code/Result splitter, and opens at 1024×768 without maximizing.
 Window titles and sidebar headings identify the active backend: `Cookbook (Qt)`,
 `Cookbook (wxWidgets)`, `Cookbook (LVGL SDL2)` or `Cookbook (LVGL X11)`.
 State Binding now uses an external getter/setter and shows the latest 100
@@ -89,8 +95,8 @@ Its basic painter uses LVGL software drawing and scaled bitmap text; image
 resources remain pending. Move, leave and wheel callbacks work on SDL2 and X11. See the [Canvas reference](https://buganini.github.io/CPPUI/doc/Reference.html#canvas)
 for font/color differences and callback ownership.
 The gallery preserves the reference's scrollable cookbook sidebar and expanding
-**Result** pane. Qt and wx also keep the nested example menus.
-Only the source-code pane is omitted. Recipe spacing, weighted columns,
+**Code**/**Result** splitter. Qt and wx also keep the nested example menus.
+Recipe spacing, weighted columns,
 divider, and styled examples follow the reference on the available pages.
 
 Pages awaiting a CPPUI implementation show “Not yet ported to this backend”;
@@ -240,7 +246,8 @@ below require a separate test build; see the root README for
 The new native cases exercise masked drafts/commit/clear, decorated price cells,
 raw autocomplete codes and HeavyCanvas zoom/reset/preset changes up to 30,000
 sessions. wx's gallery timeout allows for the larger chart under sanitizers.
-The `_smoke` executable clicks every sidebar page three times, checks the two-column geometry,
+The `_smoke` executable clicks every sidebar page three times, checks the menu and Code/Result geometry,
+source file contents and Reload without replacing the result pane,
 scrollable list, Qt/wx menus, native label contents, bound controls, text editing,
 scroll anchoring, and A/B, progress and Canvas rotation buttons where supported.
 The Table page checks string edits, integer choices and separate value/label mappings.

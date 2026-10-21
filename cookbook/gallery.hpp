@@ -9,6 +9,10 @@ namespace Cookbook {
         return value;
     }
     class Gallery: public CPPUI::Application {
+        int sourceSelection = -1;
+        std::string sourceText;
+        void loadSource();
+
         public:
         CPPUI::State<int> selected{0};
         Model model;

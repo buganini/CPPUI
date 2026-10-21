@@ -69,10 +69,15 @@ namespace Cookbook {
         const char * title;
         void (*render)(Model &);
         const char * remaining;
+        std::string sourceFile() const { return std::string(key) + ".cpp"; }
     };
     void adaptive(Model &);
     void adaptiveGrid(Model &);
     void binding(Model &);
+    void button(Model &);
+    void label(Model &);
+    void hbox(Model &);
+    void vbox(Model &);
     void drop(Model &);
     void refs(Model &);
     void tree(Model &);

@@ -1,65 +1,7 @@
 #include "cppui/backend.hpp"
 #include "recipes.hpp"
 
-using namespace CPPUI;
-
 namespace Cookbook {
-    namespace {
-        void button(Model & model) {
-            for(auto column: CPPUI::VBox().layout(layout::weight(1))) {
-                for(auto row: CPPUI::HBox()) {
-                    CPPUI::Label(static_cast<std::string>(model.buttonValue));
-                    Button("A").click([&model]() { model.buttonValue = std::string("A"); });
-                    Button("B").click([&model]() { model.buttonValue = std::string("B"); });
-                    Button("Disabled").disabled().click([&model]() { model.buttonValue = std::string("Disabled"); });
-                    CPPUI::Button("Styled").style(style::color(0x244B5A), style::bgColor(0xFFF7E6), style::fontSize(20));
-                    CPPUI::Spacer();
-                }
-                CPPUI::Spacer();
-            }
-        }
-        void label(Model & model) {
-            for(auto column: CPPUI::VBox().layout(layout::weight(1))) {
-                CPPUI::Checkbox("Show greeting",model.greetingVisible);
-                CPPUI::Label("Hello World").visible(model.greetingVisible);
-                CPPUI::Label("Color")
-                    .style(style::color(0xD3B98B), style::bgColor(0x1C2A30), style::fontSize(20));
-                CPPUI::Label("No <b>HTML</b>");
-                CPPUI::Spacer();
-            }
-        }
-        void hbox(Model & model) {
-            for(auto column: CPPUI::VBox()) {
-                CPPUI::Checkbox("Reverse horizontal order",model.inverseH).id("hbox-inverse");
-                for(auto row: CPPUI::HBox(model.inverseH).id("spacer-row")) {
-                    CPPUI::Label("Column 1");
-                    CPPUI::Divider();
-                    CPPUI::Spacer().id("row-gap");
-                    CPPUI::Label("Column 2").id("row-end");
-                }
-                for(auto row: CPPUI::HBox(model.inverseH)) {
-                    CPPUI::Label("Column 1");
-                    CPPUI::Divider();
-                    CPPUI::Label("Column 2").layout(layout::weight(1));
-                    CPPUI::Divider();
-                    CPPUI::Label("Column 3");
-                }
-            }
-            CPPUI::Spacer();
-        }
-        void vbox(Model & model) {
-            for(auto column: CPPUI::VBox().layout(layout::weight(1)).id("spacer-column")) {
-                CPPUI::Checkbox("Reverse vertical order",model.inverseV).id("vbox-inverse");
-                for(auto reversed:CPPUI::VBox(model.inverseV).layout(layout::weight(1))) {
-                    CPPUI::Label("Row 1");
-                    CPPUI::Divider();
-                    CPPUI::Label("Row 2");
-                }
-                CPPUI::Spacer().id("column-gap");
-            }
-        }
-    }
-
     void configureRecipes(std::vector<Recipe> & pages) {
         struct Implementation {
             const char * key;

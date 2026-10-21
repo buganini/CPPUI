@@ -136,8 +136,11 @@ Remaining work is tracked in the [wx plan](doc/wx-progress.md).
 # Shared cookbook
 
 The cookbook builds the same C++ recipe and gallery sources with separate Qt, wxWidgets
-and LVGL CMake projects. It keeps PUI's scrollable Example sidebar and Result
-pane, plus the Qt/wx menus; only the source-code pane is omitted. `--list` reports
+and LVGL CMake projects. It keeps PUI's scrollable Example sidebar and draggable
+Code/Result panes, plus the Qt/wx menus. CMake embeds the cookbook directory's
+absolute path; the Code pane reads recipe sources at runtime when selected or
+reloaded, independently of the working directory. Keep that source checkout
+available when running the executable. `--list` reports
 available recipes and prerequisites for pages that are not ported yet.
 
 From the repository root, choose a backend and build/run its cookbook:

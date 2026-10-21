@@ -11,6 +11,7 @@ function(cppui_add_cookbook target backend)
         "${cookbook_dir}/adaptive.cpp"
         "${cookbook_dir}/adaptive_grid.cpp"
         "${cookbook_dir}/binding.cpp"
+        "${cookbook_dir}/button.cpp"
         "${cookbook_dir}/canvas.cpp"
         "${cookbook_dir}/checkbox.cpp"
         "${cookbook_dir}/combobox.cpp"
@@ -18,8 +19,10 @@ function(cppui_add_cookbook target backend)
         "${cookbook_dir}/dialog.cpp"
         "${cookbook_dir}/drop.cpp"
         "${cookbook_dir}/grid.cpp"
+        "${cookbook_dir}/hbox.cpp"
         "${cookbook_dir}/heavycanvas.cpp"
         "${cookbook_dir}/image.cpp"
+        "${cookbook_dir}/label.cpp"
         "${cookbook_dir}/maskedfield.cpp"
         "${cookbook_dir}/mdi.cpp"
         "${cookbook_dir}/modal.cpp"
@@ -38,12 +41,14 @@ function(cppui_add_cookbook target backend)
         "${cookbook_dir}/timeline.cpp"
         "${cookbook_dir}/tree.cpp"
         "${cookbook_dir}/tree_adapter.cpp"
+        "${cookbook_dir}/vbox.cpp"
         "${cookbook_dir}/views.cpp"
     )
     target_include_directories(${target}_sources PUBLIC "${cookbook_dir}/.." "${cookbook_dir}")
     target_compile_features(${target}_sources PUBLIC cxx_std_11)
     target_compile_definitions(${target}_sources PUBLIC
         CPPUI_BACKEND_${backend_macro}=1
+        CPPUI_COOKBOOK_SOURCE_DIR="${cookbook_dir}"
         CPPUI_COOKBOOK_ASSET_DIR="${cookbook_dir}/assets")
     set_target_properties(${target}_sources PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
     add_executable(${target} "${cookbook_dir}/main.cpp")

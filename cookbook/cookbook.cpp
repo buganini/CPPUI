@@ -1,5 +1,7 @@
 #include "gallery.hpp"
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 namespace Cookbook {
@@ -22,8 +24,23 @@ namespace Cookbook {
 #endif
     }
 
+    void Gallery::loadSource() {
+        sourceSelection = selected;
+        const auto file = recipes().at(sourceSelection).sourceFile();
+        const auto path = std::string(CPPUI_COOKBOOK_SOURCE_DIR) + "/" + file;
+        std::ifstream input(path, std::ios::binary);
+        if(!input) {
+            sourceText = "Unable to read source file:\n" + path;
+            return;
+        }
+        std::ostringstream text;
+        text << input.rdbuf();
+        sourceText = input.bad() ? "Unable to read source file:\n" + path : text.str();
+    }
+
     void Gallery::content() {
         const auto & page = recipes().at(static_cast<int>(selected));
+        if(sourceSelection != static_cast<int>(selected)) loadSource();
         auto & host = CPPUI::Window().title(Cookbook::title()).size(1024,768);
         host.ref("cookbook.window").id("cookbook");
         for(auto window: host) {
@@ -42,13 +59,29 @@ namespace Cookbook {
                         }
                     }
                 }
-                for(auto result: CPPUI::VBox().layout({}, {}, 1).id("result")) {
-                    CPPUI::Label("Result");
-                    for(auto body: CPPUI::VBox().layout({}, {}, 1).id(std::string("recipe:") + page.key)) {
-                        if(page.render) page.render(model);
-                        else {
-                            CPPUI::Label("Not yet ported to this backend");
+                for(auto panes: CPPUI::Splitter().layout({}, {}, 1).id("example-panes")) {
+                    for(auto code: CPPUI::VBox().layout({}, {}, 1).id("code")) {
+                        for(auto heading: CPPUI::HBox()) {
+                            CPPUI::Label("Code");
                             CPPUI::Spacer();
+                            CPPUI::Button("Reload").click([this]() { loadSource(); redraw(); });
+                        }
+                        CPPUI::Label(page.sourceFile()).id("source-file");
+                        for(auto scroll: CPPUI::Scroll({}, {}).layout({}, 0, 1)
+                                .id(std::string("source-scroll:") + page.key)) {
+                            CPPUI::Text(sourceText).id("source-code")
+                                .layout(CPPUI::layout::padding(10))
+                                .style(CPPUI::style::color(0xF8F8F2), CPPUI::style::bgColor(0x272822), CPPUI::style::fontSize(14));
+                        }
+                    }
+                    for(auto result: CPPUI::VBox().layout({}, {}, 1).id("result")) {
+                        CPPUI::Label("Result");
+                        for(auto body: CPPUI::VBox().layout({}, {}, 1).id(std::string("recipe:") + page.key)) {
+                            if(page.render) page.render(model);
+                            else {
+                                CPPUI::Label("Not yet ported to this backend");
+                                CPPUI::Spacer();
+                            }
                         }
                     }
                 }

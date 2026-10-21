@@ -4,6 +4,8 @@
 #include <stdexcept>
 #include <chrono>
 #include <thread>
+#include <fstream>
+#include <sstream>
 namespace Cookbook {
     CPPUI::Node * find(CPPUI::Node & node, const std::string & id) {
         if(node.has_id && node._id == id) return &node;
@@ -48,6 +50,10 @@ namespace Cookbook {
             TestBackend::settle();
             TestBackend::prepareLayoutCheck(gallery);
             if(heavySmoke) {
+                TestBackend::resizeWindow(gallery,1200,800);
+                TestBackend::settle();
+                TestBackend::resizeCodePane(gallery,220);
+                TestBackend::settle();
                 require(TestBackend::selectPage(*find(gallery, "page:heavycanvas")), "HeavyCanvas page missing");
                 TestBackend::settle();
                 auto samples = find(gallery, "heavy-samples");
@@ -77,12 +83,35 @@ namespace Cookbook {
             // Revisit pages to exercise replacement and retired callback cleanup.
             for(int cycle = 0; cycle < 3; ++cycle) {
                 for(std::size_t i = 0; i < recipes().size(); ++i) {
+                    // HeavyCanvas deliberately shows an enlargement notice
+                    // below 320 px; leave room beside the Code pane to draw it.
+                    if(std::string(recipes()[i].key) == "heavycanvas") {
+                        TestBackend::resizeWindow(gallery,1200,800);
+                        TestBackend::settle();
+                        TestBackend::resizeCodePane(gallery,220);
+                        TestBackend::settle();
+                    }
                     if(std::getenv("CPPUI_COOKBOOK_TRACE")) std::cerr << "Checking " << recipes()[i].key << " (cycle " << cycle + 1 << ")\n";
                     auto link = find(gallery, std::string("page:") + recipes()[i].key);
                     require(link && TestBackend::selectPage(*link), "sidebar page link is missing");
                     TestBackend::settle();
                     require(static_cast<int>(gallery.selected) == static_cast<int>(i), "sidebar did not select the page");
                     require(find(gallery, std::string("recipe:") + recipes()[i].key), "page selection did not render");
+                    const auto file = recipes()[i].sourceFile();
+                    const auto path = std::string(CPPUI_COOKBOOK_SOURCE_DIR) + "/" + file;
+                    std::ifstream input(path, std::ios::binary);
+                    std::string source = "Unable to read source file:\n" + path;
+                    require(input || !recipes()[i].render, "implemented recipe source file is missing");
+                    if(input) {
+                        std::ostringstream text; text << input.rdbuf(); source = text.str();
+                        require(!source.empty(), "recipe source is empty");
+                    }
+                    require(hasText(*find(gallery, "source-code"), source), "Code pane does not show the selected recipe's source");
+                    auto result = find(gallery, "result")->outer();
+                    require(click(*find(gallery, "code"), "Reload"), "source reload button is missing");
+                    TestBackend::settle();
+                    require(hasText(*find(gallery, "source-code"), source) && find(gallery, "result")->outer() == result,
+                            "source reload replaced the result or lost source text");
                     require(find(gallery, "menu-scroller")->outer() == sidebar, "page selection replaced the sidebar");
                     require(TestBackend::pageVisible(gallery, recipes()[i].key), "selected sidebar link is clipped or lost its scroll position");
                     TestBackend::checkLayout(gallery);
@@ -118,6 +147,8 @@ namespace Cookbook {
                         auto editor=find(gallery,"grid-editor")->outer();
                         TestBackend::resizeWindow(gallery,1250,800);
                         for(int pass=0;pass<4;++pass) TestBackend::settle();
+                        TestBackend::resizeCodePane(gallery,200);
+                        TestBackend::settle();
                         require(find(gallery,"adaptive-grid")->grid_columns==4 && find(gallery,"grid-editor")->grid_columnspan==2,
                             "adaptive grid did not reach four columns with a two-column editor");
                         const std::vector<std::pair<std::string,int>> modes={{"ordered",3},{"dense",2},{"forward",4}};
@@ -135,6 +166,9 @@ namespace Cookbook {
                         require(static_cast<std::string>(gallery.model.gridText)=="retained grid input","grid editor did not write model");
                         gallery.model.gridMode=std::string("ordered");gallery.model.gridShowC=true;gallery.model.gridReverse=false;
                         TestBackend::resizeWindow(gallery,800,600);TestBackend::settle();
+                        // wx shares resize deltas equally, so the earlier
+                        // narrow code pane can reach its minimum on shrink.
+                        TestBackend::resizeCodePane(gallery,200);TestBackend::settle();
                         require(find(gallery,"adaptive-grid")->grid_columns<4 && find(gallery,"grid-editor")->outer()==editor,"narrow grid did not retain editor");
                         auto gridSize=find(gallery,"adaptive-grid")->size().get();
                         require(gridSize && find(gallery,"grid-editor")->grid_columnspan==(gridSize->width>=576 ? 2 : 1),
@@ -337,6 +371,7 @@ namespace Cookbook {
                         TestBackend::settle();
                         TestBackend::resizeWindow(gallery,800,600);
                         for(int pass=0;pass<4;++pass) TestBackend::settle();
+                        TestBackend::resizeCodePane(gallery,200);TestBackend::settle();
                     }
                     if(std::string(recipes()[i].key) == "maskedfield" && recipes()[i].render) {
                         require(TestBackend::editTextField(*find(gallery, "buffered-password"), "secret", false), "masked input missing");

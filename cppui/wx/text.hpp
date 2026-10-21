@@ -24,7 +24,7 @@ public:
         else if(selectable) ui = new wxTextCtrl(parentWindow(), wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE | wxBORDER_NONE);
         else ui = new wxStaticText(parentWindow(), wxID_ANY, "");
         if(selectable) static_cast<wxTextCtrl *>(ui)->ChangeValue(wxString::FromUTF8(text));
-        else ui->SetLabel(wxString::FromUTF8(text));
+        else static_cast<wxStaticText *>(ui)->SetLabelText(wxString::FromUTF8(text));
     }
 };
 class Html: public Widget {

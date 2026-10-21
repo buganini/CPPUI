@@ -28,6 +28,7 @@ namespace Cookbook {
     bool selectPage(CPPUI::Node & node);
     void prepareLayoutCheck(CPPUI::Node & root);
     void resizeWindow(CPPUI::Node & root,int width,int height);
+    void resizeCodePane(CPPUI::Node & root,int width);
     bool pageVisible(CPPUI::Node & root, const std::string & key);
     void checkLayout(CPPUI::Node & root);
 }}

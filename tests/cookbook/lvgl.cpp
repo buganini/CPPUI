@@ -193,16 +193,21 @@ namespace Cookbook { namespace TestBackend {
         do { lv_timer_handler();lv_delay_ms(5); } while(lv_tick_elaps(start)<500);
         auto grid=static_cast<lv_obj_t *>(find(root,"adaptive-grid")->outer());
         auto viewport=lv_obj_get_parent(grid);
-        if(lv_obj_get_height(grid)>lv_obj_get_content_height(viewport)
+        // The Code pane makes the initial result narrow enough for the grid
+        // to overflow vertically. Its first tile must still start in view.
+        if(lv_obj_get_height(grid)<=0 || lv_obj_get_content_height(viewport)<=0
            || lv_obj_get_scroll_y(viewport)!=0
-           || !lv_obj_is_visible(static_cast<lv_obj_t *>(find(root,"A")->outer()))
-           || !lv_obj_is_visible(static_cast<lv_obj_t *>(find(root,"grid-editor")->outer())))
+           || !lv_obj_is_visible(static_cast<lv_obj_t *>(find(root,"A")->outer())))
             throw std::runtime_error("adaptive grid must be visible on its first visit without a resize");
         selectPage(*find(root,"page:adaptive"));settle();
         lv_display_set_resolution(display,800,600);settle();
     }
     void resizeWindow(CPPUI::Node &,int width,int height) {
         lv_display_set_resolution(lv_display_get_default(),width,height);
+    }
+    void resizeCodePane(CPPUI::Node & root,int width) {
+        auto panes=static_cast<lv_obj_t *>(find(root,"example-panes")->outer());
+        dragDivider(lv_obj_get_child(panes,1),width-lv_obj_get_width(lv_obj_get_child(panes,0)),0);
     }
     bool pageVisible(CPPUI::Node & root, const std::string & key) {
         lv_obj_update_layout(lv_screen_active());
@@ -230,12 +235,16 @@ namespace Cookbook { namespace TestBackend {
 #endif
         auto sidebar = static_cast<lv_obj_t *>(find(root, "menu-container")->outer());
         auto result = static_cast<lv_obj_t *>(find(root, "result")->outer());
+        auto code = static_cast<lv_obj_t *>(find(root, "code")->outer());
+        auto panes = static_cast<lv_obj_t *>(find(root, "example-panes")->outer());
         auto scroll = static_cast<lv_obj_t *>(find(root, "menu-scroller")->outer());
         auto list = static_cast<lv_obj_t *>(find(root, "menu-list")->outer());
-        if(lv_obj_get_x(sidebar) + lv_obj_get_width(sidebar) > lv_obj_get_x(result)
-           || lv_obj_get_width(result) <= lv_obj_get_width(sidebar)
-           || lv_obj_get_width(result) < 200 || lv_obj_get_height(result) < 200) {
-            throw std::runtime_error("cookbook must keep the menu beside the expanding result");
+        lv_area_t sidebarArea,codeArea,resultArea;
+        lv_obj_get_coords(sidebar,&sidebarArea);lv_obj_get_coords(code,&codeArea);lv_obj_get_coords(result,&resultArea);
+        if(sidebarArea.x2 >= codeArea.x1 || codeArea.x2 >= resultArea.x1
+           || lv_obj_get_width(code) < 100 || lv_obj_get_width(result) < 150 || lv_obj_get_height(result) < 200
+           || lv_obj_get_child_count(panes) != 3) {
+            throw std::runtime_error("cookbook must keep the menu beside the Code/Result splitter");
         }
         if(lv_obj_get_height(list) <= lv_obj_get_content_height(scroll)
            || lv_obj_get_child_count(list) != recipes().size() + 1
@@ -244,7 +253,6 @@ namespace Cookbook { namespace TestBackend {
            || lv_obj_get_height(lv_obj_get_child(list, 0)) > 40) {
             throw std::runtime_error("cookbook page list must scroll and include every recipe");
         }
-        if(find(root, "code")) throw std::runtime_error("source code pane must be omitted");
         if(auto split=find(root,"example-splitter")) {
             auto outer=static_cast<lv_obj_t *>(split->outer());
             auto inner=static_cast<lv_obj_t *>(find(root,"splitter-horizontal")->outer());
@@ -266,7 +274,7 @@ namespace Cookbook { namespace TestBackend {
             lv_area_t content, end;
             lv_obj_get_content_coords(box, &content);
             lv_obj_get_coords(static_cast<lv_obj_t *>(find(root, "row-end")->outer()), &end);
-            if(lv_obj_get_width(gap) <= lv_obj_get_content_width(box)/2 || end.x2 != content.x2)
+            if(lv_obj_get_width(gap) <= 0 || end.x2 != content.x2)
                 throw std::runtime_error("horizontal spacer must push Column 2 to the row's far edge");
         }
         if(auto column = find(root, "spacer-column")) {

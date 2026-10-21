@@ -1,4 +1,6 @@
 2026-10-22
+    * Cookbook: pass the source directory at build time and read recipe C++ files at runtime in a draggable Code/Result splitter, with Reload and missing-source notices on Qt, wx and LVGL
+    * wx Text: preserve literal ampersands in plain text instead of treating C++ references and operators as mnemonic markers
     * LVGL Splitter: add nested horizontal/vertical panes with draggable handles, retained sizes/editor state, proportional resize, keyed/virtual child updates and SDL2/X11 cookbook coverage
 
 2026-10-20
