@@ -1,5 +1,11 @@
 # LVGL implementation progress and remaining work
 
+The follow-up 2026-10-21 sync through PUI `974b88b` adds automatic Grid placement,
+`.columns(n, grid::dense(mode))`, `.wideColumns()` and named child `.grid()`
+modifiers. All three backfill modes retain controls through reflow, hidden-item
+compaction and independent virtual-child updates. Manual and Adaptive Grid
+recipes are shared across native targets; see the [Grid sync audit](pui-sync-2026-10-21-grid.md).
+
 The 2026-10-21 sync applies PUI's ComboBox candidate contract through `0dc72e2`
 to LVGL: `.autoexpand()`, `.editModel()` and `.input()` share the Qt/wx API.
 The backend displays application-declared candidates, replacing its old prefix

@@ -1,5 +1,11 @@
 # wxWidgets alignment with PUI/wx
 
+The follow-up 2026-10-21 sync through PUI `974b88b` adds automatic Grid placement,
+`.columns(n, grid::dense(mode))`, `.wideColumns()` and named child `.grid()`
+modifiers. All three backfill modes retain controls through reflow, hidden-item
+compaction and independent virtual-child updates. Manual and Adaptive Grid
+recipes are shared across native targets; see the [Grid sync audit](pui-sync-2026-10-21-grid.md).
+
 The 2026-10-21 sync ports ComboBox candidate menus, `.autoexpand()`,
 `.editModel()` and `.input()` from PUI through `0dc72e2`. A non-grabbing native
 popup keeps typing in the retained ComboBox and tracks ancestor movement.

@@ -18,8 +18,14 @@ including bound Tab selection. Each executable links only its selected toolkit.
 
 Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
 
-Native additions are audited through committed local PUI `0dc72e2` (2026-10-21);
-public main was at `520430c` at inspection. ComboBox now demonstrates
+Native additions are audited through committed local/public PUI `974b88b` (2026-10-21).
+Grid now displays a manual colored mosaic. Adaptive Grid demonstrates
+`.columns()` / `.wideColumns()` at 384/576/768 logical pixels, the three backfill
+modes, hidden-item compaction, keyed reversal and a retained text editor.
+The PUI Code/Result Splitter change is intentionally skipped because CPPUI
+omits the source-code pane. See the [Grid sync audit](../doc/pui-sync-2026-10-21-grid.md).
+
+ComboBox demonstrates
 `.autoexpand(false)` and a separate `.editModel(query)` binding. Its application
 matching splits whitespace and OR-matches airport labels: `tai tok` yields four
 Taipei/Tokyo candidates on Qt, wx and LVGL, with their original airport codes.

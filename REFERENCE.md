@@ -52,7 +52,8 @@ lifetime of borrowed factory references.
 
 Reconciliation compares type and explicit ID within the matched parent/view
 scope. Placed grid nodes also include row, column and both spans in identity.
-Grid declarations without both coordinates are discarded and reclaimed. Reversed
+Manual Grid declarations without both coordinates are discarded and reclaimed.
+Automatic Grid cells are computed separately and never enter identity. Reversed
 containers preserve native order across repeated redraws; out-of-order children
 do not consume ordinary sibling offsets. Non-movable nodes are never requeued
 to make room for a neighboring move. Terminal children remain unmounted and
@@ -927,13 +928,70 @@ that dimension is explicit; dividers retain their one-pixel thickness.
 
 ## Grid and Stack
 
-`cppui/qt/layout.hpp` includes `Grid()` and `Stack()` (also available through
-`grid.hpp` and `stack.hpp`). Grid uses the existing node fields `grid_row`,
-`grid_column`, `grid_rowspan` and `grid_columnspan`. Both coordinates must be
-nonnegative; absent/zero spans use one cell. Grid coordinates/spans participate
-in reconciliation identity, so changing them replaces that cell. A layout is
-required to group several controls in a cell. The cookbook assigns these public
-placement fields directly.
+Qt, wx and LVGL expose `Grid()` through their `layout.hpp` or `grid.hpp`.
+Without `.columns()`, Grid uses explicit child coordinates. Prefer named modifiers:
+
+```cpp
+for(auto scope: CPPUI::Grid()) {
+    CPPUI::Label("A").grid(CPPUI::grid::row(0), CPPUI::grid::column(0));
+    CPPUI::Label("B").grid(CPPUI::grid::row(1), CPPUI::grid::column(0),
+                           CPPUI::grid::columnspan(2));
+}
+```
+
+`.grid()` accepts `grid::row()`, `grid::column()`, `grid::rowspan()` and
+`grid::columnspan()` in any order. Coordinates must be nonnegative and spans
+positive; validation happens before applying the call. The existing public
+`grid_row`, `grid_column`, `grid_rowspan` and `grid_columnspan` fields remain
+available. Legacy manual fields with absent/zero spans use one cell. Explicit
+coordinates/spans participate in identity; changing them replaces that cell.
+Use a layout to group several controls in one cell.
+
+Automatic placement overrides child coordinates while keeping their declared
+spans. Computed `grid_cell` values never change reconciliation identity:
+
+```cpp
+for(auto scope: CPPUI::Grid().columns(1, CPPUI::grid::dense(true))
+        .wideColumns(400, 2).wideColumns(600, 3)) {
+    CPPUI::Label("A").id("a").grid(CPPUI::grid::columnspan(2));
+    CPPUI::Label("B").id("b").grid(CPPUI::grid::columnspan(2));
+    CPPUI::Label("C").id("c");
+}
+```
+
+`.columns(n, grid::dense(mode))` requires a positive count. The named `dense`
+argument accepts an inline `Optional<bool>`; omitting it resets to ordered mode.
+
+| Declaration | Placement search |
+| --- | --- |
+| `.columns(n)` or `.columns(n, grid::dense({}))` | Start at the previous visible item's starting row; may fill holes to its left in that row |
+| `.columns(n, grid::dense(true))` | Start at the top-left, including holes above the previous item |
+| `.columns(n, grid::dense(false))` | Move the cursor forward without revisiting earlier holes |
+
+Ordered/dense placement can differ from declaration and Tab order. Hidden items
+retain their controls but occupy no automatic cell. Oversized column spans are
+clamped only for placement and restored when more columns become available;
+row spans stay intact. Automatic spans must be positive (omitted means one).
+These are shared row tracks, not independent masonry columns.
+
+`.wideColumns(minWidth, n)` uses the nearest non-virtual parent's available width,
+with the same reactive measurement as `.wideLayout()`. Thresholds are inclusive
+native logical pixels; matching calls apply in declaration order, and the last
+match wins. Declare the base `.columns()` first; unknown initial geometry uses
+that base. Breakpoints change only the count, preserving the dense mode. CPPUI
+has no terminal backend or terminal-unit column modifiers.
+
+Reflow retains native controls, edit buffers and selection/caret state. Use
+stable IDs for reordered data. Virtual child views flatten into automatic Grid,
+and independent child updates trigger placement again. Qt/wx give columns equal
+stretch factors; native minimum-size hints can still produce unequal tracks.
+LVGL uses equal fractional tracks when width is allocated, and content tracks
+otherwise. The [manual Grid](cookbook/grid.cpp) and
+[Adaptive Grid](cookbook/adaptive_grid.cpp) cookbooks run on all four targets.
+The latter uses 384/576/768-pixel breakpoints, three backfill modes, hidden tiles,
+keyed reversal and a retained editor. With four columns, original order and C
+shown, blue F occupies row 4 (ordered), row 3 (dense), or row 5 (forward), counting
+rows from one.
 
 Qt Stack uses StackAll mode and reverses initial declaration order, placing
 the last declared layer on top. All layers share the available geometry.
@@ -955,7 +1013,7 @@ gaps, less margins. Explicit Grid dimensions, parent allocation and Grid flex
 weight select allocated axes; child flex weights do not set track proportions.
 The default row/column gap is 6 pixels. Nested padding follows HBox/VBox.
 Hidden cells retain native state without contributing to track sizing; removed
-or hidden trailing cells allow automatic dimensions to shrink. Unplaced
+or hidden trailing cells allow automatic dimensions to shrink. Unplaced manual
 declarations are reclaimed, and placed Spacers are ignored by layout/input.
 The shared Grid cookbook runs on both SDL2 and X11.
 
