@@ -1134,8 +1134,10 @@ spans. Computed <code>grid_cell</code> values never change reconciliation identi
     CPPUI::Label(&quot;C&quot;).id(&quot;c&quot;);
 }
 </code></pre>
-<p><code>.columns(n, grid::dense(mode))</code> requires a positive count. The named <code>dense</code>
-argument accepts an inline <code>Optional&lt;bool&gt;</code>; omitting it resets to ordered mode.</p>
+<p><code>.columns(n, grid::dense(mode), grid::expandChildren(true))</code> requires a positive count.
+The named options can appear in either order. The <code>dense</code> argument accepts an inline
+<code>Optional&lt;bool&gt;</code>; omitting it resets to ordered mode. Expansion defaults to enabled
+on each <code>.columns()</code> call; either option can be supplied alone.</p>
 <div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
 <thead>
 <tr>
@@ -1161,13 +1163,21 @@ argument accepts an inline <code>Optional&lt;bool&gt;</code>; omitting it resets
 <p>Ordered/dense placement can differ from declaration and Tab order. Hidden items
 retain their controls but occupy no automatic cell. Oversized column spans are
 clamped only for placement and restored when more columns become available;
-row spans stay intact. Automatic spans must be positive (omitted means one).
+declared row spans stay intact. Automatic spans must be positive (omitted means one).
 These are shared row tracks, not independent masonry columns.</p>
-<p><code>.wideColumns(minWidth, n)</code> uses the nearest non-virtual parent's available width,
+<p>After placing all visible children, expansion visits them in declaration order,
+first extending each column span rightward, then its row span downward. A complete
+new edge must be empty, and expansion stays within the configured columns and
+the existing total row count. Origins never move and rectangles never overlap;
+some holes cannot be filled this way. Only computed spans change: declared spans
+and identity remain intact. <code>.columns(n, grid::expandChildren(false))</code>
+restores unexpanded placement. Manual Grids are unaffected.</p>
+<p><code>.wideColumns(minWidth, n, grid::expandChildren(...))</code> uses the nearest non-virtual parent's available width,
 with the same reactive measurement as <code>.wideLayout()</code>. Thresholds are inclusive
 native logical pixels; matching calls apply in declaration order, and the last
 match wins. Declare the base <code>.columns()</code> first; unknown initial geometry uses
-that base. Breakpoints change only the count, preserving the dense mode. CPPUI
+that base. Breakpoints preserve the dense mode. Omit <code>grid::expandChildren()</code>
+to inherit expansion, or supply it to override expansion on that matching breakpoint. CPPUI
 has no terminal backend or terminal-unit column modifiers.</p>
 <p>Reflow retains native controls, edit buffers and selection/caret state. Use
 stable IDs for reordered data. Virtual child views flatten into automatic Grid,
@@ -1176,8 +1186,9 @@ stretch factors; native minimum-size hints can still produce unequal tracks.
 LVGL uses equal fractional tracks when width is allocated, and content tracks
 otherwise. The <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/grid.cpp">manual Grid</a> and
 <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/adaptive_grid.cpp">Adaptive Grid</a> cookbooks run on all four targets.
-The latter uses 384/576/768-pixel breakpoints, three backfill modes, hidden tiles,
-keyed reversal and an editor that spans one column below 576 pixels and two above it. With four columns, original order and C
+The latter uses 384/576/768-pixel breakpoints, three backfill modes, checkboxes for
+hidden tiles, expansion and keyed reversal, and an editor that declares one column
+below 576 pixels and two above it. With four columns, original order and C
 shown, blue F occupies row 4 (ordered), row 3 (dense), or row 5 (forward), counting
 rows from one.</p>
 <p>Qt Stack uses StackAll mode and reverses initial declaration order, placing

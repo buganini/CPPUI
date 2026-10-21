@@ -151,6 +151,14 @@ namespace Cookbook {
                         TestBackend::settle();
                         require(find(gallery,"adaptive-grid")->grid_columns==4 && find(gallery,"grid-editor")->grid_columnspan==2,
                             "adaptive grid did not reach four columns with a two-column editor");
+                        require(gallery.model.gridExpand,"grid expansion did not default to enabled");
+                        for(bool expanded:{false,true}) {
+                            require(TestBackend::toggleCheckbox(*find(gallery,"grid-expand")),"grid expansion checkbox missing");
+                            TestBackend::settle();
+                            require(bool(gallery.model.gridExpand)==expanded,"grid expansion checkbox did not update model");
+                            require(find(gallery,"A")->grid_cell->rowspan==(expanded ? 3 : 2),"grid expansion did not resize tile A");
+                            require(find(gallery,"grid-editor")->outer()==editor,"expansion change replaced grid editor");
+                        }
                         const std::vector<std::pair<std::string,int>> modes={{"ordered",3},{"dense",2},{"forward",4}};
                         for(const auto & mode:modes) {
                             gallery.model.gridMode=mode.first;TestBackend::settle();
@@ -159,7 +167,8 @@ namespace Cookbook {
                         }
                         gallery.model.gridShowC=false;TestBackend::settle();
                         require(!find(gallery,"C")->grid_cell,"hidden grid tile still has a cell");
-                        require(click(gallery,"Reverse tiles"),"grid reverse button missing");TestBackend::settle();
+                        require(TestBackend::toggleCheckbox(*find(gallery,"grid-reverse")),"grid reverse checkbox missing");TestBackend::settle();
+                        require(gallery.model.gridReverse,"grid reverse checkbox did not update model");
                         require(find(gallery,"grid-editor")->outer()==editor,"tile reorder replaced editor");
                         require(TestBackend::editTextField(*find(gallery,"grid-editor"),"retained grid input",true),"grid editor missing");
                         TestBackend::settle();

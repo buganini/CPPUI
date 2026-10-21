@@ -16,12 +16,12 @@ The facade rejects ambiguous selections. LVGL's configuration selects SDL2 or
 X11. Shared recipes use `CPPUI_HAS_*` capability flags for optional features,
 including bound Tab selection. Each executable links only its selected toolkit.
 
-Reference: [PUI cookbook at 009e9b9](https://github.com/buganini/PUI/tree/009e9b9c3fbd724f0b73c862f8213ddc4742405c/cookbook).
+Reference: [PUI cookbook at c50b33f](https://github.com/buganini/PUI/tree/c50b33fcf7bdfdd7a353856b56733ea5969b8211/PUI/cookbook).
 
-Native additions are audited through committed local/public PUI `974b88b` (2026-10-21).
+Native additions are audited through committed local/public PUI `c50b33f` (2026-10-22).
 Grid now displays a manual colored mosaic. Adaptive Grid demonstrates
 `.columns()` / `.wideColumns()` at 384/576/768 logical pixels, the three backfill
-modes, hidden-item compaction, keyed reversal and a retained text editor.
+modes, hidden-item compaction, child span expansion, bound reversal and a retained text editor.
 The gallery uses a horizontal Splitter for the Code and Result panes on all
 backends. CMake defines `CPPUI_COOKBOOK_SOURCE_DIR` as the absolute cookbook
 directory. Selecting a recipe or pressing **Reload** reads its C++ source from

@@ -12,13 +12,14 @@ namespace Cookbook {
                 CPPUI::RadioButton("Dense",std::string("dense"),model.gridMode);
                 CPPUI::RadioButton("Forward",std::string("forward"),model.gridMode);
                 CPPUI::Checkbox("Show C",model.gridShowC).id("grid-show-c");
-                CPPUI::Button("Reverse tiles").id("grid-reverse").click([&model]() {model.gridReverse=!bool(model.gridReverse);});
+                CPPUI::Checkbox("Expand children",model.gridExpand).id("grid-expand");
+                CPPUI::Checkbox("Reverse tiles",model.gridReverse).id("grid-reverse");
             }
             const std::string mode=model.gridMode;
             CPPUI::Optional<bool> dense;
             if(mode!="ordered") dense=mode=="dense";
             for(auto scroll:CPPUI::Scroll().layout(CPPUI::layout::weight(1))) {
-                for(auto scope:CPPUI::Grid().columns(1,CPPUI::grid::dense(dense))
+                for(auto scope:CPPUI::Grid().columns(1,CPPUI::grid::dense(dense),CPPUI::grid::expandChildren(model.gridExpand))
                     .wideColumns(384,2).wideColumns(576,3).wideColumns(768,4).id("adaptive-grid")) {
                     struct Tile {const char * name;int rows,columns,background,foreground;};
                     std::vector<Tile> tiles={

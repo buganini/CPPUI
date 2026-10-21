@@ -34,7 +34,7 @@ struct Fragment:CPPUI::Backend::View {
 struct Root:CPPUI::Application {
     using Application::Application;
     int columns=3,builds=0;
-    bool hidden=false,reverse=false,automatic=true,responsive=false,present=true;
+    bool hidden=false,reverse=false,automatic=true,responsive=false,present=true,expand=false;
     CPPUI::Optional<bool> dense{true};
     CPPUI::State<std::string> text{std::string("retained")};
     void content() override {
@@ -42,8 +42,9 @@ struct Root:CPPUI::Application {
         for(auto window:CPPUI::Window().id("window")) for(auto box:CPPUI::VBox().id("box")) {
             if(!present) continue;
             auto & grid=CPPUI::Grid();
-            if(automatic) grid.columns(columns,CPPUI::grid::dense(dense));
-            if(responsive) grid.columns(1).wideColumns(600,3).wideColumns(800,4);
+            if(automatic) grid.columns(columns,CPPUI::grid::dense(dense),CPPUI::grid::expandChildren(expand));
+            if(responsive) grid.columns(1,CPPUI::grid::expandChildren(false))
+                .wideColumns(600,3,CPPUI::grid::expandChildren(true)).wideColumns(800,4);
             for(auto scope:grid.id("grid").layout(CPPUI::layout::weight(1))) {
                 const std::vector<std::string> keys=reverse ? std::vector<std::string>{"c","b","a"} : std::vector<std::string>{"a","b","c"};
                 for(const auto & key:keys) CPPUI::Label(key).id(key)
@@ -139,6 +140,16 @@ int main(int argc,char ** argv) {
             require(find(root,"a")->grid_cell->columnspan==std::min(2,count) && find(root,"a")->grid_columnspan==2,"span clamp changed declared span");
             checkDraft(find(root,"editor"));checkNative(find(root,"b"));
         }
+        root.columns=4;
+        for(bool expand:{true,false,true}) {
+            root.expand=expand;root.mount();
+            require(find(root,"editor")->outer()==editor && find(root,"a")->outer()==a,"expansion replaced native controls");
+            require(find(root,"fragment-one")->grid_cell->columnspan==(expand ? 2 : 1),"native expansion toggle did not update spans");
+            require(find(root,"a")->grid_columnspan==2,"expansion changed declared native span");
+            for(const char * key:{"a","b","c","editor","fragment-one"}) checkNative(find(root,key));
+            checkDraft(find(root,"editor"));
+        }
+        root.expand=false;root.columns=3;root.mount();
         root.hidden=true;root.mount();require(!find(root,"a")->grid_cell && find(root,"a")->outer()==a,"hidden item was removed or occupied a cell");
         require(find(root,"b")->grid_cell->row==0 && find(root,"b")->grid_cell->column==0,"hidden cell did not compact");
         root.reverse=true;root.mount();checkDraft(find(root,"editor"));checkNative(find(root,"c"));
@@ -170,7 +181,9 @@ int main(int argc,char ** argv) {
                     && editorNode->grid_columnspan==(matched ? 2 : -1) && editorNode->grid_rowspan==(tall ? 2 : -1),
                     "wideGrid thresholds, order or fallback differ");
                 require(editorNode->grid_cell->row==(automatic ? 0 : int(matched)),"wideGrid manual/automatic row differs");
-                checkDraft(editorNode);checkNative(editorNode);
+                auto other=find(wide,"other");
+                require(other->grid_cell->rowspan==(automatic && tall ? 2 : 1),"vertical expansion did not follow responsive spans");
+                checkDraft(editorNode);checkNative(editorNode);checkNative(other);
             }
             wide.empty=true;wide.mount();wide.empty=false;wide.mount();
             checkNative(find(wide,"editor"));

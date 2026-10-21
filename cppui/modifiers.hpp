@@ -84,6 +84,8 @@ namespace CPPUI {
         inline ColumnSpan columnspan(int value) { return {value}; }
         struct Dense { Optional<bool> value; };
         inline Dense dense(Optional<bool> value) { return {value}; }
+        struct ExpandChildren { Optional<bool> value; };
+        inline ExpandChildren expandChildren(bool value) { return {value}; }
     }
 
     struct GridCell {
