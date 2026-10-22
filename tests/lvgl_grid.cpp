@@ -110,16 +110,35 @@ namespace {
     public:
         std::string text="one\ntwo\nthree";
         CPPUI::Optional<int> height;
+        bool automatic=false;
         void content() override {
-            for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox()) for(auto grid:CPPUI::Grid().layout({},height).id("grid")) {
-                cell(CPPUI::Label(text).id("text"),0,0,2);
-                cell(CPPUI::Label("after").id("after"),2,0);
+            for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox()) {
+                auto & declaration=CPPUI::Grid();
+                if(automatic) declaration.columns(1);
+                for(auto grid:declaration.layout({},height).id("grid")) {
+                    cell(CPPUI::Label(text).id("text"),0,0,2);
+                    cell(CPPUI::Label("after").id("after"),2,0);
+                }
             }
         }
         int size() {redraw();settle();return lv_obj_get_height(static_cast<lv_obj_t *>(find(*this,"grid")->outer()));}
     };
-    void naturalText() {
-        TextRoot root;const int tall=root.size();
+    class NestedTextRoot: public TextRoot {
+    public:
+        void content() override {
+            for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox())
+                for(auto outer:CPPUI::Grid().columns(1).layout({},height).id("grid")) {
+                    auto & declaration=CPPUI::Grid();
+                    if(automatic) declaration.columns(1);
+                    for(auto inner:declaration) {
+                        cell(CPPUI::Label(text).id("text"),0,0,2);
+                        cell(CPPUI::Label("after"),2,0);
+                    }
+                }
+        }
+    };
+    template<class Text=TextRoot> void naturalText(bool automatic) {
+        Text root;root.automatic=automatic;const int tall=root.size();
         root.text="one";const int shortHeight=root.size();
         require(shortHeight<tall,"changing spanning label text did not shrink automatic rows");
         root.height=300;root.size();root.height.reset();
@@ -183,7 +202,11 @@ namespace {
 }
 int main() {
     lv_init();lv_display_create(640,480);int result=0;
-    try {geometry();input();naturalText();lifetime();require(lv_obj_get_child_count(lv_screen_active())==0,"grid teardown leaked native content");}
+    try {
+        geometry();input();
+        for(bool automatic:{false,true}) {naturalText(automatic);naturalText<NestedTextRoot>(automatic);}
+        lifetime();require(lv_obj_get_child_count(lv_screen_active())==0,"grid teardown leaked native content");
+    }
     catch(const std::exception & error) {std::cerr<<error.what()<<'\n';result=1;}
     lv_deinit();return result;
 }

@@ -12,7 +12,7 @@ namespace CPPUI { namespace LVGL {
         // storage, including while native callbacks run during reconciliation.
         struct Tracks {
             std::vector<int32_t> columns{0,LV_GRID_TEMPLATE_LAST},rows{0,LV_GRID_TEMPLATE_LAST};
-            bool updating=false,configured=false,fillX=false,fillY=false,remeasure=false;
+            bool updating=false,configured=false,fillX=false,fillY=false,automatic=false,remeasure=false;
         };
         std::shared_ptr<Tracks> tracks{new Tracks()};
         static bool participates(lv_obj_t * object) {
@@ -22,6 +22,30 @@ namespace CPPUI { namespace LVGL {
         static void validate(int position,int count) {
             if(position<0 || position>std::numeric_limits<int>::max()-count)
                 throw std::out_of_range("LVGL Grid cell position/span exceeds the supported integer range");
+        }
+        int naturalSize(lv_obj_t * object,bool horizontal) const {
+            // Stretched geometry is an output of layout, not a size request.
+            // Resolve the style (including content, padding and min/max) so a
+            // retained expanded cell can shrink when its content/span changes.
+            const auto calculate=horizontal ? lv_obj_calc_dynamic_width : lv_obj_calc_dynamic_height;
+            int size=calculate(object,horizontal ? LV_STYLE_WIDTH : LV_STYLE_HEIGHT);
+            const int requested=horizontal ? lv_obj_get_style_width(object,LV_PART_MAIN) : lv_obj_get_style_height(object,LV_PART_MAIN);
+            if(requested==LV_SIZE_CONTENT) for(auto child:gridChildren) {
+                auto grid=dynamic_cast<Grid *>(child);
+                if(!grid || grid->outer()!=object) continue;
+                // A nested grid's FR tracks describe its allocated area. Its
+                // minimum comes from descendant requests, not that allocation.
+                const auto intrinsic=grid->measure(horizontal,false);
+                const int gap=horizontal ? lv_obj_get_style_pad_column(object,LV_PART_MAIN) : lv_obj_get_style_pad_row(object,LV_PART_MAIN);
+                size=gap*static_cast<int>(intrinsic.size()-2);
+                for(std::size_t i=0;i+1<intrinsic.size();++i) size+=intrinsic[i];
+                size+=horizontal ? lv_obj_get_style_space_left(object,LV_PART_MAIN)+lv_obj_get_style_space_right(object,LV_PART_MAIN)
+                                 : lv_obj_get_style_space_top(object,LV_PART_MAIN)+lv_obj_get_style_space_bottom(object,LV_PART_MAIN);
+                break;
+            }
+            const int minimum=calculate(object,horizontal ? LV_STYLE_MIN_WIDTH : LV_STYLE_MIN_HEIGHT);
+            const int maximum=calculate(object,horizontal ? LV_STYLE_MAX_WIDTH : LV_STYLE_MAX_HEIGHT);
+            return std::max(minimum,std::min(size,maximum));
         }
         std::vector<int32_t> measure(bool horizontal,bool fill) const {
             struct Item {int start,count,size;};
@@ -36,8 +60,9 @@ namespace CPPUI { namespace LVGL {
                 const int n=span(horizontal ? lv_obj_get_style_grid_cell_column_span(child,LV_PART_MAIN) : lv_obj_get_style_grid_cell_row_span(child,LV_PART_MAIN));
                 validate(start,n);
                 count=std::max(count,start+n);
-                const int size=horizontal ? lv_obj_get_width(child)+lv_obj_get_style_margin_left(child,LV_PART_MAIN)+lv_obj_get_style_margin_right(child,LV_PART_MAIN)
-                                          : lv_obj_get_height(child)+lv_obj_get_style_margin_top(child,LV_PART_MAIN)+lv_obj_get_style_margin_bottom(child,LV_PART_MAIN);
+                const int extent=fill ? 0 : naturalSize(child,horizontal);
+                const int size=extent+(horizontal ? lv_obj_get_style_margin_left(child,LV_PART_MAIN)+lv_obj_get_style_margin_right(child,LV_PART_MAIN)
+                                                  : lv_obj_get_style_margin_top(child,LV_PART_MAIN)+lv_obj_get_style_margin_bottom(child,LV_PART_MAIN));
                 items.push_back({start,n,size});
             }
             std::vector<int32_t> result(count,fill ? LV_GRID_FR(1) : 0);
@@ -62,19 +87,23 @@ namespace CPPUI { namespace LVGL {
             if(!ui || tracks->updating) return;
             auto object=static_cast<lv_obj_t *>(ui);
             const bool x=fillsAxis(object,true),y=fillsAxis(object,false);
+            const bool automatic=grid_columns>0;
             auto columns=measure(true,x),rows=measure(false,y);
-            if(tracks->configured && x==tracks->fillX && y==tracks->fillY && columns==tracks->columns && rows==tracks->rows) return;
+            if(tracks->configured && x==tracks->fillX && y==tracks->fillY && automatic==tracks->automatic
+               && columns==tracks->columns && rows==tracks->rows) return;
             tracks->updating=true;
-            tracks->remeasure=tracks->remeasure || (tracks->configured && ((tracks->fillX && !x) || (tracks->fillY && !y)));
-            tracks->fillX=x;tracks->fillY=y;tracks->configured=true;
+            tracks->remeasure=tracks->remeasure || (tracks->configured
+                && (((tracks->fillX || tracks->automatic) && !(x || automatic))
+                    || ((tracks->fillY || tracks->automatic) && !(y || automatic))));
+            tracks->fillX=x;tracks->fillY=y;tracks->automatic=automatic;tracks->configured=true;
             // Keep old arrays alive until both native style pointers are replaced.
             tracks->columns.swap(columns);tracks->rows.swap(rows);
             lv_obj_set_grid_dsc_array(object,tracks->columns.data(),tracks->rows.data());
             for(uint32_t i=0;i<lv_obj_get_child_count(object);++i) {
                 auto child=lv_obj_get_child(object,i);
                 if(lv_obj_is_ignore_layout(child)) continue;
-                lv_obj_set_style_grid_cell_x_align(child,x ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0);
-                lv_obj_set_style_grid_cell_y_align(child,y ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0);
+                lv_obj_set_style_grid_cell_x_align(child,x || automatic ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0);
+                lv_obj_set_style_grid_cell_y_align(child,y || automatic ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0);
             }
             tracks->updating=false;
         }
@@ -134,8 +163,8 @@ namespace CPPUI { namespace LVGL {
             const int columns=cell.columnspan,rows=cell.rowspan;
             validate(cell.column,columns);validate(cell.row,rows);
             lv_obj_set_ignore_layout(object,false);
-            lv_obj_set_grid_cell(object,tracks->fillX ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.column,columns,
-                                       tracks->fillY ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.row,rows);
+            lv_obj_set_grid_cell(object,tracks->fillX || grid_columns ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.column,columns,
+                                       tracks->fillY || grid_columns ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.row,rows);
             const auto margin=child->layout_margin.valueOr(Insets(0));
             lv_obj_set_style_margin_top(object,margin.top,0);lv_obj_set_style_margin_right(object,margin.right,0);
             lv_obj_set_style_margin_bottom(object,margin.bottom,0);lv_obj_set_style_margin_left(object,margin.left,0);

@@ -82,6 +82,30 @@ struct WideRoot:Root {
         }
     }
 };
+struct ExpansionRoot:Root {
+    using Root::Root;
+    int tileHeight=120;
+    bool horizontal=false;
+    void content() override {
+        for(auto window:CPPUI::Window().id("window")) for(auto box:CPPUI::VBox())
+            for(auto scroll:CPPUI::Scroll({},horizontal ? CPPUI::Optional<bool>() : CPPUI::Optional<bool>(false)).layout(CPPUI::layout::height(300)))
+                for(auto grid:CPPUI::Grid().columns(2,CPPUI::grid::expandChildren(expand)).id("grid")) {
+                    CPPUI::Label("A").id("a").grid(CPPUI::grid::rowspan(2)).layout(80,tileHeight);
+                    CPPUI::Label("B").id("b").layout(40,60);
+                    CPPUI::Label("C").id("c").grid(CPPUI::grid::rowspan(3),CPPUI::grid::columnspan(2)).layout(120,180);
+                    CPPUI::Label("D").id("d").layout(40,60);
+                }
+    }
+};
+static CPPUI::Size nativeSize(CPPUI::Node * node) {
+#if defined(CPPUI_TEST_QT)
+    auto object=static_cast<QWidget *>(node->outer());return {object->width(),object->height()};
+#elif defined(CPPUI_TEST_WX)
+    auto size=static_cast<wxWindow *>(node->outer())->GetSize();return {size.x,size.y};
+#else
+    auto object=static_cast<lv_obj_t *>(node->outer());return {lv_obj_get_width(object),lv_obj_get_height(object)};
+#endif
+}
 static void draft(CPPUI::Node * node) {
 #if defined(CPPUI_TEST_QT)
     auto editor=static_cast<QLineEdit *>(node->outer());editor->setText("draft");editor->setSelection(1,2);
@@ -167,6 +191,23 @@ int main(int argc,char ** argv) {
         int before=root.builds;pump();require(root.builds==before,"stable grid kept redrawing");
         root.present=false;root.mount();root.present=true;root.mount();
         root.present=false;root.mount();
+        for(bool horizontal:{false,true}) {
+            ExpansionRoot expanded(argc,argv);expanded.expand=true;expanded.horizontal=horizontal;expanded.mount();
+            auto original=find(expanded,"b")->outer();
+            const auto initialHeight=nativeSize(find(expanded,"a")).height;
+            for(int height:{120,180,120}) for(bool enabled:{true,false,true}) {
+                expanded.tileHeight=height;expanded.expand=enabled;expanded.mount();
+                auto a=find(expanded,"a"),b=find(expanded,"b"),c=find(expanded,"c"),d=find(expanded,"d");
+                require(b->outer()==original,"expansion recreated the tile");
+                require(b->grid_cell->rowspan==(enabled ? 2 : 1),"content grid expansion span differs");
+                require(enabled ? nativeSize(b).height==nativeSize(a).height : nativeSize(b).height<nativeSize(a).height,
+                    "content grid did not fill or release the expanded row span");
+                require(enabled ? nativeSize(d).width==nativeSize(c).width : nativeSize(d).width<nativeSize(c).width,
+                    "content grid did not fill or release the expanded column span");
+                if(enabled && height==120) require(nativeSize(a).height==initialHeight,
+                    "content grid retained a previously stretched height");
+            }
+        }
         for(bool automatic:{true,false}) {
             WideRoot wide(argc,argv);wide.automatic=automatic;wide.mount();resize(wide,450);
             auto original=find(wide,"editor")->outer();draft(find(wide,"editor"));
