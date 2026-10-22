@@ -96,8 +96,10 @@ int main() {
         for(int width:{599,600,800,900,400}) {
             owner.sizeState->publish(width,400);
             grid.columns(3,CPPUI::grid::expandChildren(false))
-                .wideColumns(500,3).wideColumns(600,3,CPPUI::grid::expandChildren(true))
-                .wideColumns(800,3).wideColumns(900,3,CPPUI::grid::expandChildren(false));
+                .wideColumns(500,3)
+                .wideColumns(600,3,CPPUI::grid::expandChildren(true))
+                .wideColumns(800,3)
+                .wideColumns(900,3,CPPUI::grid::expandChildren(false));
             require(grid.cells()[1].cell.rowspan==(width>=600 && width<900 ? 2 : 1),"breakpoint expansion inheritance/override differs");
         }
         Item left,right;left.grid(CPPUI::grid::columnspan(2));right.grid(CPPUI::grid::columnspan(3));

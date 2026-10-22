@@ -20,7 +20,9 @@ namespace Cookbook {
             if(mode!="ordered") dense=mode=="dense";
             for(auto scroll:CPPUI::Scroll().layout(CPPUI::layout::weight(1))) {
                 for(auto scope:CPPUI::Grid().columns(1,CPPUI::grid::dense(dense),CPPUI::grid::expandChildren(model.gridExpand))
-                    .wideColumns(384,2).wideColumns(576,3).wideColumns(768,4).id("adaptive-grid")) {
+                    .wideColumns(384,2)
+                    .wideColumns(576,3)
+                    .wideColumns(768,4).id("adaptive-grid")) {
                     struct Tile {const char * name;int rows,columns,background,foreground;};
                     std::vector<Tile> tiles={
                         {"A",2,1,0x244B5A,0xFFF7E6},{"B",1,1,0xA84A3A,0xFFF7E6},

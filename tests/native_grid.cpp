@@ -44,7 +44,8 @@ struct Root:CPPUI::Application {
             auto & grid=CPPUI::Grid();
             if(automatic) grid.columns(columns,CPPUI::grid::dense(dense),CPPUI::grid::expandChildren(expand));
             if(responsive) grid.columns(1,CPPUI::grid::expandChildren(false))
-                .wideColumns(600,3,CPPUI::grid::expandChildren(true)).wideColumns(800,4);
+                .wideColumns(600,3,CPPUI::grid::expandChildren(true))
+                .wideColumns(800,4);
             for(auto scope:grid.id("grid").layout(CPPUI::layout::weight(1))) {
                 const std::vector<std::string> keys=reverse ? std::vector<std::string>{"c","b","a"} : std::vector<std::string>{"a","b","c"};
                 for(const auto & key:keys) CPPUI::Label(key).id(key)

@@ -1174,7 +1174,8 @@ Legacy direct field writes before <code>.wideGrid()</code> also establish the ba
 <p>Automatic placement overrides child coordinates while keeping their declared
 spans. Computed <code>grid_cell</code> values never change reconciliation identity:</p>
 <pre><code class="language-cpp">for(auto scope: CPPUI::Grid().columns(1, CPPUI::grid::dense(true))
-        .wideColumns(400, 2).wideColumns(600, 3)) {
+        .wideColumns(400, 2)
+        .wideColumns(600, 3)) {
     CPPUI::Label(&quot;A&quot;).id(&quot;a&quot;).grid(CPPUI::grid::columnspan(2));
     CPPUI::Label(&quot;B&quot;).id(&quot;b&quot;).grid(CPPUI::grid::columnspan(2));
     CPPUI::Label(&quot;C&quot;).id(&quot;c&quot;);
