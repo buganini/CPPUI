@@ -71,7 +71,7 @@ namespace Cookbook {
                                 .id(std::string("source-scroll:") + page.key)) {
                             CPPUI::Text(sourceText).id("source-code")
                                 .layout(CPPUI::layout::padding(10))
-                                .style(CPPUI::style::color(0xF8F8F2), CPPUI::style::bgColor(0x272822), CPPUI::style::fontSize(14));
+                                .style(CPPUI::style::color(0xF8F8F2), CPPUI::style::bgColor(0x272822), CPPUI::style::fontSize(12));
                         }
                     }
                     for(auto result: CPPUI::VBox().layout({}, {}, 1).id("result")) {
