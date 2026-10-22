@@ -15,6 +15,11 @@ target_link_libraries(cppui_core_adaptive PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_adaptive PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 cppui_add_test(core.adaptive cppui_core_adaptive)
 
+add_executable(cppui_core_wide_order core_wide_order.cpp)
+target_link_libraries(cppui_core_wide_order PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_wide_order PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.wide_order cppui_core_wide_order)
+
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)

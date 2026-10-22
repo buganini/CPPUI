@@ -37,8 +37,8 @@ struct Root:CPPUI::Application {
             auto size=container.size().get();
             for(auto scope:container) {
                 CPPUI::Label(size ? std::to_string(size->width) : "waiting");
-                for(auto compact:CPPUI::VBox().id("compact").visible(true,{{},600})) CPPUI::TextField(text).id("compact-input");
-                for(auto wide:CPPUI::HBox().id("wide").visible(true,{600})) CPPUI::TextField(text).id("wide-input");
+                for(auto compact:CPPUI::VBox().id("compact").wideVisible(600,false)) CPPUI::TextField(text).id("compact-input");
+                for(auto wide:CPPUI::HBox().id("wide").visible(false).wideVisible(600,true)) CPPUI::TextField(text).id("wide-input");
                 CPPUI::Spacer();
             }
         }

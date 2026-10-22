@@ -100,7 +100,11 @@ namespace CPPUI {
         virtual std::unique_ptr<detail::SizeObserver> observeSize() { return {}; }
         bool is_frozen = false;
         bool thaw_pending = false;
-        Node & visible(bool value = true, const VisibilityBounds & bounds = {});
+        Node & visible(bool value);
+        Node & wideVisible(detail::Breakpoint minWidth,bool value) {
+            if(wideMatches(minWidth,detail::WideMethod::Visible)) visible(value);
+            return *this;
+        }
         bool isFrozen() const {
             for(auto current=this; current;) {
                 if(current->is_frozen) return true;
@@ -168,32 +172,32 @@ namespace CPPUI {
             return style(color, bgColor, fontSize, static_cast<int>(fontWeight), fontFamily);
         }
 
-        Node & wideLayout(int minWidth, Optional<int> width = {}, Optional<int> height = {},
+        Node & wideLayout(detail::Breakpoint minWidth, Optional<int> width = {}, Optional<int> height = {},
                           Optional<int> weight = {}, Optional<Insets> padding = {}, Optional<Insets> margin = {}) {
-            if(wideMatches(minWidth)) layout(width, height, weight, padding, margin);
+            if(wideMatches(minWidth,detail::WideMethod::Layout)) layout(width, height, weight, padding, margin);
             return *this;
         }
-        Node & wideStyle(int minWidth, Optional<int> color = {}, Optional<int> bgColor = {},
+        Node & wideStyle(detail::Breakpoint minWidth, Optional<int> color = {}, Optional<int> bgColor = {},
                          Optional<int> fontSize = {}, Optional<int> fontWeight = {}, const char * fontFamily = nullptr) {
-            if(wideMatches(minWidth)) style(color, bgColor, fontSize, fontWeight, fontFamily);
+            if(wideMatches(minWidth,detail::WideMethod::Style)) style(color, bgColor, fontSize, fontWeight, fontFamily);
             return *this;
         }
         template<class Weight>
         typename std::enable_if<std::is_same<Weight, FontWeight>::value, Node &>::type
-        wideStyle(int minWidth, Optional<int> color, Optional<int> bgColor,
+        wideStyle(detail::Breakpoint minWidth, Optional<int> color, Optional<int> bgColor,
                   Optional<int> fontSize, Weight fontWeight, const char * fontFamily = nullptr) {
             return wideStyle(minWidth, color, bgColor, fontSize, static_cast<int>(fontWeight), fontFamily);
         }
         template<class First, class... Rest>
         typename std::enable_if<detail::AreModifierArguments<detail::LayoutKey, First, Rest...>::value, Node &>::type
-        wideLayout(int minWidth, First && first, Rest &&... rest) {
-            if(wideMatches(minWidth)) layout(std::forward<First>(first), std::forward<Rest>(rest)...);
+        wideLayout(detail::Breakpoint minWidth, First && first, Rest &&... rest) {
+            if(wideMatches(minWidth,detail::WideMethod::Layout)) layout(std::forward<First>(first), std::forward<Rest>(rest)...);
             return *this;
         }
         template<class First, class... Rest>
         typename std::enable_if<detail::AreModifierArguments<detail::StyleKey, First, Rest...>::value, Node &>::type
-        wideStyle(int minWidth, First && first, Rest &&... rest) {
-            if(wideMatches(minWidth)) style(std::forward<First>(first), std::forward<Rest>(rest)...);
+        wideStyle(detail::Breakpoint minWidth, First && first, Rest &&... rest) {
+            if(wideMatches(minWidth,detail::WideMethod::Style)) style(std::forward<First>(first), std::forward<Rest>(rest)...);
             return *this;
         }
 
@@ -210,9 +214,9 @@ namespace CPPUI {
 
         template<class First, class... Rest>
         typename std::enable_if<detail::AreModifierArguments<detail::GridKey, First, Rest...>::value, Node &>::type
-        wideGrid(int minWidth, First && first, Rest &&... rest) {
+        wideGrid(detail::Breakpoint minWidth, First && first, Rest &&... rest) {
             if(!grid_identity) grid_identity=GridCell(grid_row,grid_column,grid_rowspan,grid_columnspan);
-            if(wideMatches(minWidth)) applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
+            if(wideMatches(minWidth,detail::WideMethod::Grid)) applyModifiers(std::forward<First>(first), std::forward<Rest>(rest)...);
             return *this;
         }
 
@@ -221,7 +225,10 @@ namespace CPPUI {
         void recordGridModifier(CPPUI::grid::Column argument) { grid_identity->column=argument.value; }
         void recordGridModifier(CPPUI::grid::RowSpan argument) { grid_identity->rowspan=argument.value; }
         void recordGridModifier(CPPUI::grid::ColumnSpan argument) { grid_identity->columnspan=argument.value; }
-        bool wideMatches(int minWidth);
+        Optional<int> previousWideWidths[static_cast<int>(detail::WideMethod::Count)];
+        protected:
+        bool wideMatches(detail::Breakpoint minWidth,detail::WideMethod method);
+        private:
         template<class Argument>
         static void validateModifier(const Argument &) {}
         static void validateModifier(CPPUI::layout::Width argument) {

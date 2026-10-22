@@ -11,19 +11,22 @@ namespace CPPUI {
         bool operator==(const Size & other) const { return width==other.width && height==other.height; }
     };
 
-    struct VisibilityBounds {
-        Optional<int> minWidth,maxWidth,minHeight,maxHeight;
-        VisibilityBounds(Optional<int> minWidth={},Optional<int> maxWidth={},
-                         Optional<int> minHeight={},Optional<int> maxHeight={})
-            :minWidth(minWidth),maxWidth(maxWidth),minHeight(minHeight),maxHeight(maxHeight) {}
-        bool constrained() const { return minWidth || maxWidth || minHeight || maxHeight; }
-        bool matches(const Optional<Size> & size) const {
-            return size && (!minWidth || size->width>=*minWidth) && (!maxWidth || size->width<*maxWidth)
-                && (!minHeight || size->height>=*minHeight) && (!maxHeight || size->height<*maxHeight);
-        }
-    };
-
     namespace detail {
+        enum class WideMethod { Layout, Style, Visible, Grid, Columns, Count };
+        // Implicit conversion keeps integer call sites while recording the
+        // declaration location, including variadic modifier overloads.
+        struct Breakpoint {
+            int width;
+            const char * file;
+            int line;
+#if defined(__GNUC__) || defined(__clang__) || (defined(_MSC_VER) && _MSC_VER >= 1926)
+            Breakpoint(int width,const char * file=__builtin_FILE(),int line=__builtin_LINE())
+#else
+            Breakpoint(int width,const char * file="<unknown>",int line=0)
+#endif
+                :width(width),file(file),line(line) {}
+        };
+
         class SizeState;
         struct SizeObserver {
             virtual ~SizeObserver() {}

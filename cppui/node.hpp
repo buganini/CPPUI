@@ -3,6 +3,8 @@
 #include <vector>
 #include <iterator>
 #include <tuple>
+#include <mutex>
+#include <iostream>
 
 
 #ifndef CPPUI_NODE
@@ -96,16 +98,34 @@ namespace CPPUI {
         }
     }
 
-    inline bool Node::wideMatches(int minWidth) {
-        return detail::adaptiveHorizontal(*this,minWidth,true);
+    namespace detail {
+        inline void warnWideOrder(WideMethod method,int previous,const Breakpoint & current) {
+            typedef std::tuple<WideMethod,int,int,std::string,int> Key;
+            static std::vector<Key> recent;
+            static std::mutex mutex;
+            const Key key(method,previous,current.width,current.file,current.line);
+            std::lock_guard<std::mutex> lock(mutex);
+            const auto found=std::find(recent.begin(),recent.end(),key);
+            if(found!=recent.end()) {
+                recent.erase(found);recent.push_back(key);return;
+            }
+            if(recent.size()==128) recent.erase(recent.begin());
+            recent.push_back(key);
+            const char * names[]={"wideLayout","wideStyle","wideVisible","wideGrid","wideColumns"};
+            std::cerr<<current.file<<':'<<current.line<<": CPPUI warning: "<<names[static_cast<int>(method)]
+                <<" breakpoint "<<current.width<<" follows "<<previous
+                <<"; declare breakpoints from small to large. Later matching values override earlier ones.\n";
+        }
     }
 
-    inline Node & Node::visible(bool value,const VisibilityBounds & bounds) {
-        if(bounds.constrained()) {
-            auto owner=parent;
-            while(owner && owner->is_virtual && owner->parent!=owner) owner=owner->parent;
-            value=value && owner && owner!=this && bounds.matches(owner->size().get());
-        }
+    inline bool Node::wideMatches(detail::Breakpoint minWidth,detail::WideMethod method) {
+        auto & previous=previousWideWidths[static_cast<int>(method)];
+        if(previous && minWidth.width<*previous) detail::warnWideOrder(method,*previous,minWidth);
+        previous=minWidth.width;
+        return detail::adaptiveHorizontal(*this,minWidth.width,true);
+    }
+
+    inline Node & Node::visible(bool value) {
         is_visible=value;is_frozen=supportsVisibility() && !value;
         return *this;
     }

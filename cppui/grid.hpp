@@ -113,9 +113,9 @@ namespace CPPUI { namespace detail {
         GridLayout & columns(int count,grid::ExpandChildren expand,grid::Dense dense={}) {
             return columns(count,dense,expand);
         }
-        GridLayout & wideColumns(int minWidth,int count,grid::ExpandChildren expand={}) {
+        GridLayout & wideColumns(Breakpoint minWidth,int count,grid::ExpandChildren expand={}) {
             validateColumns(count);
-            if(adaptiveHorizontal(*this,minWidth,true)) {
+            if(this->wideMatches(minWidth,WideMethod::Columns)) {
                 this->grid_columns=count;
                 if(expand.value) gridExpandChildren=*expand.value;
             }

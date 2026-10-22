@@ -3,6 +3,7 @@
 
 namespace Cookbook {
     void adaptive(Model & model) {
+        // Declare each wide* method's breakpoints from small to large; later matches win.
         auto & container=CPPUI::VBox();container.id("adaptive-container").layout({}, {},1);
         const auto size=container.size().get();
         for(auto scope:container) {
@@ -13,13 +14,13 @@ namespace Cookbook {
                 CPPUI::Checkbox("Reverse horizontal",model.adaptiveInverseH).id("adaptive-inverse-h");
                 CPPUI::Checkbox("Reverse vertical",model.adaptiveInverseV).id("adaptive-inverse-v");
             }
-            for(auto compact:CPPUI::VBox().id("adaptive-compact").visible(true,{{},600})) {
+            for(auto compact:CPPUI::VBox().id("adaptive-compact").wideVisible(600,false)) {
                 CPPUI::Label("Compact layout");
                 CPPUI::Label("Name");
                 CPPUI::TextField(model.adaptiveName).id("adaptive-compact-input");
                 CPPUI::Label("The two layouts share the same input state.");
             }
-            for(auto wide:CPPUI::HBox().id("adaptive-wide").visible(true,{600})) {
+            for(auto wide:CPPUI::HBox().id("adaptive-wide").visible(false).wideVisible(600,true)) {
                 CPPUI::Label("Wide layout");
                 CPPUI::Label("Name");
                 CPPUI::TextField(model.adaptiveName).id("adaptive-wide-input");

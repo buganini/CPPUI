@@ -4,6 +4,7 @@
 
 namespace Cookbook {
     void adaptiveGrid(Model & model) {
+        // Declare each wide* method's breakpoints from small to large; later matches win.
         for(auto body:CPPUI::VBox().layout(CPPUI::layout::weight(1))) {
             CPPUI::Label("Adaptive Grid: 1–4 columns (labels: rows×cols).\nFour columns from 768 px.");
             CPPUI::Label("Watch blue F (original order; C shown):\nOrdered → row 4 | Dense → row 3 | Forward → row 5");

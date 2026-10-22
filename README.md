@@ -51,9 +51,10 @@ for(auto box: CPPUI::HVBox(600)) {
 }
 ```
 
-Use `HVBox` / `VHBox` for direction changes, `.visible(true, bounds)` for
-width/height limits, and `.wideLayout()` / `.wideStyle()` for width-dependent
-settings. See the [responsive layout guide](https://buganini.github.io/CPPUI/doc/Reference.html#responsive-layout)
+Use `HVBox` / `VHBox` for direction changes, `.visible(value)` / `.wideVisible(minWidth, value)` for
+visibility, and `.wideLayout()` / `.wideStyle()` for width-dependent
+settings. Declare each width modifier’s breakpoints from small to large; later
+matching values win, and descending thresholds emit a warning. See the [responsive layout guide](https://buganini.github.io/CPPUI/doc/Reference.html#responsive-layout)
 for API choices and sizing behavior, and the
 [Adaptive cookbook](cookbook/adaptive.cpp) for a runnable example.
 

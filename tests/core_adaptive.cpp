@@ -29,9 +29,22 @@ struct Root:CPPUI::View {
 };
 int main() {
     try {
-        CPPUI::VisibilityBounds bounds(100,200,50,100);
-        require(!bounds.matches({}) && bounds.matches(CPPUI::Size(100,50)) && !bounds.matches(CPPUI::Size(200,50))
-            && !bounds.matches(CPPUI::Size(100,100)) && !bounds.matches(CPPUI::Size(99,60)),"breakpoint boundaries differ from PUI");
+        {
+            Node parent;parent.update(nullptr);parent.size();
+            Node compact,wide;compact.parent=wide.parent=&parent;
+            compact.wideVisible(600,false);
+            wide.visible(false).wideVisible(600,true);
+            require(compact.is_visible && !compact.is_frozen && !wide.is_visible && wide.is_frozen,
+                "unknown size did not preserve explicit/default visibility");
+            for(int width:{0,599,600,900,400}) {
+                parent.sizeState->publish(width,100);
+                Node item;item.parent=&parent;
+                item.visible(false).wideVisible(0,true).wideVisible(600,false).wideVisible(800,true);
+                require(item.is_visible==(width<600 || width>=800) && item.is_frozen==!item.is_visible,
+                    "width visibility boundary, order or freeze state differs");
+                item.visible(false);require(!item.is_visible && item.is_frozen,"later base visibility did not win");
+            }
+        }
         {
             namespace layout=CPPUI::layout;
             namespace style=CPPUI::style;
@@ -89,13 +102,13 @@ int main() {
                 if(remove) return;
                 auto & container=node();container.id("container");container.size().get();
                 for(auto scope:container) {
-                    for(auto compact:node().id("compact").visible(true,{{},600})) node();
-                    for(auto wide:node().id("wide").visible(true,{600})) node();
+                    for(auto compact:node().id("compact").wideVisible(600,false)) node();
+                    for(auto wide:node().id("wide").visible(false).wideVisible(600,true)) node();
                 }
                 if(fail) external=1;
             };
             root.redraw();auto container=root.children->front();auto state=container->sizeState;auto binding=container->size();
-            require(!binding.get() && container->children->front()->children->empty(),"unmeasured branch mounted content");
+            require(!binding.get() && !container->children->front()->children->empty() && container->children->back()->children->empty(),"unknown size did not preserve visibility baselines");
             auto callback=[state](int w,int h) {state->publish(w,h);};
             callback(700,300);container=root.children->front();
             require(container->sizeState==state && starts==initialStarts+1 && stops==initialStops,"size observer/state not retained");

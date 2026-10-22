@@ -1142,6 +1142,14 @@ omitted properties, including children rebuilt by independent virtual views.
 LVGL boxes use a six-pixel gap and stretch children across the other axis unless
 that dimension is explicit; dividers retain their one-pixel thickness.</p>
 <h2 id="grid-and-stack">Grid and Stack</h2>
+<h3 id="container-precedence">Container precedence</h3>
+<p>The parent container determines each child's final position and size.
+Width, height and weight express sizing requirements interpreted by that
+container as fixed, preferred or minimum dimensions, or allocation weights.
+Grid children fill their assigned cells, including expanded spans; a declared
+height of 60 does not prevent filling a taller cell. HBox and VBox retain their
+linear expansion priorities, weights and cross-axis rules. This does not make
+every child stretch or discard its size requirements.</p>
 <p>Qt, wx and LVGL expose <code>Grid()</code> through their <code>layout.hpp</code> or <code>grid.hpp</code>.
 Without <code>.columns()</code>, Grid uses explicit child coordinates. Prefer named modifiers:</p>
 <pre><code class="language-cpp">for(auto scope: CPPUI::Grid()) {
@@ -1830,8 +1838,8 @@ remaining after siblings. Thresholds and measurements use native logical pixels.
 <td><a href="#grid-and-stack"><code>.wideColumns()</code> / <code>.wideGrid()</code></a></td>
 </tr>
 <tr>
-<td>Show or hide by width/height</td>
-<td><a href="#reactive-size-and-adaptive-visibility"><code>.visible(true, VisibilityBounds{...})</code></a></td>
+<td>Override visibility by width</td>
+<td><a href="#reactive-size-and-adaptive-visibility"><code>.visible(value) / .wideVisible(minWidth, value)</code></a></td>
 </tr>
 <tr>
 <td>Override dimensions, weight or spacing</td>
@@ -1847,12 +1855,18 @@ remaining after siblings. Thresholds and measurements use native logical pixels.
 </tr>
 </tbody>
 </table></div>
-<p>Declare base settings first, then overrides. Wide thresholds include the
-boundary; when several match, the last supplied value wins in declaration
-order, regardless of threshold order. Resizing below a threshold rebuilds
-the declaration with its base settings. Before the first measurement, size
-is empty and wide overrides do not apply. Visibility minima are inclusive,
-maxima exclusive, and bounded visibility is false until size is known.</p>
+<p>Declare base settings first, then each method's breakpoints from small to large.
+Wide thresholds include the boundary; later matching values win in declaration
+order. Rules are never sorted automatically. Resizing below a threshold rebuilds
+the declaration with its base settings. Before the first measurement, size is
+empty, wide overrides do not apply, and visibility keeps its baseline.</p>
+<p>Each node checks the threshold sequence separately for <code>wideLayout</code>,
+<code>wideStyle</code>, <code>wideVisible</code>, <code>wideGrid</code> and <code>wideColumns</code>.
+Descending thresholds warn even when unmatched; equal thresholds are allowed.
+Warnings go to standard error and use a bounded 128-entry LRU cache to avoid
+repeating the same warning on redraw. Supported compiler builtins capture the
+caller's file and line without changing ordinary integer arguments; otherwise
+location is reported as unknown. Diagnostics never change override behavior.</p>
 <pre><code class="language-cpp">// Inside content(), with the selected backend's headers included:
 for(auto panel: CPPUI::VBox().layout(CPPUI::layout::weight(1))) {
     CPPUI::Label(&quot;Title&quot;)
@@ -1864,7 +1878,7 @@ for(auto panel: CPPUI::VBox().layout(CPPUI::layout::weight(1))) {
         .wideLayout(600, CPPUI::layout::width(160), CPPUI::layout::padding(8));
     for(auto box: CPPUI::HVBox(600)) {
         CPPUI::Label(&quot;Name&quot;);
-        CPPUI::Label(&quot;Details&quot;).visible(true, CPPUI::VisibilityBounds{600});
+        CPPUI::Label(&quot;Details&quot;).visible(false).wideVisible(600, true);
     }
 }
 </code></pre>
@@ -1886,7 +1900,7 @@ its surrounding layout. No arbitrary size cap is added, and very small
 containers can still overflow. See the <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/adaptive.cpp">Adaptive cookbook</a>
 and the detailed APIs below.</p>
 <h2 id="visibility">Visibility</h2>
-<p><code>.visible(bool = true)</code> hides an ordinary widget or layout without removing its
+<p><code>.visible(bool value)</code> hides an ordinary widget or layout without removing its
 node or native control. Hidden content takes no layout space, including its
 padding/margin and box stretch, and receives no normal user input. Hidden
 subtrees freeze child reconciliation. Initially hidden containers defer child
@@ -1913,28 +1927,34 @@ virtual views or item declarations without a native surface.</p>
 widget. wx measures a sizer's allocated size or a window's client size. LVGL
 measures the content area excluding padding/borders. Measurements are coalesced
 and published after layout; unchanged dimensions do not trigger another redraw.
-Only nodes used by <code>.size()</code>, constrained <code>.visible()</code>, adaptive boxes or
-<code>.wideLayout()</code>/<code>.wideStyle()</code> install observers.
+Only nodes used by <code>.size()</code>, adaptive boxes or width modifiers
+(<code>.wideVisible()</code>, <code>.wideLayout()</code>, <code>.wideStyle()</code>,
+<code>.wideGrid()</code> and <code>.wideColumns()</code>) install observers.
 <code>Window::size(width, height)</code> sets window dimensions (owned desktop displays for
 LVGL), and Qt <code>Modal::size(width, height)</code> sets modal dimensions; zero arguments
 observe the actual content size.</p>
-<p>Use <code>VisibilityBounds</code> for PUI's optional width/height limits:</p>
+<p><code>.visible(bool value)</code> sets boolean visibility. The default is visible;
+<code>.wideVisible(minWidth, bool value)</code> overrides it when the nearest
+physical parent's content width reaches the inclusive threshold in logical pixels,
+skipping virtual views. Declare the baseline first, then width overrides.</p>
 <pre><code class="language-cpp">for(auto scope: CPPUI::VBox()) {
-    for(auto compact: CPPUI::VBox().visible(true, {{}, 600})) {
+    for(auto compact: CPPUI::VBox().wideVisible(600, false)) {
         CPPUI::Label(&quot;Compact layout&quot;);
     }
-    for(auto wide: CPPUI::HBox().visible(true, {600})) {
+    for(auto wide: CPPUI::HBox().visible(false).wideVisible(600, true)) {
         CPPUI::Label(&quot;Wide layout&quot;);
     }
 }
 </code></pre>
-<p>The fields/constructor arguments are <code>minWidth</code>, <code>maxWidth</code>, <code>minHeight</code>,
-<code>maxHeight</code>, each <code>Optional&lt;int&gt;</code>. <code>{}</code> omits a limit; zero is an explicit bound.
-Minima are inclusive and maxima exclusive. Bounds refer to the nearest physical
-parent's content size, skipping virtual ancestors. Before that size is known,
-constrained branches remain hidden and their children are not mounted. Passing
-<code>false</code> still hides the branch regardless of bounds. Showing it later restores
-its retained controls and refreshes frozen nested views.</p>
+<p>Matching calls apply in declaration order, including later calls to
+<code>.visible()</code>. Unknown parent size leaves the baseline unchanged.
+Hidden nodes collapse their allocated space and freeze child synchronization;
+showing them restores retained controls and refreshes frozen nested views.
+Parent-size observation stays active while children are frozen. Conditions use
+the full parent content area, not remaining sibling space; prefer an externally
+sized parent. The former <code>VisibilityBounds</code> overload has been removed.
+For custom width/height conditions, read <code>container.size().get()</code> and
+pass the result of your condition to <code>.visible(bool)</code>.</p>
 <h2 id="adaptive-box-layouts">Adaptive box layouts</h2>
 <p><code>HVBox(int minWidth, bool inverseH = false, bool inverseV = false)</code> arranges children horizontally when the nearest physical
 parent's content width is at least <code>minWidth</code>, and vertically otherwise.
@@ -1957,7 +1977,7 @@ HBox/VBox. <code>inverseH</code> selects reversed order in the horizontal direct
 Dividers and spacers follow direction changes on all three backends.
 These layouts do not wrap
 children into multiple rows. CPPUI has no Textual backend, so PUI's separate
-terminal-cell APIs (<code>tsize</code>, <code>tLayout</code>, <code>tStyle</code> and terminal bounds) are not exposed.</p>
+terminal-cell APIs (<code>tsize</code>, <code>tLayout</code>, <code>tStyle</code> and <code>tWideVisible</code>) are not exposed.</p>
 
         </article>
         <footer>

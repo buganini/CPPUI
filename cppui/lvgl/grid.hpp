@@ -12,7 +12,7 @@ namespace CPPUI { namespace LVGL {
         // storage, including while native callbacks run during reconciliation.
         struct Tracks {
             std::vector<int32_t> columns{0,LV_GRID_TEMPLATE_LAST},rows{0,LV_GRID_TEMPLATE_LAST};
-            bool updating=false,configured=false,fillX=false,fillY=false,automatic=false,remeasure=false;
+            bool updating=false,configured=false,fillX=false,fillY=false;
         };
         std::shared_ptr<Tracks> tracks{new Tracks()};
         static bool participates(lv_obj_t * object) {
@@ -87,35 +87,24 @@ namespace CPPUI { namespace LVGL {
             if(!ui || tracks->updating) return;
             auto object=static_cast<lv_obj_t *>(ui);
             const bool x=fillsAxis(object,true),y=fillsAxis(object,false);
-            const bool automatic=grid_columns>0;
             auto columns=measure(true,x),rows=measure(false,y);
-            if(tracks->configured && x==tracks->fillX && y==tracks->fillY && automatic==tracks->automatic
+            if(tracks->configured && x==tracks->fillX && y==tracks->fillY
                && columns==tracks->columns && rows==tracks->rows) return;
             tracks->updating=true;
-            tracks->remeasure=tracks->remeasure || (tracks->configured
-                && (((tracks->fillX || tracks->automatic) && !(x || automatic))
-                    || ((tracks->fillY || tracks->automatic) && !(y || automatic))));
-            tracks->fillX=x;tracks->fillY=y;tracks->automatic=automatic;tracks->configured=true;
+            tracks->fillX=x;tracks->fillY=y;tracks->configured=true;
             // Keep old arrays alive until both native style pointers are replaced.
             tracks->columns.swap(columns);tracks->rows.swap(rows);
             lv_obj_set_grid_dsc_array(object,tracks->columns.data(),tracks->rows.data());
             for(uint32_t i=0;i<lv_obj_get_child_count(object);++i) {
                 auto child=lv_obj_get_child(object,i);
                 if(lv_obj_is_ignore_layout(child)) continue;
-                lv_obj_set_style_grid_cell_x_align(child,x || automatic ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0);
-                lv_obj_set_style_grid_cell_y_align(child,y || automatic ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,0);
+                lv_obj_set_style_grid_cell_x_align(child,LV_GRID_ALIGN_STRETCH,0);
+                lv_obj_set_style_grid_cell_y_align(child,LV_GRID_ALIGN_STRETCH,0);
             }
             tracks->updating=false;
         }
         void nativeEvent(lv_event_t * event) override {
             const auto code=lv_event_get_code(event);
-            if(code==LV_EVENT_LAYOUT_CHANGED && tracks->remeasure) {
-                tracks->remeasure=false;
-                // Native grid has released its stretch sizing flags.
-                auto object=static_cast<lv_obj_t *>(ui);
-                for(uint32_t i=0;i<lv_obj_get_child_count(object);++i)
-                    lv_obj_mark_layout_as_dirty(lv_obj_get_child(object,i));
-            }
             if(code==LV_EVENT_SIZE_CHANGED || code==LV_EVENT_STYLE_CHANGED || code==LV_EVENT_CHILD_CHANGED
                || code==LV_EVENT_CHILD_DELETED || code==LV_EVENT_LAYOUT_CHANGED) configure();
             Node::nativeEvent(event);
@@ -163,8 +152,8 @@ namespace CPPUI { namespace LVGL {
             const int columns=cell.columnspan,rows=cell.rowspan;
             validate(cell.column,columns);validate(cell.row,rows);
             lv_obj_set_ignore_layout(object,false);
-            lv_obj_set_grid_cell(object,tracks->fillX || grid_columns ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.column,columns,
-                                       tracks->fillY || grid_columns ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.row,rows);
+            lv_obj_set_grid_cell(object,LV_GRID_ALIGN_STRETCH,cell.column,columns,
+                                       LV_GRID_ALIGN_STRETCH,cell.row,rows);
             const auto margin=child->layout_margin.valueOr(Insets(0));
             lv_obj_set_style_margin_top(object,margin.top,0);lv_obj_set_style_margin_right(object,margin.right,0);
             lv_obj_set_style_margin_bottom(object,margin.bottom,0);lv_obj_set_style_margin_left(object,margin.left,0);
