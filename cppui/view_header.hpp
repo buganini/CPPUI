@@ -27,7 +27,7 @@ namespace CPPUI {
         const std::vector<Node *> * previousSizeChildren = nullptr;
 
         View();
-        virtual ~View();
+        ~View() override;
 
         View & id(const char * name) {
             Node::id(name);
@@ -38,10 +38,10 @@ namespace CPPUI {
             return *this;
         }
 
-        virtual void enter(void);
-        virtual void exit(void);
+        void enter(void) override;
+        void exit(void) override;
 
-        virtual void update(Node * prev);
+        void update(Node * prev) override;
         virtual void redraw(void);
         void refreshAfterThaw() override { redraw(); }
         virtual void run(void);
