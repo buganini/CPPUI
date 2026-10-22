@@ -281,6 +281,36 @@ namespace CPPUI {
 
     }
 
+    inline Node * Node::expansionParent() const {
+        auto p=parent;
+        while(p && p!=this && p->is_virtual) {
+            if(p->parent==p) return nullptr;
+            p=p->parent;
+        }
+        return p==this ? nullptr : p;
+    }
+    inline bool Node::childExpansionDemand(bool horizontal,const Node * physicalParent) const {
+        if(!physicalParent) physicalParent=this;
+        if(!children) return false;
+        for(auto declaration:*children) {
+            auto child=declaration->getNode();
+            if(!child->is_visible || child->is_outoforder) continue;
+            if(child->is_virtual ? child->childExpansionDemand(horizontal,physicalParent)
+                : child->expansionPriority(horizontal,physicalParent)>=2) return true;
+        }
+        return false;
+    }
+    inline int Node::expansionPriority(bool horizontal,const Node * physicalParent) const {
+        if(!layoutVisible()) return 0;
+        if(!physicalParent) physicalParent=expansionParent();
+        if(physicalParent && physicalParent->expansionAxis(horizontal) && layout_weight)
+            return *layout_weight>0 ? 5 : 0;
+        const int base=baseExpansion(horizontal);
+        if(base>=2 || is_terminal || expansionBoundary(horizontal)
+            || (horizontal ? bool(layout_width) : bool(layout_height))) return base;
+        return childExpansionDemand(horizontal) ? std::max(base,2) : base;
+    }
+
     inline void Node::postSync(void) {
 
     }

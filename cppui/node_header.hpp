@@ -33,6 +33,15 @@ namespace CPPUI {
 
         int classtype = 0;
 
+        // Shared per-axis demand: natural 0/1, descendant 2, container 3,
+        // shrinkable control 4, explicit positive weight 5.
+        virtual int baseExpansion(bool) const { return 0; }
+        virtual bool expansionAxis(bool) const { return false; }
+        virtual bool expansionBoundary(bool) const { return false; }
+        Node * expansionParent() const;
+        int expansionPriority(bool horizontal,const Node * physicalParent=nullptr) const;
+        bool childExpansionDemand(bool horizontal,const Node * physicalParent=nullptr) const;
+
         bool is_terminal = false;
         bool is_outoforder = false;
         bool is_reversed_order = false;

@@ -15,6 +15,10 @@ results out of this document.
 
 ## Containers and data widgets
 
+- [ ] Apply the shared per-axis expansion priorities to box allocation, including
+  recursive descendant demand, hidden children, explicit dimension/weight
+  boundaries and ancestor reflow after independent virtual-view updates.
+
 - [ ] Add Scroll `.scrollX()`/`.scrollY()` and the shared signed-zero end anchor,
   including declarative offset retention through content replacement, growth,
   shrinkage and viewport resize.

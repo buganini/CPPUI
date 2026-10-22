@@ -218,7 +218,7 @@ int main(int argc,char ** argv) {
                 require(static_cast<wxBoxSizer *>(hv)->GetOrientation()==(horizontal ? wxHORIZONTAL : wxVERTICAL)
                     && static_cast<wxBoxSizer *>(vh)->GetOrientation()==(vertical ? wxVERTICAL : wxHORIZONTAL),"wx box direction differs");
                 auto box=static_cast<CPPUI::Wx::Node *>(find(boxes,"hv"));
-                require(box->horizontal==horizontal && box->vertical!=horizontal && box->expandX==(horizontal ? 2 : 1) && box->expandY==(horizontal ? 1 : 2),"wx expansion policy did not rotate");
+                require(box->horizontal==horizontal && box->vertical!=horizontal && box->expandX==(horizontal ? 3 : 1) && box->expandY==(horizontal ? 1 : 3),"wx expansion policy did not rotate");
                 require(input->GetValue()=="Draft" && input->GetInsertionPoint()==2,"wx direction change lost editor draft/cursor");
 #else
                 require(lv_obj_get_style_flex_flow(static_cast<lv_obj_t *>(hv),LV_PART_MAIN)==(horizontal ? LV_FLEX_FLOW_ROW : LV_FLEX_FLOW_COLUMN)

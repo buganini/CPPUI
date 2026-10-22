@@ -164,7 +164,7 @@ namespace CPPUI { namespace Qt {
         }
         public:
         TreeModel * model = nullptr;
-        explicit Tree(std::shared_ptr<void> adapter = {}): adapterOwner(std::move(adapter)) { expandX=expandY=3; }
+        explicit Tree(std::shared_ptr<void> adapter = {}): adapterOwner(std::move(adapter)) { expandX=expandY=4; }
         Tree & expandAll() { if(ui) static_cast<QTreeView *>(ui)->expandAll(); else expansion = true; return *this; }
         Tree & collapseAll() { if(ui) static_cast<QTreeView *>(ui)->collapseAll(); else expansion = false; return *this; }
         Tree & expandable(bool value) { if(ui) static_cast<QTreeView *>(ui)->setItemsExpandable(value); else expandableValue = value; return *this; }

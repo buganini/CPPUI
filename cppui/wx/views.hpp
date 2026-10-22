@@ -29,7 +29,7 @@ namespace CPPUI { namespace Wx {
         Views() {
             if(!dynamic_cast<View *>(cppui_root)) throw std::logic_error("Views requires a wx Application or View");
             is_terminal = false;
-            expandX = expandY = 2;
+            expandX = expandY = 3;
         }
         explicit Views(Binding<OptionalText> model): Views() {
             this->model = model;

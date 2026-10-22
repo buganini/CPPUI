@@ -25,12 +25,12 @@ namespace CPPUI { namespace Wx {
     };
     class HBox: public Box {
         public:
-        explicit HBox(bool inverse=false):Box(inverse) { horizontal = true; expandX = 2; expandY = 1; }
+        explicit HBox(bool inverse=false):Box(inverse) { horizontal = true; expandX = 3; expandY = 1; }
         wxSizer * createSizer() override { return new wxBoxSizer(wxHORIZONTAL); }
     };
     class VBox: public Box {
         public:
-        explicit VBox(bool inverse=false):Box(inverse) { vertical = true; expandX = 1; expandY = 2; }
+        explicit VBox(bool inverse=false):Box(inverse) { vertical = true; expandX = 1; expandY = 3; }
         wxSizer * createSizer() override { return new wxBoxSizer(wxVERTICAL); }
     };
     class AdaptiveBox: public HBox {
@@ -38,7 +38,7 @@ namespace CPPUI { namespace Wx {
         AdaptiveBox(int threshold,bool width,bool inverseH,bool inverseV) {
             horizontal=::CPPUI::detail::adaptiveHorizontal(*this,threshold,width);vertical=!horizontal;
             inverse=horizontal ? inverseH : inverseV;
-            expandX=horizontal ? 2 : 1;expandY=horizontal ? 1 : 2;
+            expandX=horizontal ? 3 : 1;expandY=horizontal ? 1 : 3;
         }
         void update(::CPPUI::Node * prev) override {
             Box::update(prev);

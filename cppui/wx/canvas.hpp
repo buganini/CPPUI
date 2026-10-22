@@ -166,7 +166,7 @@ public:
     Canvas & mousemove(std::function<void(const CanvasPointerEvent &)> callback){moved=std::move(callback);return *this;}
     Canvas & mouseleave(std::function<void()> callback){left=std::move(callback);return *this;}
     Canvas & wheel(std::function<void(const CanvasPointerEvent &)> callback){wheeled=std::move(callback);return *this;}
-    explicit Canvas(Painter painter):painter(std::move(painter)){expandX=expandY=3;}
+    explicit Canvas(Painter painter):painter(std::move(painter)){expandX=expandY=4;}
     void updateWidget(Widget * prev) override {ui=prev?prev->ui:new CanvasWidget(parentWindow());auto canvas=static_cast<CanvasWidget *>(ui);canvas->moved=moved;canvas->wheeled=wheeled;canvas->left=left;canvas->setShowFPS(showFPS);canvas->setPainter(painter);}
     void destroy(bool direct) override {if(ui)static_cast<CanvasWidget *>(ui)->clearPainter();Widget::destroy(direct);}
 };

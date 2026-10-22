@@ -73,7 +73,7 @@ class Tree:public Widget {
     std::shared_ptr<void> adapterOwner;
 public:
     TreeModel * model=nullptr;
-    explicit Tree(std::shared_ptr<void> adapter={}):adapterOwner(std::move(adapter)){is_terminal=false;layout_weight=1;expandX=expandY=3;}
+    explicit Tree(std::shared_ptr<void> adapter={}):adapterOwner(std::move(adapter)){is_terminal=false;layout_weight=1;expandX=expandY=4;}
     Tree & expandAll(){if(ui)model->all(static_cast<wxDataViewCtrl *>(ui),true);else expansion=true;return *this;}
     Tree & collapseAll(){if(ui)model->all(static_cast<wxDataViewCtrl *>(ui),false);else expansion=false;return *this;}
     Tree & expandable(bool value){if(model)model->enabled=value;else enabled=value;return *this;}

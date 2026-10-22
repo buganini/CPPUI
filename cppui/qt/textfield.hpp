@@ -23,7 +23,7 @@ namespace CPPUI { namespace Qt {
         private:
         std::function<void()> onInput, onChange;
         public:
-        explicit TextField(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; expandX=3; }
+        explicit TextField(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; expandX=4; }
         TextField(Binding<std::string> model, Binding<std::string> editModel)
             : TextField(model) { this->editModel = editModel; editValue = editModel.get(); }
         TextField & input(std::function<void()> callback) { onInput = std::move(callback); return *this; }

@@ -255,7 +255,7 @@ namespace CPPUI {
             Canvas & mousemove(std::function<void(const CanvasPointerEvent &)> callback) { moved=std::move(callback); return *this; }
             Canvas & mouseleave(std::function<void()> callback) { left=std::move(callback); return *this; }
             Canvas & wheel(std::function<void(const CanvasPointerEvent &)> callback) { wheeled=std::move(callback); return *this; }
-            explicit Canvas(Painter painter): painter(std::move(painter)) { is_terminal = true; expandX=expandY=3; }
+            explicit Canvas(Painter painter): painter(std::move(painter)) { is_terminal = true; expandX=expandY=4; }
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new CanvasWidget();
                 auto canvas = static_cast<CanvasWidget *>(ui);

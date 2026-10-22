@@ -31,7 +31,7 @@ namespace CPPUI {
         class Html: public Text {
             public:
             explicit Html(const std::string & text, bool selectable = false): Text(text, selectable) {
-                format = ::Qt::RichText; expandX=expandY=3;
+                format = ::Qt::RichText; expandX=expandY=4;
             }
         };
         class MarkDown: public Text {

@@ -22,7 +22,7 @@ class Tabs: public Widget {
         throw std::invalid_argument("Unknown tab position");
     }
 public:
-    explicit Tabs(Side position=Side::Top):position(position){flags(position);is_terminal=false;expandX=expandY=2;}
+    explicit Tabs(Side position=Side::Top):position(position){flags(position);is_terminal=false;expandX=expandY=3;}
     bool refSelection() const override { return true; }
     bool refEmptySelection() const override { return true; }
     void refCommand(RefCommand,const OptionalText & key,bool) override {

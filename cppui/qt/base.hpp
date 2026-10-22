@@ -172,10 +172,14 @@ namespace CPPUI {
 
             public:
             int expandX=0, expandY=0;
-            int layoutPriority(bool horizontal) const {
+            int layoutPriority(bool horizontal) const { return expansionPriority(horizontal); }
+            bool expansionBoundary(bool horizontal) const override {
+                return horizontal ? bool(qtParams.HorizontalPolicy) : bool(qtParams.VerticalPolicy);
+            }
+            int baseExpansion(bool horizontal) const override {
                 const auto & policy=horizontal ? qtParams.HorizontalPolicy : qtParams.VerticalPolicy;
                 if(!policy) return horizontal ? expandX : expandY;
-                return *policy==QSizePolicy::Expanding || *policy==QSizePolicy::MinimumExpanding || *policy==QSizePolicy::Ignored ? 3
+                return *policy==QSizePolicy::Expanding || *policy==QSizePolicy::MinimumExpanding || *policy==QSizePolicy::Ignored ? 4
                     : *policy==QSizePolicy::Preferred || *policy==QSizePolicy::Minimum ? 1 : 0;
             }
             void applyExpansion(bool horizontal,bool main,bool cross) {
@@ -323,7 +327,7 @@ namespace CPPUI {
                     return widget && widget->ui;
                 };
                 auto priority=[horizontal](Node * child) {
-                    if(child->layout_weight) return *child->layout_weight>0 ? 4 : 0;
+                    if(child->layout_weight) return *child->layout_weight>0 ? 5 : 0;
                     auto widget=dynamic_cast<BaseWidget *>(child);
                     return widget ? widget->layoutPriority(horizontal) : 0;
                 };

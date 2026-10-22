@@ -1126,14 +1126,22 @@ selection remain alive. Virtual views participate as flattened children;
 physical child containers keep their own direction. This changes visual order,
 not application data or an explicit keyboard navigation order.</p>
 <p>Qt and wx choose flexible children by expansion priority: positive explicit
-weight (4), expanding controls such as Canvas/Table/Tree and horizontal
-TextField (3), boxes along their main axis and Stack/Tabs/Views/Splitter (2),
+weight (5), expanding controls such as Canvas/Table/Tree and horizontal
+TextField (4), boxes along their main axis and Stack/Tabs/Views/Splitter (3),
+containers with expanding descendants (2),
 then lower-priority containers and cross-axis boxes (1). Only visible children
 with the highest main-axis priority share extra space. Weight zero disables
 that child's main-axis expansion; Spacer defaults to weight one. With no
 expanding children, Qt packs controls at the start at their natural size.
 Qt native <code>HorizontalPolicy</code>/<code>VerticalPolicy</code> overrides participate in priority
-selection and retain their native policy. Cross-axis expansion is independent.</p>
+selection and retain their native policy. Cross-axis expansion is independent. Descendant demand propagates per axis
+through physical containers and virtual views, promoting a natural container
+only to priority 2. Hidden children do not contribute. Explicit dimensions,
+weight zero on the parent container axis, terminal widgets, and explicit Qt
+size policies stop propagation. Independent view updates recalculate physical
+ancestors so withdrawn demand releases extra space.</p>
+<p>LVGL currently uses explicit flex weights and backend-specific cross-axis
+sizing; automatic expansion-priority allocation remains an alignment gap.</p>
 <p>Qt and LVGL boxes use 11 pixels of outer padding when their physical parent is
 not another layout, and zero padding when nested. Native QBoxLayout margins are
 zero to avoid adding a second layer of spacing. Use <code>.layout(...)</code> to override
@@ -1448,7 +1456,8 @@ the first available tab's key. Clearing it with <code>.select()</code> displays 
 unknown keys remain stored and select a matching page if it returns. Empty-string
 keys are allowed for Tabs, including a Tab with an empty label. As with Views,
 <code>select()</code> must use the current mounted declaration, not a saved factory reference.</p>
-<p>Qt <code>Tab(label)</code> is a physical, zero-padding VBox page. Empty Tabs still have a
+<p>Qt <code>Tab(label)</code> is a physical VBox page with 11 pixels of default
+padding. Explicit layout padding overrides it; nested boxes default to zero padding. Empty Tabs still have a
 page, and multiple controls or virtual subviews stay together on that page.
 Direct children of Tabs must be Tab declarations; invalid children are rejected
 before native reconciliation. Keyed moves and selection changes preserve native
@@ -1685,7 +1694,7 @@ on both SDL2 and X11.</p>
 the left. Children requesting cross-axis expansion still fill that axis.
 Omitted background colors preserve native defaults; removing an explicit
 background resets native inheritance with wxNullColour. Tabs retain expansion
-priority 2 on both axes, matching the current PUI/wx behavior.</p>
+priority 3 on both axes, matching the current PUI/wx behavior.</p>
 <p>wx uses the shared Binding/State signatures for Checkbox, RadioButton, TextField
 and ComboBox. TextField preserves drafts during redraw, commits once on Enter
 or focus loss, and commits a focused editor before button callbacks. Programmatic

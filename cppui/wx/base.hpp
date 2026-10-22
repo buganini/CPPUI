@@ -196,11 +196,9 @@ namespace CPPUI { namespace Wx {
             }
             throw std::logic_error("wx control requires a mounted native parent");
         }
-        int expansion(bool x) const {
-            auto p = physicalParent();
-            if(p && (x ? p->horizontal : p->vertical) && layout_weight) return *layout_weight > 0 ? 4 : 0;
-            return x ? expandX : expandY;
-        }
+        int baseExpansion(bool x) const override { return x ? expandX : expandY; }
+        bool expansionAxis(bool x) const override { return x ? horizontal : vertical; }
+        int expansion(bool x) const { return expansionPriority(x); }
         wxSize minSize() const { return wxSize(layout_width.valueOr(-1), layout_height.valueOr(-1)); }
         void releaseRetiredRefs() override {
             native.reset();

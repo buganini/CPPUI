@@ -28,7 +28,7 @@ class Splitter: public Widget {
         for(auto & pane:panes) showMount(pane.mount,visible && layoutVisible());
     }
 public:
-    explicit Splitter(bool vertical=false):vertical(vertical) {is_terminal=false;expandX=expandY=2;}
+    explicit Splitter(bool vertical=false):vertical(vertical) {is_terminal=false;expandX=expandY=3;}
     void updateWidget(Widget * previous) override {
         auto prev=static_cast<Splitter *>(previous);
         ui=prev ? prev->ui : new wxPanel(parentWindow());

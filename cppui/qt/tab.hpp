@@ -16,7 +16,7 @@ namespace CPPUI {
             public:
             bool supportsVisibility() const override { return false; }
             std::string label;
-            explicit Tab(const std::string & label): label(label) { layout_padding = Insets(0); }
+            explicit Tab(const std::string & label): label(label) {}
         };
 
         class Tabs: public BaseWidget {
@@ -40,7 +40,7 @@ namespace CPPUI {
             Side tabposition;
 
             explicit Tabs(Side tabposition = Side::Top): tabposition(tabposition) {
-                expandX=expandY=2;
+                expandX=expandY=3;
                 nativePosition(tabposition);
                 if(!dynamic_cast<QtView *>(cppui_root)) throw std::logic_error("Tabs requires a Qt Application or QtView");
             }

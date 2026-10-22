@@ -1,3 +1,8 @@
+add_executable(cppui_core_expansion core_expansion.cpp)
+target_link_libraries(cppui_core_expansion PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_expansion PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.expansion cppui_core_expansion)
+
 add_executable(cppui_core_grid core_grid.cpp)
 target_link_libraries(cppui_core_grid PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_grid PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
@@ -23,6 +28,11 @@ cppui_add_test(core.wide_order cppui_core_wide_order)
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_expansion native_expansion.cpp)
+    target_compile_definitions(cppui_wx_expansion PRIVATE CPPUI_TEST_WX)
+    target_link_libraries(cppui_wx_expansion PRIVATE CPPUI::wx)
+    cppui_add_test(wx.expansion cppui_wx_expansion)
+
     add_executable(cppui_wx_box_inverse native_box_inverse.cpp)
     target_compile_definitions(cppui_wx_box_inverse PRIVATE CPPUI_TEST_WX)
     target_link_libraries(cppui_wx_box_inverse PRIVATE CPPUI::wx Threads::Threads)
@@ -181,6 +191,11 @@ foreach(header anchor font_weight grid adaptive context_header context node_head
 endforeach()
 
 if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_descendant_expansion native_expansion.cpp)
+    target_compile_definitions(cppui_qt_descendant_expansion PRIVATE CPPUI_TEST_QT)
+    target_link_libraries(cppui_qt_descendant_expansion PRIVATE CPPUI::qt)
+    cppui_add_test(qt.descendant_expansion cppui_qt_descendant_expansion)
+
     add_executable(cppui_qt_expansion qt_expansion.cpp)
     target_link_libraries(cppui_qt_expansion PRIVATE CPPUI::qt)
     cppui_add_test(qt.expansion cppui_qt_expansion)

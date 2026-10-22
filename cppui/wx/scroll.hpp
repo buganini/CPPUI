@@ -28,7 +28,7 @@ public:
     static constexpr double END=CPPUI::ScrollEnd;
     Scroll(Optional<bool> vertical={},Optional<bool> horizontal=false):verticalPolicy(vertical),horizontalPolicy(horizontal) {
         this->vertical=!vertical || *vertical;this->horizontal=!horizontal || *horizontal;
-        expandX=this->horizontal ? 3 : 1;expandY=this->vertical ? 3 : 1;
+        expandX=this->horizontal ? 4 : 1;expandY=this->vertical ? 4 : 1;
     }
     Scroll & scrollX(double value=0) {return request(0,value);}
     Scroll & scrollY(double value=0) {return request(1,value);}

@@ -31,7 +31,7 @@ public:
 class Html: public Widget {
     std::string text;
 public:
-    Html(const std::string & text, bool): text(text) { expandX = expandY = 3; }
+    Html(const std::string & text, bool): text(text) { expandX = expandY = 4; }
     void updateWidget(Widget * prev) override {
         ui = prev ? prev->ui : new detail::HtmlWindow(parentWindow());
     }

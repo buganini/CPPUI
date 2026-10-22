@@ -29,7 +29,7 @@ class Stack: public Widget {
     }
 public:
     std::vector<Mount> mounts;
-    Stack() { is_terminal=false; expandX=expandY=2; }
+    Stack() { is_terminal=false; expandX=expandY=3; }
     void updateWidget(Widget * previous) override {
         auto prev=static_cast<Stack *>(previous);
         ui=prev ? prev->ui : new Painting::StackPanel(parentWindow());

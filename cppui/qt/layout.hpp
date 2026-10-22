@@ -15,7 +15,8 @@ namespace CPPUI {
             protected:
             bool horizontal=true, inverse=false;
             public:
-            explicit HBox(bool inverse=false):inverse(inverse) { expandX=2;expandY=1; }
+            bool expansionAxis(bool axis) const override { return axis==horizontal; }
+            explicit HBox(bool inverse=false):inverse(inverse) { expandX=3;expandY=1; }
             void update(BaseLayout * prev) {
                 if(prev && prev->ui) {
                     ui = prev->ui;
@@ -34,7 +35,8 @@ namespace CPPUI {
         class VBox: public BaseLayout {
             bool inverse;
             public:
-            explicit VBox(bool inverse=false):inverse(inverse) { expandX=1;expandY=2; }
+            bool expansionAxis(bool axis) const override { return !axis; }
+            explicit VBox(bool inverse=false):inverse(inverse) { expandX=1;expandY=3; }
             void update(BaseLayout * prev) override {
                 if(prev && prev->ui) {
                     ui=prev->ui;qtlayout=prev->qtlayout;
@@ -51,7 +53,7 @@ namespace CPPUI {
             AdaptiveBox(int threshold,bool width,bool inverseH,bool inverseV) {
                 horizontal=::CPPUI::detail::adaptiveHorizontal(*this,threshold,width);
                 inverse=horizontal ? inverseH : inverseV;
-                expandX=horizontal ? 2 : 1;expandY=horizontal ? 1 : 2;
+                expandX=horizontal ? 3 : 1;expandY=horizontal ? 1 : 3;
             }
         };
         class HVBox: public AdaptiveBox { public: explicit HVBox(int minWidth,bool inverseH=false,bool inverseV=false):AdaptiveBox(minWidth,true,inverseH,inverseV) {} };

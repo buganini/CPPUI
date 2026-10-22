@@ -373,8 +373,10 @@ namespace CPPUI {
             child->postUpdate();
         }
         node->postSync();
-        if(node->is_virtual && dom_parent!=node && dom_parent->reflowChildren())
-            dom_parent->getNode()->postSync();
+        if(node->is_virtual && dom_parent!=node) {
+            for(auto ancestor=dom_parent->getNode();ancestor && ancestor!=node;
+                ancestor=ancestor->expansionParent()) ancestor->postSync();
+        }
 
         for(Node * oldNode: toBeDeleted) {
             recur_delete(oldNode, true);
