@@ -224,7 +224,7 @@ int main(int argc,char ** argv) {
                 require(lv_obj_get_style_flex_flow(static_cast<lv_obj_t *>(hv),LV_PART_MAIN)==(horizontal ? LV_FLEX_FLOW_ROW : LV_FLEX_FLOW_COLUMN)
                     && lv_obj_get_style_flex_flow(static_cast<lv_obj_t *>(vh),LV_PART_MAIN)==(vertical ? LV_FLEX_FLOW_COLUMN : LV_FLEX_FLOW_ROW),"LVGL box direction differs");
                 auto label=static_cast<lv_obj_t *>(find(boxes,"name")->outer());
-                require(lv_obj_get_style_width(label,LV_PART_MAIN)==(horizontal ? LV_SIZE_CONTENT : lv_pct(100)),"LVGL label retained the old column's width");
+                require(lv_obj_get_style_width(label,LV_PART_MAIN)==LV_SIZE_CONTENT,"LVGL static label expanded after direction change");
                 auto divider=static_cast<lv_obj_t *>(find(boxes,"divider")->outer());
                 require(lv_obj_get_style_width(divider,LV_PART_MAIN)==(horizontal ? 1 : lv_pct(100)) &&
                         lv_obj_get_style_height(divider,LV_PART_MAIN)==(horizontal ? lv_pct(100) : 1),"LVGL divider did not rotate");

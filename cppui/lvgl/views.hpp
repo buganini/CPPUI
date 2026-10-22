@@ -21,6 +21,7 @@ namespace CPPUI { namespace LVGL {
         }
         public:
         Views() {
+            expandX=expandY=3;
             if(!dynamic_cast<View *>(cppui_root)) throw std::logic_error("Views requires an LVGL Application or View");
         }
         explicit Views(Binding<OptionalText> model): Views() {

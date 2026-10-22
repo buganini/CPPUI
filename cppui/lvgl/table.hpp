@@ -292,7 +292,7 @@ class Table: public Node {
             return visible ? Optional<std::vector<std::string>>(std::move(result)) : Optional<std::vector<std::string>>();
         }
         public:
-        explicit Table(bool autofit = true): autofit(autofit) { is_terminal = true; layout_weight = 1; }
+        explicit Table(bool autofit = true): autofit(autofit) { is_terminal = true; expandX=expandY=4; }
         template<class Adapter> explicit Table(std::shared_ptr<Adapter> source, bool autofit = true): Table(autofit) {
             using T = typename Adapter::Value;
             std::shared_ptr<BaseTableAdapter<T>> adapter = std::move(source);

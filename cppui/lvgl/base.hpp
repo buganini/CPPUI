@@ -69,7 +69,21 @@ namespace CPPUI {
             };
             std::unique_ptr<Observer> observed;
             struct SavedStyle { lv_style_prop_t property; Optional<lv_style_value_t> value; };
-            std::vector<SavedStyle> modifiedStyles;
+            std::vector<SavedStyle> modifiedStyles, boxStyles;
+            void restoreBoxStyles() {
+                if(!ui) return;
+                auto object=static_cast<lv_obj_t *>(ui);
+                for(const auto & entry:boxStyles) {
+                    if(entry.value) lv_obj_set_local_style_prop(object,entry.property,*entry.value,0);
+                    else lv_obj_remove_local_style_prop(object,entry.property,0);
+                }
+                boxStyles.clear();
+            }
+            void saveBoxStyle(lv_style_prop_t property) {
+                lv_style_value_t value;
+                const bool local=lv_obj_get_local_style_prop(static_cast<lv_obj_t *>(ui),property,&value,0)==LV_STYLE_RES_FOUND;
+                boxStyles.push_back({property,local ? Optional<lv_style_value_t>(value) : Optional<lv_style_value_t>()});
+            }
             void saveStyle(lv_style_prop_t property) {
                 lv_style_value_t value;
                 const bool local = lv_obj_get_local_style_prop(static_cast<lv_obj_t *>(ui), property, &value, 0) == LV_STYLE_RES_FOUND;
@@ -142,6 +156,8 @@ namespace CPPUI {
                 }
             }
             public:
+            int expandX=0,expandY=0;
+            int baseExpansion(bool x) const override { return x ? expandX : expandY; }
             ~Node() override { clearRef(); unobserve(); }
             CommandPoster commandPoster() override {
                 if(!ui) return {};
@@ -163,7 +179,7 @@ namespace CPPUI {
             }
             void update(::CPPUI::Node * previous) override {
                 auto prev = static_cast<Node *>(previous);
-                if(prev) { prev->restoreOptions(); commands=std::move(prev->commands); }
+                if(prev) { prev->restoreBoxStyles(); prev->restoreOptions(); commands=std::move(prev->commands); }
                 update(prev);
                 auto object = static_cast<lv_obj_t *>(ui);
                 if(prev && prev->observed && prev->observed->object == object) {

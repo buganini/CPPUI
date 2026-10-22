@@ -78,7 +78,7 @@ namespace CPPUI { namespace LVGL {
             else Node::nativeEvent(event);
         }
         public:
-        explicit TextField(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; }
+        explicit TextField(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; expandX=4; }
         TextField(Binding<std::string> model, Binding<std::string> editModel): TextField(model) {
             this->editModel = editModel;
             editValue = editModel.get();

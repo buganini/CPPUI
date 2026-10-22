@@ -7,7 +7,7 @@ namespace CPPUI {
     namespace LVGL {
         class Spacer: public Node {
             public:
-            Spacer() { is_terminal = true; is_movable = false; }
+            Spacer() { is_terminal = true; is_movable = false; layout_weight=1; }
             void update(Node * prev) override {
                 ui = prev && prev->ui ? prev->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));
                 auto object = static_cast<lv_obj_t *>(ui);

@@ -22,6 +22,8 @@ namespace CPPUI { namespace LVGL {
             if((vertical && *vertical && !horizontal) || (horizontal && *horizontal && !vertical))
                 throw std::invalid_argument("LVGL cannot force one scrollbar while the other is automatic");
         }
+        int baseExpansion(bool x) const override { return expansionAxis(x) ? 4 : 1; }
+        bool expansionAxis(bool x) const override { const auto & value=x ? horizontal : vertical;return !value || *value; }
         void update(Node * previous) override {
             ui = previous && previous->ui ? previous->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));
             auto object = static_cast<lv_obj_t *>(ui);

@@ -27,7 +27,7 @@ namespace CPPUI { namespace LVGL {
         explicit ProgressBar(double progress, double maximum = 1.0)
             : progress(hundredths(progress)), maximum(hundredths(maximum)) {
             if(maximum < 0) throw std::out_of_range("ProgressBar maximum must be nonnegative");
-            is_terminal = true;
+            is_terminal = true; expandX=1;
         }
         void update(Node * previous) override {
             ui = previous && previous->ui ? previous->ui : lv_bar_create(static_cast<lv_obj_t *>(parent->inner()));

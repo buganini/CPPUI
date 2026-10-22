@@ -252,7 +252,8 @@ namespace Cookbook { namespace TestBackend {
         if(lv_obj_get_height(list) <= lv_obj_get_content_height(scroll)
            || lv_obj_get_child_count(list) != recipes().size() + 1
            || lv_obj_get_width(list) < 100
-           || lv_obj_get_width(lv_obj_get_child(list, 0)) < 100
+           || lv_obj_get_width(lv_obj_get_child(list, 0)) <= 0
+           || lv_obj_get_width(lv_obj_get_child(list, 0)) > lv_obj_get_content_width(list)
            || lv_obj_get_height(lv_obj_get_child(list, 0)) > 40) {
             throw std::runtime_error("cookbook page list must scroll and include every recipe");
         }

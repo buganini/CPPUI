@@ -497,7 +497,7 @@ namespace CPPUI {
             };
             std::shared_ptr<Native> native;
             public:
-            explicit Canvas(Painter painter): painter(std::move(painter)) { is_terminal = true; }
+            explicit Canvas(Painter painter): painter(std::move(painter)) { is_terminal = true; expandX=expandY=4; }
             void update(Node * prev) override {
                 auto previous = static_cast<Canvas *>(prev);
                 if(previous && previous->native && previous->native->object) native = std::move(previous->native);

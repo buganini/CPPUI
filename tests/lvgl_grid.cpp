@@ -44,7 +44,7 @@ namespace {
         int lastRow=2;
         void content() override {
             for(auto window:CPPUI::Window()) for(auto box:row ? static_cast<CPPUI::Node &>(CPPUI::HBox()) : CPPUI::VBox()) if(show) {
-                for(auto grid:CPPUI::Grid().id("grid").layout(width,height,grow ? CPPUI::Optional<int>(1) : CPPUI::Optional<int>(),CPPUI::Insets(3,5,7,11))) {
+                for(auto grid:CPPUI::Grid().id("grid").layout(width,height,CPPUI::Optional<int>(grow ? 1 : 0),CPPUI::Insets(3,5,7,11))) {
                     for(const auto & key:keys) {
                         auto & item=CPPUI::Label(key);item.id(key);
                         if(key=="a") cell(item,0,0,0,0).layout(30,20);
@@ -89,7 +89,7 @@ namespace {
         require(lv_obj_get_height(grid)==66,"removed rows retained their former extent");
         root.grow=true;root.sync();
         require(lv_obj_get_height(grid)>400 && lv_obj_get_y(b)+lv_obj_get_height(b)==lv_obj_get_content_height(grid),"flex allocation did not stretch grid rows");
-        root.grow=false;root.sync();require(lv_obj_get_height(grid)==66,"omitted flex allocation did not restore content height");
+        root.grow=false;root.sync();require(lv_obj_get_height(grid)==66,"zero weight did not restore content height");
         root.keys.clear();root.sync();require(lv_obj_get_height(grid)==10,"empty grid retained old height");
         root.keys={"a","b","c","d"};root.row=true;root.width.reset();root.sync();grid=root.native("grid");
         require(lv_obj_get_width(grid)==196 && lv_obj_get_x(root.native("c"))==88,"automatic columns did not include a spanning item's width");
@@ -115,7 +115,7 @@ namespace {
             for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox()) {
                 auto & declaration=CPPUI::Grid();
                 if(automatic) declaration.columns(1);
-                for(auto grid:declaration.layout({},height).id("grid")) {
+                for(auto grid:declaration.layout({},height,0).id("grid")) {
                     cell(CPPUI::Label(text).id("text"),0,0,2);
                     cell(CPPUI::Label("after").id("after"),2,0);
                 }
@@ -127,7 +127,7 @@ namespace {
     public:
         void content() override {
             for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox())
-                for(auto outer:CPPUI::Grid().columns(1).layout({},height).id("grid")) {
+                for(auto outer:CPPUI::Grid().columns(1).layout({},height,0).id("grid")) {
                     auto & declaration=CPPUI::Grid();
                     if(automatic) declaration.columns(1);
                     for(auto inner:declaration) {

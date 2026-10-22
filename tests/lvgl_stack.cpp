@@ -40,7 +40,7 @@ namespace {
         int clicked=0;
         void content() override {
             for(auto window:CPPUI::Window()) for(auto box:row ? static_cast<CPPUI::Node &>(CPPUI::HBox()) : CPPUI::VBox()) if(show) {
-                for(auto stack:CPPUI::Stack().id("stack").layout(width,height,grow ? CPPUI::Optional<int>(1) : CPPUI::Optional<int>(),CPPUI::Insets(3,5,7,11))) {
+                for(auto stack:CPPUI::Stack().id("stack").layout(width,height,CPPUI::Optional<int>(grow ? 1 : 0),CPPUI::Insets(3,5,7,11))) {
                     for(const auto & key:keys) {
                         auto & label=CPPUI::Label(key);label.id(key).layout(key=="top" ? 70 : 90,key=="top" ? 60 : 40);
                         label.visible(key!="top" || !hideTop);

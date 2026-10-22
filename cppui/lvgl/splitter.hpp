@@ -149,7 +149,7 @@ namespace CPPUI { namespace LVGL {
         bool vertical;
         std::shared_ptr<Native> native{new Native()};
     public:
-        explicit Splitter(bool vertical=false):vertical(vertical) {}
+        explicit Splitter(bool vertical=false):vertical(vertical) { expandX=expandY=3; }
         bool reflowChildren() const override {return true;}
         void update(::CPPUI::Node * previous) override {
             // Base update restores the previous declaration's padding first.

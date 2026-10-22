@@ -14,6 +14,7 @@ namespace CPPUI {
                 auto object = static_cast<lv_obj_t *>(ui);
                 const bool flex = lv_obj_get_style_layout(owner, LV_PART_MAIN) == LV_LAYOUT_FLEX;
                 const bool column = lv_obj_get_style_flex_flow(owner, LV_PART_MAIN) & LV_FLEX_COLUMN;
+                expandX=column ? 1 : 0;expandY=column ? 0 : 1;
                 lv_obj_remove_style_all(object);
                 lv_obj_set_size(object, column ? lv_pct(100) : 1, column ? 1 : lv_pct(100));
                 lv_obj_set_style_bg_color(object, lv_color_hex(0x808080), 0);

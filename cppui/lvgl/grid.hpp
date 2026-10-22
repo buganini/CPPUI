@@ -110,7 +110,7 @@ namespace CPPUI { namespace LVGL {
             Node::nativeEvent(event);
         }
     public:
-        Grid() {is_grid_layout=true;}
+        Grid() { expandX=expandY=1;is_grid_layout=true;}
         void destroy(bool direct) override {
             if(ui && !direct) {
                 // C++ descendants retire before their parent's native subtree.

@@ -46,6 +46,7 @@ namespace CPPUI { namespace LVGL {
             Node::nativeEvent(event);
         }
     public:
+        Stack() { expandX=expandY=3; }
         void update(Node * previous) override {
             auto prev=static_cast<Stack *>(previous);
             ui=prev && prev->ui ? prev->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));

@@ -55,7 +55,7 @@ namespace CPPUI {
                 throw std::invalid_argument("Unknown tab position");
             }
             Side tabposition;
-            explicit Tabs(Side tabposition = Side::Top): tabposition(tabposition) { nativePosition(tabposition); }
+            explicit Tabs(Side tabposition = Side::Top): tabposition(tabposition) { expandX=expandY=3; nativePosition(tabposition); }
             bool refSelection() const override { return true; }
             bool refEmptySelection() const override { return true; }
             void refCommand(RefCommand,const OptionalText & key,bool) override {

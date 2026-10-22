@@ -1125,7 +1125,7 @@ child order when <code>inverse</code> is true. The existing widgets, editor draf
 selection remain alive. Virtual views participate as flattened children;
 physical child containers keep their own direction. This changes visual order,
 not application data or an explicit keyboard navigation order.</p>
-<p>Qt and wx choose flexible children by expansion priority: positive explicit
+<p>Qt, wx and LVGL choose flexible children by expansion priority: positive explicit
 weight (5), expanding controls such as Canvas/Table/Tree and horizontal
 TextField (4), boxes along their main axis and Stack/Tabs/Views/Splitter (3),
 containers with expanding descendants (2),
@@ -1140,8 +1140,12 @@ only to priority 2. Hidden children do not contribute. Explicit dimensions,
 weight zero on the parent container axis, terminal widgets, and explicit Qt
 size policies stop propagation. Independent view updates recalculate physical
 ancestors so withdrawn demand releases extra space.</p>
-<p>LVGL currently uses explicit flex weights and backend-specific cross-axis
-sizing; automatic expansion-priority allocation remains an alignment gap.</p>
+<p>LVGL boxes apply the shared priorities through flex allocation. Content-sized
+containers retain natural child sizes; allocated containers share their remaining
+space among the highest-priority children. Removing weight or changing direction
+restores the child's original size styles. Use weight zero to keep a Grid at its
+natural size inside a box. Weights larger than LVGL's native 8-bit grow factors
+are allocated using full-precision pixel shares.</p>
 <p>Qt and LVGL boxes use 11 pixels of outer padding when their physical parent is
 not another layout, and zero padding when nested. Native QBoxLayout margins are
 zero to avoid adding a second layer of spacing. Use <code>.layout(...)</code> to override
