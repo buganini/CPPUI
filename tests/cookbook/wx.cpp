@@ -23,7 +23,7 @@ namespace Cookbook { namespace TestBackend {
         auto label=dynamic_cast<CPPUI::Wx::Label *>(&node);
         if(!label || !label->ui) return false;
         const auto value=label->selectable ? static_cast<wxTextCtrl *>(label->ui)->GetValue()
-            : dynamic_cast<CPPUI::Wx::Text *>(label) ? static_cast<wxStaticText *>(label->ui)->GetLabelText() : label->ui->GetLabel();
+            : dynamic_cast<CPPUI::Wx::Text *>(label) ? static_cast<wxControl *>(label->ui)->GetLabelText() : label->ui->GetLabel();
         return value==wxString::FromUTF8(text);
     }
     bool selectTab(CPPUI::Node & node,int index,const std::string & text){auto tabs=dynamic_cast<CPPUI::Wx::Tabs *>(&node);if(!tabs||!tabs->ui)return false;auto ui=static_cast<wxNotebook *>(tabs->ui);if(index<0||index>=int(ui->GetPageCount())||ui->GetPageText(index)!=wxString::FromUTF8(text))return false;ui->SetSelection(index);return ui->GetSelection()==index&&ui->GetPage(index)->IsShown();}

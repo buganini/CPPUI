@@ -70,7 +70,7 @@ namespace {
     void rejects(Action action) {
         bool rejected = false;
         try { action(); } catch(const std::invalid_argument &) { rejected = true; }
-        require(rejected, "negative dimension/weight/font size accepted");
+        require(rejected, "invalid modifier accepted");
     }
 }
 
@@ -109,6 +109,16 @@ int main() {
                 "enum alias or positional merge failed");
         weighted.style(style::fontWeight(CPPUI::FontWeight::Regular));
         require(*weighted.style_fontweight == 400, "regular font weight alias differs from normal");
+        for(int weight:{1,550,1000}) {
+            weighted.style(style::fontWeight(weight));
+            require(*weighted.style_fontweight==weight,"valid numeric font weight was changed");
+        }
+        for(int weight:{-1,0,1001}) {
+            rejects([&]() { weighted.style(style::color(0x123456),style::fontWeight(weight)); });
+            rejects([&]() { weighted.style(0x123456,{}, {},weight); });
+            rejects([&]() { weighted.style(style::fontWeight(static_cast<CPPUI::FontWeight>(weight))); });
+            require(!weighted.style_color && *weighted.style_fontweight==1000,"invalid weight partially applied a style");
+        }
 
         named.layout(layout::width(0)).layout({}, {}, 0).style(style::color(0)).style({}, {}, 20);
         named.layout().style().layout({}).style({});

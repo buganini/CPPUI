@@ -1,6 +1,8 @@
 #ifndef CPPUI_FONT_WEIGHT
 #define CPPUI_FONT_WEIGHT
 
+#include <stdexcept>
+
 namespace CPPUI {
     // Numeric values follow the CSS/OpenType weight scale.
     enum class FontWeight : int {
@@ -22,5 +24,11 @@ namespace CPPUI {
         ExtraBlack = 950,
         UltraBlack = ExtraBlack
     };
+    namespace detail {
+        inline void validateFontWeight(int value) {
+            if(value < 1 || value > 1000)
+                throw std::invalid_argument("Font weight must be an integer from 1 to 1000");
+        }
+    }
 }
 #endif

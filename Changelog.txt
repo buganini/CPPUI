@@ -1,4 +1,5 @@
 2026-10-22
+    * Sync PUI 033d690: validate font weights in 1–1000, clamp Qt weights and apply wx numeric weights; fix wx HTML colours, Cocoa custom-colour controls and Windows Stack text composition
     * API: add named FontWeight values for numeric and enum style calls; rename Side and shared Canvas Anchor members to PascalCase
     * Font weight: apply Qt native numeric weights and LVGL compiled Montserrat Bold with inherited size/weight, icon fallback and style reset; restore the cookbook's bold active-page indicator using theme colors
     * Sync PUI c50b33f: expand automatic Grid child spans by default, support named expansion controls and responsive overrides on Qt/wx/LVGL, and add bound expansion/reversal checkboxes to Adaptive Grid

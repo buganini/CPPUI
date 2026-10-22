@@ -16,14 +16,15 @@ The facade rejects ambiguous selections. LVGL's configuration selects SDL2 or
 X11. Shared recipes use `CPPUI_HAS_*` capability flags for optional features,
 including bound Tab selection. Each executable links only its selected toolkit.
 
-Reference: [PUI cookbook at c50b33f](https://github.com/buganini/PUI/tree/c50b33fcf7bdfdd7a353856b56733ea5969b8211/PUI/cookbook).
+Reference: [PUI cookbook at 033d690](https://github.com/buganini/PUI/tree/033d69082e8d106b133589a192627462f4125c5b/PUI/cookbook).
 
-Native additions are audited through committed local/public PUI `c50b33f` (2026-10-22).
+Native additions are audited through committed local/public PUI `033d690` (2026-10-22).
 Grid now displays a manual colored mosaic. Adaptive Grid demonstrates
 `.columns()` / `.wideColumns()` at 384/576/768 logical pixels, the three backfill
 modes, hidden-item compaction, child span expansion, bound reversal and a retained text editor.
 The active sidebar page uses bold text while retaining the theme's colors.
-Qt applies native font weights; LVGL desktop builds include 14/28-pixel Montserrat
+Font weights accept named values or integers from 1 to 1000. Qt clamps native
+weights to 100–900; wx uses numeric weights. LVGL desktop builds include 14/28-pixel Montserrat
 Bold fonts, with symbol coverage and icon fallback. Font data is checked in, so
 normal builds need no font converter. To regenerate the bold fonts, run
 `python3 scripts/generate_lvgl_bold.py --lvgl-source /path/to/lvgl-9.6.0`
@@ -92,6 +93,11 @@ The wx Text page demonstrates plain multiline text and HTML. Its Markdown
 example displays the raw source, matching PUI/wx. Calling the wx MarkDown factory
 emits a compile-time warning that Markdown formatting is not rendered; the page
 remains partial.
+wx HTML applies the declared foreground without replacing inline colours and
+preserves its background after parsing. On macOS, explicitly coloured buttons
+and non-selectable labels/text with backgrounds use generic painting; removing
+the styles restores native controls. Windows Stack text layers compose in
+declaration order, including through nested layouts and after reorder/resize.
 The LVGL Text page uses the same shared recipe: plain multiline text plus raw
 HTML and Markdown source, with a visible formatting notice. Both fallback
 factories warn at compile time; formatting and interactive selection remain

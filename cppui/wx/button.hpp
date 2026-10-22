@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_BUTTON
 #define CPPUI_WX_BUTTON
 #include "base.hpp"
+#include "painted_controls.hpp"
 namespace CPPUI { namespace Wx {
     class Button: public Widget {
         bool isDisabled = false;
@@ -8,8 +9,18 @@ namespace CPPUI { namespace Wx {
         std::string text;
         explicit Button(const std::string & text): text(text) {}
         Button & disabled(bool value = true) { isDisabled = value; return *this; }
+        bool customColors() const {
+#ifdef __WXOSX__
+            return bool(style_color) || bool(style_bgcolor);
+#else
+            return false;
+#endif
+        }
+        std::size_t typecode() const override { return Widget::typecode() ^ (customColors() ? 0x69acU : 0U); }
         void updateWidget(Widget * prev) override {
-            ui = prev ? prev->ui : new wxButton(parentWindow(), wxID_ANY, wxString::FromUTF8(text));
+            if(prev) ui=prev->ui;
+            else if(customColors()) ui=new Painting::Button(parentWindow(),wxString::FromUTF8(text));
+            else ui=new wxButton(parentWindow(),wxID_ANY,wxString::FromUTF8(text));
             ui->SetLabel(wxString::FromUTF8(text));
             ui->Enable(!isDisabled);
         }

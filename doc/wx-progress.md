@@ -38,7 +38,9 @@ out of this document. Shared-core decisions are tracked in the
 ## Remaining validation
 
 - [ ] Verify non-GTK wx ports on Windows/macOS, including native ownership,
-  dialogs, candidate popups and shutdown.
+  dialogs, candidate popups and shutdown. Verify Cocoa custom-colour control
+  remounts and physical input, and Windows Stack mixed-control transparency,
+  focus and hit testing on native hosts.
 - [ ] Verify physical input, window-manager behavior, focus traversal and
   clipboard/drag-selection across controls.
 - [ ] Verify Chinese IME composition and accessibility/screen-reader behavior.

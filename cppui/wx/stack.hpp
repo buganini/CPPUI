@@ -1,6 +1,7 @@
 #ifndef CPPUI_WX_STACK
 #define CPPUI_WX_STACK
 #include "base.hpp"
+#include "painted_controls.hpp"
 namespace CPPUI { namespace Wx {
 class StackSizer: public wxSizer {
 public:
@@ -16,7 +17,13 @@ public:
 class Stack: public Widget {
     static void raise(wxSizer * sizer) {
         for(auto item:sizer->GetChildren()) {
-            if(item->IsWindow()) item->GetWindow()->Raise();
+            if(item->IsWindow()) {
+                auto window=item->GetWindow();
+#ifdef __WXMSW__
+                window->SetWindowStyleFlag(window->GetWindowStyleFlag() | wxCLIP_SIBLINGS);
+#endif
+                window->Raise();window->Refresh();
+            }
             else if(item->IsSizer()) raise(item->GetSizer());
         }
     }
@@ -25,7 +32,7 @@ public:
     Stack() { is_terminal=false; expandX=expandY=2; }
     void updateWidget(Widget * previous) override {
         auto prev=static_cast<Stack *>(previous);
-        ui=prev ? prev->ui : new wxPanel(parentWindow());
+        ui=prev ? prev->ui : new Painting::StackPanel(parentWindow());
         if(prev) mounts=std::move(prev->mounts);
         else ui->SetSizer(new StackSizer());
     }

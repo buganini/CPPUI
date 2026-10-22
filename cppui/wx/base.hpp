@@ -264,7 +264,7 @@ namespace CPPUI { namespace Wx {
             auto font = native->font;
             if(style_fontsize && *style_fontsize > 0) font.SetPointSize(*style_fontsize);
             if(style_fontfamily) font.SetFaceName(wxString::FromUTF8(style_fontfamily));
-            if(style_fontweight) font.SetWeight(*style_fontweight >= 600 ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL);
+            if(style_fontweight) font.SetNumericWeight(*style_fontweight);
             if(ui->GetFont() != font) ui->SetFont(font);
             auto foreground = style_color ? colour(*style_color) : native->foreground;
             if(ui->GetForegroundColour() != foreground) ui->SetOwnForegroundColour(foreground);
@@ -284,6 +284,9 @@ namespace CPPUI { namespace Wx {
             if(supportsVisibility() && (!is_visible || (prev && !prev->is_visible)))
                 ui->Show(is_visible && ancestorsVisible());
             updateEvents();
+            if(!prev || bool(style_color)!=bool(prev->style_color) || (style_color && *style_color!=*prev->style_color)
+                || bool(style_bgcolor)!=bool(prev->style_bgcolor) || (style_bgcolor && *style_bgcolor!=*prev->style_bgcolor))
+                ui->Refresh();
         }
         virtual void updateWidget(Widget *) = 0;
         virtual void bindEvents() {}

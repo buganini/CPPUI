@@ -139,6 +139,7 @@ namespace CPPUI {
         Node & style(Optional<int> color = {}, Optional<int> bgColor = {}, Optional<int> fontSize = {},
                      Optional<int> fontWeight = {}, const char * fontFamily = nullptr) {
             if(fontSize && *fontSize < 0) throw std::invalid_argument("Font size must be non-negative");
+            if(fontWeight) detail::validateFontWeight(*fontWeight);
             if(color) style_color = color;
             if(bgColor) style_bgcolor = bgColor;
             if(fontSize) style_fontsize = fontSize;
@@ -234,6 +235,9 @@ namespace CPPUI {
         }
         static void validateModifier(CPPUI::style::FontSize argument) {
             if(argument.value < 0) throw std::invalid_argument("Font size must be non-negative");
+        }
+        static void validateModifier(CPPUI::style::FontWeight argument) {
+            detail::validateFontWeight(argument.value);
         }
         static void validateModifier(CPPUI::grid::Row argument) {
             if(argument.value<0) throw std::invalid_argument("Grid coordinates must be non-negative");

@@ -124,9 +124,9 @@ int main(int argc, char ** argv) {
             require(label->sizeHint() != QSize(0, 0) && label->styleSheet().isEmpty()
                 && root.native("box")->contentsMargins() == QMargins(11, 11, 11, 11), "omitted layout/style did not restore defaults");
             require(static_cast<QLabel *>(root.native("image"))->pixmap().size() == QSize(100, 50), "omitted image size did not restore source pixels");
-            for(int weight:{100,200,300,400,500,600,700,800,900,400}) {
+            for(int weight:{1,100,200,300,400,500,550,600,700,800,900,950,1000,400}) {
                 root.weight=weight;root.sync();
-                require(root.native("weighted")==weighted && int(weighted->font().weight())==weight,"numeric weight change replaced widget or failed to apply");
+                require(root.native("weighted")==weighted && int(weighted->font().weight())==std::min(900,std::max(100,weight)),"numeric weight change replaced widget or failed to apply");
             }
             root.weight=700;root.overrideWeight=true;root.sync();
             require(weighted->font().weight()==QFont::Light,"Qt font-weight override lost precedence");

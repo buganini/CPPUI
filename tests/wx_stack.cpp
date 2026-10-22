@@ -19,9 +19,12 @@ class Root: public CPPUI::Application {
 public:
     using Application::Application;
     bool reverse=false,empty=false,colored=true,layersVisible=true;
+    std::string suffix;
     void layer(const char * id) {
-        for(auto column:CPPUI::VBox().id(id).visible(layersVisible).layout({}, {}, {}, CPPUI::Insets(0)))
+        for(auto column:CPPUI::VBox().id(id).visible(layersVisible).layout({}, {}, {}, CPPUI::Insets(0))) {
             CPPUI::Button(id).id(std::string(id)+"-button").layout(100,50,{},CPPUI::Insets(0));
+            CPPUI::Label(std::string(id)+suffix).id(std::string(id)+"-label");
+        }
     }
     void content() override {
         for(auto window:CPPUI::Window().size(320,240).id("window")) {
@@ -43,14 +46,22 @@ int main(int argc,char ** argv) {
         auto panel=static_cast<wxWindow *>(find(root,"stack")->outer());
         auto bottom=static_cast<wxWindow *>(find(root,"bottom-button")->outer());
         auto top=static_cast<wxWindow *>(find(root,"top-button")->outer());
+        auto topLabel=static_cast<wxWindow *>(find(root,"top-label")->outer());
+#ifdef __WXMSW__
+        require(dynamic_cast<CPPUI::Wx::Painting::StaticText *>(topLabel)
+            && topLabel->GetBackgroundStyle()==wxBG_STYLE_TRANSPARENT
+            && (topLabel->GetWindowStyleFlag() & wxCLIP_SIBLINGS),"nested Stack label did not select transparent generic painting");
+#endif
         require(dynamic_cast<wxPanel *>(panel) && bottom->GetParent()==panel && top->GetParent()==panel,"Stack does not own a native panel");
         require(panel->GetForegroundColour()==wxColour(0x12,0x34,0x56) && bottom->GetForegroundColour()!=panel->GetForegroundColour(),"own foreground leaked into child");
         require(panel->GetBackgroundColour()==wxColour(0xab,0xcd,0xef),"Stack background was not applied");
         require(bottom->GetRect()==top->GetRect(),"nested layers do not overlap");
         for(int i=0;i<8;++i) {
-            root.reverse=!root.reverse; root.sync(); pump();
+            root.reverse=!root.reverse;root.suffix=std::to_string(i); root.sync(); pump();
             require(find(root,"stack")->outer()==panel && find(root,"bottom-button")->outer()==bottom && find(root,"top-button")->outer()==top,"keyed reorder replaced native layers");
             require(bottom->GetRect()==top->GetRect(),"reordered layers do not overlap");
+            require(find(root,"top-label")->outer()==topLabel && topLabel->GetLabel()=="top"+root.suffix,
+                "Stack text update or keyed reorder replaced the native label");
         }
         auto before=panel->GetSize();
         static_cast<wxWindow *>(find(root,"window")->outer())->SetClientSize(500,400);pump();

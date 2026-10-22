@@ -10,6 +10,7 @@
 #include <QCoreApplication>
 #include <QColor>
 #include <QTimer>
+#include <algorithm>
 
 namespace CPPUI {
     namespace Qt {
@@ -101,7 +102,7 @@ namespace CPPUI {
             std::map<std::string, std::string> styles;
             if(node.style_fontsize) styles["font"] = std::to_string(*node.style_fontsize) + "pt";
             if(node.style_fontfamily) styles["font-family"] = node.style_fontfamily;
-            if(node.style_fontweight) styles["font-weight"] = std::to_string(*node.style_fontweight);
+            if(node.style_fontweight) styles["font-weight"] = std::to_string(std::min(900, std::max(100, *node.style_fontweight)));
             if(node.style_color) styles["color"] = QColor(*node.style_color).name().toStdString();
             if(node.style_bgcolor) styles["background-color"] = QColor(*node.style_bgcolor).name().toStdString();
             if(options.StyleSheet) for(const auto & entry: *options.StyleSheet) styles[entry.first] = entry.second;

@@ -487,6 +487,8 @@ also included by the style API. Its values use the Web/Qt 6 numeric scale:</p>
 <p>Both <code>.style()</code> and <code>.wideStyle()</code> accept the enum through
 <code>style::fontWeight(...)</code> or as the positional font-weight argument.
 Numeric weights remain supported, including values between the named weights.
+Weights must be integers from 1 to 1000; values outside this range throw
+<code>std::invalid_argument</code> before the style call changes any fields.
 Available rendered weights depend on the backend and font.</p>
 <pre><code class="language-cpp">CPPUI::Label(&quot;Heading&quot;).style(style::fontWeight(CPPUI::FontWeight::Bold));
 CPPUI::Label(&quot;Body&quot;).style({}, {}, {}, CPPUI::FontWeight::Normal);
@@ -518,8 +520,9 @@ borrowed pointer; callers do not wrap them in Optional. Qt option maps are
 copied. Repeated calls merge supplied values on that declaration.
 A fresh declaration without a formerly supplied property restores the native
 default during redraw. Zero is an explicit value, including black (<code>0x000000</code>),
-zero size, zero weight and <code>Insets(0)</code>. Dimensions/weights/font sizes reject
-negative values. Modifiers return the borrowed <code>Node&amp;</code> for immediate chaining.</p>
+zero size, zero layout weight and <code>Insets(0)</code>. Dimensions/layout weights/font sizes reject
+negative values; font weights must be between 1 and 1000.
+Modifiers return the borrowed <code>Node&amp;</code> for immediate chaining.</p>
 <pre><code class="language-cpp">for(auto column: CPPUI::VBox().layout(layout::weight(1), layout::padding(12))) {
     CPPUI::Label(&quot;Heading&quot;).style(style::color(0x336699), style::fontSize(20));
     CPPUI::Label(&quot;Body&quot;).layout(layout::width(200), layout::height(40));
@@ -541,7 +544,7 @@ Node &amp; style(Optional&lt;int&gt; color = {}, Optional&lt;int&gt; bgColor = {
 argument. Positional padding/margin need an explicit <code>Insets(...)</code>; C++ cannot
 implicitly convert an integer through both Insets and Optional. Both
 font-family forms accept a string literal directly.</p>
-<p>Qt applies <code>fontWeight</code> as a native stylesheet weight (100–900), independently
+<p>Qt clamps <code>fontWeight</code> to 100–900 and applies it as a native stylesheet weight, independently
 of font size and family. Omitting it on the next declaration restores the native
 default or inherited weight; <code>.qt(StyleSheet)</code> can override it.
 The Qt backend still stores <code>margin</code> without applying it.
@@ -605,8 +608,15 @@ enable the normal 14/28-pixel fonts, compile the two
 <code>cppui/lvgl/fonts/cppui_font_montserrat_bold_*.c</code> files and define
 <code>CPPUI_LVGL_BOLD_FONTS=1</code>; requesting bold without them throws.
 Runtime font loading and display-density mapping remain pending.
-wx applies layout sizing, padding/weight and font/color modifiers, resetting
-omitted values to native defaults. <code>.qt()</code> is specific to the Qt backend.</p>
+wx applies layout sizing, padding/weight and font/color modifiers, including
+numeric font weights, resetting omitted values to native defaults.
+<code>.qt()</code> is specific to the Qt backend.</p>
+<p>On macOS, wx non-selectable Label/Text with a background colour and Button
+with an explicit foreground or background colour use generic painted controls.
+Changing the colour retains the control; removing the colour style restores the
+native control. Selectable text keeps its read-only native editor. wx Html applies
+the foreground as a document default while preserving explicit inline colours,
+and reapplies its background after parsing the document.</p>
 <h2 id="application">Application</h2>
 <p>Portable applications can include <code>cppui/backend.hpp</code> and select exactly one of
 <code>CPPUI_BACKEND_QT</code>, <code>CPPUI_BACKEND_WX</code> or <code>CPPUI_BACKEND_LVGL</code> in the build.
@@ -1717,7 +1727,10 @@ ownership on teardown. Native edits, retained state and adapter lifetimes pass
 sanitizers and Valgrind on wxGTK.</p>
 <p>wx Stack owns a native panel and overlays padded children at the same size and raises later children
 above earlier ones. It uses native controls and their native background/hit-test
-behavior; it does not rasterize the child hierarchy.</p>
+behavior. On Windows, non-selectable Label/Text hosted by the Stack panel,
+including through nested sizers, compose text layers in declaration order on
+every repaint so transparent sibling repaint order cannot cover upper text.
+Other controls retain platform-dependent background composition.</p>
 <h3 id="environment-options">Environment options</h3>
 <p><code>CPPUI::Options()</code> returns a process-local <code>std::map&lt;std::string, std::string&gt;</code>
 initialized from <code>PUI_OPTIONS</code> on first access. The environment syntax is
