@@ -83,7 +83,7 @@
             <ul>
 <li><a href="#declarative-components">Declarative Components</a></li>
 <li><a href="#optional-arguments">Optional arguments</a></li>
-<li><a href="#pui-modifiers">PUI modifiers</a></li>
+<li><a href="#pui-modifiers">CPPUI modifiers</a></li>
 <li><a href="#application">Application</a></li>
 <li><a href="#table">Table</a></li>
 <li><a href="#tree">Tree</a></li>
@@ -450,7 +450,7 @@ old one: failure to construct the incoming value preserves the destination;
 failure during the final replacement leaves the destination empty and usable.
 Payload pointers/references do not follow moves to another Optional and must
 not be retained across replacement, reset or destruction.</p>
-<h2 id="pui-modifiers">PUI modifiers</h2>
+<h2 id="pui-modifiers">CPPUI modifiers</h2>
 <p>Nodes expose PUI's <code>.layout(...)</code>, <code>.style(...)</code> and <code>.qt(...)</code> APIs. These are
 ports of <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/node.py">PUI's node modifiers</a>
 and <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py">Qt parameter application</a>.
