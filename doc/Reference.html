@@ -44,7 +44,27 @@
         td.support-partial, .support-legend .support-partial { background: #fff0bf; }
         td.support-pending, .support-legend .support-pending { background: #f8d9d9; }
         .support-legend span { padding: .2em .5em; margin-right: .5em; }
-        .table-scroll { overflow-x: auto; margin-bottom: 24px; }
+        .table-scroll { margin-bottom: 24px; }
+        .table-scroll table { border-collapse: separate; border-spacing: 0; }
+        .table-scroll th, .table-scroll td { border: 0; box-shadow: inset -1px -1px #d0d7de; }
+        .table-scroll thead th { position: sticky; top: 0; z-index: 1; }
+        /* Follow PUI's scroll-driven header: horizontal overflow would otherwise
+           make native sticky headers stick to the wrapper instead of the page. */
+        @supports (animation-timeline: view()) {
+            .table-scroll { overflow-x: auto; view-timeline: --matrix-view block; }
+            .table-scroll thead th {
+                position: relative;
+                animation: matrix-sticky linear both;
+                animation-timeline: --matrix-view;
+                animation-range: exit-crossing 0% exit-crossing var(--matrix-travel, 100vh);
+            }
+            .table-scroll tr > :first-child { position: sticky; top: auto; left: 0; z-index: 2; background: #fff; }
+            .table-scroll thead tr > :first-child { z-index: 3; background: #f0f3f6; }
+            @keyframes matrix-sticky {
+                from { transform: translateY(0); }
+                to { transform: translateY(var(--matrix-travel, 100vh)); }
+            }
+        }
         table { border-collapse: collapse; width: 100%; font-size: .88rem; text-align: left; }
         th, td { border: 1px solid #d0d7de; padding: 9px 12px; min-width: 120px; vertical-align: top; }
         th { background: #f0f3f6; font-weight: 650; }
@@ -67,6 +87,7 @@
             aside, .skip, .links, footer { display: none; }
             pre { white-space: pre-wrap; overflow-wrap: anywhere; }
             .table-scroll { overflow: visible; }
+            .table-scroll thead th, .table-scroll tr > :first-child { position: static; animation: none; }
             th, td { min-width: 0; }
         }
     </style>
@@ -2049,5 +2070,20 @@ terminal-cell APIs (<code>tsize</code>, <code>tLayout</code>, <code>tStyle</code
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
 <script>if (window.hljs) hljs.highlightAll();</script>
+<script>
+document.querySelectorAll('.table-scroll').forEach(wrapper => {
+    const table = wrapper.querySelector('table');
+    const header = table && table.tHead;
+    if (!header) return;
+    const updateTravel = () => wrapper.style.setProperty('--matrix-travel',
+        `${Math.max(0, table.offsetHeight - header.offsetHeight)}px`);
+    if (window.ResizeObserver) {
+        const observer = new ResizeObserver(updateTravel);
+        observer.observe(table);
+        observer.observe(header);
+    }
+    updateTravel();
+});
+</script>
 </body>
 </html>
