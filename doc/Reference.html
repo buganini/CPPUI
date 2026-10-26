@@ -40,6 +40,10 @@
         pre { overflow-x: auto; padding: 20px; border: 1px solid #d8dee4; border-radius: 6px; background: #f6f8fa; line-height: 1.55; }
         pre code { font-size: .83rem; }
         pre code.hljs { padding: 0; background: transparent; }
+        td.support-yes, .support-legend .support-yes { background: #d9edcb; }
+        td.support-partial, .support-legend .support-partial { background: #fff0bf; }
+        td.support-pending, .support-legend .support-pending { background: #f8d9d9; }
+        .support-legend span { padding: .2em .5em; margin-right: .5em; }
         .table-scroll { overflow-x: auto; margin-bottom: 24px; }
         table { border-collapse: collapse; width: 100%; font-size: .88rem; text-align: left; }
         th, td { border: 1px solid #d0d7de; padding: 9px 12px; min-width: 120px; vertical-align: top; }
@@ -91,6 +95,7 @@
 <li><a href="#binding">Binding</a></li>
 <li><a href="#button">Button</a></li>
 <li><a href="#textfield">TextField</a></li>
+<li><a href="#textedit">TextEdit</a></li>
 <li><a href="#maskedfield">MaskedField</a></li>
 <li><a href="#scroll">Scroll</a></li>
 <li><a href="#combobox">ComboBox</a></li>
@@ -135,6 +140,7 @@
 toolkit. <code>—</code> means <strong>not yet implemented in CPPUI</strong>. It does not mean the toolkit
 cannot provide the feature. Partial implementations and specific native limits
 are described in the component sections and backend plans.</p>
+<p class="support-legend"><span class="support-yes">Implemented</span><span class="support-partial">Partial / fallback</span><span class="support-pending">Not implemented</span></p>
 <div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
 <thead>
 <tr>
@@ -147,189 +153,195 @@ are described in the component sections and backend plans.</p>
 <tbody>
 <tr>
 <td><a href="#application">Application</a></td>
-<td>QApplication</td>
-<td>View</td>
-<td>App</td>
+<td class="support-yes">QApplication</td>
+<td class="support-yes">View</td>
+<td class="support-yes">App</td>
 </tr>
 <tr>
 <td><a href="#window">Window</a></td>
-<td>QMainWindow</td>
-<td>screen_active</td>
-<td>wxFrame</td>
+<td class="support-yes">QMainWindow</td>
+<td class="support-yes">screen_active</td>
+<td class="support-yes">wxFrame</td>
 </tr>
 <tr>
 <td><a href="#box-layouts">HBox</a></td>
-<td>QHBoxLayout</td>
-<td>flex_flow</td>
-<td>wxBoxSizer</td>
+<td class="support-yes">QHBoxLayout</td>
+<td class="support-yes">flex_flow</td>
+<td class="support-yes">wxBoxSizer</td>
 </tr>
 <tr>
 <td><a href="#box-layouts">VBox</a></td>
-<td>QVBoxLayout</td>
-<td>flex_flow</td>
-<td>wxBoxSizer</td>
+<td class="support-yes">QVBoxLayout</td>
+<td class="support-yes">flex_flow</td>
+<td class="support-yes">wxBoxSizer</td>
 </tr>
 <tr>
 <td><a href="#adaptive-box-layouts">HVBox / VHBox</a></td>
-<td>QBoxLayout</td>
-<td>flex_flow</td>
-<td>wxBoxSizer</td>
+<td class="support-yes">QBoxLayout</td>
+<td class="support-yes">flex_flow</td>
+<td class="support-yes">wxBoxSizer</td>
 </tr>
 <tr>
 <td><a href="#grid-and-stack">Grid / Stack</a></td>
-<td>QGridLayout / QStackedLayout</td>
-<td>Native grid / shared native grid cell</td>
-<td>wxGridBagSizer / wxPanel + overlay wxSizer</td>
+<td class="support-yes">QGridLayout / QStackedLayout</td>
+<td class="support-yes">Native grid / shared native grid cell</td>
+<td class="support-yes">wxGridBagSizer / wxPanel + overlay wxSizer</td>
 </tr>
 <tr>
 <td><a href="#spacer">Spacer</a></td>
-<td>QSpacerItem</td>
-<td>transparent flex item</td>
-<td>wxSizer stretch spacer</td>
+<td class="support-yes">QSpacerItem</td>
+<td class="support-yes">transparent flex item</td>
+<td class="support-yes">wxSizer stretch spacer</td>
 </tr>
 <tr>
 <td><a href="#divider">Divider</a></td>
-<td>QFrame</td>
-<td>flex-axis separator</td>
-<td>wxStaticLine</td>
+<td class="support-yes">QFrame</td>
+<td class="support-yes">flex-axis separator</td>
+<td class="support-yes">wxStaticLine</td>
 </tr>
 <tr>
 <td><a href="#scroll">Scroll</a></td>
-<td>QScrollArea</td>
-<td>scrollable object (basic)</td>
-<td>wxScrolledWindow</td>
+<td class="support-yes">QScrollArea</td>
+<td class="support-yes">scrollable object (basic)</td>
+<td class="support-yes">wxScrolledWindow</td>
 </tr>
 <tr>
 <td><a href="#splitter">Splitter</a></td>
-<td>QSplitter</td>
-<td>Resizable objects with drag handles</td>
-<td>nested wxSplitterWindow</td>
+<td class="support-yes">QSplitter</td>
+<td class="support-yes">Resizable objects with drag handles</td>
+<td class="support-yes">nested wxSplitterWindow</td>
 </tr>
 <tr>
 <td><a href="#label">Label</a></td>
-<td>QLabel</td>
-<td>label</td>
-<td>wxStaticText / read-only wxTextCtrl</td>
+<td class="support-yes">QLabel</td>
+<td class="support-yes">label</td>
+<td class="support-yes">wxStaticText / read-only wxTextCtrl</td>
 </tr>
 <tr>
 <td><a href="#button">Button</a></td>
-<td>QPushButton</td>
-<td>button</td>
-<td>wxButton</td>
+<td class="support-yes">QPushButton</td>
+<td class="support-yes">button</td>
+<td class="support-yes">wxButton</td>
 </tr>
 <tr>
 <td><a href="#textfield">TextField</a></td>
-<td>QLineEdit</td>
-<td>single-line lv_textarea</td>
-<td>wxTextCtrl</td>
+<td class="support-yes">QLineEdit</td>
+<td class="support-yes">single-line lv_textarea</td>
+<td class="support-yes">wxTextCtrl</td>
+</tr>
+<tr>
+<td><a href="#textedit">TextEdit</a></td>
+<td class="support-yes">QPlainTextEdit</td>
+<td class="support-yes">multiline lv_textarea</td>
+<td class="support-yes">multiline wxTextCtrl</td>
 </tr>
 <tr>
 <td><a href="#maskedfield">MaskedField</a></td>
-<td>QLineEdit password mode</td>
-<td>lv_textarea password mode</td>
-<td>wxTextCtrl password style</td>
+<td class="support-yes">QLineEdit password mode</td>
+<td class="support-yes">lv_textarea password mode</td>
+<td class="support-yes">wxTextCtrl password style</td>
 </tr>
 <tr>
 <td><a href="#combobox">ComboBox / ComboBoxItem</a></td>
-<td>QComboBox</td>
-<td>dropdown / textarea</td>
-<td>wxComboBox</td>
+<td class="support-yes">QComboBox</td>
+<td class="support-yes">dropdown / textarea</td>
+<td class="support-yes">wxComboBox</td>
 </tr>
 <tr>
 <td><a href="#radiobutton">RadioButton</a></td>
-<td>QRadioButton</td>
-<td>checkbox (radio mode)</td>
-<td>wxRadioButton</td>
+<td class="support-yes">QRadioButton</td>
+<td class="support-yes">checkbox (radio mode)</td>
+<td class="support-yes">wxRadioButton</td>
 </tr>
 <tr>
 <td><a href="#checkbox">Checkbox</a></td>
-<td>QCheckBox</td>
-<td>checkbox</td>
-<td>wxCheckBox</td>
+<td class="support-yes">QCheckBox</td>
+<td class="support-yes">checkbox</td>
+<td class="support-yes">wxCheckBox</td>
 </tr>
 <tr>
 <td><a href="#progressbar">ProgressBar</a></td>
-<td>QProgressBar</td>
-<td>bar / busy animation</td>
-<td>wxGauge</td>
+<td class="support-yes">QProgressBar</td>
+<td class="support-yes">bar / busy animation</td>
+<td class="support-yes">wxGauge</td>
 </tr>
 <tr>
 <td><a href="#text">Text / Html / MarkDown</a></td>
-<td>QLabel</td>
-<td>wrapping label / raw markup fallbacks</td>
-<td>wxStaticText / wxHtmlWindow / raw text fallback</td>
+<td class="support-yes">QLabel</td>
+<td class="support-partial">wrapping label / raw markup fallbacks</td>
+<td class="support-partial">wxStaticText / wxHtmlWindow / raw text fallback</td>
 </tr>
 <tr>
 <td><a href="#canvas">Canvas</a></td>
-<td>QWidget / QPainter</td>
-<td>canvas / software drawing</td>
-<td>wxPanel / wxGraphicsContext</td>
+<td class="support-yes">QWidget / QPainter</td>
+<td class="support-partial">canvas / software drawing</td>
+<td class="support-yes">wxPanel / wxGraphicsContext</td>
 </tr>
 <tr>
 <td><a href="#image">Image</a></td>
-<td>QLabel / QPixmap</td>
-<td>lv_image / owned decoded pixels</td>
-<td>wxStaticBitmap / wxImage</td>
+<td class="support-yes">QLabel / QPixmap</td>
+<td class="support-yes">lv_image / owned decoded pixels</td>
+<td class="support-yes">wxStaticBitmap / wxImage</td>
 </tr>
 <tr>
 <td><a href="#menus-and-toolbars">Menus / Toolbars</a></td>
-<td>QMenuBar / QMenu / QToolBar / QAction</td>
-<td>—</td>
-<td>wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)</td>
+<td class="support-yes">QMenuBar / QMenu / QToolBar / QAction</td>
+<td class="support-pending">—</td>
+<td class="support-yes">wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)</td>
 </tr>
 <tr>
 <td><a href="#mdi">MDI</a></td>
-<td>QMdiArea / QMdiSubWindow</td>
-<td>—</td>
-<td>—</td>
+<td class="support-yes">QMdiArea / QMdiSubWindow</td>
+<td class="support-pending">—</td>
+<td class="support-pending">—</td>
 </tr>
 <tr>
 <td><a href="#timelineview">TimelineView</a></td>
-<td>QTimer / virtual node</td>
-<td>timer / virtual node</td>
-<td>wxTimer / virtual node</td>
+<td class="support-yes">QTimer / virtual node</td>
+<td class="support-yes">timer / virtual node</td>
+<td class="support-yes">wxTimer / virtual node</td>
 </tr>
 <tr>
 <td><a href="#canvas">ImageResource</a></td>
-<td>QImage</td>
-<td>—</td>
-<td>wxImage</td>
+<td class="support-yes">QImage</td>
+<td class="support-pending">—</td>
+<td class="support-yes">wxImage</td>
 </tr>
 <tr>
 <td><a href="#tabs">Tabs / Tab</a></td>
-<td>QTabWidget / QWidget</td>
-<td>tabview / virtual node</td>
-<td>wxNotebook / wxPanel</td>
+<td class="support-yes">QTabWidget / QWidget</td>
+<td class="support-yes">tabview / virtual node</td>
+<td class="support-yes">wxNotebook / wxPanel</td>
 </tr>
 <tr>
 <td><a href="#views">Views</a></td>
-<td>QStackedWidget</td>
-<td>Retained containers</td>
-<td>wxSimplebook</td>
+<td class="support-yes">QStackedWidget</td>
+<td class="support-yes">Retained containers</td>
+<td class="support-yes">wxSimplebook</td>
 </tr>
 <tr>
 <td><a href="#table">Table / TableNode</a></td>
-<td>QTableView / QAbstractTableModel</td>
-<td>lv_table + cell editors</td>
-<td>wxGrid / wxGridTableBase</td>
+<td class="support-yes">QTableView / QAbstractTableModel</td>
+<td class="support-yes">lv_table + cell editors</td>
+<td class="support-yes">wxGrid / wxGridTableBase</td>
 </tr>
 <tr>
 <td><a href="#tree">Tree / TreeNode</a></td>
-<td>QTreeView / QAbstractItemModel</td>
-<td>—</td>
-<td>wxDataViewCtrl / wxDataViewModel</td>
+<td class="support-yes">QTreeView / QAbstractItemModel</td>
+<td class="support-pending">—</td>
+<td class="support-yes">wxDataViewCtrl / wxDataViewModel</td>
 </tr>
 <tr>
 <td><a href="#modal">Modal</a></td>
-<td>QDialog</td>
-<td>—</td>
-<td>—</td>
+<td class="support-yes">QDialog</td>
+<td class="support-pending">—</td>
+<td class="support-pending">—</td>
 </tr>
 <tr>
 <td><a href="#dialogs">Dialogs</a></td>
-<td>QFileDialog / QMessageBox / QInputDialog</td>
-<td>—</td>
-<td>wxFileDialog / wxMessageDialog / wxTextEntryDialog</td>
+<td class="support-yes">QFileDialog / QMessageBox / QInputDialog</td>
+<td class="support-pending">—</td>
+<td class="support-yes">wxFileDialog / wxMessageDialog / wxTextEntryDialog</td>
 </tr>
 </tbody>
 </table></div>
@@ -931,6 +943,7 @@ reactive State in the getter. Change subscriptions, explicit notification and
 text conversion helpers remain pending; this adapter does not change State's
 copy/move semantics.</p>
 <h2 id="button">Button</h2>
+<p>Buttons fit their text while retaining theme padding and native height. Qt retains native size hints for buttons with icons or menus. Explicit layout sizing still applies.</p>
 <p>Include <code>cppui/qt/button.hpp</code>, <code>cppui/wx/button.hpp</code> or <code>cppui/lvgl/button.hpp</code>.
 <code>Button(text).click(callback)</code> owns its text and invokes the current callback.
 <code>.disabled(bool = true)</code> controls native user interaction; the default is false. Disabling
@@ -969,6 +982,27 @@ destroy its owning view.</p>
 Applications hosting LVGL must likewise create a default group before mounting
 controls and attach their keypad input device to it; the TextField does not own
 the host's input devices or group.</p>
+<h2 id="textedit">TextEdit</h2>
+<p><code>TextEdit(model)</code> and <code>TextEdit(model, editModel)</code> provide a plain
+multiline editor on Qt, wx and LVGL. Both models are string bindings. Include
+<code>cppui/&lt;backend&gt;/textedit.hpp</code> or the backend umbrella header.</p>
+<pre><code class="language-cpp">CPPUI::TextEdit(text, draft).placeholder("Type several lines...")
+    .readonly(false).wrap(true)
+    .input([&amp;]() { /* draft changed */ })
+    .change([&amp;]() { /* committed text changed */ })
+    .layout(CPPUI::layout::weight(1));
+</code></pre>
+<p>Enter inserts a newline. Losing focus commits an edited draft once; clean blur
+and programmatic updates do not emit change/input callbacks. The committed
+binding is read back after its setter, so normalized values replace both editor
+text and the draft binding. Drafts survive redraws and wrap changes. Enabling
+readonly discards an uncommitted draft and displays the committed model. Wrap
+defaults to true; readonly defaults to false. TextEdit has expansion priority 4
+on both axes. Callbacks use CPPUI's existing no-argument convention; read the
+model or draft binding inside the callback. Native placeholder rendering is
+platform-dependent. On LVGL, the host owns keyboard/group focus; insertion and
+deletion are rejected in readonly mode while the editor can still receive focus
+and scroll.</p>
 <h2 id="maskedfield">MaskedField</h2>
 <p>The same backend <code>textfield.hpp</code> headers provide <code>MaskedField(model, editModel)</code>.
 It accepts the string bindings, optional draft, placeholder, input/change
@@ -1151,7 +1185,7 @@ not another layout, and zero padding when nested. Native QBoxLayout margins are
 zero to avoid adding a second layer of spacing. Use <code>.layout(...)</code> to override
 padding/dimensions and set each child's weight. Redraw updates stretch and resets
 omitted properties, including children rebuilt by independent virtual views.
-LVGL boxes use a six-pixel gap and stretch children across the other axis unless
+LVGL boxes use a six-pixel gap and apply cross-axis expansion demand unless
 that dimension is explicit; dividers retain their one-pixel thickness.</p>
 <h2 id="grid-and-stack">Grid and Stack</h2>
 <h3 id="container-precedence">Container precedence</h3>
@@ -1248,14 +1282,23 @@ to inherit expansion, or supply it to override expansion on that matching breakp
 has no terminal backend or terminal-unit column modifiers.</p>
 <p>Reflow retains native controls, edit buffers and selection/caret state. Use
 stable IDs for reordered data. Virtual child views flatten into automatic Grid,
-and independent child updates trigger placement again. Qt/wx give columns equal
-stretch factors; native minimum-size hints can still produce unequal tracks.
-LVGL uses equal fractional tracks when width is allocated, and content tracks
-otherwise. The <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/grid.cpp">manual Grid</a> and
+and independent child updates trigger placement again. Grid computes expansion
+demand separately for rows and columns using the shared priorities. A span
+contributes to every covered track, and each track takes the maximum demand and
+weight, not a sum over cells. Only tracks at the highest positive priority share
+extra space; zero-demand tracks stay compact. Explicit child weights apply on
+both axes, and zero weight disables that child's demand. Hidden cells do not
+contribute. Automatic columns no longer imply equal widths. Qt/wx normalize
+native stretch ratios; LVGL measures intrinsic tracks and distributes remaining
+pixels by the same demand weights. The <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/grid.cpp">manual Grid</a> and
 <a href="https://github.com/buganini/CPPUI/blob/main/cookbook/adaptive_grid.cpp">Adaptive Grid</a> cookbooks run on all four targets.
 The latter uses 384/576/768-pixel breakpoints, three backfill modes, checkboxes for
 hidden tiles, expansion and keyed reversal, and an editor that declares one column
-below 576 pixels and two above it. With four columns, original order and C
+below 384 pixels, two from 384, three from 576 and four from 768, spanning a
+complete row once the Grid content reaches the corresponding breakpoint.
+Grid column breakpoints observe the parent's content width; child span
+breakpoints observe the Grid's content width, which can differ due to padding.
+With four columns, original order and C
 shown, blue F occupies row 4 (ordered), row 3 (dense), or row 5 (forward), counting
 rows from one.</p>
 <p>Qt Stack uses StackAll mode and reverses initial declaration order, placing
@@ -1263,22 +1306,24 @@ the last declared layer on top. All layers share the available geometry.
 Unchanged redraws retain the raised layer. Insertions/removals and keyed moves
 let QStackedLayout choose its current layer, as in PUI; moving the current layer
 can raise its neighbor. Grid and Stack share HBox/VBox's nested
-padding rules. PUI ignores Spacer inside these two containers; CPPUI also skips
-its native insertion and explicitly reclaims the unmounted item.</p>
+padding rules. Grid accepts placed Spacers as weighted cells. Stack ignores
+Spacers and reclaims the unmounted native items.</p>
 <p>LVGL exposes <code>Grid()</code> through <code>cppui/lvgl/layout.hpp</code> or <code>grid.hpp</code>
 (<code>LV_USE_GRID</code> required), with the same coordinate/span fields and replacement
 rules. Automatic axes measure visible cells and include their margins. Single
 cells establish each track's size; any additional space needed by a spanning
 cell is shared across its tracks. This also handles grids containing only
 spanning cells, which native <code>LV_GRID_CONTENT</code> alone does not measure. Children
-retain their natural size along automatic axes. Allocated axes use equal
-fractional tracks, stretching cells across their assigned rows/columns and
-gaps, less margins. Explicit Grid dimensions, parent allocation and Grid flex
-weight select allocated axes; child flex weights do not set track proportions.
+fill their assigned cells, including expanded spans. Intrinsic track sizes
+include spanning content and margins; allocated axes distribute extra space
+only to tracks selected by shared expansion priorities. Declared child weights
+set track demand on both axes. Explicit Grid dimensions, parent allocation and
+Grid weight select allocated axes.
 The default row/column gap is 6 pixels. Nested padding follows HBox/VBox.
 Hidden cells retain native state without contributing to track sizing; removed
 or hidden trailing cells allow automatic dimensions to shrink. Unplaced manual
-declarations are reclaimed, and placed Spacers are ignored by layout/input.
+declarations are reclaimed. Placed Spacers participate in track allocation without
+intercepting input.
 The shared Grid cookbook runs on both SDL2 and X11.</p>
 <p>LVGL exposes <code>Stack()</code> through <code>cppui/lvgl/layout.hpp</code> or <code>stack.hpp</code>, using
 one native grid cell shared by all layers (<code>LV_USE_GRID</code> required). The last

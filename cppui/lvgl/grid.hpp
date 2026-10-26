@@ -30,6 +30,17 @@ namespace CPPUI { namespace LVGL {
             const auto calculate=horizontal ? lv_obj_calc_dynamic_width : lv_obj_calc_dynamic_height;
             int size=calculate(object,horizontal ? LV_STYLE_WIDTH : LV_STYLE_HEIGHT);
             const int requested=horizontal ? lv_obj_get_style_width(object,LV_PART_MAIN) : lv_obj_get_style_height(object,LV_PART_MAIN);
+            if(requested==LV_SIZE_CONTENT && lv_obj_check_type(object,&lv_label_class)) {
+                // A stretched label's cached self size is wrapped to its old
+                // allocation. Measure content independently of that allocation.
+                lv_point_t textSize;
+                const int width=lv_obj_get_style_width(object,LV_PART_MAIN)==LV_SIZE_CONTENT
+                    ? LV_COORD_MAX : lv_obj_get_content_width(object);
+                lv_text_get_size(&textSize,lv_label_get_text(object),lv_obj_get_style_text_font(object,LV_PART_MAIN),
+                    lv_obj_get_style_text_letter_space(object,LV_PART_MAIN),lv_obj_get_style_text_line_space(object,LV_PART_MAIN),width,LV_TEXT_FLAG_NONE);
+                size=horizontal ? textSize.x+lv_obj_get_style_space_left(object,LV_PART_MAIN)+lv_obj_get_style_space_right(object,LV_PART_MAIN)
+                                : textSize.y+lv_obj_get_style_space_top(object,LV_PART_MAIN)+lv_obj_get_style_space_bottom(object,LV_PART_MAIN);
+            }
             if(requested==LV_SIZE_CONTENT) for(auto child:gridChildren) {
                 auto grid=dynamic_cast<Grid *>(child);
                 if(!grid || grid->outer()!=object) continue;
@@ -50,6 +61,7 @@ namespace CPPUI { namespace LVGL {
         std::vector<int32_t> measure(bool horizontal,bool fill) const {
             struct Item {int start,count,size;};
             std::vector<Item> items;
+            std::vector<::CPPUI::detail::GridItem> placed;
             int count=horizontal ? std::max(1,grid_columns) : 1;
             auto object=static_cast<lv_obj_t *>(ui);
             const int gap=horizontal ? lv_obj_get_style_pad_column(object,LV_PART_MAIN) : lv_obj_get_style_pad_row(object,LV_PART_MAIN);
@@ -60,13 +72,20 @@ namespace CPPUI { namespace LVGL {
                 const int n=span(horizontal ? lv_obj_get_style_grid_cell_column_span(child,LV_PART_MAIN) : lv_obj_get_style_grid_cell_row_span(child,LV_PART_MAIN));
                 validate(start,n);
                 count=std::max(count,start+n);
-                const int extent=fill ? 0 : naturalSize(child,horizontal);
+                for(auto node:gridChildren) if(node->outer()==child) {
+                    GridCell cell(lv_obj_get_style_grid_cell_row_pos(child,LV_PART_MAIN),lv_obj_get_style_grid_cell_column_pos(child,LV_PART_MAIN),
+                        span(lv_obj_get_style_grid_cell_row_span(child,LV_PART_MAIN)),span(lv_obj_get_style_grid_cell_column_span(child,LV_PART_MAIN)));
+                    placed.push_back({node,cell});break;
+                }
+                const int extent=naturalSize(child,horizontal);
                 const int size=extent+(horizontal ? lv_obj_get_style_margin_left(child,LV_PART_MAIN)+lv_obj_get_style_margin_right(child,LV_PART_MAIN)
                                                   : lv_obj_get_style_margin_top(child,LV_PART_MAIN)+lv_obj_get_style_margin_bottom(child,LV_PART_MAIN));
                 items.push_back({start,n,size});
             }
-            std::vector<int32_t> result(count,fill ? LV_GRID_FR(1) : 0);
-            if(!fill) {
+            auto weights=::CPPUI::detail::trackStretches(placed,horizontal,this);
+            weights.resize(count,0);
+            std::vector<int32_t> result(count,0);
+            {
                 // Native LV_GRID_CONTENT ignores spanning items. Measure single
                 // cells first, then share each span's unmet extent across its tracks.
                 std::stable_sort(items.begin(),items.end(),[](const Item & a,const Item & b){return a.count<b.count;});
@@ -74,10 +93,24 @@ namespace CPPUI { namespace LVGL {
                     int64_t available=int64_t(gap)*(item.count-1);
                     for(int i=0;i<item.count;++i) available+=result[item.start+i];
                     int64_t extra=std::max<int64_t>(0,int64_t(item.size)-available);
+                    int64_t total=0;for(int i=0;i<item.count;++i) total+=weights[item.start+i];
+                    const bool weighted=total>0;if(!weighted) total=item.count;
                     for(int i=0;i<item.count;++i) {
-                        const auto share=extra/(item.count-i);
-                        result[item.start+i]+=static_cast<int32_t>(share);extra-=share;
+                        const int weight=weighted ? weights[item.start+i] : 1;
+                        if(!weight) continue;
+                        const auto share=extra*weight/total;
+                        result[item.start+i]+=static_cast<int32_t>(share);extra-=share;total-=weight;
                     }
+                }
+            }
+            if(fill) {
+                int64_t available=(horizontal ? lv_obj_get_content_width(object) : lv_obj_get_content_height(object))-int64_t(gap)*(count-1);
+                for(int size:result) available-=size;
+                available=std::max<int64_t>(0,available);
+                int64_t total=0;for(int weight:weights) total+=weight;
+                for(int i=0;i<count;++i) if(weights[i] && total) {
+                    const int64_t share=(available*weights[i]+total/2)/total;
+                    result[i]+=static_cast<int32_t>(share);available-=share;total-=weights[i];
                 }
             }
             result.push_back(LV_GRID_TEMPLATE_LAST);
@@ -146,9 +179,6 @@ namespace CPPUI { namespace LVGL {
         void placeChild(Node * child,const GridCell & cell) {
             if(!ui || !child->ui || child->is_outoforder) return;
             auto object=static_cast<lv_obj_t *>(child->outer());
-            if(dynamic_cast<Spacer *>(child)) {
-                lv_obj_set_ignore_layout(object,true);lv_obj_set_size(object,0,0);return;
-            }
             const int columns=cell.columnspan,rows=cell.rowspan;
             validate(cell.column,columns);validate(cell.row,rows);
             lv_obj_set_ignore_layout(object,false);

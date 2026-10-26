@@ -10,6 +10,14 @@ set_target_properties(${cppui_lvgl_target} PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 
 if(BUILD_TESTING)
+    add_executable(cppui_lvgl_grid_sizing "${cppui_lvgl_dir}/../../tests/native_grid_sizing.cpp")
+    target_link_libraries(cppui_lvgl_grid_sizing PRIVATE CPPUI::lvgl)
+    set_target_properties(cppui_lvgl_grid_sizing PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(lvgl.grid_sizing cppui_lvgl_grid_sizing)
+    add_executable(cppui_lvgl_textedit "${cppui_lvgl_dir}/../../tests/native_textedit.cpp")
+    target_link_libraries(cppui_lvgl_textedit PRIVATE CPPUI::lvgl)
+    set_target_properties(cppui_lvgl_textedit PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(lvgl.textedit cppui_lvgl_textedit)
     add_executable(cppui_lvgl_box_expansion "${cppui_lvgl_dir}/../../tests/lvgl_expansion.cpp")
     target_link_libraries(cppui_lvgl_box_expansion PRIVATE CPPUI::lvgl)
     set_target_properties(cppui_lvgl_box_expansion PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
@@ -135,7 +143,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header adaptive application runtime base button canvas checkbox combobox divider font grid image label layout progressbar radiobutton scroll spacer splitter stack tab table text textfield timeline views window)
+    foreach(header adaptive application runtime base button canvas checkbox combobox divider font grid image label layout progressbar radiobutton scroll spacer splitter stack tab table text textfield textedit timeline views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

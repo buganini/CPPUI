@@ -27,6 +27,8 @@ namespace Cookbook {
             for(const auto & line:bindingLogs) {if(!text.empty()) text+='\n';text+=line;}
             return text;
         }
+        CPPUI::State<std::string> editText{std::string()},editDraft{std::string()},editStatus{std::string("Enter inserts a newline; leaving the editor commits.")};
+        CPPUI::State<bool> editReadonly{false},editWrap{true};
         CPPUI::State<bool> inverseH{false},inverseV{false},adaptiveInverseH{false},adaptiveInverseV{false};
         CPPUI::State<std::string> adaptiveName{std::string("Ada")};
         CPPUI::State<std::string> gridMode{std::string("ordered")},gridText{std::string("This editor survives reflow")};
@@ -88,6 +90,7 @@ namespace Cookbook {
     void combobox(Model &);
     void radiobutton(Model &);
     void textfield(Model &);
+    void textedit(Model &);
     void maskedfield(Model &);
     void grid(Model &);
     void stack(Model &);

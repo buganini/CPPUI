@@ -74,7 +74,7 @@ int main(int argc, char ** argv) {
             int row, column, rows, columns;
             nativeGrid->getItemPosition(nativeGrid->indexOf(span), &row, &column, &rows, &columns);
             require(row == 0 && column == 1 && rows == 2 && columns == 2, "grid span/placement was not applied");
-            require(nativeGrid->count() == 3 && !find(root, "unplaced"), "unplaced or ignored grid children were mounted");
+            require(nativeGrid->count() == 4 && !find(root, "unplaced"), "unplaced declaration mounted or Grid Spacer missing");
             nativeGrid->getItemPosition(nativeGrid->indexOf(root.widget("moving")), &row, &column, &rows, &columns);
             require(rows == 1 && columns == 1, "zero spans did not use the reference default");
             require(nativeStack->count() == 2 && nativeStack->stackingMode() == QStackedLayout::StackAll

@@ -171,6 +171,12 @@ namespace CPPUI {
             }
 
             public:
+            void applyGridPolicy() {
+                auto policy=ui->sizePolicy();
+                policy.setHorizontalPolicy(qtParams.HorizontalPolicy.valueOr(QSizePolicy::Preferred));
+                policy.setVerticalPolicy(qtParams.VerticalPolicy.valueOr(QSizePolicy::Preferred));
+                ui->setSizePolicy(policy);
+            }
             int expandX=0, expandY=0;
             int layoutPriority(bool horizontal) const { return expansionPriority(horizontal); }
             bool expansionBoundary(bool horizontal) const override {
@@ -261,7 +267,7 @@ namespace CPPUI {
 
         class Spacer: public Node {
             QMetaObject::Connection nativeDestroyed;
-            QBoxLayout * owner = nullptr;
+            QLayout * owner = nullptr;
             void release() {
                 QObject::disconnect(nativeDestroyed);
                 nativeDestroyed = {};
@@ -385,11 +391,12 @@ namespace CPPUI {
             if(!dynamic_cast<LayoutWidget *>(dom_parent)) throw std::logic_error("Qt Spacer requires a layout parent");
             auto prev = static_cast<Spacer *>(previous);
             ui = prev && prev->ui ? prev->ui : new QSpacerItem(0, 0);
-            owner = box ? box->qtlayout : nullptr;
-            const auto direction = owner ? owner->direction() : QBoxLayout::LeftToRight;
+            owner = box ? static_cast<QLayout *>(box->qtlayout) : dom_parent->is_grid_layout
+                ? static_cast<BaseWidget *>(dom_parent)->ui->layout() : nullptr;
+            const auto direction = box ? box->qtlayout->direction() : QBoxLayout::LeftToRight;
             const bool horizontal = direction == QBoxLayout::LeftToRight || direction == QBoxLayout::RightToLeft;
-            ui->changeSize(0, 0, !layoutVisible() ? QSizePolicy::Fixed : (!owner || horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred),
-                           !layoutVisible() ? QSizePolicy::Fixed : (!owner || !horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred));
+            ui->changeSize(0, 0, !layoutVisible() ? QSizePolicy::Fixed : (!box || horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred),
+                           !layoutVisible() ? QSizePolicy::Fixed : (!box || !horizontal ? QSizePolicy::Expanding : QSizePolicy::Preferred));
             if(owner) {
                 owner->invalidate();
                 nativeDestroyed = QObject::connect(owner, &QObject::destroyed, [this]() { ui = nullptr; owner = nullptr; });

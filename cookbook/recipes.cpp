@@ -24,6 +24,7 @@ namespace Cookbook {
             {"radiobutton", radiobutton, ""},
             {"maskedfield", maskedfield, ""},
             {"image", image, ""},
+            {"textedit", textedit, ""},
             {"textfield", textfield, "String models; dynamic numeric conversion and typed input/change payloads pending"},
             {"text", text, CPPUI::Backend::textSupport},
 #if CPPUI_HAS_TREE
@@ -76,6 +77,7 @@ namespace Cookbook {
             {"progressbar", "ProgressBar", nullptr, "ProgressBar"},
             {"timeline", "TimelineView", nullptr, "Cancellable timers"},
             {"maskedfield", "MaskedField", nullptr, "Password editor"},
+            {"textedit", "TextEdit", nullptr, "Multiline editor"},
             {"textfield", "TextField", nullptr, "Binding and text conversion"},
             {"scroll", "Scroll", nullptr, "Scroll and offset API"},
             {"heavycanvas", "HeavyCanvas", nullptr, "HeavyCanvas recipe is not yet enabled for this backend"},

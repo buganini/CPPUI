@@ -20,7 +20,7 @@ namespace CPPUI { namespace Wx {
         void updateWidget(Widget * prev) override {
             if(prev) ui=prev->ui;
             else if(customColors()) ui=new Painting::Button(parentWindow(),wxString::FromUTF8(text));
-            else ui=new wxButton(parentWindow(),wxID_ANY,wxString::FromUTF8(text));
+            else ui=new wxButton(parentWindow(),wxID_ANY,wxString::FromUTF8(text),wxDefaultPosition,wxDefaultSize,wxBU_EXACTFIT);
             ui->SetLabel(wxString::FromUTF8(text));
             ui->Enable(!isDisabled);
         }

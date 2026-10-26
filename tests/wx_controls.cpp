@@ -98,6 +98,8 @@ static void options(int argc,char **argv,bool masked) {
             && wxTheApp->GetAppDisplayName()=="Application title", "application title inheritance/explicit empty override failed");
     }
     auto button=ui<wxButton>(root,"button");
+    require((button->GetWindowStyleFlag() & wxBU_EXACTFIT)!=0,
+        "button retained the platform minimum width instead of fitting content");
     auto editable=ui<wxComboBox>(root,"editable"), readonly=ui<wxComboBox>(root,"readonly");
     auto check=ui<wxCheckBox>(root,"check");auto choice=ui<wxRadioButton>(root,"choice");
     auto field=ui<wxTextCtrl>(root,"field");

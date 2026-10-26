@@ -38,6 +38,7 @@ function(cppui_add_cookbook target backend)
         "${cookbook_dir}/table_adapter.cpp"
         "${cookbook_dir}/text.cpp"
         "${cookbook_dir}/textfield.cpp"
+        "${cookbook_dir}/textedit.cpp"
         "${cookbook_dir}/timeline.cpp"
         "${cookbook_dir}/tree.cpp"
         "${cookbook_dir}/tree_adapter.cpp"

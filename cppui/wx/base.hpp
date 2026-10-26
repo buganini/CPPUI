@@ -331,7 +331,7 @@ namespace CPPUI { namespace Wx {
         mount.padding[0] = outer->Add(0, 0);
         mount.row = new wxBoxSizer(wxHORIZONTAL);
         mount.padding[3] = mount.row->Add(0, 0);
-        mount.content = child->sizer() ? mount.row->Add(child->sizer(), 1, wxEXPAND) : mount.row->Add(child->window(), 1, wxEXPAND);
+        mount.content = child->sizer() ? mount.row->Add(child->sizer(), 1, wxEXPAND) : (child->window() ? mount.row->Add(child->window(), 1, wxEXPAND) : mount.row->Add(0,0,1,wxEXPAND));
         mount.padding[1] = mount.row->Add(0, 0);
         outer->Add(mount.row, 1, wxEXPAND);
         mount.padding[2] = outer->Add(0, 0);

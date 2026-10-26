@@ -52,6 +52,13 @@ int main(int argc, char ** argv) {
         require(label->textFormat() == Qt::PlainText, "Label interpreted markup as HTML");
         auto button = static_cast<QPushButton *>(root.children->front()->outer());
         require(button->text().toStdString() == root.caption, "temporary button text was lost");
+        const auto longHint=button->sizeHint();
+        root.caption="+";root.sync();
+        QPushButton standard("+");
+        require(button->sizeHint().width()<longHint.width()
+                && button->sizeHint().width()<standard.sizeHint().width()
+                && button->sizeHint().height()==standard.sizeHint().height(),
+                "short button did not fit content while preserving native height");
         for(int i = 0; i < 4; ++i) {
             root.disabled = i != 1;
             root.setDisabled = i != 3;

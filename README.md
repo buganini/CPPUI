@@ -61,14 +61,24 @@ for API choices and sizing behavior, and the
 `HBox(true)` / `VBox(true)` reverse visual order while retaining controls;
 `HVBox(600, true, false)` reverses only its horizontal layout.
 
-`Grid().columns(1).wideColumns(400, 2).wideColumns(600, 3)` adds automatic,
-span-aware placement on Qt, wx and LVGL. Use `grid::dense(true)` or
+Automatic, span-aware placement is available on Qt, wx and LVGL:
+
+```cpp
+CPPUI::Grid().columns(1)
+    .wideColumns(400, 2)
+    .wideColumns(600, 3);
+```
+
+Use `grid::dense(true)` or
 `grid::dense(false)` as the named second argument to `columns()` to change the
 default row-ordered backfill. See the [Grid API](https://buganini.github.io/CPPUI/doc/Reference.html#grid-and-stack)
 and [Adaptive Grid cookbook](cookbook/adaptive_grid.cpp).
 
 A Grid child can use `.wideGrid(600, CPPUI::grid::columnspan(2))` to change
 placement or span at a width breakpoint while preserving its native editor.
+Rows and columns use shared expansion priorities: compact label tracks retain
+their natural size, while editor tracks receive extra space. Explicit child
+weights apply on both axes.
 
 # Build and test the core
 
@@ -104,6 +114,10 @@ remain usable.
 [Views](https://buganini.github.io/CPPUI/doc/Reference.html#views) on Qt, wx and LVGL supports internal selection or a
 `State<OptionalText>` binding. Pages retain their controls and subview state
 across selection changes; the shared cookbook demonstrates both forms.
+[TextEdit](https://buganini.github.io/CPPUI/doc/Reference.html#textedit) provides multiline
+plain-text editing on Qt, wx and LVGL, with committed/draft bindings, blur commit,
+readonly and wrapping options.
+
 Qt [Tabs](https://buganini.github.io/CPPUI/doc/Reference.html#tabs) also supports these selection models.
 
 [ComboBox](https://buganini.github.io/CPPUI/doc/Reference.html#combobox) supports application-defined candidate lists,

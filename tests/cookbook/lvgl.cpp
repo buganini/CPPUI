@@ -306,7 +306,7 @@ namespace Cookbook { namespace TestBackend {
                || lv_obj_get_width(b)!=lv_obj_get_width(c)+6+lv_obj_get_width(d)
                || lv_obj_get_width(e)!=lv_obj_get_width(a)+6+lv_obj_get_width(c)
                || lv_obj_get_y(d)+lv_obj_get_height(d)!=lv_obj_get_y(e)+lv_obj_get_height(e)
-               || lv_obj_get_height(object)!=lv_obj_get_y(e)+lv_obj_get_height(e))
+               || lv_obj_get_height(object)<lv_obj_get_y(e)+lv_obj_get_height(e))
                 throw std::runtime_error("Manual Grid mosaic must preserve its three tracks and spanning tiles");
         }
         if(auto stack = find(root, "example-stack")) {

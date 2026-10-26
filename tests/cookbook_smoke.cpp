@@ -28,7 +28,7 @@ namespace Cookbook {
         }
         return false;
     }
-    void require(bool value, const char * message) {
+    void require(bool value, const std::string & message) {
         if(!value) throw std::runtime_error(message);
     }
     void checkActivePage(Gallery & gallery) {
@@ -155,12 +155,16 @@ namespace Cookbook {
                     }
                     if(std::string(recipes()[i].key) == "adaptive_grid") {
                         auto editor=find(gallery,"grid-editor")->outer();
-                        TestBackend::resizeWindow(gallery,1250,800);
+                        // Leave room for native scrollbars and Grid padding:
+                        // columns observe the parent, spans observe Grid content.
+                        TestBackend::resizeWindow(gallery,1350,800);
                         for(int pass=0;pass<4;++pass) TestBackend::settle();
                         TestBackend::resizeCodePane(gallery,200);
                         TestBackend::settle();
-                        require(find(gallery,"adaptive-grid")->grid_columns==4 && find(gallery,"grid-editor")->grid_columnspan==2,
-                            "adaptive grid did not reach four columns with a two-column editor");
+                        require(find(gallery,"adaptive-grid")->grid_columns==4 && find(gallery,"grid-editor")->grid_columnspan==4,
+                            "adaptive grid did not reach four columns with a full-row editor: columns="
+                            +std::to_string(find(gallery,"adaptive-grid")->grid_columns)+", span="
+                            +std::to_string(find(gallery,"grid-editor")->grid_columnspan));
                         require(gallery.model.gridExpand,"grid expansion did not default to enabled");
                         for(bool expanded:{false,true}) {
                             require(TestBackend::toggleCheckbox(*find(gallery,"grid-expand")),"grid expansion checkbox missing");
@@ -190,7 +194,7 @@ namespace Cookbook {
                         TestBackend::resizeCodePane(gallery,200);TestBackend::settle();
                         require(find(gallery,"adaptive-grid")->grid_columns<4 && find(gallery,"grid-editor")->outer()==editor,"narrow grid did not retain editor");
                         auto gridSize=find(gallery,"adaptive-grid")->size().get();
-                        require(gridSize && find(gallery,"grid-editor")->grid_columnspan==(gridSize->width>=576 ? 2 : 1),
+                        require(gridSize && find(gallery,"grid-editor")->grid_columnspan==(gridSize->width>=768 ? 4 : gridSize->width>=576 ? 3 : gridSize->width>=384 ? 2 : 1),
                             "adaptive editor span did not follow Grid content width");
                     }
                     if(std::string(recipes()[i].key) == "refs") {

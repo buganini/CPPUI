@@ -82,7 +82,7 @@ namespace CPPUI { namespace Wx { namespace Painting {
         wxSize DoGetBestClientSize() const override {
             wxClientDC dc(const_cast<Button *>(this));dc.SetFont(GetFont());
             auto size=dc.GetMultiLineTextExtent(GetLabelText())+wxSize(20,12);
-            size.IncTo(wxButton::GetDefaultSize());return size;
+            size.SetHeight(std::max(size.GetHeight(),wxButton::GetDefaultSize().GetHeight()));return size;
         }
     public:
         Button(wxWindow * parent, const wxString & label)

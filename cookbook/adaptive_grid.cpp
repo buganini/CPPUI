@@ -39,7 +39,9 @@ namespace Cookbook {
                             .style(CPPUI::style::bgColor(tile.background),CPPUI::style::color(tile.foreground))
                             .layout(CPPUI::layout::height(tile.rows*60),CPPUI::layout::padding(6));
                     CPPUI::TextField(model.gridText).id("grid-editor").grid(CPPUI::grid::columnspan(1))
-                        .wideGrid(576,CPPUI::grid::columnspan(2));
+                        .wideGrid(384,CPPUI::grid::columnspan(2))
+                        .wideGrid(576,CPPUI::grid::columnspan(3))
+                        .wideGrid(768,CPPUI::grid::columnspan(4));
                 }
             }
         }

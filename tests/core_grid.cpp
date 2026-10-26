@@ -4,7 +4,7 @@
 #include <set>
 
 static void require(bool value,const char * message) {if(!value) throw std::runtime_error(message);}
-struct Item:CPPUI::Node {void destroy(bool) override {}};
+struct Item:CPPUI::Node {int x=0,y=0;int baseExpansion(bool h) const override {return h ? x : y;}void destroy(bool) override {}};
 struct Grid:CPPUI::detail::GridLayout<Item> {
     using GridLayout::cells;
     using GridLayout::gridChildren;
@@ -51,8 +51,24 @@ static std::vector<CPPUI::GridCell> reference(const std::vector<CPPUI::Node *> &
     }
     return result;
 }
+static void trackSizing() {
+    Grid grid;Item label,field,area,weighted;
+    field.x=4;area.x=area.y=4;weighted.layout_weight=2;
+    std::vector<CPPUI::detail::GridItem> cells{{&label,{0,0,1,1}},{&field,{0,2,1,1}},{&area,{1,1,2,2}},{&weighted,{3,0,1,1}}};
+    auto tracks=[&](bool x){return CPPUI::detail::trackStretches(cells,x,&grid);};
+    require(tracks(true)==std::vector<int>({2,0,0}) && tracks(false)==std::vector<int>({0,0,0,2}),"grid explicit weight must win both axes");
+    weighted.layout_weight=0;
+    require(tracks(true)==std::vector<int>({0,1,1}) && tracks(false)==std::vector<int>({0,1,1,0}),"span must demand every covered track");
+    area.is_visible=false;require(tracks(true)==std::vector<int>({0,0,1}),"hidden span retained demand");
+    field.is_visible=false;require(tracks(true)==std::vector<int>({0}),"hidden trailing tracks retained demand");
+    weighted.layout_weight=2;cells.push_back({&weighted,{4,0,1,1}});
+    require(tracks(true)==std::vector<int>({2}),"duplicate rows must use max, not summed demand");
+    require(CPPUI::detail::nativeStretches({0,2,4})==std::vector<int>({0,1,2}),"native weight normalization");
+    require(CPPUI::detail::nativeStretches({1,16})==std::vector<int>({31,500}),"native rounding must match PUI");
+}
 int main() {
     try {
+        trackSizing();
         Item owner;owner.update(nullptr);owner.size();
         Grid grid;grid.columns(4,CPPUI::grid::dense(true));grid.columns(3);
         for(int value:{0,-1}) {bool threw=false;try {grid.columns(value);}catch(const std::invalid_argument &) {threw=true;} require(threw,"invalid column count accepted");}

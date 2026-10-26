@@ -94,7 +94,8 @@ namespace {
             root.checkSinglePages();
             auto declaration = root.children->front()->children->front();
             require(!declaration->is_virtual && declaration->outer() == tabs->widget(0)
-                && tabs->widget(0)->contentsMargins().isNull(), "Tab did not own a zero-padding page");
+                && tabs->widget(0)->contentsMargins()==QMargins(11,11,11,11),
+                "Tab did not own a page with the shared default padding");
             std::map<std::string, QWidget *> retained;
             for(int i = 0; i < tabs->count(); ++i) retained[root.pages[i].key] = tabs->widget(i);
             tabs->setCurrentIndex(1);

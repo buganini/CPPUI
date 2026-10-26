@@ -11,6 +11,46 @@ namespace CPPUI { namespace detail {
         GridCell cell;
     };
 
+    inline std::vector<int> trackStretches(const std::vector<GridItem> & cells,bool horizontal,const Node * parent) {
+        std::vector<int> demands,weights;
+        for(const auto & item:cells) {
+            if(!item.node->layoutVisible()) continue;
+            const int start=horizontal ? item.cell.column : item.cell.row;
+            const int count=horizontal ? item.cell.columnspan : item.cell.rowspan;
+            if(start<0 || count<1 || start>std::numeric_limits<int>::max()-count)
+                throw std::out_of_range("Grid track range exceeds supported integers");
+            demands.resize(std::max(demands.size(),std::size_t(start+count)),0);
+            weights.resize(demands.size(),0);
+            const int demand=item.node->expansionPriority(horizontal,parent);
+            const int weight=demand==5 ? item.node->layout_weight.valueOr(1) : 1;
+            for(int index=start;index<start+count;++index) {
+                if(demand>demands[index]) {demands[index]=demand;weights[index]=weight;}
+                else if(demand==demands[index]) weights[index]=std::max(weights[index],weight);
+            }
+        }
+        int highest=0;
+        for(int demand:demands) highest=std::max(highest,demand);
+        for(std::size_t i=0;i<weights.size();++i) if(!highest || demands[i]!=highest) weights[i]=0;
+        return weights;
+    }
+    inline std::vector<int> nativeStretches(std::vector<int> weights) {
+        int maximum=0,divisor=0;
+        for(int weight:weights) maximum=std::max(maximum,weight);
+        for(auto & weight:weights) {
+            if(weight) {
+                const int64_t scaled=int64_t(weight)*1000;
+                int rounded=int(scaled/maximum);
+                const int64_t remainder=scaled%maximum;
+                // Match Python round(): an exact half rounds to the even integer.
+                if(remainder*2>maximum || (remainder*2==maximum && rounded%2)) ++rounded;
+                weight=std::max(1,rounded);
+            }
+            int a=divisor,b=weight;while(b) {int remainder=a%b;a=b;b=remainder;}divisor=a;
+        }
+        if(divisor) for(auto & weight:weights) weight/=divisor;
+        return weights;
+    }
+
     inline void expandGridCells(std::vector<GridItem> & items,int columns) {
         int bottom=0;
         for(const auto & item:items) bottom=std::max(bottom,item.cell.row+item.cell.rowspan);

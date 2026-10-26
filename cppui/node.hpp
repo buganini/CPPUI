@@ -303,7 +303,7 @@ namespace CPPUI {
     inline int Node::expansionPriority(bool horizontal,const Node * physicalParent) const {
         if(!layoutVisible()) return 0;
         if(!physicalParent) physicalParent=expansionParent();
-        if(physicalParent && physicalParent->expansionAxis(horizontal) && layout_weight)
+        if(physicalParent && (physicalParent->expansionAxis(horizontal) || physicalParent->is_grid_layout) && layout_weight)
             return *layout_weight>0 ? 5 : 0;
         const int base=baseExpansion(horizontal);
         if(base>=2 || is_terminal || expansionBoundary(horizontal)

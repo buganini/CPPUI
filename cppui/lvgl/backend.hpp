@@ -17,6 +17,7 @@
 #include "table.hpp"
 #include "image.hpp"
 #include "textfield.hpp"
+#include "textedit.hpp"
 #include "text.hpp"
 #include "radiobutton.hpp"
 #include "combobox.hpp"

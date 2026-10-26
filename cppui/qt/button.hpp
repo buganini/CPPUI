@@ -5,9 +5,23 @@
 
 #include <QPushButton>
 #include <QApplication>
+#include <QStyleOptionButton>
 
 namespace CPPUI {
     namespace Qt {
+        class ContentButton: public QPushButton {
+        public:
+            using QPushButton::QPushButton;
+            QSize sizeHint() const override {
+                auto size=QPushButton::sizeHint();
+                if(!icon().isNull() || menu()) return size;
+                QStyleOptionButton option;initStyleOption(&option);
+                const auto content=fontMetrics().size(::Qt::TextShowMnemonic,option.text);
+                option.text.clear();
+                size.setWidth(style()->sizeFromContents(QStyle::CT_PushButton,&option,content,this).width());
+                return size;
+            }
+        };
         class Button: public BaseWidget {
             bool isDisabled = false;
             public:
@@ -20,7 +34,7 @@ namespace CPPUI {
                     ui = prev->ui;
                     ((QPushButton *)ui)->setText(QString::fromStdString(text));
                 } else {
-                    ui = new Widget<QPushButton>(QString::fromStdString(text));
+                    ui = new Widget<ContentButton>(QString::fromStdString(text));
                 }
                 ui->setDisabled(isDisabled);
                 // Copy before invoking user code: it may redraw or remove this
