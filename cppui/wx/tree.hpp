@@ -8,6 +8,24 @@
 #include <cstdint>
 namespace CPPUI { namespace Wx {
 namespace detail {
+    class TreeControl: public wxDataViewCtrl {
+        bool pending=false,measure=true;
+        int contentWidth=0;
+    public:
+        bool skipRelease=false;
+        explicit TreeControl(wxWindow * parent):wxDataViewCtrl(parent,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxDV_NO_HEADER) {
+            Bind(wxEVT_SIZE,[this](wxSizeEvent & e){e.Skip();fit(false);});
+        }
+        void fit(bool remeasure=true) {
+            measure=measure||remeasure;if(pending)return;pending=true;
+            CallAfter([this](){
+                pending=false;if(IsBeingDeleted() || !GetColumnCount())return;
+                auto column=GetColumn(0);if(measure){measure=false;column->SetWidth(wxCOL_WIDTH_AUTOSIZE);contentWidth=column->GetWidth();}
+                int width=std::max(contentWidth,GetClientSize().x);if(column->GetWidth()!=width)column->SetWidth(width);
+            });
+        }
+    };
+
     struct TreeItem {
         TreeItem * parent=nullptr;
         std::vector<TreeItem *> children;
@@ -62,7 +80,7 @@ public:
         auto selected=ui->GetSelection();auto previous=std::move(records);records.clear();active.clear();roots.clear();
         syncing=true;collect(nodes,nullptr,roots);Cleared();
         for(auto & record:records)if(expanded.count(record.get()))ui->Expand(wxDataViewItem(record.get()));
-        if(item(selected))ui->Select(selected);ui->GetColumn(0)->SetWidth(wxCOL_WIDTH_AUTOSIZE);syncing=false;
+        if(item(selected))ui->Select(selected);static_cast<detail::TreeControl *>(ui)->fit();syncing=false;
     }
     void dispatch(const wxDataViewItem & id,int event){auto record=item(id);if(!record||syncing)return;auto callback=event==0?record->clicked:event==1?record->doubleClicked:event==2?record->expanded:record->collapsed;try{if(callback)callback();}catch(...){reportException("Tree callback");}}
     void deactivate(){live=false;syncing=true;roots.clear();active.clear();auto previous=std::move(records);records.clear();Cleared();}
@@ -80,14 +98,17 @@ public:
     void invalidateNative() override{model=nullptr;Widget::invalidateNative();}
     void updateWidget(Widget * previous) override {
         auto prev=static_cast<Tree *>(previous);if(prev){ui=prev->ui;model=prev->model;return;}
-        auto tree=new wxDataViewCtrl(parentWindow(),wxID_ANY,wxDefaultPosition,wxDefaultSize,wxDV_NO_HEADER);ui=tree;
+        auto tree=new detail::TreeControl(parentWindow());ui=tree;
         model=new TreeModel();tree->AssociateModel(model);model->DecRef();tree->AppendTextColumn("",0,wxDATAVIEW_CELL_INERT,wxCOL_WIDTH_AUTOSIZE);auto owned=model;
-        tree->Bind(wxEVT_LEFT_UP,[owned,tree](wxMouseEvent & e){wxDataViewItem item;wxDataViewColumn * column;tree->HitTest(e.GetPosition(),item,column);e.Skip();owned->dispatch(item,0);});
-        tree->Bind(wxEVT_LEFT_DCLICK,[owned,tree](wxMouseEvent & e){wxDataViewItem item;wxDataViewColumn * column;tree->HitTest(e.GetPosition(),item,column);e.Skip();owned->dispatch(item,1);});
+        tree->Bind(wxEVT_LEFT_UP,[owned,tree](wxMouseEvent & e){wxDataViewItem item;wxDataViewColumn * column;tree->HitTest(e.GetPosition(),item,column);e.Skip();if(!item.IsOk() || !tree->GetItemRect(item).Contains(e.GetPosition()))return;if(tree->skipRelease){tree->skipRelease=false;return;}owned->dispatch(item,0);});
+        tree->Bind(wxEVT_LEFT_DCLICK,[owned,tree](wxMouseEvent & e){wxDataViewItem item;wxDataViewColumn * column;tree->HitTest(e.GetPosition(),item,column);if(!item.IsOk() || !tree->GetItemRect(item).Contains(e.GetPosition())) {e.Skip();return;}
+            tree->skipRelease=true;tree->Select(item);
+            if(owned->enabled && owned->IsContainer(item)) {if(tree->IsExpanded(item))tree->Collapse(item);else tree->Expand(item);}
+            owned->dispatch(item,1);});
         auto request=[owned](wxDataViewEvent & e){if(owned->enabled||owned->programmatic||owned->syncing)e.Skip();else e.Veto();};
         tree->Bind(wxEVT_DATAVIEW_ITEM_EXPANDING,request);tree->Bind(wxEVT_DATAVIEW_ITEM_COLLAPSING,request);
-        tree->Bind(wxEVT_DATAVIEW_ITEM_EXPANDED,[owned](wxDataViewEvent & e){e.Skip();owned->dispatch(e.GetItem(),2);});
-        tree->Bind(wxEVT_DATAVIEW_ITEM_COLLAPSED,[owned](wxDataViewEvent & e){e.Skip();owned->dispatch(e.GetItem(),3);});
+        tree->Bind(wxEVT_DATAVIEW_ITEM_EXPANDED,[owned,tree](wxDataViewEvent & e){e.Skip();tree->fit();owned->dispatch(e.GetItem(),2);});
+        tree->Bind(wxEVT_DATAVIEW_ITEM_COLLAPSED,[owned,tree](wxDataViewEvent & e){e.Skip();tree->fit();owned->dispatch(e.GetItem(),3);});
     }
     void addChild(int,::CPPUI::Node *) override{}
     void removeChild(int,::CPPUI::Node *) override{}

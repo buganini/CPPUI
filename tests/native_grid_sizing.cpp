@@ -15,12 +15,13 @@ struct Root:CPPUI::Application {
     using Application::Application;
     CPPUI::State<std::string> text{std::string("value")};
     CPPUI::Optional<int> weight;
-    bool automatic=false,editors=true,gap=false;
+    bool automatic=false,editors=true,gap=false,minimum=false;
     void content() override {
         for(auto w:CPPUI::Window().size(700,400)) {
             auto & declaration=CPPUI::Grid();if(automatic) declaration.columns(3,CPPUI::grid::expandChildren(false));
             for(auto grid:declaration.layout(CPPUI::layout::padding(0)).id("grid")) {
-                CPPUI::Label("Field").id("label").grid(CPPUI::grid::row(0),CPPUI::grid::column(0)).layout({}, {},weight);
+                auto & label=CPPUI::Label("Field").id("label").grid(CPPUI::grid::row(0),CPPUI::grid::column(0)).layout({}, {},weight);
+                if(minimum) label.layout(CPPUI::layout::minWidth(150),CPPUI::layout::minHeight(35));
                 CPPUI::Label("Value").id("value").grid(CPPUI::grid::row(0),CPPUI::grid::column(1));
                 CPPUI::TextField(text).id("input").grid(CPPUI::grid::row(0),CPPUI::grid::column(2)).visible(editors);
                 CPPUI::Label("Body").id("body-label").grid(CPPUI::grid::row(1),CPPUI::grid::column(0),CPPUI::grid::columnspan(2));
@@ -62,6 +63,8 @@ int main(int argc,char ** argv) {
             require(root.extent("input",true)>300 && root.extent("input",false)<100,"TextField track sizing");
             require(root.extent("body",false)>150 && root.extent("footer",false)<80,"TextEdit row did not receive space");
         }
+        root.minimum=true;root.mount();require(root.extent("label",true)>=150 && root.extent("label",false)>=35,"minimum dimensions were ignored");
+        root.minimum=false;root.mount();require(root.extent("label",true)<120,"omitted minimum dimension stayed latched");
         root.weight=2;root.mount();require(root.extent("label",true)>150 && root.extent("label",false)>60,"grid weight did not apply on both axes");
         root.weight=0;root.mount();require(root.extent("label",true)<120 && find(root,"input")->outer()==editor,"zero weight or retention");
         root.editors=false;root.mount();require(root.extent("footer",true)<180 && root.extent("footer",false)<80,"hidden editors retained track demand");

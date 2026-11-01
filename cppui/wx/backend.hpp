@@ -26,6 +26,8 @@
 #include "splitter.hpp"
 #include "tree.hpp"
 #include "dialog.hpp"
+#include "modal.hpp"
+#include "url.hpp"
 
 #define CPPUI_HAS_TREE 1
 #define CPPUI_HAS_SPLITTER 1
@@ -35,7 +37,7 @@
 #define CPPUI_HAS_MENUS 1
 #define CPPUI_HAS_WINDOW_COMMANDS 1
 #define CPPUI_HAS_MDI 0
-#define CPPUI_HAS_MODAL 0
+#define CPPUI_HAS_MODAL 1
 #define CPPUI_HAS_TAB_BINDING 0
 
 namespace CPPUI { namespace Backend {

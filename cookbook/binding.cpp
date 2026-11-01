@@ -13,6 +13,14 @@ namespace Cookbook {
             model.bindingLog("setter_func "+value);model.bindingValue=value;
         });
         for(auto column:CPPUI::VBox().layout({}, {}, 1)) {
+            CPPUI::Label("Shared binding");
+            CPPUI::Label("Selected value: "+std::string(model.bindingChoice));
+            for(auto combo:CPPUI::ComboBox(false,model.bindingChoice).id("binding-choice")) {
+                CPPUI::ComboBoxItem("Item 1","Value 1");CPPUI::ComboBoxItem("Item 2","Value 2");CPPUI::ComboBoxItem("Item 3","Value 3");
+            }
+            for(auto value:{"Value 1","Value 2","Value 3"}) CPPUI::RadioButton(value,std::string(value),model.bindingChoice);
+            CPPUI::Divider();
+            CPPUI::Label("Custom getter / setter");
             CPPUI::Label("var: "+model.bindingValue);
             CPPUI::TextField(value).change([&model]() {
                 model.bindingLog("on_changed_func "+model.bindingValue);

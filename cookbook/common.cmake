@@ -16,7 +16,7 @@ function(cppui_add_cookbook target backend)
         "${cookbook_dir}/checkbox.cpp"
         "${cookbook_dir}/combobox.cpp"
         "${cookbook_dir}/cookbook.cpp"
-        "${cookbook_dir}/dialog.cpp"
+        "${cookbook_dir}/imperative.cpp"
         "${cookbook_dir}/drop.cpp"
         "${cookbook_dir}/grid.cpp"
         "${cookbook_dir}/hbox.cpp"

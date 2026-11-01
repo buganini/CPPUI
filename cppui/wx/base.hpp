@@ -2,6 +2,7 @@
 #define CPPUI_WX_BASE
 
 #include "../view.hpp"
+#include "../color.hpp"
 #include "adaptive.hpp"
 #include "drop.hpp"
 #include <wx/wx.h>
@@ -199,7 +200,7 @@ namespace CPPUI { namespace Wx {
         int baseExpansion(bool x) const override { return x ? expandX : expandY; }
         bool expansionAxis(bool x) const override { return x ? horizontal : vertical; }
         int expansion(bool x) const { return expansionPriority(x); }
-        wxSize minSize() const { return wxSize(layout_width.valueOr(-1), layout_height.valueOr(-1)); }
+        wxSize minSize() const { return wxSize(minimumSize(true).valueOr(-1), minimumSize(false).valueOr(-1)); }
         void releaseRetiredRefs() override {
             native.reset();
             ::CPPUI::Node::releaseRetiredRefs();
@@ -311,7 +312,7 @@ namespace CPPUI { namespace Wx {
                 if(object->window && !object->window->IsBeingDeleted()) object->window->Destroy();
             });
         }
-        static wxColour colour(int rgb) { return wxColour((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255); }
+        static wxColour colour(int rgb) { return wxColour((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255, colorAlpha(static_cast<std::uint32_t>(rgb))); }
     };
 
     struct Mount {

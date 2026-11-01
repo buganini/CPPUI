@@ -10,6 +10,8 @@ namespace CPPUI { namespace Qt {
     class MenuAction: public Node {
         QMetaObject::Connection nativeDestroyed, triggered;
         std::function<void()> callback;
+        bool nativeValue=true;
+        Optional<QAction::MenuRole> menuRole;
         void release() {
             QObject::disconnect(triggered); QObject::disconnect(nativeDestroyed);
             triggered = {}; nativeDestroyed = {}; ui = nullptr;
@@ -19,12 +21,15 @@ namespace CPPUI { namespace Qt {
         std::string text;
         explicit MenuAction(const std::string & text): text(text) { is_terminal = true; }
         ~MenuAction() override { release(); }
+        MenuAction & native(bool value=true) {nativeValue=value;return *this;}
+        MenuAction & qt(QAction::MenuRole role) {menuRole=role;return *this;}
         MenuAction & trigger(std::function<void()> value) { callback = std::move(value); return *this; }
         void update(Node * previous) override {
             auto prev = static_cast<MenuAction *>(previous);
             if(prev) QObject::disconnect(prev->triggered);
             ui = prev && prev->ui ? prev->ui : new QAction();
             ui->setText(QString::fromStdString(text));
+            ui->setMenuRole(menuRole.valueOr(nativeValue ? QAction::TextHeuristicRole : QAction::NoRole));
             auto invoke = callback;
             triggered = QObject::connect(ui, &QAction::triggered, ui, [invoke]() {
                 auto current = invoke;
@@ -74,11 +79,24 @@ namespace CPPUI { namespace Qt {
         void removeChild(int, Node * child) override { removeMenuChild(ui, child); }
     };
     class MenuBar: public BaseWidget {
+        bool nativeValue=true;
+        std::vector<QAction *> actions;
         public:
         MenuBar() { is_outoforder = true; }
-        void update(BaseWidget * prev) override { ui = prev && prev->ui ? prev->ui : new Widget<QMenuBar>(); }
-        void addChild(int index, Node * child) override { insertMenuChild(ui, index, child); }
-        void removeChild(int, Node * child) override { removeMenuChild(ui, child); }
+        MenuBar & native(bool value=true) {nativeValue=value;return *this;}
+        void update(BaseWidget * prev) override {
+            ui = prev && prev->ui ? prev->ui : new Widget<QMenuBar>();
+            if(prev) actions=std::move(static_cast<MenuBar *>(prev)->actions);
+            static_cast<QMenuBar *>(ui)->setNativeMenuBar(nativeValue);
+        }
+        void addChild(int index, Node * child) override {
+            auto action=menuAction(child);
+            if(!action && !dynamic_cast<Spacer *>(child)) throw std::logic_error("MenuBar accepts Menu, MenuAction or Spacer");
+            int nativeIndex=std::count_if(actions.begin(),actions.begin()+index,[](QAction * a){return a!=nullptr;});
+            if(action) insertMenuChild(ui,nativeIndex,child);
+            actions.insert(actions.begin()+index,action);
+        }
+        void removeChild(int index, Node * child) override { removeMenuChild(ui, child); actions.erase(actions.begin()+index); }
     };
 }}
 namespace CPPUI {

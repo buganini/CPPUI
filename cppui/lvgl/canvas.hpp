@@ -2,6 +2,8 @@
 #define CPPUI_LVGL_CANVAS
 
 #include "../anchor.hpp"
+#include "../color.hpp"
+#include "../path.hpp"
 #include "../canvas_input.hpp"
 #include "../frame_rate.hpp"
 
@@ -29,7 +31,7 @@ namespace CPPUI {
         public:
         CanvasColor() = default;
         CanvasColor(int rgb): CanvasColor(static_cast<std::uint32_t>(rgb)) {}
-        CanvasColor(std::uint32_t rgb): color(lv_color_hex(rgb)), present(true) {}
+        CanvasColor(std::uint32_t rgb): color(lv_color_hex(rgb)), opacity(colorAlpha(rgb)), present(true) {}
         CanvasColor(const char * name): CanvasColor(std::string(name ? name : "")) {}
         CanvasColor(const std::string & name) {
             std::string value = name;
@@ -70,6 +72,10 @@ namespace CPPUI {
     };
 
     namespace LVGL { class Canvas; namespace detail {
+        inline bool intersect(lv_area_t & a,const lv_area_t & b) {
+            a.x1=std::max(a.x1,b.x1);a.y1=std::max(a.y1,b.y1);a.x2=std::min(a.x2,b.x2);a.y2=std::min(a.y2,b.y2);
+            return a.x1<=a.x2 && a.y1<=a.y2;
+        }
         struct CanvasBufferDeleter {
             void operator()(lv_draw_buf_t * buffer) const {
                 // Uncompressed, aligned ARGB draw buffers are used directly by LVGL's decoder.
@@ -90,6 +96,7 @@ namespace CPPUI {
             public:
             lv_layer_t layer;
             explicit CanvasLayer(lv_obj_t * object): object(object) { lv_canvas_init_layer(object, &layer); }
+            CanvasLayer(lv_obj_t * object,const lv_area_t & clip):CanvasLayer(object) {intersect(layer._clip_area,clip);}
             ~CanvasLayer() { lv_canvas_finish_layer(object, &layer); }
             CanvasLayer(const CanvasLayer &) = delete;
             CanvasLayer & operator=(const CanvasLayer &) = delete;
@@ -98,8 +105,12 @@ namespace CPPUI {
 
     // Records one frame; no native object/declaration is borrowed by the callback.
     class CanvasPainter {
-        using Command = std::function<void(lv_obj_t *)>;
-        std::vector<Command> commands;
+        using Command = std::function<void(lv_obj_t *,const lv_area_t &)>;
+        struct Recorded {Command draw;lv_area_t clip;};
+        std::vector<Recorded> commands;
+        lv_area_t clip;
+        std::vector<lv_area_t> scopes;
+        void record(Command draw) {commands.push_back({std::move(draw),clip});}
         const lv_font_t * font;
         friend class LVGL::Canvas;
 
@@ -133,7 +144,7 @@ namespace CPPUI {
         }
         void render(lv_obj_t * object) const {
             lv_canvas_fill_bg(object, lv_color_black(), LV_OPA_TRANSP);
-            for(const auto & command: commands) command(object);
+            for(const auto & command: commands) if(command.clip.x1<=command.clip.x2 && command.clip.y1<=command.clip.y2) command.draw(object,command.clip);
         }
 
         public:
@@ -141,24 +152,69 @@ namespace CPPUI {
         const int height;
         const double pixel_density = 1.0;
         CanvasPainter(int width, int height, const lv_font_t * font = LV_FONT_DEFAULT)
-            : font(font), width(width), height(height) {}
+            : clip{0,0,width-1,height-1}, font(font), width(width), height(height) {}
         // Each recorded command owns its styles; there is no shared native state.
-        void push() {}
-        void pop() {}
+        void push() {scopes.push_back(clip);}
+        void pop() {if(scopes.empty()) throw std::logic_error("Canvas.pop() has no matching push()");clip=scopes.back();scopes.pop_back();}
         CanvasPainter(const CanvasPainter &) = delete;
         CanvasPainter & operator=(const CanvasPainter &) = delete;
 
+        static constexpr bool supports_path_clip=false;
+        void clipRect(double x,double y,double width,double height) {
+            // Clamp before integer conversion, including huge off-canvas bounds.
+            auto bounded=[](double v){return int(std::max(-1e9,std::min(1e9,v)));};
+            lv_area_t next{bounded(std::ceil(x)),bounded(std::ceil(y)),bounded(std::ceil(x+std::max(0.0,width)))-1,bounded(std::ceil(y+std::max(0.0,height)))-1};
+            if(!LVGL::detail::intersect(clip,next)) clip={0,0,-1,-1};
+        }
+        void clipPath(const CanvasPath & path,FillRule rule=FillRule::NonZero) {detail::validatePath(path,rule);throw std::logic_error("LVGL Canvas supports rectangle clipping, not path clipping");}
+        void drawPath(const CanvasPath & path,CanvasColor fill={},CanvasColor stroke={},int lineWidth=1,FillRule rule=FillRule::NonZero) {
+            detail::validatePath(path,rule);
+            std::vector<std::vector<CanvasPoint>> contours;
+            CanvasPoint current{0,0},start{0,0};
+            for(const auto & cmd:path) {const auto & v=cmd.values;switch(cmd.op) {
+                case PathOp::MoveTo: current=start={v[0],v[1]};contours.push_back({current});break;
+                case PathOp::LineTo: current={v[0],v[1]};contours.back().push_back(current);break;
+                case PathOp::QuadTo: {
+                    CanvasPoint end{v[2],v[3]},a{current.x+2*(v[0]-current.x)/3,current.y+2*(v[1]-current.y)/3},b{end.x+2*(v[0]-end.x)/3,end.y+2*(v[1]-end.y)/3};
+                    flatten(contours.back(),current,a,b,end);current=end;break;
+                }
+                case PathOp::CubicTo: flatten(contours.back(),current,{v[0],v[1]},{v[2],v[3]},{v[4],v[5]});current={v[4],v[5]};break;
+                case PathOp::Close: contours.back().push_back(start);current=start;break;
+            }}
+            const int canvasWidth=width,canvasHeight=height;
+            record([=](lv_obj_t * object,const lv_area_t & clip) {
+                LVGL::detail::CanvasLayer layer(object,clip);
+                if(fill.present) for(int y=std::max(0,int(clip.y1));y<std::min(canvasHeight,int(clip.y2)+1);++y) {
+                    std::vector<std::pair<double,int>> edges;double scan=y+.5;
+                    for(const auto & points:contours) for(std::size_t i=0,j=points.size()-1;i<points.size();j=i++) {
+                        auto a=points[j],b=points[i];if((a.y<=scan && b.y>scan)||(b.y<=scan && a.y>scan)) edges.push_back({a.x+(scan-a.y)*(b.x-a.x)/(b.y-a.y),b.y>a.y?1:-1});
+                    }
+                    std::sort(edges.begin(),edges.end());int winding=0;double left=0;
+                    for(const auto & edge:edges) {
+                        bool before=rule==FillRule::EvenOdd ? (winding%2)!=0 : winding!=0;
+                        winding+=edge.second;bool after=rule==FillRule::EvenOdd ? (winding%2)!=0 : winding!=0;
+                        if(!before && after) left=edge.first;
+                        if(before && !after) {
+                            int x1=int(std::max(0.0,std::min(double(canvasWidth),std::ceil(left-.5))));
+                            int x2=int(std::max(-1.0,std::min(double(canvasWidth-1),std::ceil(edge.first-.5)-1)));
+                            if(x1<=x2) {lv_draw_rect_dsc_t dsc;lv_draw_rect_dsc_init(&dsc);dsc.bg_color=fill.color;dsc.bg_opa=fill.opacity;lv_area_t area{x1,y,x2,y};lv_draw_rect(&layer.layer,&dsc,&area);}
+                        }
+                    }
+                }
+                if(stroke.present) for(const auto & points:contours) for(std::size_t i=1;i<points.size();++i) line(layer.layer,points[i-1],points[i],stroke,lineWidth);
+            });
+        }
         void drawLine(double x1, double y1, double x2, double y2, CanvasColor color = {}, int width = 1) {
             if(!color.present) return;
-            commands.push_back([=](lv_obj_t * object) {
-                LVGL::detail::CanvasLayer layer(object);
+            record([=](lv_obj_t * object,const lv_area_t & clip) {
+                LVGL::detail::CanvasLayer layer(object,clip);
                 line(layer.layer, {x1, y1}, {x2, y2}, color, width);
             });
         }
         void drawPolyline(const std::vector<CanvasPoint> & points, CanvasColor color = {}, int width = 1) {
             if(!color.present || points.size() < 2) return;
-            commands.push_back([=](lv_obj_t * object) {
-                LVGL::detail::CanvasLayer layer(object);
+            record([=](lv_obj_t * object,const lv_area_t & clip) {
+                LVGL::detail::CanvasLayer layer(object,clip);
                 for(std::size_t i = 1; i < points.size(); ++i) line(layer.layer, points[i-1], points[i], color, width);
             });
         }
@@ -173,8 +229,8 @@ namespace CPPUI {
                          CanvasColor stroke = {}, int width = 1) {
             if(points.empty()) return;
             const int canvasWidth = this->width, canvasHeight = this->height;
-            commands.push_back([=](lv_obj_t * object) {
-                LVGL::detail::CanvasLayer layer(object);
+            record([=](lv_obj_t * object,const lv_area_t & clip) {
+                LVGL::detail::CanvasLayer layer(object,clip);
                 if(fill.present && points.size() >= 3) {
                     // Even/odd scan conversion handles concave and self-intersecting polygons.
                     // Clip before generating spans so off-canvas coordinates cannot grow the work.
@@ -213,8 +269,8 @@ namespace CPPUI {
             if(y1 > y2) std::swap(y1, y2);
             if(!fill.present && !stroke.present) return;
             const int canvasWidth = this->width, canvasHeight = this->height;
-            commands.push_back([=](lv_obj_t * object) {
-                LVGL::detail::CanvasLayer layer(object);
+            record([=](lv_obj_t * object,const lv_area_t & clip) {
+                LVGL::detail::CanvasLayer layer(object,clip);
                 if(fill.present) {
                     // Keep the polygon fill's pixel-center coverage while
                     // submitting one native rectangle instead of scanning the
@@ -254,17 +310,15 @@ namespace CPPUI {
         }
         void drawText(double x, double y, const std::string & text, int w = -1, int h = -1,
                       int size = 12, CanvasColor color = {}, double rotate = 0, Anchor anchor = Anchor::LeftTop) {
-            if(w < 0) w = width;
-            if(h < 0) h = height;
             if(w == 0 || h == 0 || size == 0 || text.empty()) return;
             // LVGL fonts are bitmaps: size is the line height in pixels. Negative keeps the native font.
             const auto nativeFont = font;
             const int scale = size < 0 ? LV_SCALE_NONE : std::max(1, size * LV_SCALE_NONE / int(font->line_height));
-            commands.push_back([=](lv_obj_t * object) {
+            record([=](lv_obj_t * object,const lv_area_t & clip) {
                 lv_point_t bounds;
                 lv_text_get_size(&bounds, text.c_str(), nativeFont, 0, 0, LV_COORD_MAX, LV_TEXT_FLAG_EXPAND);
-                const int bw = std::min(bounds.x + 2, int(std::ceil(double(w)*LV_SCALE_NONE/scale)));
-                const int bh = std::min(bounds.y, int(std::ceil(double(h)*LV_SCALE_NONE/scale)));
+                const int bw = w<0 ? bounds.x+2 : std::min(bounds.x + 2, int(std::ceil(double(w)*LV_SCALE_NONE/scale)));
+                const int bh = h<0 ? bounds.y : std::min(bounds.y, int(std::ceil(double(h)*LV_SCALE_NONE/scale)));
                 if(bw <= 0 || bh <= 0) return;
                 auto buffer = LVGL::detail::canvasBuffer(bw, bh);
                 std::unique_ptr<lv_obj_t, decltype(&lv_obj_delete)> temporary(lv_canvas_create(object), lv_obj_delete);
@@ -284,13 +338,13 @@ namespace CPPUI {
                     lv_area_t area{0, 0, bw-1, bh-1};
                     lv_draw_label(&layer.layer, &dsc, &area);
                 }
-                // PUI measures the pivot using the native font before applying size.
-                const double dx = bounds.x * (static_cast<int>(anchor)/3) / 2.0;
-                const double dy = bounds.y * (static_cast<int>(anchor)%3) / 2.0;
+                // Anchor the sized natural text block at (x,y).
+                const double dx = bounds.x * double(scale)/LV_SCALE_NONE * (static_cast<int>(anchor)/3) / 2.0;
+                const double dy = bounds.y * double(scale)/LV_SCALE_NONE * (static_cast<int>(anchor)%3) / 2.0;
                 const double radians = rotate * 3.14159265358979323846 / 180;
-                const int left = int(x+dx) + int(std::cos(radians)*int(-dx) - std::sin(radians)*int(-dy));
-                const int top = int(y+dy) + int(std::sin(radians)*int(-dx) + std::cos(radians)*int(-dy));
-                LVGL::detail::CanvasLayer layer(object);
+                const int left = int(x - std::cos(radians)*dx + std::sin(radians)*dy);
+                const int top = int(y - std::sin(radians)*dx - std::cos(radians)*dy);
+                LVGL::detail::CanvasLayer layer(object,clip);
                 lv_draw_image_dsc_t image;
                 lv_draw_image_dsc_init(&image);
                 image.src = buffer.get();

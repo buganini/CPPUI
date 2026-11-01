@@ -5,6 +5,7 @@
 #include "cppui/wx/label.hpp"
 #include "cppui/wx/canvas.hpp"
 #include <wx/dcmemory.h>
+#include "canvas_paths.hpp"
 #include <wx/filename.h>
 #include <wx/stopwatch.h>
 #include <cstdio>
@@ -33,6 +34,18 @@ public:
         }
     }
 };
+static void paths(){
+    wxBitmap bitmap(64,64,32);wxMemoryDC dc(bitmap);
+    {std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));CPPUI::CanvasPainter c(*gc,64,64,1);pathFixture(c);
+        std::vector<unsigned char> bytes;for(int i=0;i<16;++i)bytes.insert(bytes.end(),{255,0,255,255});auto image=c.loadRGBA(4,4,bytes);bytes.assign(64,0);c.drawImage(image,25,20);
+    }
+    dc.SelectObject(wxNullBitmap);auto image=bitmap.ConvertToImage();
+    require(image.GetRed(2,2)==255 && image.GetGreen(2,2)==255 && image.GetRed(10,10)==255 && image.GetGreen(10,10)==0,"path rectangle clip");
+    require(image.GetGreen(35,8)==255 && image.GetRed(35,8)==0,"path pop restores clip");
+    require(image.GetRed(45,45)==255 && image.GetRed(35,35)==0,"even-odd hole");
+    require(image.GetBlue(10,35)==255 && image.GetRed(10,35)>=127 && image.GetRed(10,35)<=129,"TRGB alpha");
+    require(image.GetRed(26,21)==255 && image.GetBlue(26,21)==255 && image.GetGreen(26,21)==0,"RGBA snapshot");
+}
 static void frameStyles(){
     auto render=[](bool isolate,const wxColour & foreground){
         wxBitmap bitmap(240,150,32);wxMemoryDC dc(bitmap);dc.SetBackground(*wxWHITE_BRUSH);dc.Clear();
@@ -76,7 +89,7 @@ static void scopes(){
 int main(int argc,char ** argv){
     wxSetAssertHandler([](const wxString &,int,const wxString &,const wxString &c,const wxString &m){std::cerr<<c<<": "<<m<<'\n';std::abort();});
     try{
-        Root root(argc,argv);root.sync();frameStyles();scopes();root.path=wxFileName::CreateTempFileName("cppui-wx-image-").ToStdString(wxConvUTF8);
+        Root root(argc,argv);root.sync();paths();frameStyles();scopes();root.path=wxFileName::CreateTempFileName("cppui-wx-image-").ToStdString(wxConvUTF8);
         wxImage input(8,4);input.SetRGB(wxRect(0,0,8,4),0,255,0);wxInitAllImageHandlers();require(input.SaveFile(wxString::FromUTF8(root.path),wxBITMAP_TYPE_PNG),"image fixture write failed");
         auto source=CPPUI::ImageResource::load(root.path);require(source.width()==8&&source.height()==4,"resource load");require(source.scale(16,16).height()==8,"aspect ratio");require(source.crop(1,1,2,2).width()==2&&source.crop(-1,0,2,2).isNull(),"crop bounds");require(CPPUI::ImageResource::load(root.path+"missing").isNull(),"missing resource");
         wxBitmap bitmap(100,100,32);wxMemoryDC dc(bitmap);dc.SetBackground(*wxWHITE_BRUSH);dc.Clear();

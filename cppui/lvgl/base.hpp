@@ -1,4 +1,5 @@
 #include "../view.hpp"
+#include "../color.hpp"
 #include "adaptive.hpp"
 #include "font.hpp"
 
@@ -102,6 +103,8 @@ namespace CPPUI {
                 auto object = static_cast<lv_obj_t *>(ui);
                 if(layout_width) { saveStyle(LV_STYLE_WIDTH); lv_obj_set_width(object, *layout_width); }
                 if(layout_height) { saveStyle(LV_STYLE_HEIGHT); lv_obj_set_height(object, *layout_height); }
+                if(minimumSize(true)) { saveStyle(LV_STYLE_MIN_WIDTH); lv_obj_set_style_min_width(object,*minimumSize(true),0); }
+                if(minimumSize(false)) { saveStyle(LV_STYLE_MIN_HEIGHT); lv_obj_set_style_min_height(object,*minimumSize(false),0); }
                 if(layout_weight) { saveStyle(LV_STYLE_FLEX_GROW); lv_obj_set_flex_grow(object, *layout_weight); }
                 if(layout_padding) {
                     for(auto property: {LV_STYLE_PAD_TOP, LV_STYLE_PAD_RIGHT, LV_STYLE_PAD_BOTTOM, LV_STYLE_PAD_LEFT}) saveStyle(property);
@@ -109,11 +112,11 @@ namespace CPPUI {
                     lv_obj_set_style_pad_top(object, p.top, 0); lv_obj_set_style_pad_right(object, p.right, 0);
                     lv_obj_set_style_pad_bottom(object, p.bottom, 0); lv_obj_set_style_pad_left(object, p.left, 0);
                 }
-                if(style_color) { saveStyle(LV_STYLE_TEXT_COLOR); lv_obj_set_style_text_color(object, lv_color_hex(*style_color), 0); }
+                if(style_color) { saveStyle(LV_STYLE_TEXT_COLOR); saveStyle(LV_STYLE_TEXT_OPA); lv_obj_set_style_text_color(object, lv_color_hex(*style_color), 0); lv_obj_set_style_text_opa(object,colorAlpha(*style_color),0); }
                 if(style_bgcolor) {
                     saveStyle(LV_STYLE_BG_COLOR); saveStyle(LV_STYLE_BG_OPA);
                     lv_obj_set_style_bg_color(object, lv_color_hex(*style_bgcolor), 0);
-                    lv_obj_set_style_bg_opa(object, LV_OPA_COVER, 0);
+                    lv_obj_set_style_bg_opa(object, colorAlpha(*style_bgcolor), 0);
                 }
                 if(style_fontsize || style_fontfamily || style_fontweight) {
                     // LVGL uses configured bitmap fonts; choose the closest enabled

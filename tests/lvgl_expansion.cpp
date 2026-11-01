@@ -21,7 +21,7 @@ struct Root:CPPUI::LVGL::View {
                     for(auto inner:along.id("along").layout(CPPUI::layout::padding(0))) CPPUI::Label("Along");
                     auto & across=horizontal ? static_cast<CPPUI::Node &>(CPPUI::VBox()) : CPPUI::HBox();
                     for(auto inner:across.id("across").layout(CPPUI::layout::padding(0))) CPPUI::Label("Across");
-                    CPPUI::Canvas([](CPPUI::CanvasPainter &){}).layout(40,40,weight).visible(canvas).id("canvas");
+                    CPPUI::Canvas([](CPPUI::CanvasPainter &){}).layout({}, {},weight).layout(CPPUI::layout::minWidth(40),CPPUI::layout::minHeight(40)).visible(canvas).id("canvas");
                     CPPUI::Spacer().visible(spacer).id("spacer");
                 }
                 if(mode==2) {CPPUI::Label("Weighted").layout({}, {},weight).id("label");CPPUI::Spacer().id("spacer");}
@@ -41,7 +41,7 @@ struct Root:CPPUI::LVGL::View {
                         if(container==1) for(auto tab:CPPUI::Tab("Page")) CPPUI::Label("Page");
                         else CPPUI::Label("Page").id("page");
                     }
-                    CPPUI::Canvas([](CPPUI::CanvasPainter &){}).layout(40,40).visible(canvas).id("canvas");
+                    CPPUI::Canvas([](CPPUI::CanvasPainter &){}).layout(CPPUI::layout::minWidth(40),CPPUI::layout::minHeight(40)).visible(canvas).id("canvas");
                 }
                 if(mode==4) {
                     for(auto fixed:CPPUI::VBox().layout(CPPUI::layout::width(120)).id("fixed"))
@@ -100,7 +100,7 @@ int main() {
             }
         }
         root.mode=4;root.horizontal=true;root.mount();
-        require(find(root,"fixed")->expansionPriority(true)==1,"fixed dimension leaked child demand");
+        require(find(root,"fixed")->expansionPriority(true)==0,"fixed dimension leaked child demand");
     } catch(const std::exception & e) {std::cerr<<e.what()<<'\n';result=1;}
     lv_deinit();return result;
 }

@@ -28,13 +28,14 @@ results out of this document.
 
 ## Drawing and desktop interactions
 
-- [ ] Add LVGL ImageResource, `loadImage()` and Canvas `drawImage()`. Define source
+- [ ] Add LVGL ImageResource, `loadImage()`, `loadRGBA()` and Canvas `drawImage()`. Define source
   ownership, decoder/file access and behavior for cropping, scaling, opacity,
   replacement and missing images.
+- [ ] Add path clipping beyond the current rectangle clipping support.
 - [ ] Add remaining Canvas pointer callbacks after the shared input-event
   contract is defined.
 - [ ] Define LVGL mappings or explicit exclusions for modal overlays, dialogs,
-  menus/toolbars, MDI and desktop Window commands. Port applicable shared recipes
+  menus/toolbars, MDI, OpenURL and desktop Window commands. Port applicable shared recipes
   with the shared result/selection contracts.
 - [ ] Define and implement inbound file/text/URL drops for desktop LVGL hosts,
   including acceptance, filtering and callback lifetime.

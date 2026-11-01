@@ -306,8 +306,9 @@ namespace CPPUI {
         if(physicalParent && (physicalParent->expansionAxis(horizontal) || physicalParent->is_grid_layout) && layout_weight)
             return *layout_weight>0 ? 5 : 0;
         const int base=baseExpansion(horizontal);
-        if(base>=2 || is_terminal || expansionBoundary(horizontal)
-            || (horizontal ? bool(layout_width) : bool(layout_height))) return base;
+        if(expansionBoundary(horizontal)) return base;
+        if(horizontal ? bool(layout_width) : bool(layout_height)) return 0;
+        if(base>=2 || is_terminal) return base;
         return childExpansionDemand(horizontal) ? std::max(base,2) : base;
     }
 

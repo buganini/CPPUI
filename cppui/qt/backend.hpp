@@ -26,6 +26,7 @@
 #include "splitter.hpp"
 #include "tree.hpp"
 #include "dialog.hpp"
+#include "url.hpp"
 #include "mdi.hpp"
 #include "modal.hpp"
 

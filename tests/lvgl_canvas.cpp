@@ -2,6 +2,7 @@
 #include "cppui/lvgl/window.hpp"
 #include "cppui/lvgl/canvas.hpp"
 #include <fstream>
+#include "canvas_paths.hpp"
 #include <memory>
 #include <stdexcept>
 
@@ -66,6 +67,12 @@ namespace {
             result.push_back((std::uint32_t(p.alpha)<<24) | (p.red<<16) | (p.green<<8) | p.blue);
         }
         return result;
+    }
+    void paths(int argc,char ** argv) {
+        Root root(argc,argv);root.draw=[](CPPUI::CanvasPainter & c){pathFixture(c);};root.redraw();step(2);auto image=root.native();
+        require(pixel(image,2,2,0xffffff) && pixel(image,10,10,0xff0000) && pixel(image,35,8,0x00ff00),"path rectangle clip and scope restore");
+        require(pixel(image,45,45,0xffffff) && pixel(image,35,35,0),"path even-odd hole");
+        auto alpha=lv_canvas_get_px(image,10,35);require(alpha.blue==255 && alpha.red>=126 && alpha.red<=130,"TRGB alpha");
     }
     void scopes(int argc,char ** argv) {
         Root root(argc,argv);
@@ -238,7 +245,7 @@ int main(int argc, char ** argv) {
     lv_display_create(200,160);
     int result = 0;
     try {
-        scopes(argc,argv);
+        paths(argc,argv);scopes(argc,argv);
         drawing(argc,argv);
         require(captures == 0, "drawing teardown retained captures");
         lifetime(argc,argv);

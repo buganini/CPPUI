@@ -4,6 +4,7 @@
 #include "../view.hpp"
 #include "adaptive.hpp"
 #include "options.hpp"
+#include "../color.hpp"
 #include "drop.hpp"
 #include <QWidget>
 #include <QBoxLayout>
@@ -103,8 +104,8 @@ namespace CPPUI {
             if(node.style_fontsize) styles["font"] = std::to_string(*node.style_fontsize) + "pt";
             if(node.style_fontfamily) styles["font-family"] = node.style_fontfamily;
             if(node.style_fontweight) styles["font-weight"] = std::to_string(std::min(900, std::max(100, *node.style_fontweight)));
-            if(node.style_color) styles["color"] = QColor(*node.style_color).name().toStdString();
-            if(node.style_bgcolor) styles["background-color"] = QColor(*node.style_bgcolor).name().toStdString();
+            if(node.style_color) styles["color"] = colorCSS(*node.style_color);
+            if(node.style_bgcolor) styles["background-color"] = colorCSS(*node.style_bgcolor);
             if(options.StyleSheet) for(const auto & entry: *options.StyleSheet) styles[entry.first] = entry.second;
             QString sheet;
             for(const auto & entry: styles) sheet += QString::fromStdString(entry.first + ":" + entry.second + ";");
@@ -118,11 +119,13 @@ namespace CPPUI {
             QtOptions qtParams;
             QSizePolicy defaultPolicy;
             QMargins defaultMargins;
+            QSize defaultMinimum;
             QLayout::SizeConstraint defaultConstraint = QLayout::SetDefaultConstraint;
 
             void restoreOptions() {
                 if(!ui) return;
                 ui->setSizePolicy(defaultPolicy);
+                ui->setMinimumSize(defaultMinimum);
                 if(layout_padding) ui->setContentsMargins(defaultMargins);
                 if(qtParams.Style) ui->setStyle(nullptr);
                 if(qtParams.SizeConstraint && ui->layout()) ui->layout()->setSizeConstraint(defaultConstraint);
@@ -131,6 +134,9 @@ namespace CPPUI {
             }
             void applyOptions() {
                 defaultPolicy = ui->sizePolicy(); defaultMargins = ui->contentsMargins();
+                defaultMinimum=ui->minimumSize();
+                ui->setMinimumSize(std::max(defaultMinimum.width(),minimumSize(true).valueOr(0)),
+                                   std::max(defaultMinimum.height(),minimumSize(false).valueOr(0)));
                 if(ui->layout()) defaultConstraint = ui->layout()->sizeConstraint();
                 if(auto hints = dynamic_cast<SizeHints *>(ui)) {
                     hints->widthHint = layout_width; hints->heightHint = layout_height;
@@ -388,7 +394,9 @@ namespace CPPUI {
         inline void Spacer::postUpdate() { Node::postUpdate(); }
         inline void Spacer::update(Node * previous) {
             auto box = dynamic_cast<BaseLayout *>(dom_parent);
-            if(!dynamic_cast<LayoutWidget *>(dom_parent)) throw std::logic_error("Qt Spacer requires a layout parent");
+            auto parentWidget=dynamic_cast<BaseWidget *>(dom_parent);
+            if(!dynamic_cast<LayoutWidget *>(dom_parent) && !(parentWidget && parentWidget->ui && parentWidget->ui->inherits("QMenuBar")))
+                throw std::logic_error("Qt Spacer requires a layout or MenuBar parent");
             auto prev = static_cast<Spacer *>(previous);
             ui = prev && prev->ui ? prev->ui : new QSpacerItem(0, 0);
             owner = box ? static_cast<QLayout *>(box->qtlayout) : dom_parent->is_grid_layout

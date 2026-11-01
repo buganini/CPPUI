@@ -16,7 +16,8 @@ out of this document. Backend-specific gaps belong in the
   change subscriptions and explicit notification of external getter/setter
   storage. Define subscription ownership and State copy/move behavior.
 - [ ] Implement scoped batched mutation and unchanged-value notification
-  suppression. Define comparison for values without equality and exception
+  suppression and synchronized transactions across State instances, with notifications
+  dispatched outside the shared lock. Define comparison for values without equality and exception
   delivery when a batch flushes, including during stack unwinding.
 - [ ] Add observable list/map changes, element bindings and value-based Checkbox
   overloads; nested mutations must notify subscribers.

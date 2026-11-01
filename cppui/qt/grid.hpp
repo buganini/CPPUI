@@ -54,7 +54,9 @@ namespace CPPUI { namespace Qt {
                 } else if(auto widget=dynamic_cast<BaseWidget *>(item.node)) {
                     if(!widget->ui) continue;
                     widget->applyGridPolicy();
-                    qtlayout->addWidget(widget->ui,cell.row,cell.column,cell.rowspan,cell.columnspan);
+                    const auto alignment=(widget->expansionPriority(true,this)>0 ? ::Qt::Alignment() : ::Qt::AlignLeft)
+                        | (widget->expansionPriority(false,this)>0 ? ::Qt::Alignment() : ::Qt::AlignVCenter);
+                    qtlayout->addWidget(widget->ui,cell.row,cell.column,cell.rowspan,cell.columnspan,alignment);
                 }
             }
         }

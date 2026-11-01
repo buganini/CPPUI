@@ -83,7 +83,7 @@ int main(int argc,char **argv){
         require(root.calls==3&&!find(root,"action"),"menu callback replacement/self-removal failed");
         root.ticking=true;root.sync();int builds=root.builds;pump(60);require(root.builds>builds,"timeline did not trigger redraw");
         root.ticking=false;root.sync();builds=root.builds;pump(40);require(root.builds==builds,"removed timeline kept firing");
-        require(CPPUI::Wx::detail::fileFilters("Images (*.png *.jpg);;All (*)")=="Images (*.png *.jpg)|*.png;*.jpg|All (*)|*","dialog filters lost patterns");
+        require(CPPUI::Wx::detail::fileFilters(CPPUI::FileFilters(std::vector<CPPUI::FileFilterGroup>{{"Images",{"png","jpg"}},{"All",{"*"}}}))=="Images|*.png;*.jpg|All|*","dialog filters lost patterns");
         for(bool accepted:{true,false}){Answer driver("",accepted);auto value=CPPUI::Prompt("Question","Title","default");driver.check();require(accepted?(value&&value->empty()):!value,"empty accepted prompt equals cancellation");}
         {Answer driver("hello 世界",true);auto value=CPPUI::Prompt();driver.check();require(value&&*value=="hello 世界","dialog UTF-8 lost");}
     }catch(const std::exception &e){std::cerr<<e.what()<<'\n';return 1;}

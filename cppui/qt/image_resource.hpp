@@ -3,6 +3,7 @@
 
 #include <QImage>
 #include <string>
+#include "../rgba.hpp"
 #include <utility>
 
 namespace CPPUI {
@@ -18,6 +19,10 @@ namespace CPPUI {
         static ImageResource load(const std::string & path) {
             return ImageResource(QImage(QString::fromStdString(path)));
         }
+    static ImageResource loadRGBA(int width,int height,const std::vector<unsigned char> & data) {
+        detail::validateRGBA(width,height,data);
+        return ImageResource(QImage(data.data(),width,height,width*4,QImage::Format_RGBA8888).copy());
+    }
         ImageResource crop(int x, int y, int width, int height) const {
             return ImageResource(image.copy(x, y, width, height));
         }

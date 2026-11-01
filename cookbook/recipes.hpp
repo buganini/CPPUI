@@ -60,6 +60,7 @@ namespace Cookbook {
         CPPUI::State<int> rotation{15};
         CPPUI::State<std::string> buttonValue{std::string("A")};
         CPPUI::State<bool> modalOpen{false};
+        CPPUI::State<std::string> bindingChoice{std::string("Value 1")};
         CPPUI::State<CPPUI::OptionalText> directory{CPPUI::OptionalText()};
         CPPUI::State<CPPUI::OptionalText> file{CPPUI::OptionalText()};
         CPPUI::State<CPPUI::Optional<std::vector<std::string>>> files{CPPUI::Optional<std::vector<std::string>>()};
@@ -105,7 +106,7 @@ namespace Cookbook {
     void heavycanvas(Model &);
     void tab(Model &);
     void views(Model &);
-    void dialog(Model &);
+    void imperative(Model &);
     void modal(Model &);
     const std::vector<Recipe> & recipes();
     int run(int argc, char ** argv);

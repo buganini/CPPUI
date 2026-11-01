@@ -1,3 +1,7 @@
+#ifdef CPPUI_WX_WEBVIEW
+#undef CPPUI_WX_WEBVIEW
+#endif
+#define CPPUI_WX_WEBVIEW 0
 #include "cppui/wx/application.hpp"
 #include "cppui/wx/window.hpp"
 #include "cppui/wx/layout.hpp"

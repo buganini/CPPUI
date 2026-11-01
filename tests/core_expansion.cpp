@@ -21,7 +21,8 @@ int main() {
     append(inner,leaf);inner.axisX=true;leaf.x=0;leaf.layout_weight=9;
     require(leaf.expansionPriority(true)==5 && box.expansionPriority(true)==2);
     box.layout_weight=0;require(box.expansionPriority(true)==0);box.layout_weight.reset();
-    box.layout_width=100;require(box.expansionPriority(true)==1);box.layout_width.reset();
+    box.layout_width=100;require(box.expansionPriority(true)==0);box.layout_width.reset();
+    box.layout_minWidth=200;require(box.expansionPriority(true)==2 && *box.minimumSize(true)==200);box.layout_minWidth.reset();
     box.boundary=true;require(box.expansionPriority(true)==1);box.boundary=false;
     box.is_terminal=true;require(box.expansionPriority(true)==1);box.is_terminal=false;
     for(int base:{3,4}) {box.x=base;require(box.expansionPriority(true)==base);}box.x=1;
@@ -29,5 +30,9 @@ int main() {
     box.axisX=true;require(box.expansionPriority(true)==1); // virtual node must not break parent axes
     inner.layout_weight=1;require(box.expansionPriority(true)==2);
     view.is_visible=false;require(box.expansionPriority(true)==1);
+    Node control;control.x=4;control.layout_minWidth=200;
+    require(control.expansionPriority(true)==4);control.layout_width=100;
+    require(control.expansionPriority(true)==0 && *control.minimumSize(true)==200);
+    control.layout_width=300;require(*control.minimumSize(true)==300);
     root.children->clear();box.children->clear();view.children->clear();inner.children->clear();
 }

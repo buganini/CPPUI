@@ -21,7 +21,8 @@ namespace CPPUI { namespace Wx {
             if(prev) ui=prev->ui;
             else if(customColors()) ui=new Painting::Button(parentWindow(),wxString::FromUTF8(text));
             else ui=new wxButton(parentWindow(),wxID_ANY,wxString::FromUTF8(text),wxDefaultPosition,wxDefaultSize,wxBU_EXACTFIT);
-            ui->SetLabel(wxString::FromUTF8(text));
+            if(auto literal=dynamic_cast<wxButton *>(ui)) literal->SetLabelText(wxString::FromUTF8(text));
+            else ui->SetLabel(wxString::FromUTF8(text));
             ui->Enable(!isDisabled);
         }
         void bindEvents() override { ui->Bind(wxEVT_BUTTON, &Native::clicked, native.get()); }

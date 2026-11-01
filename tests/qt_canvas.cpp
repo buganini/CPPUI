@@ -1,5 +1,6 @@
 #include "cppui/qt/canvas.hpp"
 #include <QApplication>
+#include "canvas_paths.hpp"
 #include <QEvent>
 #include <QFile>
 #include <QTemporaryDir>
@@ -9,6 +10,16 @@
 namespace {
     void require(bool value, const char * message) {
         if(!value) throw std::runtime_error(message);
+    }
+    void paths() {
+        QImage image(64,64,QImage::Format_ARGB32);image.fill(Qt::white);
+        {QPainter native(&image);CPPUI::CanvasPainter c(native,64,64,1);pathFixture(c);
+            std::vector<unsigned char> bytes{255,0,255,255};auto rgba=c.loadRGBA(1,1,bytes);bytes.assign(4,0);c.drawImage(rgba,25,20,4,4);
+        }
+        require(image.pixelColor(2,2)==Qt::white && image.pixelColor(10,10)==Qt::red && image.pixelColor(35,8)==Qt::green,"path rectangle clip and scope restore");
+        require(image.pixelColor(45,45)==Qt::white && image.pixelColor(35,35)==Qt::black,"path even-odd hole");
+        require(image.pixelColor(10,35).blue()==255 && image.pixelColor(10,35).red()>=127 && image.pixelColor(10,35).red()<=129,"TRGB alpha");
+        require(image.pixelColor(26,21)==Qt::magenta,"RGBA must own a detached snapshot");
     }
     void drawingAndImages() {
         QTemporaryDir directory;
@@ -339,7 +350,7 @@ int main(int argc, char ** argv) {
             widget.setShowFPS(false);
             require(!widget.findChild<QLabel *>("cppui-fps"), "disabling FPS retained overlay");
         }
-        drawingAndImages();
+        paths();drawingAndImages();
         frameStyles();
         scopes();
         pointerInput();

@@ -45,7 +45,7 @@ namespace Cookbook { namespace TestBackend {
         void Notify() override{for(auto window:wxTopLevelWindows)if(auto dialog=dynamic_cast<wxTextEntryDialog *>(window))if(dialog->IsModal()){Stop();dialog->SetValue(wxString::FromUTF8(text));dialog->EndModal(accepted?wxID_OK:wxID_CANCEL);delete this;return;}}
     };
     void answerPrompt(const std::string & text,bool accepted){new PromptAnswer(text,accepted);}
-    bool modalVisible(CPPUI::Node &){return false;}
+    bool modalVisible(CPPUI::Node & node){auto modal=dynamic_cast<CPPUI::Wx::Modal *>(&node);return modal && modal->ui && modal->ui->IsShown();}
     bool pageActive(CPPUI::Node & node){return static_cast<wxWindow *>(node.outer())->GetFont().GetWeight()==wxFONTWEIGHT_BOLD;}
     bool selectPage(CPPUI::Node & node){auto link=dynamic_cast<CPPUI::Wx::Label *>(&node);if(!link||!link->ui)return false;
         for(auto parent=link->ui->GetParent();parent;parent=parent->GetParent())if(auto scroll=dynamic_cast<wxScrolledWindow *>(parent)){int x,y;scroll->GetViewStart(&x,&y);auto point=scroll->ScreenToClient(link->ui->ClientToScreen(wxPoint(0,0)));scroll->Scroll(x,std::max(0,y+point.y));}

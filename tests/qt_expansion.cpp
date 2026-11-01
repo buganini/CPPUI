@@ -13,7 +13,7 @@ static void pump() {
 struct Fragment:CPPUI::Qt::QtView {
     bool canvas=false;
     void content() override {
-        if(canvas) CPPUI::Canvas([](CPPUI::CanvasPainter &) {return false;}).layout(40,40).id("dynamic");
+        if(canvas) CPPUI::Canvas([](CPPUI::CanvasPainter &) {return false;}).layout(CPPUI::layout::minWidth(40),CPPUI::layout::minHeight(40)).id("dynamic");
         else CPPUI::Label("Static").id("dynamic");
     }
 };
@@ -32,7 +32,7 @@ struct Root:CPPUI::Qt::QtView {
                     for(auto nested:along.id("along").layout(CPPUI::layout::padding(0))) CPPUI::Label("Along");
                     CPPUI::Node & across=horizontal ? static_cast<CPPUI::Node &>(CPPUI::VBox()) : CPPUI::HBox();
                     for(auto nested:across.id("across").layout(CPPUI::layout::padding(0))) CPPUI::Label("Across");
-                    CPPUI::Canvas([](CPPUI::CanvasPainter &) {return false;}).layout(40,40,weight).visible(canvas).id("canvas");
+                    CPPUI::Canvas([](CPPUI::CanvasPainter &) {return false;}).layout({}, {},weight).layout(CPPUI::layout::minWidth(40),CPPUI::layout::minHeight(40)).visible(canvas).id("canvas");
                     CPPUI::Spacer().visible(spacer).id("spacer");
                 } else if(mode==2) {
                     CPPUI::Label("Weighted").layout({}, {},weight).id("label");CPPUI::Spacer().id("spacer");

@@ -1,7 +1,7 @@
 # Native Canvas performance audit
 
 Audited PUI `0c160e8..f0c1cf5` on 2026-10-17. The new `push()`/`pop()` API is
-ported to Qt and wx, with compatible no-ops for LVGL. The redundant pen/brush
+ported to Qt and wx; LVGL now saves/restores its rectangle clip in these scopes. The redundant pen/brush
 setter guards from `cae7713` and `f0c1cf5` are **not adopted** in CPPUI.
 Web/Pyodide command encoding, color caches, repaint scheduling and session
 changes remain outside the requested sync.

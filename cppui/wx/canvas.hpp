@@ -2,6 +2,8 @@
 #define CPPUI_WX_CANVAS
 #include "base.hpp"
 #include "../anchor.hpp"
+#include "../color.hpp"
+#include "../path.hpp"
 #include "../canvas_input.hpp"
 #include "../frame_rate.hpp"
 #include "image_resource.hpp"
@@ -21,7 +23,7 @@ class CanvasColor {
 public:
     CanvasColor()=default;
     CanvasColor(int rgb):CanvasColor(static_cast<std::uint32_t>(rgb)){}
-    CanvasColor(std::uint32_t rgb):color((rgb>>16)&255,(rgb>>8)&255,rgb&255),present(true){}
+    CanvasColor(std::uint32_t rgb):color((rgb>>16)&255,(rgb>>8)&255,rgb&255,colorAlpha(rgb)),present(true){}
     CanvasColor(const char * name):CanvasColor(std::string(name)){}
     CanvasColor(const std::string & name):color(wxString::FromUTF8(name)),present(color.IsOk()){}
 };
@@ -70,21 +72,23 @@ public:
     const double pixel_density;
     CanvasPainter(wxGraphicsContext & painter,int width,int height,double density,wxFont font=*wxNORMAL_FONT,wxColour foreground=*wxBLACK)
         :painter(painter),font(font),foreground(foreground),frame(painter),width(width),height(height),pixel_density(density){}
-    void push(){scopes.push_back(styles);}
+    ~CanvasPainter(){while(!scopes.empty()) pop();}
+    void push(){painter.PushState();scopes.push_back(styles);}
     void pop(){
         if(scopes.empty())throw std::logic_error("Canvas.pop() has no matching push()");
-        styles=scopes.back();scopes.pop_back();
+        painter.PopState();styles=scopes.back();scopes.pop_back();
         painter.SetPen(*styles.first);painter.SetBrush(*styles.second);
     }
     CanvasPainter(const CanvasPainter &)=delete;
     CanvasPainter & operator=(const CanvasPainter &)=delete;
     void drawText(double x,double y,const std::string & text,int w=-1,int h=-1,int size=12,CanvasColor color={},double rotate=0,Anchor anchor=Anchor::LeftTop){
-        (void)w;(void)h;SavedState saved(painter);
+        if(text.empty() || size==0 || w==0 || h==0) return;SavedState saved(painter);
         auto lines=wxSplit(wxString::FromUTF8(text),'\n');double tw=0,th=0,lineHeight=0;
-        textFont(-1,foreground);
+        textFont(size,color.present?color.color:foreground);
         for(auto & line:lines){double lw,lh;painter.GetTextExtent(line.empty()?wxString(" "):line,&lw,&lh);tw=std::max(tw,lw);lineHeight=std::max(lineHeight,lh);}
         th=lineHeight*lines.size();double dx=tw*(int(anchor)/3)/2,dy=th*(int(anchor)%3)/2;
-        painter.Translate(x+dx,y+dy);painter.Rotate(rotate*std::acos(-1.0)/180);painter.Translate(-dx,-dy);
+        painter.Translate(x,y);painter.Rotate(rotate*std::acos(-1.0)/180);painter.Translate(-dx,-dy);
+        if(w>=0 || h>=0) painter.Clip(0,0,w<0?tw:w,h<0?th:h);
         textFont(size,color.present?color.color:foreground);
         double yy=0;for(auto & line:lines){painter.DrawText(line,0,yy);yy+=lineHeight;}
     }
@@ -98,6 +102,21 @@ public:
     }
     void drawRect(double x1,double y1,double x2,double y2,CanvasColor fill={},CanvasColor stroke={},int width=1){pen(stroke,width);brush(fill);painter.DrawRectangle(std::min(x1,x2),std::min(y1,y2),std::abs(x2-x1),std::abs(y2-y1));}
     void drawEllipse(double x,double y,double rx,double ry,CanvasColor fill={},CanvasColor stroke={},int width=1){pen(stroke,width);brush(fill);painter.DrawEllipse(x-rx,y-ry,rx*2,ry*2);}
+    static constexpr bool supports_path_clip=false;
+    void drawPath(const CanvasPath & commands,CanvasColor fill={},CanvasColor stroke={},int width=1,FillRule rule=FillRule::NonZero) {
+        detail::validatePath(commands,rule);auto path=painter.CreatePath();
+        for(const auto & cmd:commands) {const auto & v=cmd.values;switch(cmd.op) {
+            case PathOp::MoveTo:path.MoveToPoint(v[0],v[1]);break;
+            case PathOp::LineTo:path.AddLineToPoint(v[0],v[1]);break;
+            case PathOp::QuadTo:path.AddQuadCurveToPoint(v[0],v[1],v[2],v[3]);break;
+            case PathOp::CubicTo:path.AddCurveToPoint(v[0],v[1],v[2],v[3],v[4],v[5]);break;
+            case PathOp::Close:path.CloseSubpath();break;
+        }}brush(fill);pen(stroke,width);painter.DrawPath(path,rule==FillRule::NonZero?wxWINDING_RULE:wxODDEVEN_RULE);
+    }
+    void clipRect(double x,double y,double width,double height) {painter.Clip(x,y,std::max(0.0,width),std::max(0.0,height));}
+    void clipRegion(const wxRegion & region) {painter.Clip(region);}
+    void clipPath(const CanvasPath & path,FillRule rule=FillRule::NonZero) {detail::validatePath(path,rule);throw std::logic_error("wx supports rectangle/Region clipping, not path clipping");}
+    ImageResource loadRGBA(int width,int height,const std::vector<unsigned char> & data) const {return ImageResource::loadRGBA(width,height,data);}
     ImageResource loadImage(const std::string & path) const {return ImageResource::load(path);}
     void drawImage(const ImageResource & image,int x=0,int y=0,int width=-1,int height=-1,int sx=0,int sy=0,int sw=-1,int sh=-1,double opacity=1){
         if(image.isNull())return;

@@ -11,12 +11,13 @@ namespace Cookbook {
             for(auto menu: CPPUI::Menu("Menu")) {
                 CPPUI::MenuAction("Action").trigger([]() { std::cout << "action\n"; });
                 CPPUI::MenuAction("Action2").trigger([]() { std::cout << "action2\n"; });
-                for(auto submenu: CPPUI::Menu("Menu2")) {
+                for(auto submenu: CPPUI::Menu("Submenu")) {
                     CPPUI::MenuAction("Action3").trigger([]() { std::cout << "action3\n"; });
                     CPPUI::MenuAction("Action4").trigger([]() { std::cout << "action4\n"; });
                 }
             }
-            for(auto menu: CPPUI::Menu("Menu3")) {
+            CPPUI::Spacer();
+            for(auto menu: CPPUI::Menu("Menu 2")) {
                 CPPUI::MenuAction("Action5");
                 CPPUI::MenuAction("Action6");
             }

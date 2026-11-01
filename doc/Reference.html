@@ -66,7 +66,8 @@
             }
         }
         table { border-collapse: collapse; width: 100%; font-size: .88rem; text-align: left; }
-        th, td { border: 1px solid #d0d7de; padding: 9px 12px; min-width: 120px; vertical-align: top; }
+        th, td { border: 1px solid #d0d7de; padding: 9px 12px; vertical-align: top; }
+        table tr > :first-child { width: 1%; white-space: nowrap; }
         th { background: #f0f3f6; font-weight: 650; }
         tbody tr:nth-child(even) { background: #f8fafc; }
         blockquote { margin-left: 0; padding-left: 20px; border-left: 3px solid #d0d7de; color: #57606a; }
@@ -127,7 +128,7 @@
 <li><a href="#grid-and-stack">Grid and Stack</a></li>
 <li><a href="#spacer">Spacer</a></li>
 <li><a href="#divider">Divider</a></li>
-<li><a href="#dialogs">Dialogs</a></li>
+<li><a href="#dialogs">Imperative Functions</a></li>
 <li><a href="#modal">Modal</a></li>
 <li><a href="#tabs">Tabs</a></li>
 <li><a href="#views">Views</a></li>
@@ -167,148 +168,148 @@ are described in the component sections and backend plans.</p>
 <tr>
 <th>Generic</th>
 <th>Qt</th>
-<th>lvgl</th>
 <th>wx</th>
+<th>lvgl</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><a href="#application">Application</a></td>
 <td class="support-yes">QApplication</td>
-<td class="support-yes">View</td>
 <td class="support-yes">App</td>
+<td class="support-yes">View</td>
 </tr>
 <tr>
 <td><a href="#window">Window</a></td>
 <td class="support-yes">QMainWindow</td>
-<td class="support-yes">screen_active</td>
 <td class="support-yes">wxFrame</td>
+<td class="support-yes">screen_active</td>
 </tr>
 <tr>
 <td><a href="#box-layouts">HBox</a></td>
 <td class="support-yes">QHBoxLayout</td>
-<td class="support-yes">flex_flow</td>
 <td class="support-yes">wxBoxSizer</td>
+<td class="support-yes">flex_flow</td>
 </tr>
 <tr>
 <td><a href="#box-layouts">VBox</a></td>
 <td class="support-yes">QVBoxLayout</td>
-<td class="support-yes">flex_flow</td>
 <td class="support-yes">wxBoxSizer</td>
+<td class="support-yes">flex_flow</td>
 </tr>
 <tr>
 <td><a href="#adaptive-box-layouts">HVBox / VHBox</a></td>
 <td class="support-yes">QBoxLayout</td>
-<td class="support-yes">flex_flow</td>
 <td class="support-yes">wxBoxSizer</td>
+<td class="support-yes">flex_flow</td>
 </tr>
 <tr>
 <td><a href="#grid-and-stack">Grid / Stack</a></td>
 <td class="support-yes">QGridLayout / QStackedLayout</td>
-<td class="support-yes">Native grid / shared native grid cell</td>
 <td class="support-yes">wxGridBagSizer / wxPanel + overlay wxSizer</td>
+<td class="support-yes">Native grid / shared native grid cell</td>
 </tr>
 <tr>
 <td><a href="#spacer">Spacer</a></td>
 <td class="support-yes">QSpacerItem</td>
-<td class="support-yes">transparent flex item</td>
 <td class="support-yes">wxSizer stretch spacer</td>
+<td class="support-yes">transparent flex item</td>
 </tr>
 <tr>
 <td><a href="#divider">Divider</a></td>
 <td class="support-yes">QFrame</td>
-<td class="support-yes">flex-axis separator</td>
 <td class="support-yes">wxStaticLine</td>
+<td class="support-yes">flex-axis separator</td>
 </tr>
 <tr>
 <td><a href="#scroll">Scroll</a></td>
 <td class="support-yes">QScrollArea</td>
-<td class="support-yes">scrollable object (basic)</td>
 <td class="support-yes">wxScrolledWindow</td>
+<td class="support-yes">scrollable object (basic)</td>
 </tr>
 <tr>
 <td><a href="#splitter">Splitter</a></td>
 <td class="support-yes">QSplitter</td>
-<td class="support-yes">Resizable objects with drag handles</td>
 <td class="support-yes">nested wxSplitterWindow</td>
+<td class="support-yes">Resizable objects with drag handles</td>
 </tr>
 <tr>
 <td><a href="#label">Label</a></td>
 <td class="support-yes">QLabel</td>
-<td class="support-yes">label</td>
 <td class="support-yes">wxStaticText / read-only wxTextCtrl</td>
+<td class="support-yes">label</td>
 </tr>
 <tr>
 <td><a href="#button">Button</a></td>
 <td class="support-yes">QPushButton</td>
-<td class="support-yes">button</td>
 <td class="support-yes">wxButton</td>
+<td class="support-yes">button</td>
 </tr>
 <tr>
 <td><a href="#textfield">TextField</a></td>
 <td class="support-yes">QLineEdit</td>
-<td class="support-yes">single-line lv_textarea</td>
 <td class="support-yes">wxTextCtrl</td>
+<td class="support-yes">single-line lv_textarea</td>
 </tr>
 <tr>
 <td><a href="#textedit">TextEdit</a></td>
 <td class="support-yes">QPlainTextEdit</td>
-<td class="support-yes">multiline lv_textarea</td>
 <td class="support-yes">multiline wxTextCtrl</td>
+<td class="support-yes">multiline lv_textarea</td>
 </tr>
 <tr>
 <td><a href="#maskedfield">MaskedField</a></td>
 <td class="support-yes">QLineEdit password mode</td>
-<td class="support-yes">lv_textarea password mode</td>
 <td class="support-yes">wxTextCtrl password style</td>
+<td class="support-yes">lv_textarea password mode</td>
 </tr>
 <tr>
 <td><a href="#combobox">ComboBox / ComboBoxItem</a></td>
 <td class="support-yes">QComboBox</td>
-<td class="support-yes">dropdown / textarea</td>
 <td class="support-yes">wxComboBox</td>
+<td class="support-yes">dropdown / textarea</td>
 </tr>
 <tr>
 <td><a href="#radiobutton">RadioButton</a></td>
 <td class="support-yes">QRadioButton</td>
-<td class="support-yes">checkbox (radio mode)</td>
 <td class="support-yes">wxRadioButton</td>
+<td class="support-yes">checkbox (radio mode)</td>
 </tr>
 <tr>
 <td><a href="#checkbox">Checkbox</a></td>
 <td class="support-yes">QCheckBox</td>
-<td class="support-yes">checkbox</td>
 <td class="support-yes">wxCheckBox</td>
+<td class="support-yes">checkbox</td>
 </tr>
 <tr>
 <td><a href="#progressbar">ProgressBar</a></td>
 <td class="support-yes">QProgressBar</td>
-<td class="support-yes">bar / busy animation</td>
 <td class="support-yes">wxGauge</td>
+<td class="support-yes">bar / busy animation</td>
 </tr>
 <tr>
 <td><a href="#text">Text / Html / MarkDown</a></td>
 <td class="support-yes">QLabel</td>
+<td class="support-partial">wxStaticText / optional wxWebView / wxHtmlWindow fallback</td>
 <td class="support-partial">wrapping label / raw markup fallbacks</td>
-<td class="support-partial">wxStaticText / wxHtmlWindow / raw text fallback</td>
 </tr>
 <tr>
 <td><a href="#canvas">Canvas</a></td>
 <td class="support-yes">QWidget / QPainter</td>
-<td class="support-partial">canvas / software drawing</td>
 <td class="support-yes">wxPanel / wxGraphicsContext</td>
+<td class="support-partial">canvas / software drawing</td>
 </tr>
 <tr>
 <td><a href="#image">Image</a></td>
 <td class="support-yes">QLabel / QPixmap</td>
-<td class="support-yes">lv_image / owned decoded pixels</td>
 <td class="support-yes">wxStaticBitmap / wxImage</td>
+<td class="support-yes">lv_image / owned decoded pixels</td>
 </tr>
 <tr>
 <td><a href="#menus-and-toolbars">Menus / Toolbars</a></td>
 <td class="support-yes">QMenuBar / QMenu / QToolBar / QAction</td>
-<td class="support-pending">—</td>
 <td class="support-yes">wxMenuBar / wxMenu / wxMenuItem (no toolbar yet)</td>
+<td class="support-pending">—</td>
 </tr>
 <tr>
 <td><a href="#mdi">MDI</a></td>
@@ -319,51 +320,52 @@ are described in the component sections and backend plans.</p>
 <tr>
 <td><a href="#timelineview">TimelineView</a></td>
 <td class="support-yes">QTimer / virtual node</td>
-<td class="support-yes">timer / virtual node</td>
 <td class="support-yes">wxTimer / virtual node</td>
+<td class="support-yes">timer / virtual node</td>
 </tr>
 <tr>
 <td><a href="#canvas">ImageResource</a></td>
 <td class="support-yes">QImage</td>
-<td class="support-pending">—</td>
 <td class="support-yes">wxImage</td>
+<td class="support-pending">—</td>
 </tr>
 <tr>
 <td><a href="#tabs">Tabs / Tab</a></td>
 <td class="support-yes">QTabWidget / QWidget</td>
-<td class="support-yes">tabview / virtual node</td>
 <td class="support-yes">wxNotebook / wxPanel</td>
+<td class="support-yes">tabview / virtual node</td>
 </tr>
 <tr>
 <td><a href="#views">Views</a></td>
 <td class="support-yes">QStackedWidget</td>
-<td class="support-yes">Retained containers</td>
 <td class="support-yes">wxSimplebook</td>
+<td class="support-yes">Retained containers</td>
 </tr>
 <tr>
 <td><a href="#table">Table / TableNode</a></td>
 <td class="support-yes">QTableView / QAbstractTableModel</td>
-<td class="support-yes">lv_table + cell editors</td>
 <td class="support-yes">wxGrid / wxGridTableBase</td>
+<td class="support-yes">lv_table + cell editors</td>
 </tr>
 <tr>
 <td><a href="#tree">Tree / TreeNode</a></td>
 <td class="support-yes">QTreeView / QAbstractItemModel</td>
-<td class="support-pending">—</td>
 <td class="support-yes">wxDataViewCtrl / wxDataViewModel</td>
+<td class="support-pending">—</td>
 </tr>
 <tr>
 <td><a href="#modal">Modal</a></td>
 <td class="support-yes">QDialog</td>
-<td class="support-pending">—</td>
+<td class="support-yes">Managed wxDialog</td>
 <td class="support-pending">—</td>
 </tr>
 <tr>
-<td><a href="#dialogs">Dialogs</a></td>
+<td><a href="#dialogs">Imperative Functions</a></td>
 <td class="support-yes">QFileDialog / QMessageBox / QInputDialog</td>
-<td class="support-pending">—</td>
 <td class="support-yes">wxFileDialog / wxMessageDialog / wxTextEntryDialog</td>
+<td class="support-pending">—</td>
 </tr>
+<tr><td><a href="#open-url">OpenURL</a></td><td class="support-yes">QDesktopServices</td><td class="support-yes">wxLaunchDefaultBrowser</td><td class="support-pending">—</td></tr>
 </tbody>
 </table></div>
 <p>Node IDs and Qt button text copy their string arguments, including temporary
@@ -472,6 +474,18 @@ failure during the final replacement leaves the destination empty and usable.
 Payload pointers/references do not follow moves to another Optional and must
 not be retained across replacement, reset or destruction.</p>
 <h2 id="pui-modifiers">CPPUI modifiers</h2>
+<div class="table-scroll" tabindex="0" role="region" aria-label="CPPUI modifiers"><table>
+<thead><tr><th>Modifier</th><th>Purpose</th><th>Arguments</th></tr></thead>
+<tbody>
+<tr><td><code>.layout(...)</code></td><td>Desired size, minimum size, expansion and spacing</td><td>width, height, minWidth, minHeight, weight, padding, margin</td></tr>
+<tr><td><code>.style(...)</code></td><td>Shared visual style</td><td>color, bgColor, fontSize, fontWeight, fontFamily</td></tr>
+<tr><td><code>.grid(...)</code></td><td>Explicit Grid placement</td><td>row, column, rowspan, columnspan</td></tr>
+<tr><td><code>.wideLayout / .wideStyle / .wideGrid</code></td><td>Responsive overrides</td><td>Minimum parent content width, followed by typed helpers</td></tr>
+<tr><td><code>.visible / .wideVisible</code></td><td>Visibility and hidden-subtree freezing</td><td>Boolean; wideVisible also takes a width breakpoint</td></tr>
+<tr><td><code>.size()</code></td><td>Observe measured content size</td><td>No arguments; returns a binding</td></tr>
+<tr><td><code>.id / .ref</code></td><td>Stable reconciliation identity / named node lookup</td><td>String identifier</td></tr>
+<tr><td><code>.qt(...)</code></td><td>Qt native options</td><td>QtOptions; MenuAction also accepts QAction::MenuRole</td></tr>
+</tbody></table></div>
 <p>Nodes expose PUI's <code>.layout(...)</code>, <code>.style(...)</code> and <code>.qt(...)</code> APIs. These are
 ports of <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/node.py">PUI's node modifiers</a>
 and <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/base.py">Qt parameter application</a>.
@@ -485,7 +499,7 @@ CPPUI::Label(&quot;Hello&quot;)
 
 CPPUI::Label(&quot;Body&quot;).style(style::fontFamily(&quot;Sans&quot;)); // Qt/wx; LVGL accepts &quot;Montserrat&quot;.
 </code></pre>
-<p>The layout argument helpers are <code>width(int)</code>, <code>height(int)</code>, <code>weight(int)</code>,
+<p>The layout argument helpers are <code>width(int)</code>, <code>height(int)</code>, <code>minWidth(int)</code>, <code>minHeight(int)</code>, <code>weight(int)</code>,
 <code>padding(...)</code> and <code>margin(...)</code>. The style helpers are <code>color(int)</code>,
 <code>bgColor(int)</code>, <code>fontSize(int)</code>, <code>fontWeight(int)</code>,
 <code>fontWeight(CPPUI::FontWeight)</code> and <code>fontFamily(const char*)</code>.
@@ -502,7 +516,7 @@ copy it when applying the style. Owning results such as dialog text still use
 <code>OptionalText</code> (<code>Optional&lt;std::string&gt;</code>).</p>
 <p><code>CPPUI::FontWeight</code> is a scoped enum in <code>cppui/font_weight.hpp</code>,
 also included by the style API. Its values use the Web/Qt 6 numeric scale:</p>
-<table>
+<div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
 <thead><tr><th>Weight</th><th>FontWeight members</th></tr></thead>
 <tbody>
 <tr><td>100</td><td><code>Thin</code>, <code>Hairline</code></td></tr>
@@ -516,7 +530,7 @@ also included by the style API. Its values use the Web/Qt 6 numeric scale:</p>
 <tr><td>900</td><td><code>Black</code>, <code>Heavy</code></td></tr>
 <tr><td>950</td><td><code>ExtraBlack</code>, <code>UltraBlack</code></td></tr>
 </tbody>
-</table>
+</table></div>
 <p>Both <code>.style()</code> and <code>.wideStyle()</code> accept the enum through
 <code>style::fontWeight(...)</code> or as the positional font-weight argument.
 Numeric weights remain supported, including values between the named weights.
@@ -546,6 +560,12 @@ child widths. Exact sizes depend on the toolkit, platform, font and theme.</p>
 hints or dimensions, weight controls flexible space along the parent's main
 axis, and padding adds spacing. Start with the defaults for ordinary controls;
 see the backend mappings below when a design needs more control.</p>
+<p><code>width</code>/<code>height</code> are desired dimensions and suppress automatic expansion
+on that axis. <code>minWidth</code>/<code>minHeight</code> are lower bounds that preserve the
+component's normal expansion priority. When both are present, the native minimum
+is their maximum. Explicit positive weight still requests expansion; Qt native
+size-policy overrides keep precedence. In Qt Grid, compact children retain their
+content size even when another child enlarges the same track.</p>
 <p>Node fields store dimensions, weight, colors and font size/weight in
 <code>Optional&lt;int&gt;</code>, padding and margin in <code>Optional&lt;Insets&gt;</code>, and font family as a
 borrowed <code>const char*</code>. Named helpers carry plain <code>int</code>/<code>Insets</code> values or the
@@ -899,6 +919,12 @@ Callback replacement disconnects only CPPUI's connection, snapshots active
 callbacks and reports trigger exceptions to stderr. Toolbar widget actions
 retain their widgets across moves and are reclaimed when the widget is removed.
 The cookbook gallery uses these public menu components.</p>
+<p>Qt and wx MenuBar accept <code>Spacer()</code> slots. Native menus ignore their
+visual width but preserve logical ordering during insertion, removal and keyed moves.
+<code>MenuBar().native(false)</code> disables native menubar integration on Qt;
+wx always uses its native menubar. <code>MenuAction().native(false)</code> disables
+Qt's text-based role inference. An explicit <code>.qt(QAction::AboutRole)</code>
+overrides inference; omission restores the current native default on redraw.</p>
 <h2 id="mdi">MDI</h2>
 <p>Include <code>cppui/qt/mdi.hpp</code> for <code>MdiArea()</code> and <code>MdiSubWindow()</code>. The area owns
 native subwindows and preserves their geometry across unchanged redraws. Like
@@ -1397,9 +1423,10 @@ a horizontal line.</p>
 declaration draws a one-pixel gray separator across its physical flex parent: a
 horizontal line in a column, a vertical line in a row, and no line outside flex
 layouts. It has no interactive behavior; native parent deletion reclaims it.</p>
-<h2 id="dialogs">Dialogs</h2>
-<p>Include <code>cppui/qt/dialog.hpp</code>. These functions run a modal Qt dialog and return
-after it closes, following <a href="https://github.com/buganini/PUI/blob/009e9b9c3fbd724f0b73c862f8213ddc4742405c/PUI/PySide6/dialog.py">PUI's dialog wrappers</a>:</p>
+<h2 id="dialogs">Imperative Functions</h2>
+<p>Qt and wx expose these functions through <code>cppui/backend.hpp</code> or their
+<code>dialog.hpp</code> and <code>url.hpp</code> headers. Dialog calls return after the native dialog closes;
+<code>OpenURL</code> delegates to the desktop URL handler.</p>
 <div class="table-scroll" tabindex="0" role="region" aria-label="Reference table"><table>
 <thead>
 <tr>
@@ -1416,17 +1443,17 @@ after it closes, following <a href="https://github.com/buganini/PUI/blob/009e9b9
 </tr>
 <tr>
 <td><code>OpenFile</code></td>
-<td>title (<code>&quot;Open File&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>&quot;&quot;</code>)</td>
+<td>title (<code>&quot;Open File&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>FileFilters{}</code>)</td>
 <td><code>OptionalText</code></td>
 </tr>
 <tr>
 <td><code>OpenFiles</code></td>
-<td>title (<code>&quot;Open Files&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>&quot;&quot;</code>)</td>
+<td>title (<code>&quot;Open Files&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>FileFilters{}</code>)</td>
 <td><code>Optional&lt;std::vector&lt;std::string&gt;&gt;</code></td>
 </tr>
 <tr>
 <td><code>SaveFile</code></td>
-<td>default value (absent), title (<code>&quot;Save File&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>&quot;&quot;</code>)</td>
+<td>default value (absent), title (<code>&quot;Save File&quot;</code>), directory (<code>&quot;&quot;</code>), types (<code>FileFilters{}</code>)</td>
 <td><code>OptionalText</code></td>
 </tr>
 <tr>
@@ -1446,8 +1473,16 @@ after it closes, following <a href="https://github.com/buganini/PUI/blob/009e9b9
 </tr>
 </tbody>
 </table></div>
-<p>File filters accept <code>|</code> separators, for example <code>&quot;Text files (*.txt)|All files (*)&quot;</code>.
-SaveFile uses its default value as the initial path when directory is empty;
+<p>File filters use structured extensions. Pass <code>CPPUI::FileFilters{"txt", "cpp"}</code>,
+or labeled groups as below. A leading dot is optional, duplicates are removed,
+and <code>"*"</code> means all files. Empty groups, wildcards inside extensions and
+legacy native filter strings are rejected.</p>
+<pre><code class="language-cpp">CPPUI::FileFilters filters(std::vector&lt;CPPUI::FileFilterGroup&gt;{
+    {"Text files", {"txt", "md"}}, {"All files", {"*"}}
+});
+auto file = CPPUI::OpenFile("Open File", "", filters);
+</code></pre>
+<p>SaveFile uses its default value as the initial path when directory is empty;
 it accepts an OptionalText or string. Strings and results use UTF-8.</p>
 <p><code>Optional&lt;T&gt;</code> is a C++11 value type in <code>cppui/optional.hpp</code>; <code>OptionalText</code> aliases
 <code>Optional&lt;std::string&gt;</code>. Default construction means no value. Test it with
@@ -1466,10 +1501,20 @@ contract. Message dialogs own and release their native dialog before returning.
 Call dialog helpers on the GUI thread from event handlers, outside builders.
 Native desktop dialog integration still needs real-display validation; automated
 tests exercise Qt's widget dialogs, including their nested event loops.</p>
+<h3 id="open-url">OpenURL</h3>
+<p><code>CPPUI::OpenURL(url)</code> opens an absolute <code>http</code>, <code>https</code> or
+<code>mailto</code> URL using QDesktopServices (Qt) or wxLaunchDefaultBrowser (wx).
+It returns <code>void</code>, rejects invalid URLs with <code>std::invalid_argument</code>,
+and reports desktop launch failure with <code>std::runtime_error</code>.
+LVGL has no desktop URL bridge yet. Call it from a user action:</p>
+<pre><code class="language-cpp">CPPUI::Button("Open project").click([]() {
+    CPPUI::OpenURL("https://github.com/buganini/CPPUI");
+});
+</code></pre>
 <h2 id="modal">Modal</h2>
-<p>Include <code>cppui/qt/modal.hpp</code> and declare it inside an Application or QtView.
+<p>Include <code>cppui/qt/modal.hpp</code> or <code>cppui/wx/modal.hpp</code> and declare it inside an Application/view.
 <code>Modal(status, offValue = T{})</code> accepts a <code>State&lt;T&gt;&amp;</code>
-or <code>Binding&lt;T&gt;</code>, with a value convertible to bool. True shows a modal QDialog;
+or <code>Binding&lt;T&gt;</code>, with a value convertible to bool. True shows a modal dialog;
 false hides it. Choose an off-value that converts to false. For example:</p>
 <pre><code class="language-cpp">for(auto window: CPPUI::Modal(modalOpen).title(&quot;Modal Window&quot;).size(400, 240)
         .open([]() { /* opened */ }).close([]() { /* closed */ })) {
@@ -1501,6 +1546,12 @@ construction. Calls on mounted declarations do not change live native state.
 Initial flags are not reapplied on redraw; native interop can change live state. Keep state, not borrowed node
 references, between redraws. Window-manager behavior still needs real-display
 validation beyond the automated offscreen tests.</p>
+<p>wx uses a modeless wxDialog with application-wide modality management so
+opening a declarative Modal never enters a blocking nested event loop. The top
+modal disables other shown top-level windows, including borrowed hosts and windows
+shown while it is open. Closing restores only windows disabled by this manager;
+pre-existing disabled windows stay disabled. Escape and native close write the
+current off-value, and a later true value reopens the retained dialog.</p>
 <h2 id="tabs">Tabs</h2>
 <p>Include <code>cppui/qt/tab.hpp</code>, <code>cppui/lvgl/tab.hpp</code>, or <code>cppui/wx/tab.hpp</code> for the
 selected backend. Use normal construction scopes:</p>
@@ -1587,7 +1638,7 @@ Redraw reuses the native widget and replaces its painter. Active callbacks are
 copied before invocation, and queued painting becomes inert on removal.</p>
 <p>All three backends include <code>drawText</code>, <code>drawLine</code>, <code>drawPolyline</code>, <code>drawCubicBezier</code>,
 <code>drawPolygon</code>, <code>drawRect</code> and <code>drawEllipse</code>; Qt and wx also have <code>drawImage</code>. Coordinates are logical
-pixels. Colors accept <code>0xRRGGBB</code>, color names or strings such as <code>&quot;#ff0000&quot;</code>.
+pixels. Colors accept <code>CPPUI::Color(0xRRGGBB, alpha)</code>, <code>0xRRGGBB</code>, color names or strings such as <code>&quot;#ff0000&quot;</code>.
 Use <code>{}</code> for an absent color: shape fill and stroke are disabled when absent;
 text uses the frame's default foreground. Rectangles take
 two corners, ellipses take center/radii, and coordinate sequences use
@@ -1604,23 +1655,21 @@ not adopted because the native gains were small or inconsistent.
 See the <a href="https://github.com/buganini/CPPUI/blob/main/doc/canvas-performance.md">benchmark decision</a>.</p>
 <p>All three <code>CanvasPainter</code> implementations expose <code>push()</code> and <code>pop()</code> inside the
 paint callback. Qt saves/restores full native state (pen, brush, font, transform,
-clip and opacity), including nested scopes. wx saves/restores the most recently
-selected CPPUI graphics pen and brush, initially null; it does not save transforms,
-clipping or fonts. When constructing a painter around a preconfigured borrowed wx
+clip and opacity), including nested scopes. wx saves/restores native graphics state and the most recently
+selected CPPUI graphics pen and brush, initially null. When constructing a painter around a preconfigured borrowed wx
 graphics context, choose its styles through CPPUI before pushing: wx provides no
-getters for arbitrary existing graphics pens/brushes. LVGL scopes are compatibility
-no-ops because every recorded command owns its style.</p>
-<p>Balance scopes within the callback; Qt/wx throw <code>std::logic_error</code> for an unmatched
+getters for arbitrary existing graphics pens/brushes. LVGL scopes save/restore the current clip; each recorded command owns its styles.</p>
+<p>Balance scopes within the callback; All three backends throw <code>std::logic_error</code> for an unmatched
 <code>pop()</code>. Qt unwinds any still-open native scopes at frame teardown, including on
 exceptions. Native access is not intercepted: finish raw drawing and pop before
 resuming CPPUI helpers. A native operation should set its own styles explicitly.
 CPPUI painter objects remain borrowed for this invocation only.</p>
-<p><code>drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0, anchor = Anchor::LeftTop)</code> uses canvas dimensions for negative w/h and keeps
+<p><code>drawText(x, y, text, w = -1, h = -1, size = 12, color = {}, rotate = 0, anchor = Anchor::LeftTop)</code> uses natural text bounds for negative w/h and keeps
 the native font for negative size. The shared <code>CPPUI::Anchor</code> enum in
 <code>cppui/anchor.hpp</code> has nine positions: <code>LeftTop</code>, <code>LeftCenter</code>,
 <code>LeftBottom</code>, <code>CenterTop</code>, <code>Center</code>, <code>CenterBottom</code>,
 <code>RightTop</code>, <code>RightCenter</code>, and <code>RightBottom</code>.
-It selects the text rotation pivot while x/y is the unrotated text origin.</p>
+The selected anchor on the sized natural text block is placed at x/y, and rotation is around that point. Optional w/h clip in local text coordinates.</p>
 <p>The LVGL 9.6 backend uses an owned ARGB8888 buffer at native pixel resolution
 (<code>pixel_density == 1</code>). Native size changes replace the buffer and request a
 frame; the initial size is 100x100 until a parent/layout overrides it. Its
@@ -1636,6 +1685,23 @@ rotation and all nine anchors are supported. Colors accept RGB integers,
 Font loading, LVGL ImageResource/drawImage, and display-density scaling remain
 pending. Basic drawing needs LVGL Canvas and its software drawing support,
 without ThorVG or another vector graphics dependency.</p>
+<p><code>drawPath(CanvasPath, fill = {}, stroke = {}, width = 1, FillRule::NonZero)</code>
+accepts <code>PathCommand{PathOp, {coordinates...}}</code> values. Operations are
+<code>MoveTo</code>, <code>LineTo</code>, <code>QuadTo</code>, <code>CubicTo</code>, and
+<code>Close</code>; fills support <code>NonZero</code> and <code>EvenOdd</code>.
+Paths start with MoveTo, contain at most 20,000 commands and use finite coordinates
+within ±1e9. LVGL flattens curves for software rasterization.</p>
+<p>All three painters provide <code>clipRect(x,y,width,height)</code>. Clips intersect
+and participate in push/pop. Qt also implements <code>clipPath(path, rule)</code>.
+Check <code>CanvasPainter::supports_path_clip</code>: it is false on wx and LVGL,
+where clipPath validates its arguments then throws <code>std::logic_error</code>.
+wx additionally accepts native <code>clipRegion(wxRegion)</code>.</p>
+<p><code>Color(rgb, alpha = 1)</code> packs transparency into the high byte (TRGB),
+so existing RGB integers remain opaque; alpha ranges from 0 to 1. The same integer
+format is used by Canvas and style colors. Qt/wx <code>loadRGBA(width,height,bytes)</code>
+and <code>ImageResource::loadRGBA</code> copy an RGBA byte vector into a detached image.
+Dimensions must be positive, no greater than 16,384 per axis and no more than
+1,048,576 pixels; exactly four bytes per pixel are required.</p>
 <p>On Qt, <code>ImageResource::load(path)</code> owns its image data. <code>crop(x, y, width, height)</code> and
 <code>scale(width, height, keepAspectRatio = true, quality = 0)</code> return new values;
 zero quality means fast scaling, other values smooth. Missing files produce an
@@ -1717,6 +1783,12 @@ They own their strings and use a wrapping, top-aligned QLabel with explicit
 plain, rich, or Markdown format. Text and selection flags update on retained
 widgets. <code>Label(text, selectable = false)</code> also supports mouse text selection,
 while keeping its literal plain-text format and normal single-line layout.</p>
+<p>Qt/wx Html opens links through <code>OpenURL</code> by default;
+<code>Html(source).openURL(false)</code> disables it. wx prefers WebView when its
+library and runtime are available; CMake detects the optional component.
+Otherwise it warns and uses HtmlWindow, which supports limited HTML/CSS and no
+JavaScript or selection control. WebView inherits native font/colors as document
+defaults, preserves authored inline styles, and avoids reloading unchanged source.</p>
 <p>For LVGL, include <code>cppui/lvgl/text.hpp</code> and use <code>Text(text)</code>. It owns literal
 text, wraps to its available width and recalculates its content height. Native
 reuse updates the text. <code>selectable=true</code> throws <code>std::invalid_argument</code> because
@@ -1744,7 +1816,7 @@ Keyed insertion/removal/reordering or orientation changes rebuild the native
 splitter chain and distribute space equally, matching PUI; retained panes and
 their controls keep identity and editor drafts. Native sash gravity shares later
 resize deltas across the panes. Independent virtual-view redraws also reconcile
-the physical container. Native MDI and nonblocking Modal remain separate wx work.</p>
+the physical container. Native MDI remains separate wx work.</p>
 <p>For LVGL, include <code>cppui/lvgl/splitter.hpp</code> and use the same
 <code>Splitter(vertical = false)</code> scope. It fills the available parent area
 and supports any number of widget/layout panes, flattened virtual views and
@@ -1776,8 +1848,9 @@ editable free text, maps labels to raw string values, and remounts when its nati
 editable style changes. Grid uses existing row/column/span fields. ProgressBar
 uses integer hundredths, clamps to its range and treats a zero maximum as range
 one, matching PUI/wx rather than promising a busy indicator.</p>
-<p>Text supports plain multiline/read-only selectable text. Html uses wxHtmlWindow's
-HTML subset; its selection behavior is native. Its best client size follows the
+<p>Text supports plain multiline/read-only selectable text. Html prefers optional
+WebView and falls back to wxHtmlWindow's HTML subset with a warning. In the fallback,
+selection behavior is native. Its best client size follows the
 parsed content and refreshes when that content changes; it expands on both
 layout axes, subject to sibling expansion priorities. MarkDown displays the
 original source as plain multiline text, following PUI/wx. Its optional

@@ -38,7 +38,7 @@ namespace Cookbook {
             {"drop", drop, ""},
 #endif
 #if CPPUI_HAS_DIALOG
-            {"dialog", dialog, ""},
+            {"imperative", imperative, ""},
 #endif
 #if CPPUI_HAS_SCROLL_ANCHOR
             {"scroll", scroll, ""},
@@ -96,7 +96,7 @@ namespace Cookbook {
             {"mdi", "MDI", nullptr, "MdiArea and MdiSubWindow"},
             {"splitter", "Splitter", nullptr, "Splitter"},
             {"modal", "Modal", nullptr, "Bound visibility"},
-            {"dialog", "Dialog", nullptr, "Typed results and cancellation"},
+            {"imperative", "Imperative", nullptr, "Typed results and cancellation"},
             };
             configureRecipes(pages);
             return pages;

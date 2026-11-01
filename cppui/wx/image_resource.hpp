@@ -4,6 +4,7 @@
 #include <wx/log.h>
 #include <algorithm>
 #include <string>
+#include "../rgba.hpp"
 namespace CPPUI {
 class CanvasPainter;
 class ImageResource {
@@ -17,6 +18,12 @@ public:
         if(!wxImage::FindHandler(wxBITMAP_TYPE_PNG)) wxInitAllImageHandlers();
         wxLogNull quiet;
         return ImageResource(wxImage(wxString::FromUTF8(path)));
+    }
+    static ImageResource loadRGBA(int width,int height,const std::vector<unsigned char> & data) {
+        detail::validateRGBA(width,height,data);
+        wxImage image(width,height);image.InitAlpha();
+        for(int i=0;i<width*height;++i) {for(int c=0;c<3;++c) image.GetData()[i*3+c]=data[i*4+c];image.GetAlpha()[i]=data[i*4+3];}
+        return ImageResource(std::move(image));
     }
     ImageResource crop(int x,int y,int w,int h) const {
         if(isNull() || x<0 || y<0 || w<=0 || h<=0 || x>width()-w || y>height()-h) return {};

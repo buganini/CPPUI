@@ -8,7 +8,7 @@ public:
     void * inner() override {return nullptr;}
     void observe(MenuObject * previous) {
         transfer(previous);
-        if(!previous) {native->owner=wxGetTopLevelParent(parentWindow());native->owner->Bind(wxEVT_DESTROY,&Native::destroyed,native.get());}
+        if(!previous) {Node::native->owner=wxGetTopLevelParent(parentWindow());Node::native->owner->Bind(wxEVT_DESTROY,&Native::destroyed,Node::native.get());}
     }
 };
 class MenuAction: public MenuObject {
@@ -17,17 +17,18 @@ public:
     wxMenuItem * ui=nullptr;
     std::string text;
     explicit MenuAction(const std::string & text):text(text){is_terminal=true;}
+    MenuAction & native(bool=true){return *this;}
     MenuAction & trigger(std::function<void()> action){callback=std::move(action);return *this;}
     void * outer() override {return ui;}
     void invalidateNative() override {ui=nullptr;}
     void update(::CPPUI::Node * previous) override {
         auto prev=static_cast<MenuAction *>(previous);bool reuse=prev&&prev->ui;
         ui=reuse?prev->ui:new wxMenuItem(nullptr,wxWindow::NewControlId(),wxString::FromUTF8(text));
-        ui->SetItemLabel(wxString::FromUTF8(text));observe(reuse?prev:nullptr);native->command=callback;
-        if(!reuse)native->owner->Bind(wxEVT_MENU,&Native::clicked,native.get(),ui->GetId());
+        ui->SetItemLabel(wxString::FromUTF8(text));observe(reuse?prev:nullptr);Node::native->command=callback;
+        if(!reuse)Node::native->owner->Bind(wxEVT_MENU,&Native::clicked,Node::native.get(),ui->GetId());
     }
     void releaseRetiredRefs() override {ui=nullptr;callback={};Node::releaseRetiredRefs();}
-    void destroy(bool direct) override {if(native){native->node=nullptr;native->command={};}if(direct)delete ui;ui=nullptr;}
+    void destroy(bool direct) override {if(Node::native){Node::native->node=nullptr;Node::native->command={};}if(direct)delete ui;ui=nullptr;}
 };
 class Menu: public MenuObject {
     struct Item {::CPPUI::Node * node;wxMenuItem * item;};
@@ -59,13 +60,14 @@ public:
             item.item->SetItemLabel(wxString::FromUTF8(action?action->text:menu->text));}
     }
     void releaseRetiredRefs() override {ui=nullptr;items.clear();Node::releaseRetiredRefs();}
-    void destroy(bool direct) override {if(native)native->node=nullptr;if(direct)delete ui;ui=nullptr;items.clear();}
+    void destroy(bool direct) override {if(Node::native)Node::native->node=nullptr;if(direct)delete ui;ui=nullptr;items.clear();}
 };
 class MenuBar: public MenuObject {
     std::vector<Menu *> menus;
 public:
     wxMenuBar * ui=nullptr;
     MenuBar(){is_outoforder=true;}
+    MenuBar & native(bool=true){return *this;}
     void * outer() override{return ui;}
     void invalidateNative() override{ui=nullptr;menus.clear();}
     void update(::CPPUI::Node * previous) override {
@@ -73,13 +75,14 @@ public:
         ui=reuse?prev->ui:new wxMenuBar();if(reuse)menus=std::move(prev->menus);observe(reuse?prev:nullptr);
     }
     void addChild(int index,::CPPUI::Node * child) override {
-        auto menu=dynamic_cast<Menu *>(child);if(!menu)throw std::logic_error("MenuBar accepts Menu declarations");
-        ui->Insert(index,menu->ui,wxString::FromUTF8(menu->text));menus.insert(menus.begin()+index,menu);
+        auto menu=dynamic_cast<Menu *>(child);if(!menu && !dynamic_cast<Spacer *>(child))throw std::logic_error("MenuBar accepts Menu or Spacer declarations");
+        const auto nativeIndex=std::count_if(menus.begin(),menus.begin()+index,[](Menu * m){return m!=nullptr;});
+        if(menu) ui->Insert(nativeIndex,menu->ui,wxString::FromUTF8(menu->text));menus.insert(menus.begin()+index,menu);
     }
-    void removeChild(int index,::CPPUI::Node *) override {if(ui){ui->Remove(index);menus.erase(menus.begin()+index);}}
-    void postSync() override {if(ui)for(std::size_t i=0;i<menus.size();++i){menus[i]=static_cast<Menu *>(menus[i]->getNode());ui->SetMenuLabel(i,wxString::FromUTF8(menus[i]->text));}}
+    void removeChild(int index,::CPPUI::Node *) override {if(ui){if(menus.at(index)) ui->Remove(std::count_if(menus.begin(),menus.begin()+index,[](Menu * m){return m!=nullptr;}));menus.erase(menus.begin()+index);}}
+    void postSync() override {if(ui){std::size_t index=0;for(auto & menu:menus) if(menu){menu=static_cast<Menu *>(menu->getNode());ui->SetMenuLabel(index++,wxString::FromUTF8(menu->text));}}}
     void releaseRetiredRefs() override {ui=nullptr;menus.clear();Node::releaseRetiredRefs();}
-    void destroy(bool direct) override {if(native)native->node=nullptr;if(direct)delete ui;ui=nullptr;menus.clear();}
+    void destroy(bool direct) override {if(Node::native)Node::native->node=nullptr;if(direct)delete ui;ui=nullptr;menus.clear();}
 };
 }
 inline Wx::MenuBar & MenuBar(){return *new Wx::MenuBar();}

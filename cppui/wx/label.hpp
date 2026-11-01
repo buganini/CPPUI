@@ -35,6 +35,7 @@ namespace CPPUI { namespace Wx {
             else if(selectable) ui = new wxTextCtrl(parentWindow(), wxID_ANY, wxString::FromUTF8(text), wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxBORDER_NONE);
             else ui = createStaticText();
             if(selectable) static_cast<wxTextCtrl *>(ui)->ChangeValue(wxString::FromUTF8(text));
+            else if(auto literal=dynamic_cast<wxStaticText *>(ui)) literal->SetLabelText(wxString::FromUTF8(text));
             else ui->SetLabel(wxString::FromUTF8(text));
             configurePainting();
         }

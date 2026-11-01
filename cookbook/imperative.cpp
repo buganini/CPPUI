@@ -15,14 +15,15 @@ namespace Cookbook {
             return result + "]";
         }
     }
-    void dialog(Model & model) {
-        for(auto column: CPPUI::VBox()) {
+    void imperative(Model & model) {
+        for(auto scroll: CPPUI::Scroll().layout(CPPUI::layout::weight(1))) for(auto column: CPPUI::VBox()) {
+            CPPUI::Button("Open URL").click([](){CPPUI::OpenURL("https://github.com/buganini/CPPUI");});
             CPPUI::Label("Directory: " + describe(static_cast<CPPUI::OptionalText>(model.directory)));
             CPPUI::Button("Open Directory").click([&model]() { model.directory = CPPUI::OpenDirectory(); });
             CPPUI::Label("File: " + describe(static_cast<CPPUI::OptionalText>(model.file)));
             CPPUI::Button("Open File").click([&model]() { model.file = CPPUI::OpenFile(); });
-            CPPUI::Button("Open File with Filter").click([&model]() { model.file = CPPUI::OpenFile("Open File", "", "Text files (*.txt)"); });
-            CPPUI::Button("Save File (default to model)").click([&model]() {
+            CPPUI::Button("Open File (txt)").click([&model]() { model.file = CPPUI::OpenFile("Open File", "", CPPUI::FileFilters(std::vector<CPPUI::FileFilterGroup>{{"Text files", {"txt"}}})); });
+            CPPUI::Button("Save File").click([&model]() {
                 model.file = CPPUI::SaveFile(static_cast<CPPUI::OptionalText>(model.file));
             });
             CPPUI::Label("Files: " + describe(static_cast<CPPUI::Optional<std::vector<std::string>>>(model.files)));

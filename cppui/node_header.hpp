@@ -133,7 +133,12 @@ namespace CPPUI {
             return true;
         }
 
-        Optional<int> layout_width, layout_height, layout_weight;
+        Optional<int> layout_width, layout_height, layout_minWidth, layout_minHeight, layout_weight;
+        Optional<int> minimumSize(bool horizontal) const {
+            auto desired=horizontal ? layout_width : layout_height;
+            auto minimum=horizontal ? layout_minWidth : layout_minHeight;
+            return desired && minimum ? Optional<int>(std::max(*desired,*minimum)) : desired ? desired : minimum;
+        }
         Optional<Insets> layout_padding, layout_margin;
         Optional<int> style_color, style_bgcolor, style_fontsize, style_fontweight;
         const char * style_fontfamily = nullptr;
@@ -246,6 +251,8 @@ namespace CPPUI {
         static void validateModifier(CPPUI::layout::Height argument) {
             if(argument.value < 0) throw std::invalid_argument("Layout dimensions and weight must be non-negative");
         }
+        static void validateModifier(CPPUI::layout::MinWidth a) { validateModifier(CPPUI::layout::width(a.value)); }
+        static void validateModifier(CPPUI::layout::MinHeight a) { validateModifier(CPPUI::layout::height(a.value)); }
         static void validateModifier(CPPUI::layout::Weight argument) {
             if(argument.value < 0) throw std::invalid_argument("Layout dimensions and weight must be non-negative");
         }
@@ -273,6 +280,8 @@ namespace CPPUI {
         void applyModifier(CPPUI::grid::ColumnSpan argument) { grid_columnspan=argument.value; }
         void applyModifier(CPPUI::layout::Width argument) { layout_width = argument.value; }
         void applyModifier(CPPUI::layout::Height argument) { layout_height = argument.value; }
+        void applyModifier(CPPUI::layout::MinWidth argument) { layout_minWidth = argument.value; }
+        void applyModifier(CPPUI::layout::MinHeight argument) { layout_minHeight = argument.value; }
         void applyModifier(CPPUI::layout::Weight argument) { layout_weight = argument.value; }
         void applyModifier(CPPUI::layout::Padding argument) { layout_padding = argument.value; }
         void applyModifier(CPPUI::layout::Margin argument) { layout_margin = argument.value; }

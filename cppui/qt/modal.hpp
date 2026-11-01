@@ -45,6 +45,14 @@ namespace CPPUI { namespace Qt {
         Optional<bool> initialMaximized, initialFullscreen;
         QVBoxLayout * qtlayout = nullptr;
 
+        bool requested() const {
+            if(!visible || !is_visible) return false;
+            for(auto p=parent;p && p!=this;p=p->parent) {
+                if(!p->is_visible) return false;
+                if(auto modal=dynamic_cast<const Modal *>(p)) if(!modal->visible) return false;
+                if(p==p->parent) break;
+            }return true;
+        }
         static void windowFlag(QWidget * widget, ::Qt::WindowState flag, bool value) {
             widget->setWindowState(value ? widget->windowState() | flag : widget->windowState() & ~flag);
         }
@@ -109,7 +117,7 @@ namespace CPPUI { namespace Qt {
                 if(initialMaximized) windowFlag(dialog, ::Qt::WindowMaximized, *initialMaximized);
                 if(initialFullscreen) windowFlag(dialog, ::Qt::WindowFullScreen, *initialFullscreen);
             }
-            dialog->setOpen(visible);
+            dialog->setOpen(requested());
         }
         void * inner() override { return qtlayout; }
         void addChild(int index, Node * child) override {

@@ -3,6 +3,8 @@
 
 #include "base.hpp"
 #include "../anchor.hpp"
+#include "../color.hpp"
+#include "../path.hpp"
 #include "../canvas_input.hpp"
 #include <QWheelEvent>
 #include <QLabel>
@@ -29,7 +31,7 @@ namespace CPPUI {
         public:
         CanvasColor() = default;
         CanvasColor(int rgb): CanvasColor(static_cast<std::uint32_t>(rgb)) {}
-        CanvasColor(std::uint32_t rgb): color(QColor::fromRgb(rgb)), present(true) {}
+        CanvasColor(std::uint32_t rgb): color(QColor::fromRgba((colorAlpha(rgb)<<24)|(rgb&0xffffff))), present(true) {}
         CanvasColor(const char * name): color(QString::fromUtf8(name)), present(true) {}
         CanvasColor(const std::string & name): color(QString::fromStdString(name)), present(true) {}
     };
@@ -102,28 +104,21 @@ namespace CPPUI {
 
         void drawText(double x, double y, const std::string & text, int w = -1, int h = -1,
                       int size = 12, CanvasColor color = {}, double rotate = 0, Anchor anchor = Anchor::LeftTop) {
+            if(text.empty() || size==0 || w==0 || h==0) return;
             SavedState saved(painter);
-            if(w < 0) w = width;
-            if(h < 0) h = height;
             painter.setPen(defaultPen);
-            const auto string = QString::fromStdString(text);
-            // Match PUI: anchor selects the rotation pivot within the text box.
-            const auto bounds = painter.boundingRect(QRect(0, 0, w, h), 0, string);
-            const int horizontal = static_cast<int>(anchor) / 3;
-            const int vertical = static_cast<int>(anchor) % 3;
-            const double dx = bounds.width() * horizontal / 2.0;
-            const double dy = bounds.height() * vertical / 2.0;
-            painter.translate(static_cast<int>(x + dx), static_cast<int>(y + dy));
-            painter.rotate(rotate);
-            painter.translate(static_cast<int>(-dx), static_cast<int>(-dy));
-            if(size >= 0) {
-                auto font = painter.font();
-                font.setPointSize(size);
-                painter.setFont(font);
-            }
+            if(size>0) {auto font=painter.font();font.setPointSize(size);painter.setFont(font);}
             if(color.present) painter.setPen(color.color);
-            painter.drawText(QRect(0, 0, w, h), 0, string);
+            QFontMetricsF metrics(painter.font(),painter.device());
+            auto lines=QString::fromStdString(text).split('\n');double tw=0;
+            for(const auto & line:lines) tw=std::max(tw,metrics.horizontalAdvance(line));
+            const double th=metrics.height()*lines.size();
+            painter.translate(x,y);painter.rotate(rotate);
+            painter.translate(-tw*(int(anchor)/3)/2,-th*(int(anchor)%3)/2);
+            if(w>=0 || h>=0) painter.setClipRect(QRectF(0,0,w<0?tw:w,h<0?th:h),::Qt::IntersectClip);
+            for(int i=0;i<lines.size();++i) painter.drawText(QPointF(0,i*metrics.height()+metrics.ascent()),lines[i]);
         }
+
         void drawLine(double x1, double y1, double x2, double y2, CanvasColor color = {}, int width = 1) {
             pen(color, width);
             painter.drawLine(QPointF(x1, y1), QPointF(x2, y2));
@@ -158,6 +153,24 @@ namespace CPPUI {
             pen(stroke, width);
             painter.drawEllipse(QPointF(x, y), rx, ry);
         }
+        static constexpr bool supports_path_clip=true;
+        static QPainterPath nativePath(const CanvasPath & commands,FillRule rule) {
+            detail::validatePath(commands,rule);QPainterPath path;
+            path.setFillRule(rule==FillRule::NonZero ? ::Qt::WindingFill : ::Qt::OddEvenFill);
+            for(const auto & cmd:commands) {const auto & v=cmd.values;switch(cmd.op) {
+                case PathOp::MoveTo:path.moveTo(v[0],v[1]);break;
+                case PathOp::LineTo:path.lineTo(v[0],v[1]);break;
+                case PathOp::QuadTo:path.quadTo(v[0],v[1],v[2],v[3]);break;
+                case PathOp::CubicTo:path.cubicTo(v[0],v[1],v[2],v[3],v[4],v[5]);break;
+                case PathOp::Close:path.closeSubpath();break;
+            }}return path;
+        }
+        void drawPath(const CanvasPath & path,CanvasColor fill={},CanvasColor stroke={},int width=1,FillRule rule=FillRule::NonZero) {
+            auto native=nativePath(path,rule);brush(fill);pen(stroke,width);painter.drawPath(native);
+        }
+        void clipRect(double x,double y,double width,double height) {painter.setClipRect(QRectF(x,y,std::max(0.0,width),std::max(0.0,height)),::Qt::IntersectClip);}
+        void clipPath(const CanvasPath & path,FillRule rule=FillRule::NonZero) {painter.setClipPath(nativePath(path,rule),::Qt::IntersectClip);}
+        ImageResource loadRGBA(int width,int height,const std::vector<unsigned char> & data) const {return ImageResource::loadRGBA(width,height,data);}
         ImageResource loadImage(const std::string & path) const { return ImageResource::load(path); }
         void drawImage(const ImageResource & image, int x = 0, int y = 0, int width = -1, int height = -1,
                        int src_x = 0, int src_y = 0, int src_width = -1, int src_height = -1, double opacity = 1) {

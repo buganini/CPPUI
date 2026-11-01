@@ -181,7 +181,7 @@ namespace Cookbook { namespace TestBackend {
             throw std::runtime_error("cookbook page list must scroll and include every recipe");
         }
         const auto menus = window->menuBar()->actions();
-        if(menus.size() != 2 || menus[0]->text() != "Menu" || menus[1]->text() != "Menu3"
+        if(menus.size() != 2 || menus[0]->text() != "Menu" || menus[1]->text() != "Menu 2"
            || menus[0]->menu()->actions().size() != 3
            || menus[0]->menu()->actions()[2]->menu()->actions().size() != 2
            || menus[1]->menu()->actions().size() != 2) {

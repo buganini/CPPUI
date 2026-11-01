@@ -26,7 +26,7 @@ static void pump() {
 struct Fragment:CPPUI::Backend::View {
     bool shown=false;
     void content() override {
-        if(shown) CPPUI::Canvas([](CPPUI::CanvasPainter &){}).layout(CPPUI::layout::width(40),CPPUI::layout::height(40)).id("canvas");
+        if(shown) CPPUI::Canvas([](CPPUI::CanvasPainter &){}).layout(CPPUI::layout::minWidth(40),CPPUI::layout::minHeight(40)).id("canvas");
         else CPPUI::Label("Static");
     }
 };

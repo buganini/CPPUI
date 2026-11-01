@@ -10,9 +10,6 @@ out of this document. Shared-core decisions are tracked in the
 - [ ] Add formatted Markdown rendering; choose a renderer/dependency for the
   current raw-source fallback.
 - [ ] Add optional bound selection to Tabs and native-to-model updates.
-- [ ] Implement non-blocking application-modal content. wxGTK's ShowWindowModal
-  fallback calls blocking ShowModal; define a modeless dialog plus modal
-  coordination, including nested dialogs and borrowed host windows.
 - [ ] Implement MDI under the shared MdiArea/MdiSubWindow contract. Choose an MDI
   Window class or custom embedded subwindows: wxMDIChildFrame requires a
   wxMDIParentFrame, while CPPUI Window currently owns wxFrame.
@@ -36,6 +33,11 @@ out of this document. Shared-core decisions are tracked in the
   destruction, with explicit window/sizer ownership and host-runtime lifetime.
 
 ## Remaining validation
+
+- [ ] Verify optional Html WebView on hosts with WebKit/Edge development libraries
+  and runtimes, including link interception, selection and document styles.
+- [ ] Verify nested Modal focus restoration and borrowed host windows with native
+  window managers on Windows/macOS.
 
 - [ ] Verify non-GTK wx ports on Windows/macOS, including native ownership,
   dialogs, candidate popups and shutdown. Verify Cocoa custom-colour control

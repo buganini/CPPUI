@@ -84,7 +84,7 @@ aspect ratio at its declared width. Canvas image resources remain separate work.
 Views also shares internal and bound selection examples across all backends.
 Its TextField and Change text button demonstrate retained local state.
 Qt also enables shared Tree, Tree(Adapter), Grid, Stack, Scroll, ComboBox, Image,
-MDI, Splitter, Modal and Dialog recipes through the common registration table.
+MDI, Splitter, Modal and Imperative recipes through the common registration table.
 Checkbox's boolean, list and dictionary examples use
 Binding adapters and explicit State assignment across backends. All backends have a
 partial TextField recipe with separate string model/draft bindings; dynamic
@@ -175,11 +175,10 @@ executable navigates and tests them.
 Add `-DCPPUI_VALGRIND_TESTS=ON` to a non-sanitized build for memory checks.
 The wx gallery memory test allows 300 seconds for three full navigation cycles.
 
-wx shares the controls, Grid, Stack, Scroll, Splitter, Canvas, Image, Tab, Timeline, Dialog,
+wx shares the controls, Grid, Stack, Scroll, Splitter, Canvas, Image, Tab, Timeline, Modal, Imperative,
 Table/Tree and adapter recipes. The Text page needs a Markdown renderer;
 plain/HTML APIs are available separately. Splitter uses nested native two-pane
-controls for the same shared multipane recipe. MDI and nonblocking Modal need
-native integration decisions. See the [wx plan](../doc/wx-progress.md).
+controls for the same shared multipane recipe. MDI needs a native integration decision. See the [wx plan](../doc/wx-progress.md).
 Reference: [PUI/wx at 2e4f0eb](https://github.com/buganini/PUI/tree/2e4f0eb82996e271bb3f4bc1f7511ea8b4c966bd/PUI/wx).
 
 ## LVGL
@@ -272,7 +271,7 @@ shared subtree insertion. `qt.tree_adapter` checks model consistency, stable
 selection/indexes, source replacement, bad hierarchies and ownership under
 sanitisers and Valgrind.
 It switches the Tab recipe's pages and accepts/cancels the
-Dialog recipe's prompt (including accepted empty text), opens/closes the Modal
+Imperative recipe's prompt (including accepted empty text), opens/closes the Modal
 recipe through its bound buttons, then tears down the
 application. Sidebar native identity survives page changes.
 All three CMake projects support

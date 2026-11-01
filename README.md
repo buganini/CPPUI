@@ -11,6 +11,11 @@ chosen backend.
 
 [PUI: Python Version](https://github.com/buganini/PUI)
 
+Qt and wx provide declarative non-blocking `Modal`, structured `FileFilters`,
+and `OpenURL`. Layout `minWidth`/`minHeight` preserve expansion while `width`/`height`
+request compact dimensions. Canvas supports paths and TRGB transparency across
+Qt, wx and LVGL; clipping and image capabilities are listed in the reference.
+
 # Reference documentation
 
 Read the [CPPUI Reference](https://buganini.github.io/CPPUI/doc/Reference.html)

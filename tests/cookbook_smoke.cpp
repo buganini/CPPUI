@@ -448,7 +448,7 @@ namespace Cookbook {
                             && static_cast<std::map<std::string, bool>>(gallery.model.checkboxMap).empty(),
                             "checkbox collection removal did not clear membership");
                     }
-                    if(std::string(recipes()[i].key) == "dialog" && recipes()[i].render) {
+                    if(std::string(recipes()[i].key) == "imperative" && recipes()[i].render) {
                         TestBackend::answerPrompt("", true);
                         require(click(gallery, "Prompt"), "dialog recipe is missing Prompt");
                         TestBackend::settle();

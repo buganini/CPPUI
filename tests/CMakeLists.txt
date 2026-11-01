@@ -1,3 +1,8 @@
+add_executable(cppui_core_sync core_sync.cpp)
+target_link_libraries(cppui_core_sync PRIVATE CPPUI::cppui)
+set_target_properties(cppui_core_sync PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+cppui_add_test(core.sync cppui_core_sync)
+
 add_executable(cppui_core_expansion core_expansion.cpp)
 target_link_libraries(cppui_core_expansion PRIVATE CPPUI::cppui)
 set_target_properties(cppui_core_expansion PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
@@ -28,6 +33,11 @@ cppui_add_test(core.wide_order cppui_core_wide_order)
 find_package(Threads REQUIRED)
 
 if(CPPUI_BUILD_WX)
+    add_executable(cppui_wx_sync native_sync.cpp)
+    target_link_libraries(cppui_wx_sync PRIVATE CPPUI::wx)
+    set_target_properties(cppui_wx_sync PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(wx.sync cppui_wx_sync)
+
     add_executable(cppui_wx_grid_sizing native_grid_sizing.cpp)
     target_link_libraries(cppui_wx_grid_sizing PRIVATE CPPUI::wx)
     set_target_properties(cppui_wx_grid_sizing PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
@@ -103,7 +113,7 @@ if(CPPUI_BUILD_WX)
     add_executable(cppui_wx_data_views wx_data_views.cpp)
     target_link_libraries(cppui_wx_data_views PRIVATE CPPUI::wx)
     cppui_add_test(wx.data_views cppui_wx_data_views)
-    foreach(header adaptive drop application base button label layout window grid divider progressbar checkbox radiobutton textfield textedit combobox completion text scroll tab views dialog timeline menu image_resource image canvas table tree stack splitter painted_controls)
+    foreach(header adaptive drop application base button label layout window grid divider progressbar checkbox radiobutton textfield textedit combobox completion text scroll tab views dialog url modal timeline menu image_resource image canvas table tree stack splitter painted_controls)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_wx_${header}.cpp")
         file(WRITE "${source}" "#include \"cppui/wx/${header}.hpp\"\n#include \"cppui/wx/${header}.hpp\"\n")
         add_library(cppui_header_wx_${header} OBJECT "${source}")
@@ -188,7 +198,7 @@ cppui_add_test(core.binding cppui_core_binding)
 
 # Each public core header must compile as the first include, independently of
 # whatever headers the application happens to include before it.
-foreach(header anchor font_weight grid adaptive context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop landlock side poster)
+foreach(header color path rgba file_filter url anchor font_weight grid adaptive context_header context node_header node view_header view state dom optional binding scroll modifiers table_adapter tree_adapter diagnostics application_title canvas_input frame_rate options refs drop landlock side poster)
     set(source "${CMAKE_CURRENT_BINARY_DIR}/header_${header}.cpp")
     file(WRITE "${source}" "#include \"cppui/${header}.hpp\"\n")
     add_library(cppui_header_${header} OBJECT "${source}")
@@ -201,6 +211,11 @@ foreach(header anchor font_weight grid adaptive context_header context node_head
 endforeach()
 
 if(CPPUI_BUILD_QT)
+    add_executable(cppui_qt_sync native_sync.cpp)
+    target_link_libraries(cppui_qt_sync PRIVATE CPPUI::qt)
+    set_target_properties(cppui_qt_sync PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    cppui_add_test(qt.sync cppui_qt_sync)
+
     add_executable(cppui_qt_grid_sizing native_grid_sizing.cpp)
     target_link_libraries(cppui_qt_grid_sizing PRIVATE CPPUI::qt)
     set_target_properties(cppui_qt_grid_sizing PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
@@ -371,7 +386,7 @@ if(CPPUI_BUILD_QT)
     target_link_libraries(cppui_qt_checkbox PRIVATE CPPUI::qt)
     cppui_add_test(qt.checkbox cppui_qt_checkbox)
 
-    foreach(header adaptive drop options application base button canvas checkbox combobox dialog divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield textedit timeline toolbar tree views window)
+    foreach(header adaptive drop options application base button canvas checkbox combobox dialog url divider grid image image_resource label layout mdi menu modal progressbar radiobutton scroll spacer splitter stack tab table text textfield textedit timeline toolbar tree views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_qt_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/qt/${header}.hpp\"\n#include \"cppui/qt/${header}.hpp\"\n")

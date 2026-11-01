@@ -2,6 +2,7 @@
 #define CPPUI_QT_DIALOG
 
 #include "../optional.hpp"
+#include "../file_filter.hpp"
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -10,10 +11,7 @@
 
 namespace CPPUI {
     namespace Qt { namespace detail {
-        inline QString fileFilters(const std::string & types) {
-            auto filters = QString::fromStdString(types);
-            return filters.replace("|", ";;");
-        }
+        inline QString fileFilters(const FileFilters & types) { return QString::fromStdString(types.native(true)); }
         inline OptionalText fileResult(const QString & result) {
             return result.isEmpty() ? OptionalText() : OptionalText(result.toStdString());
         }
@@ -27,12 +25,12 @@ namespace CPPUI {
             QString::fromStdString(title), QString::fromStdString(directory)));
     }
     inline OptionalText OpenFile(const std::string & title = "Open File", const std::string & directory = "",
-                                 const std::string & types = "") {
+                                 const FileFilters & types = {}) {
         return Qt::detail::fileResult(QFileDialog::getOpenFileName(nullptr,
             QString::fromStdString(title), QString::fromStdString(directory), Qt::detail::fileFilters(types)));
     }
     inline Optional<std::vector<std::string>> OpenFiles(const std::string & title = "Open Files",
-            const std::string & directory = "", const std::string & types = "") {
+            const std::string & directory = "", const FileFilters & types = {}) {
         const auto paths = QFileDialog::getOpenFileNames(nullptr,
             QString::fromStdString(title), QString::fromStdString(directory), Qt::detail::fileFilters(types));
         if(paths.isEmpty()) return {};
@@ -41,13 +39,13 @@ namespace CPPUI {
         return result;
     }
     inline OptionalText SaveFile(OptionalText defaultValue = {}, const std::string & title = "Save File",
-                                  const std::string & directory = "", const std::string & types = "") {
+                                  const std::string & directory = "", const FileFilters & types = {}) {
         const auto path = directory.empty() ? defaultValue.valueOr("") : directory;
         return Qt::detail::fileResult(QFileDialog::getSaveFileName(nullptr,
             QString::fromStdString(title), QString::fromStdString(path), Qt::detail::fileFilters(types)));
     }
     inline OptionalText SaveFile(const std::string & defaultValue, const std::string & title = "Save File",
-                                  const std::string & directory = "", const std::string & types = "") {
+                                  const std::string & directory = "", const FileFilters & types = {}) {
         return SaveFile(OptionalText(defaultValue), title, directory, types);
     }
     inline void Information(const std::string & message = "Information", const std::string & title = "Information Dialog") {

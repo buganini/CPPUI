@@ -108,7 +108,7 @@ namespace {
                 dialog->selectFile(first);
                 native->accept();
             });
-            const auto result = CPPUI::OpenFile("Choose", directory.path().toStdString(), "Text (*.txt)|All (*)");
+            const auto result = CPPUI::OpenFile("Choose", directory.path().toStdString(), CPPUI::FileFilters(std::vector<CPPUI::FileFilterGroup>{{"Text", {"txt"}}, {"All", {"*"}}}));
             driver.check();
             require(result && *result == first.toStdString(), "open-file result was lost");
         }
@@ -147,7 +147,7 @@ namespace {
                 native->accept();
             });
             const auto result = CPPUI::SaveFile(CPPUI::OptionalText(explicitPath ? "ignored" : saved.toStdString()),
-                "Save", explicitPath ? saved.toStdString() : "", "Text (*.txt)");
+                "Save", explicitPath ? saved.toStdString() : "", CPPUI::FileFilters(std::vector<CPPUI::FileFilterGroup>{{"Text", {"txt"}}}));
             driver.check();
             require(result && *result == saved.toStdString(), "save result was lost");
         }
