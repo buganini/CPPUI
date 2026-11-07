@@ -68,6 +68,7 @@ int main(int argc, char ** argv) {
             window->show();
             settle();
             auto splitter = root.native();
+            require(splitter->handleWidth()>=8,"splitter handle must be easy to drag");
             QObject::connect(splitter, &QObject::destroyed, &app, [&]() { ++destroyed; });
             require(splitter->orientation() == Qt::Horizontal, "default splitter must be horizontal");
             root.checkOrder();

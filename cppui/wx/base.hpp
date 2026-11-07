@@ -332,7 +332,7 @@ namespace CPPUI { namespace Wx {
         mount.padding[0] = outer->Add(0, 0);
         mount.row = new wxBoxSizer(wxHORIZONTAL);
         mount.padding[3] = mount.row->Add(0, 0);
-        mount.content = child->sizer() ? mount.row->Add(child->sizer(), 1, wxEXPAND) : (child->window() ? mount.row->Add(child->window(), 1, wxEXPAND) : mount.row->Add(0,0,1,wxEXPAND));
+        mount.content = child->window() ? mount.row->Add(child->window(), 1, wxEXPAND) : (child->sizer() ? mount.row->Add(child->sizer(), 1, wxEXPAND) : mount.row->Add(0,0,1,wxEXPAND));
         mount.padding[1] = mount.row->Add(0, 0);
         outer->Add(mount.row, 1, wxEXPAND);
         mount.padding[2] = outer->Add(0, 0);
@@ -365,32 +365,27 @@ namespace CPPUI { namespace Wx {
         void destroy(bool) override {}
     };
 
-    class Layout: public Node {
+    class Layout: public Widget {
         public:
         wxSizer * wxSizerObject = nullptr; // Native sizer; public layout() stays available.
         std::vector<Mount> mounts;
-        Layout() { if(!dynamic_cast<Layout *>(physicalParent())) layout_padding = Insets(11); }
+        Layout() { is_terminal=false; layout_padding=Insets(dynamic_cast<Layout *>(physicalParent()) ? 0 : 11); }
         wxSizer * sizer() const override { return wxSizerObject; }
-        void * outer() override { return wxSizerObject; }
-        void * inner() override { return nullptr; }
-        void invalidateNative() override { wxSizerObject = nullptr; mounts.clear(); }
+        void invalidateNative() override { Widget::invalidateNative(); wxSizerObject = nullptr; mounts.clear(); }
         virtual wxSizer * createSizer() = 0;
         void applyVisibility(bool visible) override {
+            Widget::applyVisibility(visible);
             for(auto & mount:mounts) showMount(mount,visible && layoutVisible());
         }
         void rebindChild(::CPPUI::Node * previous, ::CPPUI::Node * current) override {
             for(auto & mount: mounts) if(mount.node == previous) mount.node = static_cast<Node *>(current);
         }
-        void update(::CPPUI::Node * old) override {
+        void updateWidget(Widget * old) override {
             auto prev = static_cast<Layout *>(old);
             const bool reuse = prev && prev->wxSizerObject;
             wxSizerObject = reuse ? prev->wxSizerObject : createSizer();
-            if(reuse) mounts = std::move(prev->mounts);
-            transfer(reuse ? prev : nullptr);
-            if(!reuse) {
-                native->sizer = wxSizerObject; native->owner = parentWindow();
-                native->owner->Bind(wxEVT_DESTROY, &Native::destroyed, native.get());
-            }
+            if(reuse) { ui=prev->ui; mounts=std::move(prev->mounts); }
+            else { ui=new wxPanel(parentWindow()); ui->SetSizer(wxSizerObject); }
             wxSizerObject->SetMinSize(minSize());
         }
         virtual int nativeIndex(int index,bool inserting=false) const { (void)inserting;return index; }
@@ -432,14 +427,14 @@ namespace CPPUI { namespace Wx {
         }
         void postSync() override {
             if(!wxSizerObject) return;
-            applyChildren(); wxSizerObject->Layout();
-            if(native->owner) native->owner->Layout();
+            applyChildren();
+            ui->InvalidateBestSize(); ui->Layout();
+            if(ui->GetParent()) ui->GetParent()->Layout();
         }
         void postUpdate() override { postSync(); ::CPPUI::Node::postUpdate(); }
-        void releaseRetiredRefs() override { wxSizerObject = nullptr; mounts.clear(); Node::releaseRetiredRefs(); }
+        void releaseRetiredRefs() override { wxSizerObject = nullptr; mounts.clear(); Widget::releaseRetiredRefs(); }
         void destroy(bool direct) override {
-            if(native) { native->node = nullptr; native->sizer = nullptr; }
-            if(direct && wxSizerObject) { wxSizerObject->Clear(false); delete wxSizerObject; }
+            Widget::destroy(direct);
             wxSizerObject = nullptr; mounts.clear();
         }
     };

@@ -154,6 +154,15 @@ namespace Cookbook {
                         gallery.model.adaptiveInverseH=false;gallery.model.adaptiveInverseV=false;TestBackend::settle();
                     }
                     if(std::string(recipes()[i].key) == "adaptive_grid") {
+                        for(const char * id:{"A","B","C","D","E","F","G"}) {
+                            auto tile=find(gallery,id);
+                            require(tile && tile->children->size()==1 && tile->layout_minHeight && !tile->layout_height,
+                                "adaptive grid tile must use a container with a minimum height");
+                            auto label=tile->children->front();
+                            require(tile->expansionPriority(true)>0 && tile->expansionPriority(false)>0
+                                && label->expansionPriority(true)==0 && label->expansionPriority(false)==0,
+                                "tile must fill its cells while its label stays compact");
+                        }
                         auto editor=find(gallery,"grid-editor")->outer();
                         // Leave room for native scrollbars and Grid padding:
                         // columns observe the parent, spans observe Grid content.

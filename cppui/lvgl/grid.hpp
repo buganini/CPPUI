@@ -128,12 +128,6 @@ namespace CPPUI { namespace LVGL {
             // Keep old arrays alive until both native style pointers are replaced.
             tracks->columns.swap(columns);tracks->rows.swap(rows);
             lv_obj_set_grid_dsc_array(object,tracks->columns.data(),tracks->rows.data());
-            for(uint32_t i=0;i<lv_obj_get_child_count(object);++i) {
-                auto child=lv_obj_get_child(object,i);
-                if(lv_obj_is_ignore_layout(child)) continue;
-                lv_obj_set_style_grid_cell_x_align(child,LV_GRID_ALIGN_STRETCH,0);
-                lv_obj_set_style_grid_cell_y_align(child,LV_GRID_ALIGN_STRETCH,0);
-            }
             tracks->updating=false;
         }
         void nativeEvent(lv_event_t * event) override {
@@ -182,8 +176,17 @@ namespace CPPUI { namespace LVGL {
             const int columns=cell.columnspan,rows=cell.rowspan;
             validate(cell.column,columns);validate(cell.row,rows);
             lv_obj_set_ignore_layout(object,false);
-            lv_obj_set_grid_cell(object,LV_GRID_ALIGN_STRETCH,cell.column,columns,
-                                       LV_GRID_ALIGN_STRETCH,cell.row,rows);
+            const bool growsX=child->expansionPriority(true,this)>0,growsY=child->expansionPriority(false,this)>0;
+            const bool release=(!growsX && lv_obj_get_style_grid_cell_x_align(object,LV_PART_MAIN)==LV_GRID_ALIGN_STRETCH)
+                || (!growsY && lv_obj_get_style_grid_cell_y_align(object,LV_PART_MAIN)==LV_GRID_ALIGN_STRETCH);
+            lv_obj_set_grid_cell(object,growsX ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_START,cell.column,columns,
+                                       growsY ? LV_GRID_ALIGN_STRETCH : LV_GRID_ALIGN_CENTER,cell.row,rows);
+            if(release) {
+                // Grid clears LVGL's layout-owned size flags during layout. A second
+                // size pass then restores the declared/natural dimensions.
+                lv_obj_update_layout(object);
+                lv_obj_mark_layout_as_dirty(object);
+            }
             const auto margin=child->layout_margin.valueOr(Insets(0));
             lv_obj_set_style_margin_top(object,margin.top,0);lv_obj_set_style_margin_right(object,margin.right,0);
             lv_obj_set_style_margin_bottom(object,margin.bottom,0);lv_obj_set_style_margin_left(object,margin.left,0);

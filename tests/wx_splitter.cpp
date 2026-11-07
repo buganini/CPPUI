@@ -56,10 +56,10 @@ namespace {
     void geometry(int argc,char ** argv) {
         Root root(argc,argv);root.settle();
         auto host=native(root,"split"),editor=native(root,"editor"),b=native(root,"b"),c=native(root,"c");
-        auto splits=chain(host);require(splits.size()==2,"three panes need two native splitters");
-        auto pane=editor->GetParent();require(pane==splits[0]->GetWindow1() && b->GetParent()==splits[1]->GetWindow1()
+        auto splits=chain(host);for(auto split:splits) require((split->GetWindowStyleFlag() & wxSP_3DSASH)!=0 && split->GetSashSize()>=5,"splitter sash is too narrow");require(splits.size()==2,"three panes need two native splitters");
+        auto layout=native(root,"a");auto pane=layout->GetParent();require(editor->GetParent()==layout && pane==splits[0]->GetWindow1() && b->GetParent()==splits[1]->GetWindow1()
             && c->GetParent()==splits[1]->GetWindow2(),"layout/widget panes were not reparented");
-        require(editor->GetPosition()==wxPoint(3,3),"pane padding was not applied");
+        require(layout->GetPosition()==wxPoint(3,3) && editor->GetPosition()==wxPoint(0,0),"pane padding was not applied");
         const int aw=pane->GetSize().x,bw=b->GetParent()->GetSize().x,cw=c->GetParent()->GetSize().x;
         require(std::abs(aw-bw)<8 && std::abs(bw-cw)<8,"initial pane allocation is not equal");
         auto frame=native(root,"window");auto size=frame->GetClientSize();frame->SetClientSize(size.x+300,size.y);pump();
@@ -69,8 +69,8 @@ namespace {
         splits[0]->SetSashPosition(145);splits[1]->SetSashPosition(230);pump();
         root.padding=9;root.extra=true;root.settle();
         require(chain(host)==splits && splits[0]->GetSashPosition()==145 && splits[1]->GetSashPosition()==230,"ordinary redraw reset native sashes");
-        require(editor->GetPosition()==wxPoint(9,9),"retained pane padding was stale");
-        require(native(root,"extra")->GetParent()==pane,"new layout descendant was created outside its retained pane");
+        require(layout->GetPosition()==wxPoint(9,9) && editor->GetPosition()==wxPoint(0,0),"retained pane padding was stale");
+        require(native(root,"extra")->GetParent()==layout,"new layout descendant was created outside its retained pane");
         root.visible=false;root.settle();require(!host->IsShown() && !editor->IsShown(),"hidden Splitter retained child visibility");
         root.visible=true;root.settle();require(host->IsShown() && editor->IsShown(),"Splitter did not restore child visibility");
         root.keys={"c","a","d"};root.settle();

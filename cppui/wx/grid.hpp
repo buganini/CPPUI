@@ -64,7 +64,9 @@ public:
         }
         Layout::postSync();
     }
-    void applyChildren() override { for(auto & mount: mounts) { applyPadding(mount); showMount(mount,ancestorsVisible() && layoutVisible()); mount.item->SetFlag(wxEXPAND); } }
+    void applyChildren() override { for(auto & mount: mounts) { applyPadding(mount); showMount(mount,ancestorsVisible() && layoutVisible()); mount.item->SetFlag(wxEXPAND);
+        mount.content->SetProportion(mount.node->expansionPriority(true,this)>0 ? 1 : 0);
+        mount.content->SetFlag(mount.node->expansionPriority(false,this)>0 ? int(wxEXPAND) : int(wxALIGN_CENTER_VERTICAL)); } }
 };
 }
 inline Wx::Grid & Grid() { return *new Wx::Grid(); }

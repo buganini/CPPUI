@@ -32,12 +32,16 @@ namespace Cookbook {
                         {"G",2,2,0xD3B98B,0x1C2A30},
                     };
                     if(model.gridReverse) std::reverse(tiles.begin(),tiles.end());
+                    // Tiles fill their cells while their labels remain compact.
                     for(const auto & tile:tiles)
-                        CPPUI::Label(std::string(tile.name)+"\n"+std::to_string(tile.rows)+"×"+std::to_string(tile.columns)).id(tile.name)
+                        for(auto box:CPPUI::VBox().id(tile.name)
                             .grid(CPPUI::grid::rowspan(tile.rows),CPPUI::grid::columnspan(tile.columns))
                             .visible(std::string(tile.name)!="C" || bool(model.gridShowC))
-                            .style(CPPUI::style::bgColor(tile.background),CPPUI::style::color(tile.foreground))
-                            .layout(CPPUI::layout::height(tile.rows*60),CPPUI::layout::padding(6));
+                            .style(CPPUI::style::bgColor(tile.background))
+                            .layout(CPPUI::layout::minHeight(tile.rows*60),CPPUI::layout::padding(6))) {
+                            CPPUI::Label(std::string(tile.name)+"\n"+std::to_string(tile.rows)+"×"+std::to_string(tile.columns))
+                                .style(CPPUI::style::color(tile.foreground));
+                        }
                     CPPUI::TextField(model.gridText).id("grid-editor").grid(CPPUI::grid::columnspan(1))
                         .wideGrid(384,CPPUI::grid::columnspan(2))
                         .wideGrid(576,CPPUI::grid::columnspan(3))

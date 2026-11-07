@@ -205,15 +205,8 @@ int main(int argc,char ** argv) {
                 auto a=find(expanded,"a"),b=find(expanded,"b"),c=find(expanded,"c"),d=find(expanded,"d");
                 require(b->outer()==original,"expansion recreated the tile");
                 require(b->grid_cell->rowspan==(fills ? 2 : 1),"content grid expansion span differs");
-#if defined(CPPUI_TEST_QT)
                 require(nativeSize(b).height==60 && nativeSize(d).width==40,
                     "explicitly sized grid labels did not remain compact inside expanded spans");
-#else
-                require(fills ? nativeSize(b).height==nativeSize(a).height : nativeSize(b).height<nativeSize(a).height,
-                    "content grid did not fill or release the expanded row span");
-                require(fills ? nativeSize(d).width==nativeSize(c).width : nativeSize(d).width<nativeSize(c).width,
-                    "content grid did not fill or release the expanded column span");
-#endif
                 if(fills && height==120) require(nativeSize(a).height==initialHeight,
                     "content grid retained a previously stretched height");
             }

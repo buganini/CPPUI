@@ -215,8 +215,8 @@ int main(int argc,char ** argv) {
                         policy.verticalPolicy()==(horizontal ? QSizePolicy::Minimum : QSizePolicy::Expanding),"Qt spacer did not rotate");
                 require(input->text()=="Draft" && input->cursorPosition()==2,"Qt direction change lost editor draft/cursor");
 #elif defined(CPPUI_TEST_WX)
-                require(static_cast<wxBoxSizer *>(hv)->GetOrientation()==(horizontal ? wxHORIZONTAL : wxVERTICAL)
-                    && static_cast<wxBoxSizer *>(vh)->GetOrientation()==(vertical ? wxVERTICAL : wxHORIZONTAL),"wx box direction differs");
+                require(static_cast<wxBoxSizer *>(static_cast<wxWindow *>(hv)->GetSizer())->GetOrientation()==(horizontal ? wxHORIZONTAL : wxVERTICAL)
+                    && static_cast<wxBoxSizer *>(static_cast<wxWindow *>(vh)->GetSizer())->GetOrientation()==(vertical ? wxVERTICAL : wxHORIZONTAL),"wx box direction differs");
                 auto box=static_cast<CPPUI::Wx::Node *>(find(boxes,"hv"));
                 require(box->horizontal==horizontal && box->vertical!=horizontal && box->expandX==(horizontal ? 3 : 1) && box->expandY==(horizontal ? 1 : 3),"wx expansion policy did not rotate");
                 require(input->GetValue()=="Draft" && input->GetInsertionPoint()==2,"wx direction change lost editor draft/cursor");

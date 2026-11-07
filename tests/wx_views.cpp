@@ -73,8 +73,10 @@ int main(int argc, char ** argv) {
             Root root(argc, argv); root.sync();
             auto stack = root.native();
             require(stack->GetPageCount() == 4 && stack->GetSelection() == 0 && editors == 3, "internal model did not start empty or pages were not grouped");
-            require(stack->GetPage(1)->GetChildren().size() == 2
-                && stack->GetPage(3)->GetChildren().empty(), "multi-root or empty view was not retained as one page");
+            require(stack->GetPage(1)->GetChildren().size() == 1
+                && stack->GetPage(1)->GetChildren().front()->GetChildren().size() == 2
+                && stack->GetPage(3)->GetChildren().size() == 1
+                && stack->GetPage(3)->GetChildren().front()->GetChildren().empty(), "multi-root or empty view was not retained as one page");
             auto editor = root.editor(0);
             wxWeakRef<wxWindow> removed = stack->GetPage(2);
             auto field = editor->field(); editor->local = 42;

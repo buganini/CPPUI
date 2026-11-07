@@ -14,6 +14,7 @@ struct Root:CPPUI::Application {
     CPPUI::State<bool> opened{false};
     bool hints=true,spacer=true,reverse=false,nativeMenus=false;
     int opens=0,closes=0;
+    CPPUI::Optional<int> background;
     void content() override {
         for(auto w:CPPUI::Window().size(640,420).id("window")) {
             for(auto bar:CPPUI::MenuBar().native(nativeMenus).id("menubar")) {
@@ -23,7 +24,9 @@ struct Root:CPPUI::Application {
                     for(auto m:CPPUI::Menu(i?"Second":"First").id(i?"m2":"m1")) CPPUI::MenuAction("About").native(false).id(i?"a2":"a1");
                 }
             }
-            for(auto box:CPPUI::VBox()) {
+            auto & declaration=CPPUI::VBox();declaration.id("panel");
+            if(background) declaration.style(CPPUI::style::bgColor(*background));
+            for(auto box:declaration) {
                 auto & label=CPPUI::Label("A & B");if(hints)label.layout(CPPUI::layout::width(70),CPPUI::layout::minWidth(130),CPPUI::layout::minHeight(35));label.id("label");
                 CPPUI::Button("A & B").id("button");
                 CPPUI::Html("<a href='https://example.org'>Link</a>").openURL(false).id("html");
@@ -43,6 +46,15 @@ int main(int argc,char ** argv) {
 #else
         auto nativeLabel=static_cast<wxStaticText *>(label);require(nativeLabel->GetMinSize()==wxSize(130,35),"wx minimum hints");
         require(nativeLabel->GetLabelText()=="A & B" && static_cast<wxButton *>(find(root,"button")->outer())->GetLabelText()=="A & B","literal ampersands");
+#endif
+        #if defined(CPPUI_BACKEND_WX)
+        auto panel=static_cast<wxPanel *>(find(root,"panel")->outer());
+        const auto defaultBackground=panel->GetBackgroundColour();
+        for(int color:{0x244B5A,0xA84A3A,-1}) {
+            root.background=color<0 ? CPPUI::Optional<int>() : CPPUI::Optional<int>(color);root.mount();
+            require(find(root,"panel")->outer()==panel && find(root,"label")->outer()==label && nativeLabel->GetParent()==panel,"layout background change replaced native panel or child");
+            require(panel->GetBackgroundColour()==(color<0 ? defaultBackground : CPPUI::Wx::Widget::colour(color)),"layout background did not apply or reset");
+        }
 #endif
         root.hints=false;root.mount();require(find(root,"label")->outer()==label,"hint update replaced widget");
 #if defined(CPPUI_BACKEND_QT)

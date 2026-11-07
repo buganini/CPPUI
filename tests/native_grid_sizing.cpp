@@ -15,9 +15,17 @@ struct Root:CPPUI::Application {
     using Application::Application;
     CPPUI::State<std::string> text{std::string("value")};
     CPPUI::Optional<int> weight;
-    bool automatic=false,editors=true,gap=false,minimum=false;
+    bool automatic=false,editors=true,gap=false,minimum=false,cells=false;
     void content() override {
         for(auto w:CPPUI::Window().size(700,400)) {
+            if(cells) {
+                for(auto grid:CPPUI::Grid().layout(CPPUI::layout::weight(1))) {
+                    CPPUI::Label("Tall").layout(120,180).grid(CPPUI::grid::row(0),CPPUI::grid::column(0));
+                    CPPUI::Button("Connect").id("compact-button").layout({}, {},weight).grid(CPPUI::grid::row(0),CPPUI::grid::column(1));
+                    CPPUI::TextField(text).id("wide-field").grid(CPPUI::grid::row(1),CPPUI::grid::column(1));
+                }
+                return;
+            }
             auto & declaration=CPPUI::Grid();if(automatic) declaration.columns(3,CPPUI::grid::expandChildren(false));
             for(auto grid:declaration.layout(CPPUI::layout::padding(0)).id("grid")) {
                 auto & label=CPPUI::Label("Field").id("label").grid(CPPUI::grid::row(0),CPPUI::grid::column(0)).layout({}, {},weight);
@@ -74,6 +82,18 @@ int main(int argc,char ** argv) {
             require(find(root,"gap") && root.extent("input",true)>300,"placed Spacer lost its track or expansion");
             root.gap=false;root.mount();
             require(!find(root,"gap") && find(root,"input")->outer()==editor,"Spacer removal damaged retained cells");
+        }
+        root.cells=true;root.weight={};root.mount();
+        auto button=find(root,"compact-button")->outer();
+        const auto naturalWidth=root.extent("compact-button",true),naturalHeight=root.extent("compact-button",false);
+        require(naturalWidth<200 && naturalHeight<80,"button grew to its tall neighbour's cell");
+        for(int weight:{1,0,-1,1,-1}) {
+            root.weight=weight<0 ? CPPUI::Optional<int>() : CPPUI::Optional<int>(weight);root.mount();
+            require(find(root,"compact-button")->outer()==button,"cell weight replaced the button");
+            require(weight==1 ? root.extent("compact-button",true)>300 && root.extent("compact-button",false)>180
+                : root.extent("compact-button",true)==naturalWidth && root.extent("compact-button",false)==naturalHeight,
+                "grid cell did not apply or reset expansion on both axes");
+            require(root.extent("wide-field",true)>300 && root.extent("wide-field",false)<80,"TextField must expand only horizontally");
         }
     } catch(const std::exception & e) {std::cerr<<e.what()<<'\n';result=1;}
 #if defined(CPPUI_BACKEND_LVGL)

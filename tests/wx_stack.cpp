@@ -52,7 +52,8 @@ int main(int argc,char ** argv) {
             && topLabel->GetBackgroundStyle()==wxBG_STYLE_TRANSPARENT
             && (topLabel->GetWindowStyleFlag() & wxCLIP_SIBLINGS),"nested Stack label did not select transparent generic painting");
 #endif
-        require(dynamic_cast<wxPanel *>(panel) && bottom->GetParent()==panel && top->GetParent()==panel,"Stack does not own a native panel");
+        require(dynamic_cast<wxPanel *>(panel) && bottom->GetParent()==find(root,"bottom")->outer() && top->GetParent()==find(root,"top")->outer()
+            && bottom->GetParent()->GetParent()==panel && top->GetParent()->GetParent()==panel,"Stack does not own a native panel");
         require(panel->GetForegroundColour()==wxColour(0x12,0x34,0x56) && bottom->GetForegroundColour()!=panel->GetForegroundColour(),"own foreground leaked into child");
         require(panel->GetBackgroundColour()==wxColour(0xab,0xcd,0xef),"Stack background was not applied");
         require(bottom->GetRect()==top->GetRect(),"nested layers do not overlap");

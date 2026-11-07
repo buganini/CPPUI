@@ -66,7 +66,7 @@ int main(int argc, char ** argv) {
             require(root.builds == 1 && root.setups == 1, "setup/build repeated");
             wxWeakRef<wxWindow> frame(root.window()->ui), a(root.button(0)), b(root.button(1)), c(root.button(2));
             auto originalFont = static_cast<CPPUI::Wx::Widget *>(root.box()->children->at(0))->native->font;
-            require(a->GetParent() == root.window()->panel, "controls have incorrect parent");
+            require(a->GetParent() == root.box()->window(), "controls have incorrect parent");
             auto & mount = root.box()->mounts.at(0);
             require(mount.item->GetProportion() == 2 && mount.padding[0]->GetMinSize().y == 1 && mount.padding[3]->GetMinSize().x == 4, "padding/weight ignored");
             require(static_cast<CPPUI::Wx::Widget *>(root.box()->children->at(0))->native->backgroundCustomized, "custom background was not tracked");

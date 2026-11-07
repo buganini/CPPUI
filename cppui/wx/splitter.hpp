@@ -89,7 +89,7 @@ public:
             if(!panes.empty()) {
                 wxWindow * tail=panes.back().panel;tail->Show();
                 for(int i=int(panes.size())-2;i>=0;--i) {
-                    auto splitter=new wxSplitterWindow(ui,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxSP_LIVE_UPDATE);
+                    auto splitter=new wxSplitterWindow(ui,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxSP_LIVE_UPDATE | wxSP_3DSASH);
                     splitter->SetMinimumPaneSize(1);
                     splitter->SetSashGravity(1.0/(panes.size()-i));
                     auto first=panes[i].panel;first->Reparent(splitter);tail->Reparent(splitter);

@@ -14,6 +14,7 @@ namespace CPPUI {
 
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new Widget<QSplitter>();
+                if(!prev || !prev->ui) static_cast<QSplitter *>(ui)->setHandleWidth(std::max(8,static_cast<QSplitter *>(ui)->handleWidth()));
                 static_cast<QSplitter *>(ui)->setOrientation(vertical ? ::Qt::Vertical : ::Qt::Horizontal);
             }
             void addChild(int idx, Node * child) override {

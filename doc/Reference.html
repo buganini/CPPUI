@@ -188,25 +188,25 @@ are described in the component sections and backend plans.</p>
 <tr>
 <td><a href="#box-layouts">HBox</a></td>
 <td class="support-yes">QHBoxLayout</td>
-<td class="support-yes">wxBoxSizer</td>
+<td class="support-yes">wxPanel + wxBoxSizer</td>
 <td class="support-yes">flex_flow</td>
 </tr>
 <tr>
 <td><a href="#box-layouts">VBox</a></td>
 <td class="support-yes">QVBoxLayout</td>
-<td class="support-yes">wxBoxSizer</td>
+<td class="support-yes">wxPanel + wxBoxSizer</td>
 <td class="support-yes">flex_flow</td>
 </tr>
 <tr>
 <td><a href="#adaptive-box-layouts">HVBox / VHBox</a></td>
 <td class="support-yes">QBoxLayout</td>
-<td class="support-yes">wxBoxSizer</td>
+<td class="support-yes">wxPanel + wxBoxSizer</td>
 <td class="support-yes">flex_flow</td>
 </tr>
 <tr>
 <td><a href="#grid-and-stack">Grid / Stack</a></td>
 <td class="support-yes">QGridLayout / QStackedLayout</td>
-<td class="support-yes">wxGridBagSizer / wxPanel + overlay wxSizer</td>
+<td class="support-yes">wxPanel + wxGridBagSizer / overlay wxSizer</td>
 <td class="support-yes">Native grid / shared native grid cell</td>
 </tr>
 <tr>
@@ -564,7 +564,7 @@ see the backend mappings below when a design needs more control.</p>
 on that axis. <code>minWidth</code>/<code>minHeight</code> are lower bounds that preserve the
 component's normal expansion priority. When both are present, the native minimum
 is their maximum. Explicit positive weight still requests expansion; Qt native
-size-policy overrides keep precedence. In Qt Grid, compact children retain their
+size-policy overrides keep precedence. In Qt, wx and LVGL Grids, compact children retain their
 content size even when another child enlarges the same track.</p>
 <p>Node fields store dimensions, weight, colors and font size/weight in
 <code>Optional&lt;int&gt;</code>, padding and margin in <code>Optional&lt;Insets&gt;</code>, and font family as a
@@ -1239,8 +1239,10 @@ that dimension is explicit; dividers retain their one-pixel thickness.</p>
 <p>The parent container determines each child's final position and size.
 Width, height and weight express sizing requirements interpreted by that
 container as fixed, preferred or minimum dimensions, or allocation weights.
-Grid children fill their assigned cells, including expanded spans; a declared
-height of 60 does not prevent filling a taller cell. HBox and VBox retain their
+Grid children expand only on axes with positive expansion priority. Compact
+children keep their natural or requested size, aligned left and vertically centered
+inside the cell. Explicit positive weight requests expansion on both axes.
+<code>expandChildren</code> changes assigned spans without forcing compact controls to stretch. HBox and VBox retain their
 linear expansion priorities, weights and cross-axis rules. This does not make
 every child stretch or discard its size requirements.</p>
 <p>Qt, wx and LVGL expose <code>Grid()</code> through their <code>layout.hpp</code> or <code>grid.hpp</code>.
@@ -1360,8 +1362,8 @@ Spacers and reclaims the unmounted native items.</p>
 rules. Automatic axes measure visible cells and include their margins. Single
 cells establish each track's size; any additional space needed by a spanning
 cell is shared across its tracks. This also handles grids containing only
-spanning cells, which native <code>LV_GRID_CONTENT</code> alone does not measure. Children
-fill their assigned cells, including expanded spans. Intrinsic track sizes
+spanning cells, which native <code>LV_GRID_CONTENT</code> alone does not measure. Children expand within their assigned cells only on axes with expansion demand;
+compact controls stay left-aligned and vertically centered, including in expanded spans. Intrinsic track sizes
 include spanning content and margins; allocated axes distribute extra space
 only to tracks selected by shared expansion priorities. Declared child weights
 set track demand on both axes. Explicit Grid dimensions, parent allocation and
@@ -1802,12 +1804,14 @@ the examples identifying these fallbacks.</p>
 <h2 id="splitter">Splitter</h2>
 <p>Include <code>cppui/qt/splitter.hpp</code> and use <code>Splitter(vertical = false)</code> as a child
 construction scope. It defaults to horizontal; <code>Splitter(true)</code> is vertical.
+New Qt splitters use handles at least 8 pixels wide for easier dragging.
 Redraw updates orientation while retaining the native splitter and its panes.
 Unchanged redraw preserves user-adjusted pane sizes. Keyed children can move,
 be inserted or removed, including flattened virtual subviews. Nested splitters
 are supported; removed panes follow the normal deferred-deletion lifecycle.</p>
 <p>For wx, include <code>cppui/wx/splitter.hpp</code> and use the same <code>Splitter(vertical = false)</code>
-scope. It follows PUI/wx's nested native two-pane splitters to support any number
+scope. Native sashes use the thicker <code>wxSP_3DSASH</code> style.
+It follows PUI/wx's nested native two-pane splitters to support any number
 of children, including zero and one. Each child has a native pane panel; widgets,
 layouts and flattened virtual views are supported, with their padding and minimum
 size applied inside the pane. A hidden child hides its content but retains its pane.</p>
@@ -1832,6 +1836,11 @@ at least one pixel wide/high when space permits. Very small containers shrink
 the handles and may leave zero-sized panes. The shared Splitter cookbook runs
 on both SDL2 and X11.</p>
 <h2 id="wx-controls">wx controls</h2>
+<p>wx HBox, VBox and Grid retain a native panel that paints their background and owns
+their controls. Changing or removing a background preserves the panel and children.
+Grid cells follow shared expansion priorities on each axis; compact children remain
+left-aligned and vertically centered. For a colored tile that fills its cells,
+use a VBox with <code>minHeight</code> around a compact Label.</p>
 <p>wx HBox centers compact children vertically; VBox aligns compact children to
 the left. Children requesting cross-axis expansion still fill that axis.
 Omitted background colors preserve native defaults; removing an explicit
