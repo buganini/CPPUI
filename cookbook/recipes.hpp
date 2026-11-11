@@ -63,6 +63,7 @@ namespace Cookbook {
         CPPUI::State<int> progress{50};
         CPPUI::State<int> rotation{15};
         CPPUI::State<std::string> buttonValue{std::string("A")};
+        CPPUI::State<int> imageClicks{0};
         CPPUI::State<bool> modalOpen{false};
         CPPUI::State<std::string> bindingChoice{std::string("Value 1")};
         CPPUI::State<CPPUI::OptionalText> directory{CPPUI::OptionalText()};
