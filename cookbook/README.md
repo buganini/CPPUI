@@ -346,3 +346,7 @@ subviews, callback retirement and native teardown, including Valgrind.
 
 HeavyCanvas follows PUI `39759a2`/`e46cb43`: completed-draw FPS, optional
 continuous drawing and full-frame color changes are available on Qt/wx/LVGL.
+
+Box pages demonstrate default 10px gaps and explicit 12px gaps. Adaptive Grid uses
+an 8px gap. ComboBox includes a State-bound FontComboBox and font-family preview;
+LVGL selects names but renders with its compiled font.

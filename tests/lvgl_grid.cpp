@@ -44,7 +44,7 @@ namespace {
         int lastRow=2;
         void content() override {
             for(auto window:CPPUI::Window()) for(auto box:row ? static_cast<CPPUI::Node &>(CPPUI::HBox()) : CPPUI::VBox()) if(show) {
-                for(auto grid:CPPUI::Grid().id("grid").layout(width,height,CPPUI::Optional<int>(grow ? 1 : 0),CPPUI::Insets(3,5,7,11))) {
+                for(auto grid:CPPUI::Grid(6).id("grid").layout(width,height,CPPUI::Optional<int>(grow ? 1 : 0),CPPUI::Insets(3,5,7,11))) {
                     for(const auto & key:keys) {
                         auto & item=CPPUI::Label(key);item.id(key);item.layout_weight=1;
                         if(key=="a") cell(item,0,0,0,0).layout(30,20);
@@ -113,7 +113,7 @@ namespace {
         bool automatic=false;
         void content() override {
             for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox()) {
-                auto & declaration=CPPUI::Grid();
+                auto & declaration=CPPUI::Grid(6);
                 if(automatic) declaration.columns(1);
                 for(auto grid:declaration.layout({},height,0).id("grid")) {
                     cell(CPPUI::Label(text).id("text"),0,0,2);
@@ -127,8 +127,8 @@ namespace {
     public:
         void content() override {
             for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox())
-                for(auto outer:CPPUI::Grid().columns(1).layout({},height,0).id("grid")) {
-                    auto & declaration=CPPUI::Grid();
+                for(auto outer:CPPUI::Grid(6).columns(1).layout({},height,0).id("grid")) {
+                    auto & declaration=CPPUI::Grid(6);
                     if(automatic) declaration.columns(1);
                     for(auto inner:declaration) {
                         cell(CPPUI::Label(text).id("text"),0,0,2);
@@ -160,8 +160,8 @@ namespace {
         bool hidden=false,show=true;
         void content() override {
             for(auto window:CPPUI::Window()) if(show) for(auto stack:CPPUI::Stack()) {
-                for(auto outer:CPPUI::Grid().id("outer")) {
-                    for(auto grid:cell(CPPUI::Grid().id("inner").visible(!hidden),0,0)) {
+                for(auto outer:CPPUI::Grid(6).id("outer")) {
+                    for(auto grid:cell(CPPUI::Grid(6).id("inner").visible(!hidden),0,0)) {
                         cell(CPPUI::TextField(text).id("editor"),0,0);
                         cell((new Cells(count))->id("cells"),1,0);
                     }

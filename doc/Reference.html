@@ -121,6 +121,7 @@
 <li><a href="#maskedfield">MaskedField</a></li>
 <li><a href="#scroll">Scroll</a></li>
 <li><a href="#combobox">ComboBox</a></li>
+<li><a href="#fontcombobox">FontComboBox</a></li>
 <li><a href="#radiobutton">RadioButton</a></li>
 <li><a href="#checkbox">Checkbox</a></li>
 <li><a href="#progressbar">ProgressBar</a></li>
@@ -262,6 +263,12 @@ are described in the component sections and backend plans.</p>
 <td class="support-yes">QLineEdit password mode</td>
 <td class="support-yes">wxTextCtrl password style</td>
 <td class="support-yes">lv_textarea password mode</td>
+</tr>
+<tr>
+<td><a href="#fontcombobox">FontComboBox</a></td>
+<td class="support-yes">QFontComboBox / explicit list</td>
+<td class="support-yes">System families + ComboBox</td>
+<td class="support-partial">Supplied names; compiled fonts only</td>
 </tr>
 <tr>
 <td><a href="#combobox">ComboBox / ComboBoxItem</a></td>
@@ -1090,6 +1097,32 @@ forcing one axis while leaving the other automatic throws instead of silently
 changing the policy. Independent mixed modes, <code>.scrollX()</code>/<code>.scrollY()</code> and signed
 end anchoring remain unimplemented. This public component serves the gallery
 sidebar; the full Scroll recipe is still Qt-only.</p>
+<h2 id="fontcombobox">FontComboBox</h2>
+<p>Include the backend's <code>fontcombobox.hpp</code>, or its umbrella header.
+<code>FontComboBox(Binding&lt;std::string&gt; model)</code> selects a font-family name.
+Use <code>FontComboBox(model, {"Arial", "Noto Sans", "monospace"})</code> to supply
+an explicit list. Names must be nonempty and not whitespace-only; order is preserved,
+duplicates are removed, and an empty list is allowed. The control declares its own
+items; application code does not add ComboBoxItem children.</p>
+<pre><code class="language-cpp">CPPUI::FontComboBox(model.font).id("font-picker");
+CPPUI::FontComboBox(model.font, {"serif", "sans-serif", "monospace"})
+    .disabled(readOnly).change([]() { /* selected family changed */ });
+</code></pre>
+<p>Qt's default picker uses QFontComboBox with native font-face previews; an explicit
+list uses QComboBox. wx enumerates system font families. LVGL defaults to
+<code>sans-serif</code>, <code>serif</code> and <code>monospace</code> as selectable names,
+without enumerating or loading fonts. Only Qt's native picker previews faces in its list.</p>
+<p>User selection writes the family name to the binding and invokes <code>.change()</code>.
+Programmatic changes update the selection even while disabled. Building or updating
+the picker never replaces an unavailable family in the model. Changing an explicit
+list preserves the native control; switching Qt between its native picker and an
+explicit list changes the native control type.</p>
+<p>A family name is not a font-file path. Font loading, bundling, size and weight are
+separate concerns. LVGL continues to render using its supported compiled font; selecting
+another name does not load that font. Unsupported names passed to LVGL
+<code>style::fontFamily</code> are rejected; its cookbook preview uses Montserrat. <code>style::fontFamily</code> borrows a C string,
+so keep its storage alive for the declaration. The <a href="../cookbook/combobox.cpp">ComboBox cookbook</a>
+shows a bound picker and preview with stable name storage.</p>
 <h2 id="combobox">ComboBox</h2>
 <p>Include <code>cppui/qt/combobox.hpp</code>, <code>cppui/lvgl/combobox.hpp</code> or <code>cppui/wx/combobox.hpp</code>.
 <code>ComboBox(editable, model)</code> accepts an integer index binding or a string value
@@ -1201,6 +1234,20 @@ deletion also cancels it. Negative maxima and non-finite or unrepresentable
 numbers throw <code>std::out_of_range</code> before changing mounted UI. The bar uses the
 LVGL theme and does not draw a percentage label.</p>
 <h2 id="box-layouts">Box layouts</h2>
+<p><code>HBox(inverse = false, gap = 10)</code> and
+<code>VBox(inverse = false, gap = 10)</code> add spacing between visible children,
+including Spacers, without adding outer padding. Gap is a finite nonnegative number
+of logical pixels, rounded to the nearest integer with ties to even. Child padding
+and margins remain independent. Changing the gap preserves child identity.
+Hidden children add no gap; reversed order follows the same rule.</p>
+<pre><code class="language-cpp">for(auto box: CPPUI::VBox(false, 12)) {
+    CPPUI::Label("First");
+    CPPUI::Label("Second");
+}</code></pre>
+<p><code>HVBox(minWidth, inverseH = false, inverseV = false, gap = 10)</code> and
+<code>VHBox(minHeight, inverseH = false, inverseV = false, gap = 10)</code> apply the
+gap along their active main axis. CPPUI currently has graphical backends only,
+so PUI's terminal-cell <code>tGap</code> option does not apply.</p>
 <p><code>HBox(bool inverse = false)</code> and <code>VBox(bool inverse = false)</code> reverse visual
 child order when <code>inverse</code> is true. The existing widgets, editor drafts and
 selection remain alive. Virtual views participate as flattened children;
@@ -1232,9 +1279,15 @@ not another layout, and zero padding when nested. Native QBoxLayout margins are
 zero to avoid adding a second layer of spacing. Use <code>.layout(...)</code> to override
 padding/dimensions and set each child's weight. Redraw updates stretch and resets
 omitted properties, including children rebuilt by independent virtual views.
-LVGL boxes use a six-pixel gap and apply cross-axis expansion demand unless
+LVGL boxes default to a ten-pixel gap and apply cross-axis expansion demand unless
 that dimension is explicit; dividers retain their one-pixel thickness.</p>
 <h2 id="grid-and-stack">Grid and Stack</h2>
+<p><code>Grid(gap = 10)</code> accepts a scalar for both axes or
+<code>CPPUI::Gap{rowGap, columnGap}</code>. For example,
+<code>Grid({8, 12}).columns(2)</code> uses 8px between rows and 12px between columns.
+Gaps separate tracks, with no outer gap; spanning cells include the internal gaps.
+Values follow the same validation and rounding as Box gaps. Hidden auto-placed
+children reserve no cells; explicit coordinates can still leave empty tracks.</p>
 <h3 id="container-precedence">Container precedence</h3>
 <p>The parent container determines each child's final position and size.
 Width, height and weight express sizing requirements interpreted by that
@@ -1368,7 +1421,7 @@ include spanning content and margins; allocated axes distribute extra space
 only to tracks selected by shared expansion priorities. Declared child weights
 set track demand on both axes. Explicit Grid dimensions, parent allocation and
 Grid weight select allocated axes.
-The default row/column gap is 6 pixels. Nested padding follows HBox/VBox.
+The default row/column gap is 10 pixels. Nested padding follows HBox/VBox.
 Hidden cells retain native state without contributing to track sizing; removed
 or hidden trailing cells allow automatic dimensions to shrink. Unplaced manual
 declarations are reclaimed. Placed Spacers participate in track allocation without

@@ -3,6 +3,7 @@
 
 #include "base.hpp"
 #include "../grid.hpp"
+#include "../gap.hpp"
 #include <QGridLayout>
 
 namespace CPPUI { namespace Qt {
@@ -11,7 +12,8 @@ namespace CPPUI { namespace Qt {
         void clearNative() override { qtlayout = nullptr; gridChildren.clear(); BaseWidget::clearNative(); }
         public:
         QGridLayout * qtlayout = nullptr;
-        Grid() { is_grid_layout = true; expandX=expandY=1; }
+        Gap spacing;
+        explicit Grid(Gap gap=10):spacing(gap) { is_grid_layout = true; expandX=expandY=1; }
         void update(BaseWidget * previous) override {
             auto prev = static_cast<Grid *>(previous);
             retainGrid(prev && prev->ui ? prev : nullptr);
@@ -36,6 +38,7 @@ namespace CPPUI { namespace Qt {
         }
         void postSync() override {
             if(!qtlayout) return;
+            qtlayout->setVerticalSpacing(spacing.rows); qtlayout->setHorizontalSpacing(spacing.columns);
             auto placed=cells();
             const auto columns=::CPPUI::detail::nativeStretches(::CPPUI::detail::trackStretches(placed,true,this));
             const auto rows=::CPPUI::detail::nativeStretches(::CPPUI::detail::trackStretches(placed,false,this));
@@ -62,5 +65,5 @@ namespace CPPUI { namespace Qt {
         }
     };
 }}
-namespace CPPUI { inline Qt::Grid & Grid() { return *new Qt::Grid(); } }
+namespace CPPUI { inline Qt::Grid & Grid(Gap gap=10) { return *new Qt::Grid(gap); } }
 #endif

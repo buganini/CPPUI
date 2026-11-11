@@ -1,3 +1,4 @@
+#include <set>
 #ifndef CPPUI_COOKBOOK_RECIPES
 #define CPPUI_COOKBOOK_RECIPES
 
@@ -48,6 +49,8 @@ namespace Cookbook {
         CPPUI::State<std::string> tablePrice{std::string()};
         CPPUI::State<int> scrollRows{100};
         CPPUI::State<int> comboIndex{-1};
+        CPPUI::State<std::string> comboFont{std::string("monospace")};
+        std::set<std::string> previewFontNames;
         CPPUI::State<std::string> comboText{std::string()}, destination{std::string()}, comboDisabledText{std::string("Value 2")};
         CPPUI::State<std::string> destinationQuery{std::string()};
         CPPUI::State<std::string> password{std::string()}, bufferedPassword{std::string()}, passwordEditing{std::string()};

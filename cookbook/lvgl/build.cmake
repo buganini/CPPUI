@@ -10,6 +10,12 @@ set_target_properties(${cppui_lvgl_target} PROPERTIES
     CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
 
 if(BUILD_TESTING)
+    foreach(feature gap fontcombobox)
+        add_executable(cppui_lvgl_${feature} "${cppui_lvgl_dir}/../../tests/native_${feature}.cpp")
+        target_link_libraries(cppui_lvgl_${feature} PRIVATE CPPUI::lvgl)
+        set_target_properties(cppui_lvgl_${feature} PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+        cppui_add_test(lvgl.${feature} cppui_lvgl_${feature})
+    endforeach()
     add_executable(cppui_lvgl_grid_sizing "${cppui_lvgl_dir}/../../tests/native_grid_sizing.cpp")
     target_link_libraries(cppui_lvgl_grid_sizing PRIVATE CPPUI::lvgl)
     set_target_properties(cppui_lvgl_grid_sizing PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
@@ -143,7 +149,7 @@ if(BUILD_TESTING)
         endif()
     endif()
 
-    foreach(header adaptive application runtime base button canvas checkbox combobox divider font grid image label layout progressbar radiobutton scroll spacer splitter stack tab table text textfield textedit timeline views window)
+    foreach(header adaptive application runtime base button canvas checkbox combobox fontcombobox divider font grid image label layout progressbar radiobutton scroll spacer splitter stack tab table text textfield textedit timeline views window)
         set(source "${CMAKE_CURRENT_BINARY_DIR}/header_lvgl_${header}.cpp")
         file(WRITE "${source}"
             "#include \"cppui/lvgl/${header}.hpp\"\n#include \"cppui/lvgl/${header}.hpp\"\n")

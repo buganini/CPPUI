@@ -2,6 +2,7 @@
 #define CPPUI_LVGL_LAYOUT
 
 #include "base.hpp"
+#include "../gap.hpp"
 #include "spacer.hpp"
 #include "divider.hpp"
 
@@ -9,6 +10,7 @@ namespace CPPUI { namespace LVGL {
     class Box: public Layout {
         protected:
         bool horizontal, inverse;
+        int spacing;
         bool configuring=false, configured=false, filledMain=false, filledCross=false;
         bool preciseWeights=false;
         int lastBudget=-1;
@@ -105,7 +107,7 @@ namespace CPPUI { namespace LVGL {
         bool expansionAxis(bool x) const override { return x==horizontal; }
         bool reflowChildren() const override { return true; }
         void postSync() override { configure(true); }
-        explicit Box(bool horizontal,bool inverse=false): horizontal(horizontal),inverse(inverse) {}
+        explicit Box(bool horizontal,bool inverse=false,double gap=10): horizontal(horizontal),inverse(inverse),spacing(::CPPUI::detail::gapPixels(gap)) {}
         void update(Node * previous) override {
             ui = previous && previous->ui ? previous->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));
             auto object = static_cast<lv_obj_t *>(ui);
@@ -117,29 +119,29 @@ namespace CPPUI { namespace LVGL {
             lv_obj_set_style_border_width(object, 0, 0);
             lv_obj_set_style_radius(object, 0, 0);
             lv_obj_set_style_pad_all(object, dynamic_cast<Layout *>(dom_parent) ? 0 : 11, 0);
-            lv_obj_set_style_pad_row(object, 6, 0); lv_obj_set_style_pad_column(object, 6, 0);
+            lv_obj_set_style_pad_row(object, spacing, 0); lv_obj_set_style_pad_column(object, spacing, 0);
             lv_obj_set_size(object, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
             lv_obj_set_scrollable(object, false);
         }
         void layoutChild(Node *) override { configure(true); }
 
     };
-    class HBox: public Box { public: explicit HBox(bool inverse=false): Box(true,inverse) {} };
-    class VBox: public Box { public: explicit VBox(bool inverse=false): Box(false,inverse) {} };
+    class HBox: public Box { public: explicit HBox(bool inverse=false,double gap=10): Box(true,inverse,gap) {} };
+    class VBox: public Box { public: explicit VBox(bool inverse=false,double gap=10): Box(false,inverse,gap) {} };
     class HVBox: public Box {
         public:
-        explicit HVBox(int minWidth,bool inverseH=false,bool inverseV=false):Box(false) { horizontal=::CPPUI::detail::adaptiveHorizontal(*this,minWidth,true);inverse=horizontal ? inverseH : inverseV; }
+        explicit HVBox(int minWidth,bool inverseH=false,bool inverseV=false,double gap=10):Box(false,false,gap) { horizontal=::CPPUI::detail::adaptiveHorizontal(*this,minWidth,true);inverse=horizontal ? inverseH : inverseV; }
     };
     class VHBox: public Box {
         public:
-        explicit VHBox(int minHeight,bool inverseH=false,bool inverseV=false):Box(true) { horizontal=::CPPUI::detail::adaptiveHorizontal(*this,minHeight,false);inverse=horizontal ? inverseH : inverseV; }
+        explicit VHBox(int minHeight,bool inverseH=false,bool inverseV=false,double gap=10):Box(true,false,gap) { horizontal=::CPPUI::detail::adaptiveHorizontal(*this,minHeight,false);inverse=horizontal ? inverseH : inverseV; }
     };
 }}
 namespace CPPUI {
-    inline LVGL::HBox & HBox(bool inverse=false) { return *new LVGL::HBox(inverse); }
-    inline LVGL::VBox & VBox(bool inverse=false) { return *new LVGL::VBox(inverse); }
-    inline LVGL::HVBox & HVBox(int minWidth,bool inverseH=false,bool inverseV=false) { return *new LVGL::HVBox(minWidth,inverseH,inverseV); }
-    inline LVGL::VHBox & VHBox(int minHeight,bool inverseH=false,bool inverseV=false) { return *new LVGL::VHBox(minHeight,inverseH,inverseV); }
+    inline LVGL::HBox & HBox(bool inverse=false,double gap=10) { return *new LVGL::HBox(inverse,gap); }
+    inline LVGL::VBox & VBox(bool inverse=false,double gap=10) { return *new LVGL::VBox(inverse,gap); }
+    inline LVGL::HVBox & HVBox(int minWidth,bool inverseH=false,bool inverseV=false,double gap=10) { return *new LVGL::HVBox(minWidth,inverseH,inverseV,gap); }
+    inline LVGL::VHBox & VHBox(int minHeight,bool inverseH=false,bool inverseV=false,double gap=10) { return *new LVGL::VHBox(minHeight,inverseH,inverseV,gap); }
 }
 #include "stack.hpp"
 #include "grid.hpp"

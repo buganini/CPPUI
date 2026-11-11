@@ -2,6 +2,7 @@
 #define CPPUI_WX_GRID
 #include "base.hpp"
 #include "../grid.hpp"
+#include "../gap.hpp"
 #include <wx/gbsizer.h>
 namespace CPPUI { namespace Wx {
 class Grid: public ::CPPUI::detail::GridLayout<Layout> {
@@ -12,7 +13,8 @@ class Grid: public ::CPPUI::detail::GridLayout<Layout> {
         wxSizerObject->Clear(false);mounts.clear();
     }
 public:
-    Grid() { expandX=expandY=1; }
+    Gap spacing;
+    explicit Grid(Gap gap=10):spacing(gap) { expandX=expandY=1; }
     wxSizer * createSizer() override { return new wxGridBagSizer(); }
     void update(::CPPUI::Node * previous) override {
         auto prev=static_cast<Grid *>(previous);
@@ -31,6 +33,7 @@ public:
         auto placed=cells();
         detach();
         auto nativeGrid=static_cast<wxGridBagSizer *>(wxSizerObject);
+        nativeGrid->SetVGap(spacing.rows); nativeGrid->SetHGap(spacing.columns);
         for(int column:growable) nativeGrid->RemoveGrowableCol(column);
         for(int row:growableRows) nativeGrid->RemoveGrowableRow(row);
         growable.clear();growableRows.clear();
@@ -69,6 +72,6 @@ public:
         mount.content->SetFlag(mount.node->expansionPriority(false,this)>0 ? int(wxEXPAND) : int(wxALIGN_CENTER_VERTICAL)); } }
 };
 }
-inline Wx::Grid & Grid() { return *new Wx::Grid(); }
+inline Wx::Grid & Grid(Gap gap=10) { return *new Wx::Grid(gap); }
 }
 #endif

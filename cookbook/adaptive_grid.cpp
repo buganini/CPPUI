@@ -20,7 +20,7 @@ namespace Cookbook {
             CPPUI::Optional<bool> dense;
             if(mode!="ordered") dense=mode=="dense";
             for(auto scroll:CPPUI::Scroll().layout(CPPUI::layout::weight(1))) {
-                for(auto scope:CPPUI::Grid().columns(1,CPPUI::grid::dense(dense),CPPUI::grid::expandChildren(model.gridExpand))
+                for(auto scope:CPPUI::Grid(8).columns(1,CPPUI::grid::dense(dense),CPPUI::grid::expandChildren(model.gridExpand))
                     .wideColumns(384,2)
                     .wideColumns(576,3)
                     .wideColumns(768,4).id("adaptive-grid")) {

@@ -317,12 +317,14 @@ namespace CPPUI {
 
             public:
             QBoxLayout * qtlayout = nullptr;
+            int spacing=10;
 
             void update(BaseWidget * prev) override {
                 if(prev && prev->ui) mountedChildren=std::move(static_cast<BaseLayout *>(prev)->mountedChildren);
                 update(static_cast<BaseLayout *>(prev));
                 qtlayout->setContentsMargins(0, 0, 0, 0);
                 applyPadding();
+                qtlayout->setSpacing(spacing);
             }
             virtual void update(BaseLayout * prev) = 0;
             bool reflowChildren() const override { return true; }
@@ -343,6 +345,12 @@ namespace CPPUI {
                     auto widget=dynamic_cast<BaseWidget *>(child);
                     return widget ? widget->layoutPriority(horizontal) : 0;
                 };
+                Node * firstVisible=nullptr;
+                bool onlySpacers=true;
+                for(auto child:mountedChildren) if(mounted(child) && child->layoutVisible()) {
+                    if(!firstVisible) firstVisible=child;
+                    if(!dynamic_cast<Spacer *>(child)) onlySpacers=false;
+                }
                 int highest=0;
                 for(auto child:mountedChildren) if(mounted(child) && child->layoutVisible()) highest=std::max(highest,priority(child));
                 const auto leading=horizontal ? ::Qt::AlignLeft : ::Qt::AlignTop;
@@ -364,7 +372,8 @@ namespace CPPUI {
                     qtlayout->setStretch(index,expands ? child->layout_weight.valueOr(1) : 0);
                     if(spacer) {
                         const auto main=expands ? QSizePolicy::Expanding : QSizePolicy::Fixed;
-                        spacer->ui->changeSize(0,0,horizontal ? main : QSizePolicy::Minimum,horizontal ? QSizePolicy::Minimum : main);
+                        const int extra=child->layoutVisible() && !(onlySpacers && child==firstVisible) ? spacing : 0;
+                        spacer->ui->changeSize(horizontal ? extra : 0,horizontal ? 0 : extra,horizontal ? main : QSizePolicy::Minimum,horizontal ? QSizePolicy::Minimum : main);
                     } else if(widget) {
                         const bool cross=widget->layoutPriority(!horizontal)>0;
                         qtlayout->itemAt(index)->setAlignment((expands ? ::Qt::Alignment() : leading) |

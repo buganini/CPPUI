@@ -61,7 +61,7 @@ public:
     void updateEvents() override {
         auto state = selection; auto object = native.get(); auto index = indexModel; auto text = textModel; auto callback = onChange;
         native->command = [state, object, index, text, callback]() mutable {
-            if(state->applying || !object->window) return;
+            if(state->applying || !object->window || !object->window->IsEnabled()) return;
             int i = static_cast<wxComboBox *>(object->window)->GetSelection();
             std::string value;
             state->editing = false;

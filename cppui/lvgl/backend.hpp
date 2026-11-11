@@ -21,6 +21,7 @@
 #include "text.hpp"
 #include "radiobutton.hpp"
 #include "combobox.hpp"
+#include "fontcombobox.hpp"
 #include "scroll.hpp"
 #include "splitter.hpp"
 #include "timeline.hpp"

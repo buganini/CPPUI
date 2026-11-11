@@ -18,6 +18,16 @@ namespace Cookbook {
                 CPPUI::Divider();
                 CPPUI::Label("Column 3");
             }
+            CPPUI::Divider();
+            CPPUI::Label("Default gap: 10 pixels");
+            for(auto box:CPPUI::HBox(model.inverseH)) {
+                CPPUI::Label("First"); CPPUI::Label("Second"); CPPUI::Label("Third");
+            }
+            CPPUI::Divider();
+            CPPUI::Label("gap=12 pixels");
+            for(auto box:CPPUI::HBox(model.inverseH,12)) {
+                CPPUI::Label("First"); CPPUI::Label("Second"); CPPUI::Label("Third");
+            }
         }
         CPPUI::Spacer();
     }

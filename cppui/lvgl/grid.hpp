@@ -4,6 +4,7 @@
 #include "base.hpp"
 #include "spacer.hpp"
 #include "../grid.hpp"
+#include "../gap.hpp"
 #include <limits>
 
 namespace CPPUI { namespace LVGL {
@@ -137,7 +138,8 @@ namespace CPPUI { namespace LVGL {
             Node::nativeEvent(event);
         }
     public:
-        Grid() { expandX=expandY=1;is_grid_layout=true;}
+        Gap spacing;
+        explicit Grid(Gap gap=10):spacing(gap) { expandX=expandY=1;is_grid_layout=true;}
         void destroy(bool direct) override {
             if(ui && !direct) {
                 // C++ descendants retire before their parent's native subtree.
@@ -159,7 +161,7 @@ namespace CPPUI { namespace LVGL {
             lv_obj_set_style_bg_opa(object,LV_OPA_TRANSP,0);
             lv_obj_set_style_border_width(object,0,0);lv_obj_set_style_radius(object,0,0);
             lv_obj_set_style_pad_all(object,dynamic_cast<Layout *>(dom_parent) ? 0 : 11,0);
-            lv_obj_set_style_pad_row(object,6,0);lv_obj_set_style_pad_column(object,6,0);
+            lv_obj_set_style_pad_row(object,spacing.rows,0);lv_obj_set_style_pad_column(object,spacing.columns,0);
             lv_obj_set_size(object,LV_SIZE_CONTENT,LV_SIZE_CONTENT);
             lv_obj_set_scrollable(object,false);
             lv_obj_set_grid_dsc_array(object,tracks->columns.data(),tracks->rows.data());
@@ -210,5 +212,5 @@ namespace CPPUI { namespace LVGL {
         void postUpdate() override {Node::postUpdate();configure();}
     };
 }}
-namespace CPPUI { inline LVGL::Grid & Grid() {return *new LVGL::Grid();} }
+namespace CPPUI { inline LVGL::Grid & Grid(Gap gap=10) {return *new LVGL::Grid(gap);} }
 #endif
