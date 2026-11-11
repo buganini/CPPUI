@@ -11,6 +11,7 @@ namespace Cookbook {
         const Implementation implementations[] = {
             {"stack", stack, ""},
             {"grid", grid, ""},
+            {"flow_grid", flowGrid, ""},
             {"table", table, ""},
             {"table_adapter", tableAdapter, ""},
             {"progressbar", progressbar, ""},
@@ -68,6 +69,7 @@ namespace Cookbook {
             {"stack", "Stack", nullptr, "Stack and layout options"},
             {"grid", "Grid", nullptr, "Grid placement API"},
             {"adaptive_grid", "Adaptive Grid", adaptiveGrid, ""},
+            {"flow_grid", "Flow Grid", nullptr, "Flow grid auto-placement"},
             {"label", "Label", label, ""},
             {"text", "Text", nullptr, "Text, Html and MarkDown"},
             {"button", "Button", button, ""},

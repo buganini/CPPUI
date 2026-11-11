@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QApplication>
 #include <QStyleOptionButton>
+#include <QIcon>
 
 namespace CPPUI {
     namespace Qt {
@@ -26,8 +27,10 @@ namespace CPPUI {
             bool isDisabled = false;
             public:
             std::string text;
+            std::string iconPath;
 
-            explicit Button(const std::string & text): text(text) {}
+            explicit Button(const std::string & text = ""): text(text) {}
+            Button & icon(const std::string & path) { iconPath = path; return *this; }
             Button & disabled(bool value = true) { isDisabled = value; return *this; }
             void update(BaseWidget * prev) {
                 if(prev && prev->ui) {
@@ -36,11 +39,16 @@ namespace CPPUI {
                 } else {
                     ui = new Widget<ContentButton>(QString::fromStdString(text));
                 }
+                auto button = static_cast<QPushButton *>(ui);
+                if(!iconPath.empty())
+                    button->setIcon(QIcon(QString::fromStdString(iconPath)));
+                else
+                    button->setIcon(QIcon());
                 ui->setDisabled(isDisabled);
                 // Copy before invoking user code: it may redraw or remove this
                 // declaration and disconnect the currently executing connection.
                 auto callback = onClicked;
-                connectSignal(QObject::connect(static_cast<QPushButton *>(ui),
+                connectSignal(QObject::connect(button,
                     &QPushButton::clicked, ui, [callback]() {
                         auto invoke = callback;
                         // Focus-out handlers may synchronously rebuild this button.
@@ -50,7 +58,7 @@ namespace CPPUI {
             }
         };
     }
-    inline Qt::Button & Button(const std::string & text) {
+    inline Qt::Button & Button(const std::string & text = "") {
         return *(new Qt::Button(text));
     }
 }

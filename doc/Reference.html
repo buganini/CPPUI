@@ -736,6 +736,18 @@ keeps it running. Delays use LVGL's configured delay callback. Native deletion
 invalidates CPPUI handles, so declaration teardown remains safe after a display
 closes. The caller still owns input-device cleanup and <code>lv_deinit()</code>.</p>
 <h2 id="table">Table</h2>
+<h3>Desired interaction behavior</h3>
+<p>All backends target the following pointer behavior for editable cells. Selection and editing are separate states; a single click does not open an editor.</p>
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse; margin:10px 0;">
+<thead><tr><th>Interaction</th><th>Selection</th><th>Editing</th></tr></thead>
+<tbody>
+<tr><td>Single-click cell</td><td>Select / focus the cell and dispatch its click callback</td><td>Does not open an editor</td></tr>
+<tr><td>Double-click cell</td><td>Select the cell and dispatch its double-click callback</td><td>Open the cell's editor (inline or dialog, backend-dependent)</td></tr>
+<tr><td>Enter key (focused cell)</td><td>Unchanged</td><td>Open the cell's editor</td></tr>
+<tr><td>Non-editable cell</td><td>Supports selection and click/double-click callbacks</td><td>No editor action</td></tr>
+</tbody>
+</table>
+<p>Editor style varies by backend: Qt uses inline editors; wx and LVGL use inline editors. Choice cells use a dropdown.</p>
 <p>Include <code>cppui/qt/table.hpp</code>, <code>cppui/wx/table.hpp</code> or <code>cppui/lvgl/table.hpp</code>.
 <code>Table(autofit = true)</code> contains row
 <code>TableNode()</code> scopes, each containing cell <code>TableNode(value)</code> declarations.
@@ -999,8 +1011,17 @@ copy/move semantics.</p>
 <h2 id="button">Button</h2>
 <p>Buttons fit their text while retaining theme padding and native height. Qt retains native size hints for buttons with icons or menus. Explicit layout sizing still applies.</p>
 <p>Include <code>cppui/qt/button.hpp</code>, <code>cppui/wx/button.hpp</code> or <code>cppui/lvgl/button.hpp</code>.
-<code>Button(text).click(callback)</code> owns its text and invokes the current callback.
-<code>.disabled(bool = true)</code> controls native user interaction; the default is false. Disabling
+<code>Button(text).icon(path).click(callback)</code> owns its text and invokes the current callback.
+Text defaults to empty; either text or icon (or both) may be used.</p>
+<p><code>.icon(path)</code> sets an optional image displayed beside the text. Pass a file path; when both text and icon are provided the icon appears to the left of the text. LVGL accepts the parameter but does not render it (no native button icon support).</p>
+<table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse; margin:10px 0;">
+<tr><th>Backend</th><th>Supported formats</th></tr>
+<tr><td>Qt</td><td>PNG, JPG, SVG, ICO, BMP, GIF</td></tr>
+<tr><td>wx</td><td>PNG, JPG, BMP, GIF, ICO</td></tr>
+<tr><td>LVGL</td><td><em>accepted, not rendered</em></td></tr>
+</table>
+<p>PNG is supported by every backend with icon rendering.</p>
+<p><code>.disabled(bool = true)</code> controls native user interaction; the default is false. Disabling
 and re-enabling reuse the native button; omitting the setter on a fresh
 declaration restores enabled state. This follows PUI <code>d7dc23a</code>, with LVGL using
 its native disabled state.</p>
@@ -1368,6 +1389,11 @@ retain their controls but occupy no automatic cell. Oversized column spans are
 clamped only for placement and restored when more columns become available;
 declared row spans stay intact. Automatic spans must be positive (omitted means one).
 These are shared row tracks, not independent masonry columns.</p>
+<h3 id="flow-grid">Flow grid</h3>
+<p>When automatic columns are configured, children with explicit <code>.grid(row(...), column(...))</code>
+are placed first; remaining children auto-flow into available cells around the
+occupied positions. This allows a fixed header or anchor tile to reserve its
+position while flowing items fill the rest of the grid.</p>
 <p>After placing all visible children, expansion visits them in declaration order,
 first extending each column span rightward, then its row span downward. A complete
 new edge must be empty, and expansion stays within the configured columns and

@@ -10,6 +10,10 @@ namespace Cookbook {
                 CPPUI::Button("B").click([&model]() { model.buttonValue = std::string("B"); });
                 CPPUI::Button("Disabled").disabled().click([&model]() { model.buttonValue = std::string("Disabled"); });
                 CPPUI::Button("Styled").style(CPPUI::style::color(0x244B5A), CPPUI::style::bgColor(0xFFF7E6), CPPUI::style::fontSize(20));
+
+                CPPUI::Button("Star").icon(CPPUI_COOKBOOK_ASSET_DIR "/star.png").click([&model]() { model.buttonValue = std::string("Star"); });
+                CPPUI::Button().icon(CPPUI_COOKBOOK_ASSET_DIR "/star.png").click([&model]() { model.buttonValue = std::string("Icon only"); });
+
                 CPPUI::Spacer();
             }
             CPPUI::Spacer();

@@ -34,6 +34,7 @@ namespace Cookbook {
         CPPUI::State<std::string> adaptiveName{std::string("Ada")};
         CPPUI::State<std::string> gridMode{std::string("ordered")},gridText{std::string("This editor survives reflow")};
         CPPUI::State<bool> gridShowC{true},gridExpand{true},gridReverse{false};
+        CPPUI::State<bool> flowGridExpand{false};
         CPPUI::State<int> postedCallbacks{0};
         CPPUI::State<bool> greetingVisible{true};
         CPPUI::State<bool> rejectDrop{false};
@@ -97,6 +98,7 @@ namespace Cookbook {
     void textedit(Model &);
     void maskedfield(Model &);
     void grid(Model &);
+    void flowGrid(Model &);
     void stack(Model &);
     void image(Model &);
     void mdi(Model &);

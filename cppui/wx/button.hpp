@@ -7,7 +7,9 @@ namespace CPPUI { namespace Wx {
         bool isDisabled = false;
         public:
         std::string text;
-        explicit Button(const std::string & text): text(text) {}
+        std::string iconPath;
+        explicit Button(const std::string & text = ""): text(text) {}
+        Button & icon(const std::string & path) { iconPath = path; return *this; }
         Button & disabled(bool value = true) { isDisabled = value; return *this; }
         bool customColors() const {
 #ifdef __WXOSX__
@@ -23,6 +25,14 @@ namespace CPPUI { namespace Wx {
             else ui=new wxButton(parentWindow(),wxID_ANY,wxString::FromUTF8(text),wxDefaultPosition,wxDefaultSize,wxBU_EXACTFIT);
             if(auto literal=dynamic_cast<wxButton *>(ui)) literal->SetLabelText(wxString::FromUTF8(text));
             else ui->SetLabel(wxString::FromUTF8(text));
+            if(auto native=dynamic_cast<wxButton *>(ui)) {
+                if(!iconPath.empty()) {
+                    if(!wxImage::FindHandler(wxBITMAP_TYPE_PNG)) wxInitAllImageHandlers();
+                    native->SetBitmap(wxBitmap(wxString::FromUTF8(iconPath),wxBITMAP_TYPE_ANY));
+                } else {
+                    native->SetBitmap(wxNullBitmap);
+                }
+            }
             ui->Enable(!isDisabled);
         }
         void bindEvents() override { ui->Bind(wxEVT_BUTTON, &Native::clicked, native.get()); }
@@ -32,6 +42,6 @@ namespace CPPUI { namespace Wx {
         }
     };
 }
-inline Wx::Button & Button(const std::string & text) { return *new Wx::Button(text); }
+inline Wx::Button & Button(const std::string & text = "") { return *new Wx::Button(text); }
 }
 #endif

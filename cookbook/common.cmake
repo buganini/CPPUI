@@ -19,6 +19,7 @@ function(cppui_add_cookbook target backend)
         "${cookbook_dir}/imperative.cpp"
         "${cookbook_dir}/drop.cpp"
         "${cookbook_dir}/grid.cpp"
+        "${cookbook_dir}/flow_grid.cpp"
         "${cookbook_dir}/hbox.cpp"
         "${cookbook_dir}/heavycanvas.cpp"
         "${cookbook_dir}/image.cpp"

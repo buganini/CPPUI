@@ -85,6 +85,7 @@ namespace CPPUI { namespace detail {
         std::vector<GridItem> result;
         result.reserve(children.size());
         int64_t cursor=0, previousRow=0;
+        std::vector<Node *> autoChildren;
         for(auto child:children) {
             child->grid_cell.reset();
             if(child->is_outoforder) continue;
@@ -97,6 +98,17 @@ namespace CPPUI { namespace detail {
                 continue;
             }
             if(!child->is_visible) continue;
+            if(child->grid_row>=0 && child->grid_column>=0) {
+                const int rows=child->grid_rowspan==-1 ? 1 : child->grid_rowspan;
+                const int span=child->grid_columnspan==-1 ? 1 : child->grid_columnspan;
+                if(rows<1 || span<1) throw std::invalid_argument("Grid spans must be positive");
+                GridCell cell(child->grid_row,child->grid_column,rows,span);
+                child->grid_cell=cell;result.push_back({child,cell});
+            } else {
+                autoChildren.push_back(child);
+            }
+        }
+        for(auto child:autoChildren) {
             const int rows=child->grid_rowspan==-1 ? 1 : child->grid_rowspan;
             const int declaredColumns=child->grid_columnspan==-1 ? 1 : child->grid_columnspan;
             if(rows<1 || declaredColumns<1) throw std::invalid_argument("Automatic Grid spans must be positive");

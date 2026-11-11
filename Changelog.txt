@@ -1,3 +1,9 @@
+2026-11-12
+    * Sync PUI cf16866: add flow grid two-pass auto-placement for Grid children; explicitly placed children reserve cells before auto-flow
+    * Sync PUI e254e03: add icon parameter to Button on Qt and wx; LVGL accepts but does not render it
+    * Sync PUI 9cbd76a: document desired table double-click editing interaction behavior in Reference
+    * Cookbook: add Flow Grid recipe with responsive columns and expandChildren toggle; add Button icon examples with text+icon and icon-only buttons
+
 2026-10-22
     * Sync PUI 033d690: validate font weights in 1–1000, clamp Qt weights and apply wx numeric weights; fix wx HTML colours, Cocoa custom-colour controls and Windows Stack text composition
     * API: add named FontWeight values for numeric and enum style calls; rename Side and shared Canvas Anchor members to PascalCase

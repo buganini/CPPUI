@@ -16,11 +16,13 @@ namespace CPPUI {
             public:
             lv_obj_t * label = nullptr;
             std::string text;
-            explicit Button(const std::string & text): text(text) {
+            std::string iconPath;
+            explicit Button(const std::string & text = ""): text(text) {
                 is_terminal = true;
                 clickable = true;
             }
             ~Button() override { unobserveLabel(); }
+            Button & icon(const std::string & path) { iconPath = path; return *this; }
             Button & disabled(bool value = true) { isDisabled = value; return *this; }
             void destroy(bool direct) override {
                 unobserveLabel();
@@ -45,7 +47,7 @@ namespace CPPUI {
             }
         };
     }
-    inline LVGL::Button & Button(const std::string & text) { return *new LVGL::Button(text); }
+    inline LVGL::Button & Button(const std::string & text = "") { return *new LVGL::Button(text); }
 }
 
 #endif
