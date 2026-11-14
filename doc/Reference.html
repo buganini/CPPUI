@@ -730,8 +730,10 @@ first. It can be called before <code>run()</code>; application destruction cance
 pending quit. Quitting a borrowed QApplication exits its shared event loop but
 does not destroy it. Application operations, state mutation and redraw belong on
 the GUI thread; marshal background work there before accessing CPPUI state.</p>
-<p>LVGL <code>Application::sync()</code>/<code>run()</code> lazily initializes LVGL and creates an 800x600
-SDL2/X11 display plus pointer/keyboard input when no display exists. Construction
+<p>LVGL <code>Application::sync()</code>/<code>run()</code> lazily initializes LVGL, declares the content, then
+creates an SDL2/X11 display plus pointer/keyboard input when no display exists. The display
+starts at the first <code>Window::size()</code> and title (800x600 when no size is declared)
+instead of being resized after creation. Construction
 alone does not open a window. <code>Application::title()</code> supplies a fallback title;
 <code>Window::title()</code> overrides it for an application-owned desktop host. X11 builds
 use <code>cmake/CPPUILVGLX11.cmake</code> for the pinned driver's lifecycle and window bridge.
