@@ -21,6 +21,8 @@ namespace CPPUI {
                 dimensions = Size(width, height);
                 return *this;
             }
+            const Optional<Size> & declaredSize() const { return dimensions; }
+            const OptionalText & declaredTitle() const { return caption; }
             bool supportsVisibility() const override { return false; }
             void update(Node * prev) override {
                 if(prev && prev->ui) {

@@ -75,11 +75,18 @@ namespace CPPUI { namespace LVGL {
         Runtime & operator=(const Runtime &) = delete;
         ~Runtime() { reset(); }
 
-        lv_display_t * ensure(const std::string & title) {
+        bool isReady() const { return ready; }
+        // Declarations need LVGL (timers, styles) before the display exists.
+        void initialize() {
+            if(!lv_is_initialized()) { ownsRuntime = true; lv_init(); }
+        }
+
+        // The display is created at its first Window's size: resizing a fresh
+        // X11 window leaves XQuartz drawing the old rounded-corner mask.
+        lv_display_t * ensure(const std::string & title, int width = 800, int height = 600) {
             if(ready) return display;
             try {
-                ownsRuntime = !lv_is_initialized();
-                if(ownsRuntime) lv_init();
+                initialize();
                 display = lv_display_get_default();
                 if(!display) {
                     previousGroup = lv_group_get_default();
@@ -87,7 +94,7 @@ namespace CPPUI { namespace LVGL {
                     for(auto input = lv_indev_get_next(nullptr); input; input = lv_indev_get_next(input))
                         previousInputs.push_back(input);
 #if LV_USE_SDL
-                    display = lv_sdl_window_create(800, 600);
+                    display = lv_sdl_window_create(width, height);
                     ownsDisplay = true;
                     if(!display || !lv_sdl_window_get_renderer(display))
                         throw std::runtime_error("Failed to initialize the LVGL SDL display");
@@ -110,7 +117,7 @@ namespace CPPUI { namespace LVGL {
                         return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
                             std::chrono::steady_clock::now() - start).count());
                     });
-                    display = lv_x11_window_create(title.c_str(), 800, 600);
+                    display = lv_x11_window_create(title.c_str(), width, height);
                     ownsDisplay = true;
                     if(!display) throw std::runtime_error("Failed to initialize the LVGL X11 display");
                     lv_x11_inputs_create(display, nullptr);
@@ -135,6 +142,8 @@ namespace CPPUI { namespace LVGL {
 
         void setSize(int width, int height) {
             if(!display || !ownsDisplay) return;
+            if(lv_display_get_horizontal_resolution(display) == width &&
+               lv_display_get_vertical_resolution(display) == height) return;
 #if LV_USE_X11
             auto native = static_cast<_x11_user_hdr_t *>(lv_display_get_driver_data(display));
             XResizeWindow(native->display, cppui_lvgl_x11_window_id(display), width, height);

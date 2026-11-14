@@ -15,7 +15,10 @@ namespace {
         using Application::Application;
         bool explicitTitle = false;
         CPPUI::Optional<CPPUI::Size> dimensions;
+        int builds = 0;
+        bool displayBeforeFirstBuild = false;
         void content() override {
+            if(builds++ == 0) displayBeforeFirstBuild = lv_display_get_default() != nullptr;
             auto & window = CPPUI::Window();
             if(explicitTitle) window.title("Window title");
             if(dimensions) window.size(dimensions->width, dimensions->height);
@@ -117,6 +120,9 @@ int main(int argc, char ** argv) {
                 app.sync();
                 auto display = lv_display_get_default();
                 require(display && title(display) == "Application title", "application did not create/title its host");
+                // The host starts at the Window's size instead of being resized
+                // after creation (XQuartz leaves the old corner mask behind).
+                require(!app.displayBeforeFirstBuild, "display was created before the first Window was declared");
                 checkSize(display,1024,768);
                 app.dimensions=CPPUI::Size(900,650);app.sync();checkSize(display,900,650);
                 resizeNative(display,700,500);
