@@ -4,7 +4,7 @@
 namespace Cookbook {
     void button(Model & model) {
         for(auto column: CPPUI::VBox().layout(CPPUI::layout::weight(1))) {
-            for(auto row: CPPUI::HBox()) {
+            for(auto row: CPPUI::VBox()) {
                 CPPUI::Label(static_cast<std::string>(model.buttonValue));
                 CPPUI::Button("A").click([&model]() { model.buttonValue = std::string("A"); });
                 CPPUI::Button("B").click([&model]() { model.buttonValue = std::string("B"); });
