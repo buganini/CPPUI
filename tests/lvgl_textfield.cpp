@@ -3,6 +3,10 @@
 #include "cppui/lvgl/layout.hpp"
 #include "cppui/lvgl/button.hpp"
 #include "cppui/lvgl/views.hpp"
+#include "cppui/lvgl/label.hpp"
+#include "cppui/lvgl/textedit.hpp"
+#include <chrono>
+#include <thread>
 #include <stdexcept>
 
 namespace {
@@ -76,6 +80,65 @@ namespace {
         }
         lv_obj_t * editor() { return static_cast<lv_obj_t *>(children->front()->children->front()->children->front()->children->front()->ui); }
     };
+    // Clicking another widget commits the focused editor before the click
+    // callback runs (PUI's commit_focused); callbacks run after the event.
+    class CommitRoot: public CPPUI::LVGL::View {
+        public:
+        CPPUI::State<std::string> value{std::string("old")}, notes{std::string("old notes")};
+        std::string seen, seenNotes;
+        int clicks = 0, changes = 0;
+        void content() override {
+            for(auto window: CPPUI::Window()) for(auto column: CPPUI::VBox()) {
+                CPPUI::TextField(value).change([this]() { ++changes; }).id("field");
+                CPPUI::TextEdit(notes).id("notes");
+                auto & label = CPPUI::Label("apply"); label.id("apply");
+                label.click([this]() { ++clicks; seen = value; seenNotes = notes; });
+            }
+        }
+        lv_obj_t * native(const char * key) {
+            std::function<CPPUI::Node *(CPPUI::Node *)> find = [&](CPPUI::Node * node) -> CPPUI::Node * {
+                if(node->has_id && node->_id == key) return node;
+                for(auto child: *node->children) if(auto found = find(child)) return found;
+                return nullptr;
+            };
+            return static_cast<lv_obj_t *>(find(this)->ui);
+        }
+    };
+    void commitOnClick() {
+        CommitRoot root; root.redraw(); settle();
+        for(const char * key: {"field", "notes"}) {
+            auto editor = root.native(key);
+            lv_group_focus_obj(editor);
+            lv_textarea_set_text(editor, key == std::string("field") ? "typed" : "typed notes");
+            lv_obj_send_event(root.native("apply"), LV_EVENT_CLICKED, nullptr);
+            require(root.clicks == 0 || key != std::string("field"), "click callback ran inside the native event");
+            CPPUI::LVGL::dispatch::flush();
+        }
+        require(root.clicks == 2 && root.seen == "typed" && root.seenNotes == "typed notes",
+            "click callback did not see the committed editor value");
+        require(root.changes == 1 && lv_group_get_focused(lv_obj_get_group(root.native("notes"))) == root.native("notes"),
+            "commit on click changed LVGL focus or duplicated the change callback");
+    }
+    // Delayed posts fire at their deadline rather than the next refresh period.
+    void timerPrecision() {
+        CommitRoot root; root.redraw(); settle();
+        auto poster = root.children->front()->timerPoster();
+        require(bool(poster), "mounted node has no timer poster");
+        const auto start = std::chrono::steady_clock::now();
+        long long fired = -1;
+        poster(40, [&]() { fired = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start).count(); });
+        // Drive LVGL's tick from the same clock as the deadline.
+        static const auto origin = std::chrono::steady_clock::now();
+        lv_tick_set_cb([]() -> uint32_t {
+            return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - origin).count());
+        });
+        while(fired < 0 && std::chrono::steady_clock::now() - start < std::chrono::seconds(1)) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            lv_timer_handler();
+        }
+        lv_tick_set_cb(nullptr);
+        require(fired >= 40 && fired < 40 + LV_DEF_REFR_PERIOD / 2, "delayed callback missed its deadline by a refresh period");
+    }
 }
 int main() {
     lv_init();
@@ -216,6 +279,8 @@ int main() {
             Root root; root.redraw(); root.show = false; root.redraw(); settle();
             require(root.draftWrites == 0 && root.capture.expired(), "retirement left a pending draft write");
         }
+        commitOnClick();
+        timerPrecision();
         require(lv_obj_get_child_count(lv_screen_active()) == 0 && lv_group_get_obj_count(group) == 0,
             "TextField teardown retained native content or focus objects");
         {

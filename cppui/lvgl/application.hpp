@@ -23,6 +23,9 @@ namespace CPPUI {
             destroyed = true;
             for(auto child: *children) recur_delete(child, true);
             children->clear();
+            // Posted callbacks and editor commits must not outlive the host.
+            LVGL::dispatch::resetCallbacks();
+            LVGL::dispatch::focusedEditor() = LVGL::dispatch::FocusedEditor();
         }
 
         void update(Node * prev) override {

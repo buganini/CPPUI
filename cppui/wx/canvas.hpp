@@ -131,7 +131,7 @@ class CanvasWidget:public wxPanel {
 public:
     using Painter=std::function<bool(CanvasPainter &)>;
     std::function<void(const CanvasPointerEvent &)> moved,wheeled;
-    std::function<void()> left;
+    std::function<void()> left,doubleClicked;
 private:
     Painter painter;
     bool showFPS=false;
@@ -159,6 +159,10 @@ public:
             CanvasPointerEvent value;value.x=event.GetX();value.y=event.GetY();
             try{invoke(value);}catch(...){reportException("Canvas move");}
         });
+        Bind(wxEVT_LEFT_DCLICK,[this](wxMouseEvent & event){
+            auto invoke=doubleClicked;if(!invoke){event.Skip();return;}
+            try{invoke();}catch(...){reportException("Canvas dblclick");}
+        });
         Bind(wxEVT_LEAVE_WINDOW,[this](wxMouseEvent & event){
             auto invoke=left;event.Skip();if(invoke)try{invoke();}catch(...){reportException("Canvas leave");}
         });
@@ -172,7 +176,7 @@ public:
     }
     void setShowFPS(bool value){if(showFPS==value)return;showFPS=value;fps.reset();if(!value&&fpsLabel){fpsLabel->Destroy();fpsLabel=nullptr;}}
     void setPainter(Painter value){painter=std::move(value);++generation;Refresh(false);}
-    void clearPainter(){painter={};moved={};wheeled={};left={};++generation;}
+    void clearPainter(){painter={};moved={};wheeled={};left={};doubleClicked={};++generation;}
 };
 class Canvas:public Widget {
 public:
@@ -186,7 +190,7 @@ public:
     Canvas & mouseleave(std::function<void()> callback){left=std::move(callback);return *this;}
     Canvas & wheel(std::function<void(const CanvasPointerEvent &)> callback){wheeled=std::move(callback);return *this;}
     explicit Canvas(Painter painter):painter(std::move(painter)){expandX=expandY=4;}
-    void updateWidget(Widget * prev) override {ui=prev?prev->ui:new CanvasWidget(parentWindow());auto canvas=static_cast<CanvasWidget *>(ui);canvas->moved=moved;canvas->wheeled=wheeled;canvas->left=left;canvas->setShowFPS(showFPS);canvas->setPainter(painter);}
+    void updateWidget(Widget * prev) override {ui=prev?prev->ui:new CanvasWidget(parentWindow());auto canvas=static_cast<CanvasWidget *>(ui);canvas->moved=moved;canvas->wheeled=wheeled;canvas->left=left;canvas->doubleClicked=onDblClicked;canvas->setShowFPS(showFPS);canvas->setPainter(painter);}
     void destroy(bool direct) override {if(ui)static_cast<CanvasWidget *>(ui)->clearPainter();Widget::destroy(direct);}
 };
 namespace detail {

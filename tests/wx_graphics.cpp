@@ -17,7 +17,7 @@ public:
     using Application::Application;
     std::string path;
     bool show=true,remove=false,showFPS=true;
-    int paints=0,version=0,last=-1,moves=0,wheels=0,leaves=0;
+    int paints=0,version=0,last=-1,moves=0,wheels=0,leaves=0,doubles=0;
     bool input=true;
     CPPUI::CanvasPointerEvent lastInput;
     std::shared_ptr<int> token=std::make_shared<int>(1);
@@ -30,6 +30,7 @@ public:
                 if(input)canvas.mousemove([this,snapshot](const CPPUI::CanvasPointerEvent & e){moves+=snapshot+1;lastInput=e;})
                     .wheel([this,snapshot](const CPPUI::CanvasPointerEvent & e){wheels+=snapshot+1;lastInput=e;})
                     .mouseleave([this,snapshot](){leaves+=snapshot+1;});
+                if(input)canvas.dblclick([this,snapshot](){doubles+=snapshot+1;});
                 canvas.showFps(showFPS).layout(100,100).id("canvas");}
         }
     }
@@ -109,9 +110,13 @@ int main(int argc,char ** argv){
             require(root.moves==before+i+1 && root.lastInput.x==12 && root.lastInput.y==34,"Canvas move coordinates/current callback failed");
             before=root.leaves;wxMouseEvent leave(wxEVT_LEAVE_WINDOW);leave.SetEventObject(canvas);canvas->ProcessWindowEvent(leave);
             require(root.leaves==before+i+1,"Canvas leave callback failed");
+            before=root.doubles;wxMouseEvent twice(wxEVT_LEFT_DCLICK);twice.SetEventObject(canvas);canvas->ProcessWindowEvent(twice);
+            require(root.doubles==before+i+1,"Canvas double-click callback failed");
         }
         root.input=false;root.sync();int before=root.wheels;wxMouseEvent wheel(wxEVT_MOUSEWHEEL);wheel.m_wheelRotation=120;wheel.SetEventObject(canvas);canvas->ProcessWindowEvent(wheel);
         require(root.wheels==before,"omitted Canvas callback retained dispatch");
+        before=root.doubles;wxMouseEvent twice(wxEVT_LEFT_DCLICK);twice.SetEventObject(canvas);canvas->ProcessWindowEvent(twice);
+        require(root.doubles==before,"omitted Canvas double-click retained dispatch");
         std::weak_ptr<int> token=root.token;root.token.reset();root.remove=true;root.sync();pump();int paints=root.paints;pump();require(!root.show&&root.paints==paints&&token.expired(),"paint self removal retained callback");
         root.clearChildren();pump();std::remove(root.path.c_str());
     }catch(const std::exception &e){std::cerr<<e.what()<<'\n';return 1;}return 0;

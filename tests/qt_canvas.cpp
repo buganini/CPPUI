@@ -182,6 +182,7 @@ namespace {
                 canvas.mousemove([this,current](const CPPUI::CanvasPointerEvent & event){calls+=current;last=event;})
                     .mouseleave([this,current](){calls+=current;})
                     .wheel([this,current](const CPPUI::CanvasPointerEvent & event){calls+=current;last=event;if(remove){show=false;sync();}});
+                canvas.dblclick([this,current](){calls+=current;});
             }
         }
     };
@@ -197,10 +198,14 @@ namespace {
             QCoreApplication::sendEvent(widget,&wheel);
             require(root.last.angleY==120 && root.last.pixelY==7,"Canvas mixed wheel angle/pixel units");
             QEvent leave(QEvent::Leave);QCoreApplication::sendEvent(widget,&leave);
-            require(root.calls==before+3*i,"Canvas dispatched stale/duplicate input callbacks");
+            QMouseEvent twice(QEvent::MouseButtonDblClick,QPointF(12,34),QPointF(12,34),Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+            QCoreApplication::sendEvent(widget,&twice);
+            require(root.calls==before+4*i,"Canvas dispatched stale/duplicate input or double-click callbacks");
         }
         root.enabled=false;root.sync();int before=root.calls;
         QEvent leave(QEvent::Leave);QCoreApplication::sendEvent(widget,&leave);
+        QMouseEvent twice(QEvent::MouseButtonDblClick,QPointF(12,34),QPointF(12,34),Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+        QCoreApplication::sendEvent(widget,&twice);
         require(root.calls==before && !widget->hasMouseTracking(),"omitted Canvas input callbacks retained dispatch");
         root.enabled=true;root.remove=true;root.sync();
         QWheelEvent wheel(QPointF(20,30),QPointF(20,30),QPoint(),QPoint(0,120),Qt::NoButton,Qt::NoModifier,Qt::NoScrollPhase,false);

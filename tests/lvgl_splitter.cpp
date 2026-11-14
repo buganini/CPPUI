@@ -32,10 +32,10 @@ namespace {
         void press(lv_obj_t * handle) {
             lv_area_t area;lv_obj_get_coords(handle,&area);
             packet.point={(area.x1+area.x2)/2,(area.y1+area.y2)/2};
-            packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);
+            packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();
         }
-        void move(int x,int y) {packet.point.x+=x;packet.point.y+=y;lv_indev_read(device);settle();}
-        void release() {packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);settle();}
+        void move(int x,int y) {packet.point.x+=x;packet.point.y+=y;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();settle();}
+        void release() {packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();settle();}
         void drag(lv_obj_t * handle,int x,int y) {press(handle);move(x,y);release();}
     };
     class Root: public CPPUI::LVGL::View {
@@ -127,7 +127,7 @@ namespace {
         auto declaration=find(root,"split");lv_obj_delete(host);
         require(!declaration->ui,"external deletion left stale Splitter native observer");
         root.show=false;root.sync();root.show=true;root.sync();
-        lv_obj_send_event(native(root,"c"),LV_EVENT_CLICKED,nullptr);
+        lv_obj_send_event(native(root,"c"),LV_EVENT_CLICKED,nullptr);CPPUI::LVGL::dispatch::flush();
         require(!find(root,"split") && lv_obj_get_child_count(lv_screen_active())==0,"click removal retained Splitter objects");
     }
     class Panes: public CPPUI::LVGL::View {

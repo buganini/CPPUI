@@ -110,11 +110,11 @@ namespace {
     }
     void lifecycle(Files & files) {
         Root root;root.path=files.first;root.sync();auto object=root.object();
-        lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);require(root.clicked==1,"image click missing");
-        root.callback=false;root.sync();require(!lv_obj_has_flag(object,LV_OBJ_FLAG_CLICKABLE),"image without a click handler intercepts input");lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);
+        lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);CPPUI::LVGL::dispatch::flush();require(root.clicked==1,"image click missing");
+        root.callback=false;root.sync();require(!lv_obj_has_flag(object,LV_OBJ_FLAG_CLICKABLE),"image without a click handler intercepts input");lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.clicked==1,"omitted click callback retained");
         root.callback=true;root.action=[&]() {root.sync();root.show=false;root.sync();};root.sync();
-        lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);require(root.clicked==2,"redraw/removal during click failed");
+        lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);CPPUI::LVGL::dispatch::flush();require(root.clicked==2,"redraw/removal during click failed");
         root.show=true;root.action={};root.sync();
         auto declaration=root.node();lv_obj_delete(root.object());require(!declaration->ui,"external native deletion left stale image");
         root.sync();require(root.object() && root.pixels(),"native image was not recreated after external deletion");

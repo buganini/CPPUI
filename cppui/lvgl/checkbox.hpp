@@ -13,8 +13,10 @@ namespace CPPUI {
             void nativeEvent(lv_event_t * event) override {
                 if(lv_event_get_code(event) == LV_EVENT_VALUE_CHANGED) {
                     auto binding = model;
-                    const bool value = lv_obj_has_state(static_cast<lv_obj_t *>(lv_event_get_current_target(event)), LV_STATE_CHECKED);
-                    binding.set(value); // May redraw or remove this declaration.
+                    auto object = static_cast<lv_obj_t *>(lv_event_get_current_target(event));
+                    const bool value = lv_obj_has_state(object, LV_STATE_CHECKED);
+                    dispatch::commitFocusedEditor(object); // May redraw or remove this declaration.
+                    binding.set(value);
                 } else Node::nativeEvent(event);
             }
             public:

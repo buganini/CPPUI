@@ -49,7 +49,7 @@ namespace {
         void edit(const char * value) {
             require(table()->beginEdit(0,0),"adapter editable cell rejected");
             auto field=table()->editor();lv_textarea_set_text(field,value);
-            uint32_t enter=LV_KEY_ENTER;lv_obj_send_event(field,LV_EVENT_KEY,&enter);
+            uint32_t enter=LV_KEY_ENTER;lv_obj_send_event(field,LV_EVENT_KEY,&enter);CPPUI::LVGL::dispatch::flush();
         }
     };
     void adapters() {
@@ -82,8 +82,8 @@ namespace {
         require(!root.show && root.children->front()->children->front()->children->empty(),"setter could not remove table");
         root.source->afterWrite={};root.show=true;root.sync();
         root.source->afterDouble=[&root](){root.declarative=true;root.redraw();};
-        lv_table_set_selected_cell(root.native(),1,1);lv_obj_send_event(root.native(),LV_EVENT_VALUE_CHANGED,nullptr);
-        lv_obj_send_event(root.native(),LV_EVENT_DOUBLE_CLICKED,nullptr);
+        lv_table_set_selected_cell(root.native(),1,1);lv_obj_send_event(root.native(),LV_EVENT_VALUE_CHANGED,nullptr);CPPUI::LVGL::dispatch::flush();
+        lv_obj_send_event(root.native(),LV_EVENT_DOUBLE_CLICKED,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.table()->cellText(0,0)=="7" && !root.table()->editor(),"double click edited replacement model");
         root.declarative=false;root.sync();
         weak=root.source;root.source.reset();root.show=false;root.sync();require(weak.expired(),"removed adapter leaked");
@@ -105,7 +105,7 @@ namespace {
     };
     void plain() {
         PlainRoot root;root.redraw();auto object=static_cast<lv_obj_t *>(root.table()->ui);
-        root.table()->beginEdit(0,0);auto field=root.table()->editor();lv_textarea_set_text(field,"changed");lv_obj_send_event(field,LV_EVENT_READY,nullptr);
+        root.table()->beginEdit(0,0);auto field=root.table()->editor();lv_textarea_set_text(field,"changed");lv_obj_send_event(field,LV_EVENT_READY,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.source->values[0]=="changed" && root.table()->cellText(0,0)=="changed","plain adapter edit not rendered");
         root.source->values={"three"};root.redraw();require(lv_table_get_row_count(object)==1 && root.table()->cellText(0,0)=="three","plain shape refresh failed");
         root.source->values.clear();root.redraw();require(lv_table_get_row_count(object)==0,"empty adapter retained rows");

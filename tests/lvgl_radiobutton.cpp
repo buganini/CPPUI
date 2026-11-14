@@ -10,7 +10,7 @@ namespace {
     bool checked(lv_obj_t * object) { return lv_obj_has_state(object, LV_STATE_CHECKED); }
     void click(lv_obj_t * object) {
         if(lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr) == LV_RESULT_OK)
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
     }
     class Root: public CPPUI::LVGL::View {
         public:
@@ -80,10 +80,10 @@ int main() {
             lv_obj_add_event_cb(second, count, LV_EVENT_CLICKED, &external);
             lv_obj_add_event_cb(first, count, LV_EVENT_DELETE, &deleted);
             auto capture = root.capture;
-            lv_obj_send_event(second, LV_EVENT_RELEASED, nullptr);
+            lv_obj_send_event(second, LV_EVENT_RELEASED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(!checked(first) && checked(second) && checked(root.separateButton()) && root.writes == 0,
                 "native sibling exclusion crossed groups or wrote before click");
-            lv_obj_send_event(second, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(second, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(static_cast<int>(root.first) == 2 && root.writes == 1 && root.clicks == 1 && external == 1
                 && root.button(1) == second && capture.expired(), "radio edit lost reuse/listeners or duplicated a commit");
             root.first = 1;
@@ -100,11 +100,11 @@ int main() {
             root.second = 99;
             require(!checked(first) && !checked(second) && root.writes == 3, "unmatched model retained a selection or caused feedback");
             uint32_t key = LV_KEY_UP;
-            lv_obj_send_event(second, LV_EVENT_KEY, &key);
+            lv_obj_send_event(second, LV_EVENT_KEY, &key);CPPUI::LVGL::dispatch::flush();
             require(static_cast<int>(root.second) == 2 && checked(second) && root.writes == 4 && root.clicks == 5,
                 "keyboard selection failed or emitted a click");
             key = LV_KEY_DOWN;
-            lv_obj_send_event(second, LV_EVENT_KEY, &key);
+            lv_obj_send_event(second, LV_EVENT_KEY, &key);CPPUI::LVGL::dispatch::flush();
             require(checked(second) && root.writes == 4, "keyboard deselected an active radio");
             root.fail = true;
             bool threw = false;

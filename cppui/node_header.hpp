@@ -85,6 +85,8 @@ namespace CPPUI {
 
         std::vector<Node *> * children = nullptr;
         std::function<void()> onClicked = [](){};
+        // Empty unless declared; backends wire it where PUI does.
+        std::function<void()> onDblClicked;
         detail::DropHandlers dropHandlers;
         Node & dragEnter(std::function<void(DropEvent &)> callback) { dropHandlers.entered=std::move(callback); return *this; }
         Node & drop(std::function<void(DropEvent &)> callback) {
@@ -349,6 +351,8 @@ namespace CPPUI {
         bool findDomOffsetUncached(Node * node, int * offset);
 
         virtual void click(std::function<void()> callback);
+        // Non-virtual so Table/Tree nodes can keep their chainable dblclick().
+        void dblclick(std::function<void()> callback) { onDblClicked = std::move(callback); }
 
         virtual void writeStream(std::ostream & out, int indent) const;
     };

@@ -17,7 +17,7 @@ namespace {
             });
         }
         ~Driver() { lv_indev_delete(device); }
-        void read(int x,int y,int steps=0) { packet.point={x,y}; packet.enc_diff=steps; lv_indev_read(device); }
+        void read(int x,int y,int steps=0) { packet.point={x,y}; packet.enc_diff=steps; lv_indev_read(device);CPPUI::LVGL::dispatch::flush(); }
     };
     class Root:public CPPUI::Application {
     public:
@@ -70,10 +70,10 @@ int main(int argc,char **argv) {
         int before=root.wheels;pointer.read(45,50,-1);require(root.wheels==before,"wheel passed through overlay");
         lv_obj_delete(overlay);
         pointer.read(45,50);before=root.leaves;
-        lv_indev_send_event(pointer.device,LV_EVENT_LEAVE,nullptr);
+        lv_indev_send_event(pointer.device,LV_EVENT_LEAVE,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.leaves==before+root.version,"native window exit did not leave Canvas");
         before=root.moves;pointer.read(45,50);require(root.moves==before,"stale X11 position restored hover outside window");
-        lv_indev_send_event(pointer.device,LV_EVENT_HOVER_OVER,nullptr);pointer.read(45,50);
+        lv_indev_send_event(pointer.device,LV_EVENT_HOVER_OVER,nullptr);CPPUI::LVGL::dispatch::flush();pointer.read(45,50);
         require(root.moves==before+root.version,"window entry did not restore hover");
         root.callbacks=false;root.redraw();before=root.wheels;pointer.read(45,50,-1);
         require(root.wheels==before && lv_indev_get_event_count(pointer.device)==base-1,"omission retained input dispatch");

@@ -142,16 +142,16 @@ namespace {
             root.redraw();
             require(oldCapture.expired(), "redraw retained the old button callback");
             require(root.button()->ui == object, "button redraw remounted native object");
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.clicked == 7 && clicks == 1, "redraw lost current or external callback");
             root.action = [&root]() { root.value = 8; root.redraw(); };
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.clicked == 7 && clicks == 2, "active callback changed during redraw");
             root.action = {};
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.clicked == 8 && clicks == 3, "next click used a retired callback");
             root.action = []() { throw std::runtime_error("expected click failure"); };
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(clicks == 4, "click exception escaped the native boundary");
             root.action = {};
             oldCapture = root.capture;
@@ -164,7 +164,7 @@ namespace {
             require(oldCapture.expired(), "recovery retained previous callback");
             root.action = [&root]() { root.redraw(); root.show = false; root.redraw(); };
             oldCapture = root.capture;
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(!root.button() && oldCapture.expired() && deletes == 1,
                     "callback self-removal retained declarations/captures/native objects");
             root.action = {};

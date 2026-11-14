@@ -69,10 +69,10 @@ int main() {
             lv_obj_add_event_cb(object, count, LV_EVENT_VALUE_CHANGED, &external);
             lv_obj_add_event_cb(object, count, LV_EVENT_DELETE, &deleted);
             auto capture = root.capture;
-            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(static_cast<bool>(root.first) && root.writes == 1 && external == 1, "native edit committed more than once or lost a listener");
             require(root.widget() == object && lv_obj_has_state(root.widget(1), LV_STATE_CHECKED) && capture.expired(), "redraw lost reuse, mirror state or callback cleanup");
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.clicks == 1, "checkbox click was not dispatched");
             root.first = false;
             require(!lv_obj_has_state(object, LV_STATE_CHECKED) && root.writes == 1, "programmatic update caused a feedback write");
@@ -80,7 +80,7 @@ int main() {
             root.text = "Second";
             root.redraw();
             require(lv_obj_has_state(object, LV_STATE_CHECKED) && std::string(lv_checkbox_get_text(object)) == "Second", "rebind did not update checked state/text");
-            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(!static_cast<bool>(root.second) && !static_cast<bool>(root.first) && root.writes == 2, "rebind wrote the previous model");
             root.fail = true;
             bool threw = false;
@@ -89,11 +89,11 @@ int main() {
             root.fail = false;
             root.redraw();
             root.action = []() { throw std::runtime_error("expected setter failure"); };
-            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.writes == 3 && static_cast<bool>(root.second), "setter failure escaped native callback boundary");
             root.action = [&root]() { root.show = false; root.redraw(); };
             capture = root.capture;
-            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.column()->children->empty() && capture.expired() && deleted == 1, "setter self-removal leaked native/callback data");
             root.action = {};
             root.show = true;

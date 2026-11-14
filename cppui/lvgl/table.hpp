@@ -221,9 +221,11 @@ namespace detail {
             auto entry=cell(selectedRow,selectedColumn);if(!entry) return;
             const int row=selectedRow,column=selectedColumn;
             auto callback=twice ? entry->doubleClicked : entry->clicked;
-            const auto version=generation;
-            if(callback) callback();
-            if(twice && active && object && version==generation) beginEdit(row,column);
+            auto self=shared_from_this();
+            // As in PUI: commit another editor first, then run the callback after the event.
+            dispatch::commitFocusedEditor(object);
+            if(twice && self->active && self->object) self->beginEdit(row,column);
+            dispatch::postCallback(std::move(callback));
         }
         static void event(lv_event_t * event) {
             auto holder=static_cast<std::shared_ptr<TableNative> *>(lv_event_get_user_data(event));

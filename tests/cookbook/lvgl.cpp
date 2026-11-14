@@ -71,7 +71,7 @@ namespace Cookbook { namespace TestBackend {
         if(!dropdown || static_cast<unsigned>(index) >= lv_dropdown_get_option_count(dropdown)) return false;
         lv_dropdown_set_selected(dropdown, index);
         lv_dropdown_close(dropdown);
-        lv_obj_send_event(dropdown, LV_EVENT_VALUE_CHANGED, nullptr);
+        lv_obj_send_event(dropdown, LV_EVENT_VALUE_CHANGED, nullptr);CPPUI::LVGL::dispatch::flush();
         return true;
     }
     bool typeCombo(CPPUI::Node & node, const std::string & text) {
@@ -79,7 +79,7 @@ namespace Cookbook { namespace TestBackend {
         if(!combo || !combo->ui) return false;
         auto editor = lv_obj_get_child(static_cast<lv_obj_t *>(combo->ui), 0);
         if(!editor || !lv_obj_check_type(editor, &lv_textarea_class)) return false;
-        lv_textarea_set_text(editor, text.c_str()); return true;
+        lv_textarea_set_text(editor, text.c_str());CPPUI::LVGL::dispatch::flush(); return true;
     }
     bool wheelCanvas(CPPUI::Node & node, int delta) {
         auto canvas = dynamic_cast<CPPUI::LVGL::Canvas *>(&node);
@@ -121,8 +121,8 @@ namespace Cookbook { namespace TestBackend {
         auto group = static_cast<lv_group_t *>(lv_obj_get_group(object));
         if(!group) return false;
         lv_group_focus_obj(object);
-        lv_textarea_set_text(object, text.c_str());
-        if(commit) lv_group_send_data(group, LV_KEY_ENTER);
+        lv_textarea_set_text(object, text.c_str());CPPUI::LVGL::dispatch::flush();
+        if(commit) lv_group_send_data(group, LV_KEY_ENTER);CPPUI::LVGL::dispatch::flush();
         return true;
     }
     void settle() {
@@ -133,11 +133,12 @@ namespace Cookbook { namespace TestBackend {
         lv_delay_ms(LV_DEF_REFR_PERIOD + 1);
         while(lv_tick_elaps(start) <= LV_DEF_REFR_PERIOD) lv_delay_ms(1);
         lv_timer_handler();
+        CPPUI::LVGL::dispatch::flush();
     }
     bool clickButton(CPPUI::Node & node, const std::string & text) {
         auto button = dynamic_cast<CPPUI::LVGL::Button *>(&node);
         if(!button || button->text != text) return false;
-        lv_obj_send_event(static_cast<lv_obj_t *>(button->outer()), LV_EVENT_CLICKED, nullptr);
+        lv_obj_send_event(static_cast<lv_obj_t *>(button->outer()), LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
         return true;
     }
     bool labelHasText(CPPUI::Node & node, const std::string & text) {
@@ -152,7 +153,7 @@ namespace Cookbook { namespace TestBackend {
         auto object = static_cast<lv_obj_t *>(tabs->ui);
         auto button = lv_tabview_get_tab_button(object, index);
         if(!button) return false;
-        lv_obj_send_event(button, LV_EVENT_CLICKED, nullptr);
+        lv_obj_send_event(button, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
         auto page = lv_obj_get_child(lv_tabview_get_content(object), index);
         auto label = lv_obj_get_child(button, 0);
         return lv_tabview_get_tab_active(object) == static_cast<uint32_t>(index)
@@ -161,7 +162,7 @@ namespace Cookbook { namespace TestBackend {
     bool toggleCheckbox(CPPUI::Node & node) {
         auto checkbox = dynamic_cast<CPPUI::LVGL::Checkbox *>(&node);
         if(!checkbox || !checkbox->ui) return false;
-        lv_obj_send_event(static_cast<lv_obj_t *>(checkbox->ui), LV_EVENT_RELEASED, nullptr);
+        lv_obj_send_event(static_cast<lv_obj_t *>(checkbox->ui), LV_EVENT_RELEASED, nullptr);CPPUI::LVGL::dispatch::flush();
         return true;
     }
     bool selectRadio(CPPUI::Node & node) {
@@ -169,7 +170,7 @@ namespace Cookbook { namespace TestBackend {
         auto object = radio ? static_cast<lv_obj_t *>(radio->ui) : nullptr;
         if(!object || !lv_obj_is_radio_button(object)) return false;
         if(lv_obj_send_event(object, LV_EVENT_RELEASED, nullptr) == LV_RESULT_OK)
-            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(object, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
         return true;
     }
     void answerPrompt(const std::string &, bool) {}
@@ -182,7 +183,7 @@ namespace Cookbook { namespace TestBackend {
         if(!link) return false;
         auto label = static_cast<lv_obj_t *>(link->outer());
         lv_obj_scroll_to_view_recursive(label, LV_ANIM_OFF);
-        lv_obj_send_event(label, LV_EVENT_CLICKED, nullptr);
+        lv_obj_send_event(label, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
         return true;
     }
     void prepareLayoutCheck(CPPUI::Node & root) {

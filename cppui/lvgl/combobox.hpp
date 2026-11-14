@@ -123,8 +123,8 @@ namespace CPPUI { namespace LVGL {
             try {
                 if(indices) indices->set(index);
                 if(texts) texts->set(value);
-                if(user) { if(edits) edits->set(value); if(input) input(); }
-                if(invoke) invoke();
+                if(user) { if(edits) edits->set(value); dispatch::postCallback(std::move(input)); }
+                dispatch::postCallback(std::move(invoke));
             } catch(...) { state->committing = false; throw; }
             state->committing = false;
             if(state->current && state->object) state->current->postSync();

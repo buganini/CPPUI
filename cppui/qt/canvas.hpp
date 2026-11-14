@@ -191,7 +191,7 @@ namespace CPPUI {
             public:
             using Painter = std::function<bool(CanvasPainter &)>;
             std::function<void(const CanvasPointerEvent &)> moved, wheeled;
-            std::function<void()> left;
+            std::function<void()> left, doubleClicked;
             private:
             Painter painter;
             bool showFPS = false;
@@ -205,6 +205,12 @@ namespace CPPUI {
                 CanvasPointerEvent value; value.x=event->position().x(); value.y=event->position().y();
                 try { invoke(value); } catch(const std::exception & error) { std::cerr << "CPPUI Canvas move: " << error.what() << '\n'; }
                 catch(...) { std::cerr << "CPPUI Canvas move failed\n"; }
+            }
+            void mouseDoubleClickEvent(QMouseEvent * event) override {
+                auto invoke = doubleClicked;
+                if(!invoke) { Widget<QWidget>::mouseDoubleClickEvent(event); return; }
+                try { invoke(); } catch(const std::exception & error) { std::cerr << "CPPUI Canvas dblclick: " << error.what() << '\n'; }
+                catch(...) { std::cerr << "CPPUI Canvas dblclick failed\n"; }
             }
             void leaveEvent(QEvent * event) override {
                 auto invoke = left;
@@ -254,7 +260,7 @@ namespace CPPUI {
                 if(!value) { delete fpsLabel; fpsLabel = nullptr; }
             }
             void setPainter(Painter callback) { painter = std::move(callback); ++generation; update(); }
-            void clearPainter() { painter = {}; moved = {}; wheeled = {}; left = {}; ++generation; }
+            void clearPainter() { painter = {}; moved = {}; wheeled = {}; left = {}; doubleClicked = {}; ++generation; }
         };
 
         class Canvas: public BaseWidget {
@@ -272,7 +278,7 @@ namespace CPPUI {
             void update(BaseWidget * prev) override {
                 ui = prev && prev->ui ? prev->ui : new CanvasWidget();
                 auto canvas = static_cast<CanvasWidget *>(ui);
-                canvas->moved=moved; canvas->wheeled=wheeled; canvas->left=left;
+                canvas->moved=moved; canvas->wheeled=wheeled; canvas->left=left; canvas->doubleClicked=onDblClicked;
                 canvas->setMouseTracking(bool(moved));
                 canvas->setShowFPS(showFPS);
                 canvas->setPainter(painter);

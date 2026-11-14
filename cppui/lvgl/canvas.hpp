@@ -426,8 +426,7 @@ namespace CPPUI {
                             leave=input.inside;input.inside=false;input.windowInside=false;
                         }
                         auto invoke=self->left;
-                        try { if(leave && invoke) invoke(); }
-                        catch(...) { std::fprintf(stderr,"CPPUI LVGL Canvas leave failed\n"); }
+                        if(leave) dispatch::postCallback(std::move(invoke));
                         return;
                     }
                     if(lv_event_get_code(event)==LV_EVENT_HOVER_OVER && !lv_event_get_param(event)) {
@@ -482,9 +481,10 @@ namespace CPPUI {
                     // Consume before application code can redraw or remove us.
                     const bool rotate=inside && data.enc_diff && bool(wheel);
                     if(rotate) data.enc_diff=0;
-                    if(leave && exit) exit();
-                    if(owner && object && move && motion) motion(value);
-                    if(owner && object && rotate && wheel) wheel(value);
+                    // As in PUI, application callbacks run after input processing.
+                    if(leave && exit) dispatch::postCallback(std::move(exit));
+                    if(move && motion) dispatch::postCallback([motion, value]() { motion(value); });
+                    if(rotate && wheel) dispatch::postCallback([wheel, value]() { wheel(value); });
                 }
                 void stop() {
                     painter = {};

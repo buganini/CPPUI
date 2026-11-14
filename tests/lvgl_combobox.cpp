@@ -9,7 +9,7 @@ namespace {
     }
     void choose(lv_obj_t * object, int index) {
         auto list = dropdown(object); lv_dropdown_set_selected(list, index);
-        lv_obj_send_event(list, LV_EVENT_VALUE_CHANGED, nullptr);
+        lv_obj_send_event(list, LV_EVENT_VALUE_CHANGED, nullptr);CPPUI::LVGL::dispatch::flush();
     }
     std::string selected(lv_obj_t * object) {
         auto list = dropdown(object);
@@ -72,7 +72,7 @@ int main() {
             Root root; root.redraw(); auto object=root.native();
             require(selected(object).empty(), "unbound combo did not start empty");
             uint32_t enter=LV_KEY_ENTER;
-            lv_obj_send_event(object,LV_EVENT_KEY,&enter);lv_obj_send_event(object,LV_EVENT_KEY,&enter);
+            lv_obj_send_event(object,LV_EVENT_KEY,&enter);CPPUI::LVGL::dispatch::flush();lv_obj_send_event(object,LV_EVENT_KEY,&enter);CPPUI::LVGL::dispatch::flush();
             require(selected(object)=="Duplicate" && root.changes==1,"keyboard could not accept initial option");
             choose(object,1); require(selected(object)=="Duplicate" && root.changes==2, "unbound selection failed");
             root.reversed=true;root.redraw();
@@ -95,13 +95,13 @@ int main() {
         {
             Root root;root.editable=true;root.boundIndex=true;root.boundText=true;root.redraw();
             auto object=root.native();auto editor=lv_obj_get_child(object,0);
-            lv_textarea_set_text(editor,"tai");
+            lv_textarea_set_text(editor,"tai");CPPUI::LVGL::dispatch::flush();
             require(static_cast<int>(root.index)==-1 && static_cast<std::string>(root.text)=="tai"
                 && lv_dropdown_get_option_count(dropdown(object))==3 && root.textWrites==1,"typed text/candidate binding failed");
             choose(object,2);
             require(static_cast<int>(root.index)==2 && static_cast<std::string>(root.text)=="TPE"
                 && std::string(lv_textarea_get_text(editor))=="Taipei (TPE)" && root.textWrites==2,"selection lost current index/value");
-            root.boundText=false;root.redraw();lv_textarea_set_text(editor,"free text");root.redraw();
+            root.boundText=false;root.redraw();lv_textarea_set_text(editor,"free text");CPPUI::LVGL::dispatch::flush();root.redraw();
             require(std::string(lv_textarea_get_text(editor))=="free text","index-only redraw lost editable buffer");
             lv_dropdown_open(dropdown(object));
             require(lv_dropdown_get_option_count(dropdown(object))==3,"arrow did not restore all choices after unmatched input");
@@ -112,7 +112,7 @@ int main() {
             auto object = root.native(); auto editor = lv_obj_get_child(object, 0); auto list = dropdown(object);
             require(std::string(lv_textarea_get_text(editor)) == "initial", "edit model drove displayed text");
             root.filtered = true;
-            for(auto value: {"t", "tai", "tai tok"}) lv_textarea_set_text(editor, value);
+            for(auto value: {"t", "tai", "tai tok"}) lv_textarea_set_text(editor, value);CPPUI::LVGL::dispatch::flush();
             require(root.native() == object && std::string(lv_textarea_get_text(editor)) == "tai tok"
                 && static_cast<std::string>(root.query) == "tai tok" && root.inputs == 3 && root.changes == 3,
                 "reactive typing lost draft, edit binding, identity or callbacks");
@@ -120,32 +120,32 @@ int main() {
                 "application candidate was filtered again or popup failed to open");
             lv_textarea_set_cursor_pos(editor, 2); root.redraw();
             require(lv_textarea_get_cursor_pos(editor) == 2, "redraw lost cursor position");
-            uint32_t key = LV_KEY_DOWN; lv_obj_send_event(editor, LV_EVENT_KEY, &key);
+            uint32_t key = LV_KEY_DOWN; lv_obj_send_event(editor, LV_EVENT_KEY, &key);CPPUI::LVGL::dispatch::flush();
             require(static_cast<std::string>(root.text) == "tai tok", "navigation accepted a candidate");
-            key = LV_KEY_ENTER; lv_obj_send_event(editor, LV_EVENT_KEY, &key);
+            key = LV_KEY_ENTER; lv_obj_send_event(editor, LV_EVENT_KEY, &key);CPPUI::LVGL::dispatch::flush();
             require(static_cast<std::string>(root.text) == "A" && static_cast<std::string>(root.query) == "tai tok"
                 && std::string(lv_textarea_get_text(editor)) == "Duplicate" && root.changes == 4 && root.inputs == 3,
                 "candidate acceptance lost raw value or wrote edit model");
-            lv_textarea_set_text(editor, "A"); root.redraw();
+            lv_textarea_set_text(editor, "A");CPPUI::LVGL::dispatch::flush(); root.redraw();
             require(std::string(lv_textarea_get_text(editor)) == "A", "typed value replaced with item label");
-            key = LV_KEY_ESC; lv_obj_send_event(editor, LV_EVENT_KEY, &key);
+            key = LV_KEY_ESC; lv_obj_send_event(editor, LV_EVENT_KEY, &key);CPPUI::LVGL::dispatch::flush();
             require(!lv_dropdown_is_open(list) && std::string(lv_textarea_get_text(editor)) == "A", "Escape changed draft or failed to close");
-            root.expand = false; root.redraw(); lv_textarea_set_text(editor, "manual");
+            root.expand = false; root.redraw(); lv_textarea_set_text(editor, "manual");CPPUI::LVGL::dispatch::flush();
             require(!lv_dropdown_is_open(list), "autoexpand off opened suggestions");
             lv_dropdown_open(list); require(lv_dropdown_is_open(list), "autoexpand off blocked manual choices");
-            root.expand = true; root.empty = true; root.redraw(); lv_textarea_set_text(editor, "empty");
+            root.expand = true; root.empty = true; root.redraw(); lv_textarea_set_text(editor, "empty");CPPUI::LVGL::dispatch::flush();
             require(!lv_dropdown_is_open(list), "empty candidates opened suggestions");
-            root.empty = false; root.redraw(); lv_textarea_set_text(editor, "disabled");
+            root.empty = false; root.redraw(); lv_textarea_set_text(editor, "disabled");CPPUI::LVGL::dispatch::flush();
             root.disabled = true; root.redraw(); require(!lv_dropdown_is_open(list), "disabled popup remained open");
-            root.disabled = false; root.redraw(); lv_textarea_set_text(editor, "hidden");
+            root.disabled = false; root.redraw(); lv_textarea_set_text(editor, "hidden");CPPUI::LVGL::dispatch::flush();
             auto parent = lv_obj_get_parent(object);
             lv_obj_set_hidden(parent, true); lv_obj_update_layout(parent);
             require(!lv_dropdown_is_open(list), "hiding ancestor left detached popup visible");
-            lv_obj_set_hidden(parent, false); lv_textarea_set_text(editor, "hidden again");
+            lv_obj_set_hidden(parent, false); lv_textarea_set_text(editor, "hidden again");CPPUI::LVGL::dispatch::flush();
             root.visible = false; root.redraw(); require(!lv_dropdown_is_open(list), "hidden popup remained open");
             root.visible = true; root.redraw();
             root.inputAction = [&]() { root.show = false; root.redraw(); };
-            lv_textarea_set_text(editor, "remove");
+            lv_textarea_set_text(editor, "remove");CPPUI::LVGL::dispatch::flush();
             require(root.children->front()->children->empty(), "input callback failed to remove control");
         }
         {

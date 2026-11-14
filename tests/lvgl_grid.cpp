@@ -31,8 +31,8 @@ namespace {
         void click(lv_obj_t * object) {
             lv_area_t area;lv_obj_get_coords(object,&area);
             packet.point={area.x1+5,area.y1+5};
-            packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);
-            packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);
+            packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();
+            packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();
         }
     };
     class Root: public CPPUI::LVGL::View {

@@ -18,6 +18,7 @@ namespace CPPUI { namespace LVGL {
             }
             static void deleted(lv_event_t * event) {
                 auto state = static_cast<Runtime *>(lv_event_get_user_data(event));
+                dispatch::forgetEditor(state->object);
                 state->object = nullptr;
                 state->cancel();
             }
@@ -73,8 +74,10 @@ namespace CPPUI { namespace LVGL {
                 state->editing = true;
                 state->cancel();
                 if(draft) draft->set(text);
-                if(state->current && state->object && invoke) invoke();
-            } else if(code == LV_EVENT_READY || code == LV_EVENT_DEFOCUSED) commit();
+                dispatch::postCallback(std::move(invoke));
+            } else if(code == LV_EVENT_FOCUSED) focused();
+            else if(code == LV_EVENT_READY) commit();
+            else if(code == LV_EVENT_DEFOCUSED) { dispatch::forgetEditor(runtime ? runtime->object : nullptr); commit(); }
             else Node::nativeEvent(event);
         }
         public:
@@ -113,6 +116,14 @@ namespace CPPUI { namespace LVGL {
                     runtime->pending = lv_async_call(Runtime::syncDraft, runtime.get()) == LV_RESULT_OK;
             }
         }
+        void focused() {
+            if(!runtime || !runtime->object) return;
+            std::weak_ptr<Runtime> weak = runtime;
+            dispatch::focusEditor(runtime->object, [weak]() {
+                auto state = weak.lock();
+                if(state && state->current && state->object) state->current->commit();
+            });
+        }
         void commit() {
             auto state = runtime;
             if(!state || !state->current || !state->object || !state->editing || state->committing) return;
@@ -131,7 +142,7 @@ namespace CPPUI { namespace LVGL {
                         state->modelValue = committed;
                         state->editing = false;
                         if(draft) draft->set(committed);
-                        if(state->current && state->object && invoke) invoke();
+                        dispatch::postCallback(std::move(invoke));
                     }
                 }
             } catch(...) { state->committing = false; throw; }

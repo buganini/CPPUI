@@ -22,9 +22,10 @@ namespace CPPUI { namespace LVGL {
                 auto binding = model;
                 auto selected = value;
                 auto invoke = onClicked;
+                dispatch::commitFocusedEditor(static_cast<lv_obj_t *>(lv_event_get_current_target(event)));
                 binding.set(selected);
-                if(clicked && invoke) invoke();
-            } else Node::nativeEvent(event);
+                if(clicked) dispatch::postCallback(std::move(invoke));
+            } else if(code == LV_EVENT_DOUBLE_CLICKED) Node::nativeEvent(event);
         }
         public:
         using Value = T;

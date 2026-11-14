@@ -71,7 +71,7 @@ namespace {
             require(!tab->is_virtual && tab->ui, "Tab is not a native page container");
             std::map<std::string, lv_obj_t *> retained;
             for(unsigned i = 0; i < root.pages.size(); ++i) retained[root.pages[i].key] = root.page(i);
-            lv_obj_send_event(lv_tabview_get_tab_button(tabs, 1), LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(lv_tabview_get_tab_button(tabs, 1), LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.selected() == retained["b"], "native tab click did not select its page");
             for(int i = 0; i < 10; ++i) {
                 root.redraw();
@@ -138,7 +138,7 @@ namespace {
             root.show = false;
             root.redraw();
         };
-        lv_obj_send_event(lv_obj_get_child(child, 0), LV_EVENT_CLICKED, nullptr);
+        lv_obj_send_event(lv_obj_get_child(child, 0), LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
         require(declarations == 0 && lv_obj_get_child_count(lv_screen_active()) == 0,
                 "callback move followed by removal leaked tabs");
     }

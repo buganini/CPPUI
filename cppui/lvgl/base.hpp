@@ -6,7 +6,11 @@
 #include <lvgl.h>
 #include <cstdio>
 #include <cstring>
+#include <algorithm>
+#include <chrono>
 #include <memory>
+#include <mutex>
+#include <thread>
 
 #ifndef CPPUI_LVGL_BASE
 #define CPPUI_LVGL_BASE
@@ -14,6 +18,53 @@
 namespace CPPUI {
     namespace LVGL {
         constexpr char backendName[] = "LVGL";
+
+        namespace dispatch {
+            // As in PUI, application callbacks run after the native event
+            // returns, in posting order, outside LVGL's event dispatch.
+            struct CallbackQueue { std::vector<std::function<void()>> items; bool scheduled = false; };
+            inline CallbackQueue & callbackQueue() { static CallbackQueue queue; return queue; }
+            inline void runPostedCallbacks(void *) {
+                auto & queue = callbackQueue();
+                queue.scheduled = false;
+                std::vector<std::function<void()>> batch;
+                batch.swap(queue.items);
+                for(auto & callback: batch) try { callback(); }
+                catch(const std::exception & error) { std::fprintf(stderr, "CPPUI LVGL callback failed: %s\n", error.what()); }
+                catch(...) { std::fprintf(stderr, "CPPUI LVGL callback failed: unknown exception\n"); }
+            }
+            inline void postCallback(std::function<void()> callback) {
+                if(!callback) return;
+                auto & queue = callbackQueue();
+                queue.items.push_back(std::move(callback));
+                if(!queue.scheduled) queue.scheduled = lv_async_call(runPostedCallbacks, nullptr) == LV_RESULT_OK;
+            }
+            // Run posted callbacks now, as one event-loop turn would (tests and
+            // hosts that pump LVGL themselves).
+            inline void flush() {
+                auto & queue = callbackQueue();
+                while(!queue.items.empty()) runPostedCallbacks(nullptr);
+                if(queue.scheduled) { lv_async_call_cancel(runPostedCallbacks, nullptr); queue.scheduled = false; }
+            }
+            // Forget work bound to an LVGL instance that is being deinitialized.
+            inline void resetCallbacks() { callbackQueue() = CallbackQueue(); }
+
+            // Clicking elsewhere ends text editing, like a focus change on
+            // desktop toolkits (PUI's commit_focused). LVGL focus is unchanged.
+            struct FocusedEditor { lv_obj_t * object = nullptr; std::function<void()> commit; };
+            inline FocusedEditor & focusedEditor() { static FocusedEditor editor; return editor; }
+            inline void focusEditor(lv_obj_t * object, std::function<void()> commit) {
+                auto & editor = focusedEditor(); editor.object = object; editor.commit = std::move(commit);
+            }
+            inline void forgetEditor(lv_obj_t * object) { if(focusedEditor().object == object) focusedEditor() = FocusedEditor(); }
+            inline void commitFocusedEditor(lv_obj_t * clicked) {
+                auto & editor = focusedEditor();
+                if(!editor.object || editor.object == clicked) return;
+                auto commit = std::move(editor.commit);
+                editor = FocusedEditor();
+                if(commit) commit(); // May redraw synchronously.
+            }
+        }
 
         class View: public ::CPPUI::View {
             public:
@@ -32,9 +83,40 @@ namespace CPPUI {
             struct Commands {
                 using Clock=std::chrono::steady_clock;
                 struct Entry { Clock::time_point deadline; Callback callback; };
-                struct Pending { std::mutex mutex; std::vector<Entry> callbacks; };
+                struct Pending {
+                    std::mutex mutex;
+                    std::vector<Entry> callbacks;
+                    // Cleared when the owning node's commands retire. Only the
+                    // UI thread touches the timer; others are picked up by polling.
+                    lv_timer_t * timer = nullptr;
+                    std::thread::id owner = std::this_thread::get_id();
+                };
                 std::shared_ptr<Pending> pending{new Pending()};
                 lv_timer_t * timer;
+                // Fire at the earliest deadline (like Qt's precise timers);
+                // otherwise poll for submissions from other threads.
+                static void schedule(const std::shared_ptr<Pending> & pending) {
+                    lv_timer_t * timer;
+                    uint32_t period = LV_DEF_REFR_PERIOD;
+                    { std::lock_guard<std::mutex> lock(pending->mutex);
+                      timer = pending->timer;
+                      if(!timer) return;
+                      if(!pending->callbacks.empty()) {
+                          auto earliest = pending->callbacks.front().deadline;
+                          for(const auto & entry: pending->callbacks) earliest = std::min(earliest, entry.deadline);
+                          // Round up so a deadline is never reported as already reached.
+                          const auto wait = (std::chrono::duration_cast<std::chrono::microseconds>(earliest - Clock::now()).count() + 999) / 1000;
+                          period = static_cast<uint32_t>(std::max<long long>(0, std::min<long long>(wait, LV_DEF_REFR_PERIOD)));
+                      }
+                    }
+                    lv_timer_set_period(timer, period);
+                    if(period) lv_timer_reset(timer); else lv_timer_ready(timer);
+                }
+                static void post(const std::shared_ptr<Pending> & pending, Clock::time_point deadline, Callback callback) {
+                    { std::lock_guard<std::mutex> lock(pending->mutex);
+                      pending->callbacks.push_back({deadline, std::move(callback)}); }
+                    if(std::this_thread::get_id() == pending->owner) schedule(pending);
+                }
                 Commands():timer(lv_timer_create([](lv_timer_t * timer) {
                     auto pending=static_cast<Commands *>(lv_timer_get_user_data(timer))->pending;
                     std::vector<std::function<void()>> callbacks;
@@ -51,8 +133,13 @@ namespace CPPUI {
                     for(auto & callback:callbacks) try { callback(); }
                     catch(const std::exception & error) { std::fprintf(stderr,"CPPUI ref: %s\n",error.what()); }
                     catch(...) { std::fprintf(stderr,"CPPUI ref failed\n"); }
-                },LV_DEF_REFR_PERIOD,this)) {}
-                ~Commands() { lv_timer_delete(timer); }
+                    // A callback may have retired these commands and their timer.
+                    schedule(pending);
+                },LV_DEF_REFR_PERIOD,this)) { pending->timer=timer; }
+                ~Commands() {
+                    { std::lock_guard<std::mutex> lock(pending->mutex); pending->timer=nullptr; }
+                    lv_timer_delete(timer);
+                }
             };
             std::unique_ptr<Commands> commands;
             friend class Tabs;
@@ -162,12 +249,14 @@ namespace CPPUI {
             // PUI, every other widget accepts input only while a click handler
             // is set; otherwise presses fall through to its parents.
             bool clickable = false;
-            virtual bool acceptsClicks() const { return clickable || hasClickHandler; }
+            virtual bool acceptsClicks() const { return clickable || hasClickHandler || bool(onDblClicked); }
             virtual void nativeEvent(lv_event_t * event) {
-                if(acceptsClicks() && lv_event_get_code(event) == LV_EVENT_CLICKED) {
-                    auto invoke = onClicked;
-                    if(invoke) invoke();
-                }
+                const auto code = lv_event_get_code(event);
+                if(!acceptsClicks() || (code != LV_EVENT_CLICKED && code != LV_EVENT_DOUBLE_CLICKED)) return;
+                // Copy before committing: the commit can redraw or remove this node.
+                auto invoke = code == LV_EVENT_CLICKED ? onClicked : onDblClicked;
+                dispatch::commitFocusedEditor(static_cast<lv_obj_t *>(lv_event_get_current_target(event)));
+                dispatch::postCallback(std::move(invoke));
             }
             public:
             int expandX=0,expandY=0;
@@ -182,8 +271,7 @@ namespace CPPUI {
                 if(!commands) commands.reset(new Commands());
                 auto pending=commands->pending;
                 return [pending](std::function<void()> callback) {
-                    std::lock_guard<std::mutex> lock(pending->mutex);
-                    pending->callbacks.push_back({Commands::Clock::now(),std::move(callback)});
+                    Commands::post(pending,Commands::Clock::now(),std::move(callback));
                 };
             }
             TimerPoster timerPoster() override {
@@ -191,8 +279,7 @@ namespace CPPUI {
                 if(!commands) commands.reset(new Commands());
                 auto pending=commands->pending;
                 return [pending](int delay,Callback callback) {
-                    std::lock_guard<std::mutex> lock(pending->mutex);
-                    pending->callbacks.push_back({Commands::Clock::now()+std::chrono::milliseconds(delay),std::move(callback)});
+                    Commands::post(pending,Commands::Clock::now()+std::chrono::milliseconds(delay),std::move(callback));
                 };
             }
             void update(::CPPUI::Node * previous) override {

@@ -444,6 +444,18 @@ made during reconciliation schedules a follow-up, never a nested update.
 keeps the mounted UI and the view can retry on a later request; failures after
 native reconciliation starts still need a recovery contract. Removing a view
 cancels its queued work. Core and LVGL redraws remain synchronous.</p>
+<p>Callback timing follows PUI. Qt and wx invoke application callbacks
+(<code>click</code>, <code>dblclick</code>, <code>change</code>, <code>input</code>, Canvas pointer callbacks and
+Table cell callbacks) from the native event. LVGL, like PUI's LVGL backend, writes bound
+models during the native event but posts the callbacks, in order, to run after that
+event returns and outside LVGL's event dispatch; hosts that pump LVGL themselves can call
+<code>CPPUI::LVGL::dispatch::flush()</code> to run them immediately. Before a click is handled,
+LVGL commits the TextField or TextEdit being edited (PUI's <code>commit_focused</code>)
+without moving LVGL focus.</p>
+<p><code>node.dblclick(callback)</code> is a shared no-argument double-click handler, as in PUI.
+LVGL dispatches it on every widget, and a widget with a click or double-click handler
+accepts pointer input. Qt and wx dispatch it on Canvas, as PUI does; Table and Tree
+nodes keep their own per-cell/item <code>.dblclick()</code>.</p>
 <h2 id="optional-arguments">Optional arguments</h2>
 <p>Independent widget options use named fluent setters in C++11, corresponding to
 PUI's keyword arguments: <code>Button(&quot;Save&quot;).disabled()</code> and
@@ -1851,7 +1863,8 @@ are deliberate rendering stress workloads.
 <code>MatplotlibCanvas</code> integrations are excluded from CPPUI and its cookbook.</p>
 <h2 id="label">Label</h2>
 <p>Qt and LVGL <code>Label(text).click(callback)</code> dispatch a no-argument callback.
-Qt uses mouse press, as PUI does, and commits the focused editor first.
+Qt uses mouse press, as PUI does; both commit the focused editor first, and LVGL runs
+the callback after the native event.
 Redraw replaces or clears the handler and preserves unrelated native listeners.
 The callback may redraw or remove its own declaration. Label owns its literal
 text. Qt supports mouse selection and resets omitted selection/cursor/handler
@@ -2000,7 +2013,9 @@ Qt/wx Window binders also provide <code>maximize(bool)</code>, <code>minimize(bo
 <code>fullscreen(bool)</code> for live changes. Declaration setters remain initial-only.
 A binder obtained on the UI thread may submit commands from a worker; commands
 never run synchronously. Qt/wx use their native queues; LVGL drains a protected
-queue on its normal refresh timer without calling LVGL from the worker.</p>
+queue without calling LVGL from the worker. On the UI thread its timer is rescheduled
+for the earliest deadline, so delayed work runs on time like Qt's precise timers;
+submissions from a worker are picked up within one refresh period.</p>
 <p>A binder follows matching reconciled declarations. Renaming a ref, changing
 node identity/type, or removing its node expires that binder; already queued
 commands are discarded, and new commands throw <code>std::runtime_error</code>. A missing

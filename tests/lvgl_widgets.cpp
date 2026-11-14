@@ -22,7 +22,8 @@ namespace {
         std::string text = "<b>literal text</b> and some more words that will wrap across multiple lines";
         std::string html = "<i>HTML</i>\n<span style=\"color:red\">support</span>";
         std::string markdown = "# Heading\n**bold** <i>literal</i>";
-        bool show = true, handler = true, selectable = false, margin = true;
+        bool show = true, handler = true, selectable = false, margin = true, doubleHandler = false;
+        int doubled = 0;
         int value = 1, clicked = 0;
         std::weak_ptr<int> capture;
         std::function<void()> action;
@@ -36,6 +37,7 @@ namespace {
                 }
                 auto & plain = CPPUI::Label("plain", selectable).id("plain");
                 if(margin) plain.layout(CPPUI::layout::margin(1, 4));
+                if(doubleHandler) plain.dblclick([this]() { ++doubled; });
                 CPPUI::Label("narrow").id("narrow").layout(CPPUI::layout::width(60));
                 CPPUI::Divider().id("horizontal");
                 for(auto row: CPPUI::HBox().id("row")) {
@@ -87,18 +89,18 @@ int main() {
                 && root.html == lv_label_get_text(html) && root.markdown == lv_label_get_text(markdown),
                 "HTML or Markdown fallback update lost native identity or raw source");
             require(capture.expired(), "label retained retired callback");
-            lv_obj_send_event(click, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(click, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(root.clicked == 2 && external == 1, "label click used old data or removed external listener");
             capture = root.capture;
             root.handler = false;
             root.redraw();
-            lv_obj_send_event(click, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(click, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(capture.expired() && root.clicked == 2 && external == 2, "omitted label callback was not reset");
             root.handler = true;
             root.action = [&root]() { root.show = false; root.redraw(); };
             root.redraw();
             capture = root.capture;
-            lv_obj_send_event(click, LV_EVENT_CLICKED, nullptr);
+            lv_obj_send_event(click, LV_EVENT_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
             require(capture.expired() && destroyed == 1 && !find(root, "click"), "label self-removal leaked callbacks or widgets");
             root.action = {};
             root.show = true;
@@ -118,6 +120,19 @@ int main() {
             root.margin = false;
             root.redraw();
             require(lv_obj_get_style_margin_left(root.object("plain"), LV_PART_MAIN) == 0, "omitted margin was not reset");
+            {
+                // Like PUI, every LVGL widget dispatches double-clicks after the event.
+                auto plain = root.object("plain");
+                root.doubled = 0; root.doubleHandler = true; root.redraw();
+                require(lv_obj_has_flag(plain, LV_OBJ_FLAG_CLICKABLE), "double-click handler did not make the label clickable");
+                lv_obj_send_event(plain, LV_EVENT_DOUBLE_CLICKED, nullptr);
+                require(root.doubled == 0, "double-click callback ran inside the native event");
+                CPPUI::LVGL::dispatch::flush();
+                require(root.doubled == 1, "double-click callback was not dispatched");
+                root.doubleHandler = false; root.redraw();
+                lv_obj_send_event(plain, LV_EVENT_DOUBLE_CLICKED, nullptr);CPPUI::LVGL::dispatch::flush();
+                require(root.doubled == 1 && !lv_obj_has_flag(plain, LV_OBJ_FLAG_CLICKABLE), "omitted double-click handler kept dispatch or input");
+            }
             root.selectable = true;
             root.redraw();
             require(root.object("column") == column, "selectable text remounted the mounted UI");

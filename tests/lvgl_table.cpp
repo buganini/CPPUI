@@ -11,7 +11,7 @@ namespace {
         for(auto child:*node.children) if(auto result=find(*child,id)) return result;
         return nullptr;
     }
-    void key(lv_obj_t * object,uint32_t value) {lv_obj_send_event(object,LV_EVENT_KEY,&value);}
+    void key(lv_obj_t * object,uint32_t value) {lv_obj_send_event(object,LV_EVENT_KEY,&value);CPPUI::LVGL::dispatch::flush();}
     class Root: public CPPUI::LVGL::View {
     public:
         std::string value="initial",price="",other="other";
@@ -67,8 +67,8 @@ namespace {
             for(int r=0;r<row;++r) area.y1+=table->row_h[r];
             for(int c=0;c<column;++c) area.x1+=table->col_w[c];
             packet.point={area.x1+table->col_w[column]/2-lv_obj_get_scroll_x(object),area.y1+table->row_h[row]/2-lv_obj_get_scroll_y(object)};
-            packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);lv_tick_inc(30);
-            packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);lv_tick_inc(30);
+            packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();lv_tick_inc(30);
+            packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();lv_tick_inc(30);
         }
     };
     void declarative() {
@@ -83,17 +83,17 @@ namespace {
         root.text(0,1,"4.5");root.text(0,1,"999999999999999999999999");root.text(0,1,"nan");
         require(root.number==3 && root.writes==1,"invalid number reached model");
         root.text(0,1,"8");require(root.number==8 && root.table()->cellText(0,1)=="8","typed numeric commit");
-        field=root.begin(0,2);lv_dropdown_set_selected(field,1);lv_obj_send_event(field,LV_EVENT_VALUE_CHANGED,nullptr);
+        field=root.begin(0,2);lv_dropdown_set_selected(field,1);lv_obj_send_event(field,LV_EVENT_VALUE_CHANGED,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.flag && root.table()->cellText(0,2)=="True","boolean dropdown failed");
-        field=root.begin(0,3);lv_dropdown_set_selected(field,0);lv_obj_send_event(field,LV_EVENT_VALUE_CHANGED,nullptr);
+        field=root.begin(0,3);lv_dropdown_set_selected(field,0);lv_obj_send_event(field,LV_EVENT_VALUE_CHANGED,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.number==3,"duplicate choice label lost raw value");
-        root.number=99;root.sync();field=root.begin(0,3);lv_obj_send_event(field,LV_EVENT_DEFOCUSED,nullptr);
+        root.number=99;root.sync();field=root.begin(0,3);lv_obj_send_event(field,LV_EVENT_DEFOCUSED,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.number==99,"unknown choice changed on focus loss");
         field=root.begin(0,3);key(field,LV_KEY_ENTER);key(field,LV_KEY_ENTER);
         require(root.number==3 && !root.table()->editor(),"initial choice could not be accepted");
         field=root.begin(1,0);require(std::string(lv_textarea_get_placeholder_text(field))=="Enter price","placeholder missing");
         require(lv_obj_get_child_count(lv_obj_get_parent(field))==3,"prefix/suffix not separate labels");
-        lv_textarea_set_text(field,"12");lv_obj_send_event(field,LV_EVENT_DEFOCUSED,nullptr);
+        lv_textarea_set_text(field,"12");lv_obj_send_event(field,LV_EVENT_DEFOCUSED,nullptr);CPPUI::LVGL::dispatch::flush();
         require(root.price=="12" && root.table()->cellText(1,0)=="$12 USD","decorated edit leaked decorations");
         field=root.begin(0,0);lv_textarea_set_text(field,"stale");root.rebind=true;root.sync();
         require(root.native()==object && !root.table()->editor() && root.value=="new","redraw committed stale draft or replaced native");
@@ -126,8 +126,8 @@ namespace {
         }
         ~Keyboard() {lv_indev_delete(device);}
         void press(uint32_t key) {
-            packet.key=key;packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);
-            packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);
+            packet.key=key;packet.state=LV_INDEV_STATE_PRESSED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();
+            packet.state=LV_INDEV_STATE_RELEASED;lv_indev_read(device);CPPUI::LVGL::dispatch::flush();
         }
     };
     void keyboard() {
