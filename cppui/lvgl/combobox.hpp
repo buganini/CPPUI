@@ -199,6 +199,7 @@ namespace CPPUI { namespace LVGL {
         public:
         ComboBox(bool editable, Optional<Binding<int>> index = {}, Optional<Binding<std::string>> text = {})
             : editable(editable), indexModel(index), textModel(text) {
+            clickable = true;
             if(index) indexValue = index->get();
             if(text) textValue = text->get();
         }

@@ -73,9 +73,6 @@ namespace CPPUI { namespace LVGL {
                 return;
             }
             place(object);
-            const auto margin=child->layout_margin.valueOr(Insets(0));
-            lv_obj_set_style_margin_top(object,margin.top,0);lv_obj_set_style_margin_right(object,margin.right,0);
-            lv_obj_set_style_margin_bottom(object,margin.bottom,0);lv_obj_set_style_margin_left(object,margin.left,0);
         }
         void addChild(int index,Node * child) override {
             if(child->is_outoforder) return;

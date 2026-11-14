@@ -19,6 +19,9 @@ namespace CPPUI { namespace LVGL {
         }
         public:
         Scroll(Optional<bool> vertical = {}, Optional<bool> horizontal = false): vertical(vertical), horizontal(horizontal) {
+            // LVGL hit-testing skips non-clickable objects, so a drag that starts
+            // on non-clickable content (e.g. a Label) must find the viewport itself.
+            clickable = true;
             if((vertical && *vertical && !horizontal) || (horizontal && *horizontal && !vertical))
                 throw std::invalid_argument("LVGL cannot force one scrollbar while the other is automatic");
         }

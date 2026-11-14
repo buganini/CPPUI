@@ -1,6 +1,7 @@
 #include "cppui/lvgl/image.hpp"
 #include "cppui/lvgl/window.hpp"
 #include "cppui/lvgl/layout.hpp"
+#include "cppui/lvgl/button.hpp"
 #define LODEPNG_NO_COMPILE_CPP
 #include <src/libs/lodepng/lodepng.h>
 #include <fstream>
@@ -110,7 +111,7 @@ namespace {
     void lifecycle(Files & files) {
         Root root;root.path=files.first;root.sync();auto object=root.object();
         lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);require(root.clicked==1,"image click missing");
-        root.callback=false;root.sync();lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);
+        root.callback=false;root.sync();require(!lv_obj_has_flag(object,LV_OBJ_FLAG_CLICKABLE),"image without a click handler intercepts input");lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);
         require(root.clicked==1,"omitted click callback retained");
         root.callback=true;root.action=[&]() {root.sync();root.show=false;root.sync();};root.sync();
         lv_obj_send_event(object,LV_EVENT_CLICKED,nullptr);require(root.clicked==2,"redraw/removal during click failed");
@@ -135,6 +136,33 @@ namespace {
         }
     }
 }
+namespace {
+    class IconRoot: public CPPUI::LVGL::View {
+    public:
+        std::string text="Star",icon;
+        void content() override {
+            for(auto window:CPPUI::Window()) for(auto box:CPPUI::VBox()) {
+                auto & button=CPPUI::Button(text);button.id("button");
+                if(!icon.empty()) button.icon(icon);
+            }
+        }
+        CPPUI::LVGL::Button * button() {return static_cast<CPPUI::LVGL::Button *>(children->front()->children->front()->children->front());}
+        void sync() {redraw();lv_obj_update_layout(lv_screen_active());}
+    };
+    void buttonIcon(Files & files) {
+        IconRoot root;root.icon=files.first;root.sync();
+        auto button=root.button();auto object=static_cast<lv_obj_t *>(button->ui);
+        require(button->image && button->label && lv_obj_get_index(button->image)==0,"icon was not placed before the label");
+        require(lv_obj_get_width(button->image)==20 && lv_obj_get_height(button->image)==10,"icon was not fitted into 20 pixels");
+        root.text="";root.sync();button=root.button();
+        require(button->ui==object && button->image && !button->label,"icon-only button kept an empty label");
+        root.icon=files.second;root.sync();button=root.button();
+        require(lv_obj_get_width(button->image)==7 && lv_obj_get_height(button->image)==20,"replaced icon kept its old size");
+        root.icon.clear();root.text="Plain";root.sync();button=root.button();
+        require(button->ui==object && !button->image && button->label
+            && std::string(lv_label_get_text(button->label))=="Plain","removing the icon left native parts behind");
+    }
+}
 int main() {
     lv_init();lv_display_create(640,480);
     // Also exercise callers that enable the optional native decoder caches.
@@ -142,7 +170,7 @@ int main() {
     int result=0;
     try {
         Files files;png(files.first,20,10,0xff0000,128);png(files.second,10,30,0x0000ff);
-        geometry(files);lifecycle(files);failures(files);
+        geometry(files);lifecycle(files);failures(files);buttonIcon(files);
         require(lv_obj_get_child_count(lv_screen_active())==0,"image teardown retained native objects");
     } catch(const std::exception & error) {std::cerr<<error.what()<<'\n';result=1;}
     lv_deinit();return result;

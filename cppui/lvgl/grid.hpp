@@ -189,9 +189,6 @@ namespace CPPUI { namespace LVGL {
                 lv_obj_update_layout(object);
                 lv_obj_mark_layout_as_dirty(object);
             }
-            const auto margin=child->layout_margin.valueOr(Insets(0));
-            lv_obj_set_style_margin_top(object,margin.top,0);lv_obj_set_style_margin_right(object,margin.right,0);
-            lv_obj_set_style_margin_bottom(object,margin.bottom,0);lv_obj_set_style_margin_left(object,margin.left,0);
             configure();
         }
         void addChild(int index,Node * child) override {

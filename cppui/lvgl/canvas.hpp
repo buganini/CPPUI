@@ -552,6 +552,7 @@ namespace CPPUI {
             std::shared_ptr<Native> native;
             public:
             explicit Canvas(Painter painter): painter(std::move(painter)) { is_terminal = true; expandX=expandY=4; }
+            bool acceptsClicks() const override { return bool(moved) || bool(wheeled) || bool(left) || Node::acceptsClicks(); }
             void update(Node * prev) override {
                 auto previous = static_cast<Canvas *>(prev);
                 if(previous && previous->native && previous->native->object) native = std::move(previous->native);
@@ -573,7 +574,6 @@ namespace CPPUI {
                     if(!showFPS && native->fpsLabel) { lv_obj_delete(native->fpsLabel); native->fpsLabel = nullptr; }
                 }
                 native->moved=moved; native->wheeled=wheeled; native->left=left;
-                lv_obj_set_clickable(native->object, bool(moved) || bool(wheeled) || bool(left));
                 native->attachInputs();
                 native->request();
             }

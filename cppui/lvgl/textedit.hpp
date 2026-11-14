@@ -89,7 +89,7 @@ namespace CPPUI { namespace LVGL {
             else Node::nativeEvent(event);
         }
         public:
-        explicit TextEdit(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; expandX=expandY=4; }
+        explicit TextEdit(Binding<std::string> model): model(model), value(model.get()) { is_terminal = true; clickable = true; expandX=expandY=4; }
         TextEdit(Binding<std::string> model, Binding<std::string> editModel): TextEdit(model) {
             this->editModel = editModel;
             editValue = editModel.get();

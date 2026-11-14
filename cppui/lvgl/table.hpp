@@ -245,7 +245,7 @@ namespace detail {
                         self->keyboardEdit=false;
                         self->beginEdit(self->selectedRow,self->selectedColumn);
                     }
-                } else if(code==LV_EVENT_SHORT_CLICKED) self->dispatch(false);
+                } else if(code==LV_EVENT_CLICKED) self->dispatch(false);
                 else if(code==LV_EVENT_DOUBLE_CLICKED) self->dispatch(true);
                 else if(code==LV_EVENT_KEY && lv_event_get_key(event)==LV_KEY_ENTER) {
                     uint32_t row,column;lv_table_get_selected_cell(self->object,&row,&column);
@@ -292,7 +292,7 @@ class Table: public Node {
             return visible ? Optional<std::vector<std::string>>(std::move(result)) : Optional<std::vector<std::string>>();
         }
         public:
-        explicit Table(bool autofit = true): autofit(autofit) { is_terminal = true; expandX=expandY=4; }
+        explicit Table(bool autofit = true): autofit(autofit) { is_terminal = true; clickable = true; expandX=expandY=4; }
         template<class Adapter> explicit Table(std::shared_ptr<Adapter> source, bool autofit = true): Table(autofit) {
             using T = typename Adapter::Value;
             std::shared_ptr<BaseTableAdapter<T>> adapter = std::move(source);
@@ -360,6 +360,9 @@ class Table: public Node {
                 native=std::make_shared<detail::TableNative>();
                 native->object=lv_table_create(static_cast<lv_obj_t *>(parent->inner()));
                 lv_obj_set_send_draw_task_events(native->object,true);
+                // Compact desktop-like cells, as in PUI (the theme default is touch sized).
+                lv_obj_set_style_pad_top(native->object,4,LV_PART_ITEMS);lv_obj_set_style_pad_bottom(native->object,4,LV_PART_ITEMS);
+                lv_obj_set_style_pad_left(native->object,8,LV_PART_ITEMS);lv_obj_set_style_pad_right(native->object,8,LV_PART_ITEMS);
                 lv_obj_add_event_cb(native->object,detail::TableNative::event,LV_EVENT_ALL,
                     new std::shared_ptr<detail::TableNative>(native));
             }
@@ -380,14 +383,15 @@ class Table: public Node {
                 auto font=lv_obj_get_style_text_font(object,LV_PART_ITEMS);
                 const int padding=lv_obj_get_style_pad_left(object,LV_PART_ITEMS)+lv_obj_get_style_pad_right(object,LV_PART_ITEMS);
                 for(int c=0;c<nc+int(bool(rowLabels));++c) {
-                    int width=40;
+                    // As in PUI: the widest text (at least 20 pixels) plus padding.
+                    int width=20;
                     for(const auto & row:text) {
                         lv_point_t size;
                         lv_text_get_size(&size,row[c].c_str(),font,lv_obj_get_style_text_letter_space(object,LV_PART_ITEMS),
                             lv_obj_get_style_text_line_space(object,LV_PART_ITEMS),LV_COORD_MAX,LV_TEXT_FLAG_NONE);
-                        width=std::max(width,int(size.x)+padding+2);
+                        width=std::max(width,int(size.x));
                     }
-                    lv_table_set_column_width(object,c,width);
+                    lv_table_set_column_width(object,c,width+padding+2);
                 }
             }
             Node::postUpdate();

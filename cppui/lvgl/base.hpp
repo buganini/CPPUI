@@ -112,13 +112,19 @@ namespace CPPUI {
                     lv_obj_set_style_pad_top(object, p.top, 0); lv_obj_set_style_pad_right(object, p.right, 0);
                     lv_obj_set_style_pad_bottom(object, p.bottom, 0); lv_obj_set_style_pad_left(object, p.left, 0);
                 }
+                if(layout_margin) {
+                    for(auto property: {LV_STYLE_MARGIN_TOP, LV_STYLE_MARGIN_RIGHT, LV_STYLE_MARGIN_BOTTOM, LV_STYLE_MARGIN_LEFT}) saveStyle(property);
+                    const auto & m = *layout_margin;
+                    lv_obj_set_style_margin_top(object, m.top, 0); lv_obj_set_style_margin_right(object, m.right, 0);
+                    lv_obj_set_style_margin_bottom(object, m.bottom, 0); lv_obj_set_style_margin_left(object, m.left, 0);
+                }
                 if(style_color) { saveStyle(LV_STYLE_TEXT_COLOR); saveStyle(LV_STYLE_TEXT_OPA); lv_obj_set_style_text_color(object, lv_color_hex(*style_color), 0); lv_obj_set_style_text_opa(object,colorAlpha(*style_color),0); }
                 if(style_bgcolor) {
                     saveStyle(LV_STYLE_BG_COLOR); saveStyle(LV_STYLE_BG_OPA);
                     lv_obj_set_style_bg_color(object, lv_color_hex(*style_bgcolor), 0);
                     lv_obj_set_style_bg_opa(object, colorAlpha(*style_bgcolor), 0);
                 }
-                if(style_fontsize || style_fontfamily || style_fontweight) {
+                if(style_fontsize || style_fontweight) {
                     // LVGL uses configured bitmap fonts; choose the closest enabled
                     // Montserrat size to the requested point size at 96 dpi.
                     const auto font = resolveFont();
@@ -150,10 +156,15 @@ namespace CPPUI {
                 if(observed) observed->invalidate();
                 observed.reset();
             }
+            bool hasClickHandler = false;
             protected:
+            // Always clickable native controls (buttons, editors, ...). As in
+            // PUI, every other widget accepts input only while a click handler
+            // is set; otherwise presses fall through to its parents.
             bool clickable = false;
+            virtual bool acceptsClicks() const { return clickable || hasClickHandler; }
             virtual void nativeEvent(lv_event_t * event) {
-                if(clickable && lv_event_get_code(event) == LV_EVENT_CLICKED) {
+                if(acceptsClicks() && lv_event_get_code(event) == LV_EVENT_CLICKED) {
                     auto invoke = onClicked;
                     if(invoke) invoke();
                 }
@@ -162,6 +173,10 @@ namespace CPPUI {
             int expandX=0,expandY=0;
             int baseExpansion(bool x) const override { return x ? expandX : expandY; }
             ~Node() override { clearRef(); unobserve(); }
+            void click(std::function<void()> callback) override {
+                hasClickHandler = bool(callback);
+                ::CPPUI::Node::click(std::move(callback));
+            }
             CommandPoster commandPoster() override {
                 if(!ui) return {};
                 if(!commands) commands.reset(new Commands());
@@ -197,7 +212,7 @@ namespace CPPUI {
                         lv_obj_add_event_cb(object, event, LV_EVENT_ALL, observed.get());
                     }
                 }
-                if(object && clickable) lv_obj_set_clickable(object, true);
+                if(object) lv_obj_set_clickable(object, acceptsClicks());
                 if(object) {
                     applyOptions();
                     if(supportsVisibility() && (!is_visible || (prev && !prev->is_visible))) lv_obj_set_hidden(object,!is_visible);
@@ -224,15 +239,15 @@ namespace CPPUI {
                 if(child->ui) lv_obj_move_to_index(static_cast<lv_obj_t *>(child->outer()), -1);
             }
 
-            void addChild(int idx, ::CPPUI::Node *child) {
+            void addChild(int idx, ::CPPUI::Node *child) override {
                 addChild(idx, (Node *) child);
             }
 
-            void removeChild(int idx, ::CPPUI::Node *child) {
+            void removeChild(int idx, ::CPPUI::Node *child) override {
                 removeChild(idx, (Node *) child);
             }
 
-            void destroy(bool direct) {
+            void destroy(bool direct) override {
                 clearRef(); commands.reset();
                 unobserve();
                 if(direct && ui){
@@ -271,76 +286,80 @@ namespace CPPUI {
             return Fonts::withFontWeight(resolveFontSize(),bold);
         }
         inline const lv_font_t * Node::resolveFontSize() const {
-            if(style_fontfamily && *style_fontfamily && std::strcmp(style_fontfamily, "Montserrat") != 0)
-                throw std::invalid_argument("LVGL style fontFamily supports only configured Montserrat fonts");
+            // Only the compiled Montserrat faces exist; like PUI, fontFamily
+            // cannot select other fonts and is ignored.
             if(!style_fontsize) return lv_obj_get_style_text_font(static_cast<lv_obj_t *>(ui),LV_PART_MAIN);
-            const lv_font_t * best = LV_FONT_DEFAULT;
+            const lv_font_t * best = nullptr;
             const int pixels = (*style_fontsize * 4 + 1) / 3;
-            int distance = std::abs(int(best->line_height) - pixels);
+            int distance = 0;
+            const auto consider = [&](const lv_font_t * font, int size) {
+                if(!best || std::abs(size - pixels) < distance) { best = font; distance = std::abs(size - pixels); }
+            };
 #if LV_FONT_MONTSERRAT_8
-            if(std::abs(8 - pixels) < distance) { best = &lv_font_montserrat_8; distance = std::abs(8 - pixels); }
+            consider(&lv_font_montserrat_8, 8);
 #endif
 #if LV_FONT_MONTSERRAT_10
-            if(std::abs(10 - pixels) < distance) { best = &lv_font_montserrat_10; distance = std::abs(10 - pixels); }
+            consider(&lv_font_montserrat_10, 10);
 #endif
 #if LV_FONT_MONTSERRAT_12
-            if(std::abs(12 - pixels) < distance) { best = &lv_font_montserrat_12; distance = std::abs(12 - pixels); }
+            consider(&lv_font_montserrat_12, 12);
 #endif
 #if LV_FONT_MONTSERRAT_14
-            if(std::abs(14 - pixels) < distance) { best = &lv_font_montserrat_14; distance = std::abs(14 - pixels); }
+            consider(&lv_font_montserrat_14, 14);
 #endif
 #if LV_FONT_MONTSERRAT_16
-            if(std::abs(16 - pixels) < distance) { best = &lv_font_montserrat_16; distance = std::abs(16 - pixels); }
+            consider(&lv_font_montserrat_16, 16);
 #endif
 #if LV_FONT_MONTSERRAT_18
-            if(std::abs(18 - pixels) < distance) { best = &lv_font_montserrat_18; distance = std::abs(18 - pixels); }
+            consider(&lv_font_montserrat_18, 18);
 #endif
 #if LV_FONT_MONTSERRAT_20
-            if(std::abs(20 - pixels) < distance) { best = &lv_font_montserrat_20; distance = std::abs(20 - pixels); }
+            consider(&lv_font_montserrat_20, 20);
 #endif
 #if LV_FONT_MONTSERRAT_22
-            if(std::abs(22 - pixels) < distance) { best = &lv_font_montserrat_22; distance = std::abs(22 - pixels); }
+            consider(&lv_font_montserrat_22, 22);
 #endif
 #if LV_FONT_MONTSERRAT_24
-            if(std::abs(24 - pixels) < distance) { best = &lv_font_montserrat_24; distance = std::abs(24 - pixels); }
+            consider(&lv_font_montserrat_24, 24);
 #endif
 #if LV_FONT_MONTSERRAT_26
-            if(std::abs(26 - pixels) < distance) { best = &lv_font_montserrat_26; distance = std::abs(26 - pixels); }
+            consider(&lv_font_montserrat_26, 26);
 #endif
 #if LV_FONT_MONTSERRAT_28
-            if(std::abs(28 - pixels) < distance) { best = &lv_font_montserrat_28; distance = std::abs(28 - pixels); }
+            consider(&lv_font_montserrat_28, 28);
 #endif
 #if LV_FONT_MONTSERRAT_30
-            if(std::abs(30 - pixels) < distance) { best = &lv_font_montserrat_30; distance = std::abs(30 - pixels); }
+            consider(&lv_font_montserrat_30, 30);
 #endif
 #if LV_FONT_MONTSERRAT_32
-            if(std::abs(32 - pixels) < distance) { best = &lv_font_montserrat_32; distance = std::abs(32 - pixels); }
+            consider(&lv_font_montserrat_32, 32);
 #endif
 #if LV_FONT_MONTSERRAT_34
-            if(std::abs(34 - pixels) < distance) { best = &lv_font_montserrat_34; distance = std::abs(34 - pixels); }
+            consider(&lv_font_montserrat_34, 34);
 #endif
 #if LV_FONT_MONTSERRAT_36
-            if(std::abs(36 - pixels) < distance) { best = &lv_font_montserrat_36; distance = std::abs(36 - pixels); }
+            consider(&lv_font_montserrat_36, 36);
 #endif
 #if LV_FONT_MONTSERRAT_38
-            if(std::abs(38 - pixels) < distance) { best = &lv_font_montserrat_38; distance = std::abs(38 - pixels); }
+            consider(&lv_font_montserrat_38, 38);
 #endif
 #if LV_FONT_MONTSERRAT_40
-            if(std::abs(40 - pixels) < distance) { best = &lv_font_montserrat_40; distance = std::abs(40 - pixels); }
+            consider(&lv_font_montserrat_40, 40);
 #endif
 #if LV_FONT_MONTSERRAT_42
-            if(std::abs(42 - pixels) < distance) { best = &lv_font_montserrat_42; distance = std::abs(42 - pixels); }
+            consider(&lv_font_montserrat_42, 42);
 #endif
 #if LV_FONT_MONTSERRAT_44
-            if(std::abs(44 - pixels) < distance) { best = &lv_font_montserrat_44; distance = std::abs(44 - pixels); }
+            consider(&lv_font_montserrat_44, 44);
 #endif
 #if LV_FONT_MONTSERRAT_46
-            if(std::abs(46 - pixels) < distance) { best = &lv_font_montserrat_46; distance = std::abs(46 - pixels); }
+            consider(&lv_font_montserrat_46, 46);
 #endif
 #if LV_FONT_MONTSERRAT_48
-            if(std::abs(48 - pixels) < distance) { best = &lv_font_montserrat_48; distance = std::abs(48 - pixels); }
+            consider(&lv_font_montserrat_48, 48);
 #endif
-            return best;
+            (void)consider;
+            return best ? best : LV_FONT_DEFAULT;
         }
     }
 }

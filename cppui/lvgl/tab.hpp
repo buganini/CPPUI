@@ -2,19 +2,20 @@
 #define CPPUI_LVGL_TAB
 
 #include "base.hpp"
+#include "layout.hpp"
 #include "../side.hpp"
 #include <stdexcept>
 #include <string>
 
 namespace CPPUI {
     namespace LVGL {
-        class Tab: public Node {
+        // Like PUI and the Qt backend, each Tab is one VBox page holding all
+        // of its children.
+        class Tab: public VBox {
             public:
             bool supportsVisibility() const override { return false; }
             std::string label;
-            explicit Tab(const std::string & label): label(label) { is_virtual = true; }
-            void update(Node *) override {}
-            void destroy(bool) override {}
+            explicit Tab(const std::string & label): label(label) {}
         };
         class Tabs: public Node {
             // A selected page temporarily removed for a keyed move. Observe its
@@ -62,9 +63,9 @@ namespace CPPUI {
                 if(!ui) return;
                 int index=0, selectedIndex=0;
                 for(auto child:*children) {
-                    auto tab=static_cast<Tab *>(child);
+                    auto tab=static_cast<Tab *>(child->getNode());
                     if(key && (tab->has_id && !tab->_id.empty() ? tab->_id : tab->label)==*key) { selectedIndex=index; break; }
-                    index+=count_dom_children(tab->children);
+                    ++index;
                 }
                 auto object=static_cast<lv_obj_t *>(ui);
                 if(lv_tabview_get_tab_count(object)) lv_tabview_set_active(object,selectedIndex,LV_ANIM_OFF);
@@ -80,15 +81,8 @@ namespace CPPUI {
             }
             void addChild(int idx, Node * child) override {
                 if(child->is_outoforder || !ui || !child->ui) return;
-                auto ancestor = child->parent;
-                Tab * tab = nullptr;
-                while(ancestor && ancestor != this) {
-                    tab = dynamic_cast<Tab *>(ancestor);
-                    if(tab) break;
-                    if(ancestor == ancestor->parent) break;
-                    ancestor = ancestor->parent;
-                }
-                if(!tab) throw std::logic_error("Tabs pages must have an ancestor Tab");
+                auto tab = dynamic_cast<Tab *>(child);
+                if(!tab) throw std::logic_error("Tabs children must be Tab declarations");
                 auto object = static_cast<lv_obj_t *>(ui);
                 auto active = selected();
                 const auto index = lv_tabview_get_tab_active(object);
@@ -101,7 +95,7 @@ namespace CPPUI {
                 lv_obj_set_parent(content, page);
                 lv_obj_set_ignore_layout(content, false);
                 lv_obj_set_hidden(content, !child->layoutVisible());
-                lv_obj_set_size(content, lv_pct(100), lv_pct(100));
+                layoutChild(child);
                 lv_obj_move_to_index(page, idx);
                 lv_obj_move_to_index(button, idx);
                 if(movingSelection && movingSelection->object == content) {
@@ -135,12 +129,15 @@ namespace CPPUI {
                 lv_obj_delete(page);
                 restoreSelection(active, index);
             }
+            void layoutChild(Node * child) override {
+                // Box declarations size themselves to content on every update.
+                if(child->ui) lv_obj_set_size(static_cast<lv_obj_t *>(child->outer()), lv_pct(100), lv_pct(100));
+            }
             void postSync() override {
                 if(!ui) return;
                 auto object = static_cast<lv_obj_t *>(ui);
                 const auto count = lv_tabview_get_tab_count(object);
                 uint32_t index = 0;
-                // Preserve the pinned reference's declaration-index label quirk.
                 for(auto child: *children) {
                     auto tab = dynamic_cast<Tab *>(child);
                     if(!tab) throw std::logic_error("Tabs declarations must be Tab nodes");

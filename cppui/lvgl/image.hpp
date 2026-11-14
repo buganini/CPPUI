@@ -111,7 +111,7 @@ protected:
     }
 public:
     explicit Image(const std::string & path):source(load(path)) {
-        is_terminal=true;clickable=true;
+        is_terminal=true;
     }
     void update(Node * previous) override {
         auto prev=static_cast<Image *>(previous);

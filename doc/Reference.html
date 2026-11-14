@@ -340,7 +340,7 @@ are described in the component sections and backend plans.</p>
 <td><a href="#tabs">Tabs / Tab</a></td>
 <td class="support-yes">QTabWidget / QWidget</td>
 <td class="support-yes">wxNotebook / wxPanel</td>
-<td class="support-yes">tabview / virtual node</td>
+<td class="support-yes">tabview / VBox page</td>
 </tr>
 <tr>
 <td><a href="#views">Views</a></td>
@@ -504,7 +504,7 @@ CPPUI::Label(&quot;Hello&quot;)
     .layout(layout::width(200), layout::weight(1), layout::padding(8, 12))
     .style(style::color(0xffffff), style::bgColor(0x222222), style::fontSize(16));
 
-CPPUI::Label(&quot;Body&quot;).style(style::fontFamily(&quot;Sans&quot;)); // Qt/wx; LVGL accepts &quot;Montserrat&quot;.
+CPPUI::Label(&quot;Body&quot;).style(style::fontFamily(&quot;Sans&quot;)); // Qt/wx; LVGL ignores families.
 </code></pre>
 <p>The layout argument helpers are <code>width(int)</code>, <code>height(int)</code>, <code>minWidth(int)</code>, <code>minHeight(int)</code>, <code>weight(int)</code>,
 <code>padding(...)</code> and <code>margin(...)</code>. The style helpers are <code>color(int)</code>,
@@ -607,7 +607,8 @@ font-family forms accept a string literal directly.</p>
 <p>Qt clamps <code>fontWeight</code> to 100–900 and applies it as a native stylesheet weight, independently
 of font size and family. Omitting it on the next declaration restores the native
 default or inherited weight; <code>.qt(StyleSheet)</code> can override it.
-The Qt backend still stores <code>margin</code> without applying it.
+The Qt backend still stores <code>margin</code> without applying it; LVGL applies it as
+native margins on every widget, honoured by HBox/VBox, Grid and Stack layouts, as in PUI.
 Virtual/model-only nodes have no native size or appearance to modify.</p>
 <p><code>.wideLayout(minWidth, ...)</code> and <code>.wideStyle(minWidth, ...)</code> take the threshold
 first, followed by the same typed named arguments (or positional arguments)
@@ -782,7 +783,9 @@ native deletion. Setters/clicks may redraw or remove their own table, and callba
 exceptions are reported to stderr. Bindings still borrow their model storage.
 Rows/cells are declaration-only children: use direct TableNode scopes, rather
 than nested retained views or native widgets inside a table.</p>
-<p>LVGL uses one native <code>lv_table</code> with an overlaid editor. Single-click selects and
+<p>LVGL uses one native <code>lv_table</code> with compact 4/8-pixel cell padding, as in PUI,
+and an overlaid editor. Autofit columns take the widest text (at least 20 pixels)
+plus padding. Single-click selects and
 invokes the cell callback; double-click or Enter starts editing. Text and numeric
 cells use <code>lv_textarea</code>; booleans and choices use <code>lv_dropdown</code>. Enter or focus
 loss submits, Esc cancels, and invalid numeric input leaves the model unchanged.
@@ -1013,7 +1016,7 @@ copy/move semantics.</p>
 <p>Include <code>cppui/qt/button.hpp</code>, <code>cppui/wx/button.hpp</code> or <code>cppui/lvgl/button.hpp</code>.
 <code>Button(text).icon(path).click(callback)</code> owns its text and invokes the current callback.
 Text defaults to empty; either text or icon (or both) may be used.</p>
-<p><code>.icon(path)</code> sets an optional image displayed beside the text. Pass a file path; when both text and icon are provided the icon appears to the left of the text. LVGL accepts the parameter but does not render it (no native button icon support).</p>
+<p><code>.icon(path)</code> sets an optional image displayed beside the text. Pass a file path; when both text and icon are provided the icon appears to the left of the text. LVGL places an <code>lv_image</code> fitted into 20 pixels before the label, as in PUI; an icon-only button has no label. LVGL loads the path through its stdio filesystem driver.</p>
 <table border="1" cellpadding="4" cellspacing="0" style="border-collapse:collapse; margin:10px 0;">
 <tr><th>Backend</th><th>Supported formats</th></tr>
 <tr><td>Qt</td><td>PNG, JPG, SVG, ICO, BMP, GIF</td></tr>
@@ -1131,8 +1134,8 @@ CPPUI::FontComboBox(model.font, {"serif", "sans-serif", "monospace"})
 </code></pre>
 <p>Qt's default picker uses QFontComboBox with native font-face previews; an explicit
 list uses QComboBox. wx enumerates system font families. LVGL defaults to
-<code>sans-serif</code>, <code>serif</code> and <code>monospace</code> as selectable names,
-without enumerating or loading fonts. Only Qt's native picker previews faces in its list.</p>
+<code>Montserrat</code>, its only compiled family, as in PUI; explicit lists are
+shown without enumerating or loading fonts. Only Qt's native picker previews faces in its list.</p>
 <p>User selection writes the family name to the binding and invokes <code>.change()</code>.
 Programmatic changes update the selection even while disabled. Building or updating
 the picker never replaces an unavailable family in the model. Changing an explicit
@@ -1140,8 +1143,7 @@ list preserves the native control; switching Qt between its native picker and an
 explicit list changes the native control type.</p>
 <p>A family name is not a font-file path. Font loading, bundling, size and weight are
 separate concerns. LVGL continues to render using its supported compiled font; selecting
-another name does not load that font. Unsupported names passed to LVGL
-<code>style::fontFamily</code> are rejected; its cookbook preview uses Montserrat. <code>style::fontFamily</code> borrows a C string,
+another name does not load that font, and LVGL ignores <code>style::fontFamily</code>, as PUI does. <code>style::fontFamily</code> borrows a C string,
 so keep its storage alive for the declaration. The <a href="../cookbook/combobox.cpp">ComboBox cookbook</a>
 shows a bound picker and preview with stable name storage.</p>
 <h2 id="combobox">ComboBox</h2>
@@ -1668,11 +1670,9 @@ pages, local view state and controls. Removed pages are reclaimed normally.</p>
 <code>Top</code>, <code>Right</code>, <code>Bottom</code>, and <code>Left</code> (<code>cppui/side.hpp</code>). Raw strings are no
 longer accepted. Qt and LVGL update native placement on redraw while preserving
 pages; wx recreates its notebook when the side changes.</p>
-<p>LVGL still uses virtual Tab declarations: each physical descendant creates a
-native tabview page, so group multiple controls in an explicit VBox or HBox.
-Empty virtual Tabs create no page. Its legacy label update uses direct declaration
-indexes: two physical children in Tab(&quot;A&quot;) followed by one in Tab(&quot;B&quot;) display
-A, B, B. Keyed moves retain child widgets and selection; removing the selected
+<p>As in PUI and the Qt backend, an LVGL Tab is a VBox that fills its native tabview
+page and holds all of its children; an empty Tab still creates a labelled page.
+Keyed moves retain pages and selection; removing the selected
 page clamps its index. Empty tabviews retain their native container. The optional
 selection API remains to port to LVGL. The optional
 selection API also remains to port to wx; wx already owns one panel per Tab.</p>
@@ -1855,7 +1855,9 @@ Qt uses mouse press, as PUI does, and commits the focused editor first.
 Redraw replaces or clears the handler and preserves unrelated native listeners.
 The callback may redraw or remove its own declaration. Label owns its literal
 text. Qt supports mouse selection and resets omitted selection/cursor/handler
-properties; interactive selection remains pending on LVGL. Typed input events
+properties. LVGL accepts <code>Label(text, selectable)</code> for parity with PUI but
+cannot select text yet; it wraps only with a declared width and accepts input
+only while a click handler is set. Typed input events
 remain deferred on both backends.</p>
 <h2 id="text">Text</h2>
 <p>Include <code>cppui/qt/text.hpp</code> for <code>Text(text, selectable = false)</code>,
@@ -1872,12 +1874,11 @@ JavaScript or selection control. WebView inherits native font/colors as document
 defaults, preserves authored inline styles, and avoids reloading unchanged source.</p>
 <p>For LVGL, include <code>cppui/lvgl/text.hpp</code> and use <code>Text(text)</code>. It owns literal
 text, wraps to its available width and recalculates its content height. Native
-reuse updates the text. <code>selectable=true</code> throws <code>std::invalid_argument</code> because
-interactive selection is not yet implemented in CPPUI's LVGL backend.
+reuse updates the text. <code>selectable</code> is accepted as in PUI, but interactive selection is not yet
+implemented in CPPUI's LVGL backend.
 <code>Html</code> and <code>MarkDown</code> are raw-source fallbacks using the same wrapping Text widget.
 Their factories emit call-site compiler warnings through <code>CPPUI_UNSUPPORTED</code>;
-including the header alone is quiet. Their <code>selectable</code> argument has the same
-restriction as Text. Formatted rendering remains unimplemented. The shared Text
+including the header alone is quiet. Their <code>selectable</code> argument behaves as on Text. Formatted rendering remains unimplemented. The shared Text
 cookbook page is enabled on SDL2/X11, marked partial, and displays a notice above
 the examples identifying these fallbacks.</p>
 <h2 id="splitter">Splitter</h2>

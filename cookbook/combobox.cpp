@@ -73,13 +73,9 @@ namespace Cookbook {
             CPPUI::Divider();
             CPPUI::Label("Font family");
             CPPUI::FontComboBox(model.comboFont).id("combo-font");
-#if defined(CPPUI_BACKEND_LVGL)
-            CPPUI::Label("Font preview: Aa 0123 (compiled Montserrat)");
-#else
             // style::fontFamily borrows its name; keep every selected name stable.
             const auto family=model.previewFontNames.insert(static_cast<std::string>(model.comboFont)).first;
             CPPUI::Label("Font preview: Aa 0123").style(CPPUI::style::fontFamily(family->c_str()));
-#endif
             CPPUI::Spacer();
         }
     }

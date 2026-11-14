@@ -22,7 +22,7 @@ namespace CPPUI {
                 return *this;
             }
             bool supportsVisibility() const override { return false; }
-            void update(Node * prev) {
+            void update(Node * prev) override {
                 if(prev && prev->ui) {
                     ui = prev->ui;
                 } else {
@@ -47,7 +47,7 @@ namespace CPPUI {
                 ui = nullptr;
             }
 
-            void addChild(int idx, Node * child) {
+            void addChild(int idx, Node * child) override {
                 Node::addChild(idx, child);
                 layoutChild(child);
             }
@@ -58,7 +58,7 @@ namespace CPPUI {
                 if(!child->layout_height) lv_obj_set_height(static_cast<lv_obj_t *>(child->outer()), lv_pct(100));
             }
 
-            void removeChild(int idx, Node * child) {
+            void removeChild(int idx, Node * child) override {
                 Node::removeChild(idx, child);
             }
        };

@@ -3,16 +3,16 @@
 
 #include "base.hpp"
 #include "../diagnostics.hpp"
-#include <stdexcept>
 
 namespace CPPUI {
     namespace LVGL {
         class Text: public Node {
             public:
             std::string text;
-            explicit Text(const std::string & text, bool selectable = false): text(text) {
+            // Accepted for API parity with PUI; LVGL labels have no selection.
+            bool selectable;
+            explicit Text(const std::string & text, bool selectable = false): text(text), selectable(selectable) {
                 is_terminal = true;
-                if(selectable) throw std::invalid_argument("LVGL Text does not support interactive text selection");
             }
             void update(Node * prev) override {
                 ui = prev && prev->ui ? prev->ui : lv_label_create(static_cast<lv_obj_t *>(parent->inner()));
@@ -21,7 +21,6 @@ namespace CPPUI {
                 lv_label_set_text(object, text.c_str());
                 lv_obj_set_width(object, lv_pct(100));
                 lv_obj_set_height(object, LV_SIZE_CONTENT);
-                lv_obj_set_clickable(object, false);
             }
         };
     }

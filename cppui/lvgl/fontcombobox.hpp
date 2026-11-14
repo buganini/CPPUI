@@ -16,7 +16,8 @@ namespace CPPUI {
         return *new LVGL::FontComboBox(model,detail::fontChoices(fonts));
     }
     inline LVGL::FontComboBox & FontComboBox(Binding<std::string> model) {
-        return FontComboBox(model,{"sans-serif","serif","monospace"});
+        // LVGL renders only its compiled Montserrat bitmap fonts.
+        return FontComboBox(model,{"Montserrat"});
     }
 }
 #endif

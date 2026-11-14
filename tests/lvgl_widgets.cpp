@@ -22,7 +22,7 @@ namespace {
         std::string text = "<b>literal text</b> and some more words that will wrap across multiple lines";
         std::string html = "<i>HTML</i>\n<span style=\"color:red\">support</span>";
         std::string markdown = "# Heading\n**bold** <i>literal</i>";
-        bool show = true, handler = true, selectable = false;
+        bool show = true, handler = true, selectable = false, margin = true;
         int value = 1, clicked = 0;
         std::weak_ptr<int> capture;
         std::function<void()> action;
@@ -34,6 +34,9 @@ namespace {
                     capture = token;
                     label.click([this, token]() { clicked = *token; auto invoke = action; if(invoke) invoke(); });
                 }
+                auto & plain = CPPUI::Label("plain", selectable).id("plain");
+                if(margin) plain.layout(CPPUI::layout::margin(1, 4));
+                CPPUI::Label("narrow").id("narrow").layout(CPPUI::layout::width(60));
                 CPPUI::Divider().id("horizontal");
                 for(auto row: CPPUI::HBox().id("row")) {
                     CPPUI::Label("left");
@@ -101,10 +104,23 @@ int main() {
             root.show = true;
             root.redraw();
             auto column = root.object("column");
+            require(lv_obj_has_flag(root.object("click"), LV_OBJ_FLAG_CLICKABLE), "label with a click handler is not clickable");
+            require(!lv_obj_has_flag(root.object("plain"), LV_OBJ_FLAG_CLICKABLE)
+                && !lv_obj_has_flag(root.object("text"), LV_OBJ_FLAG_CLICKABLE), "label without a click handler intercepts input");
+            require(lv_label_get_long_mode(root.object("plain")) == LV_LABEL_LONG_MODE_CLIP
+                && lv_label_get_long_mode(root.object("narrow")) == LV_LABEL_LONG_MODE_WRAP, "label wrapping ignored its declared width");
+            require(lv_obj_get_style_margin_left(root.object("plain"), LV_PART_MAIN) == 4
+                && lv_obj_get_style_margin_top(root.object("plain"), LV_PART_MAIN) == 1, "box child margin was not applied");
+            root.handler = false;
+            root.redraw();
+            require(!lv_obj_has_flag(root.object("click"), LV_OBJ_FLAG_CLICKABLE), "removed label handler kept input");
+            root.handler = true;
+            root.margin = false;
+            root.redraw();
+            require(lv_obj_get_style_margin_left(root.object("plain"), LV_PART_MAIN) == 0, "omitted margin was not reset");
             root.selectable = true;
-            bool rejected = false;
-            try { root.redraw(); } catch(const std::invalid_argument &) { rejected = true; }
-            require(rejected && root.object("column") == column, "unsupported selection failed to preserve mounted UI");
+            root.redraw();
+            require(root.object("column") == column, "selectable text remounted the mounted UI");
             root.selectable = false;
             for(int i = 0; i != 20; ++i) { root.show = !root.show; root.redraw(); }
         }

@@ -47,8 +47,10 @@ namespace {
         }
         CPPUI::Node * tabs() { return children->front()->children->front(); }
         lv_obj_t * native() { return static_cast<lv_obj_t *>(tabs()->ui); }
-        lv_obj_t * widget(int index) { return lv_obj_get_child(lv_obj_get_child(lv_tabview_get_content(native()), index), 0); }
-        lv_obj_t * selected() { return widget(lv_tabview_get_tab_active(native())); }
+        // Each page holds its Tab's VBox; widget() is that box's first child.
+        lv_obj_t * page(int index) { return lv_obj_get_child(lv_obj_get_child(lv_tabview_get_content(native()), index), 0); }
+        lv_obj_t * widget(int index) { return lv_obj_get_child(page(index), 0); }
+        lv_obj_t * selected() { return page(lv_tabview_get_tab_active(native())); }
         std::string title(int index) { return lv_label_get_text(lv_obj_get_child(lv_tabview_get_tab_button(native(), index), 0)); }
         void check() {
             require(lv_tabview_get_tab_count(native()) == pages.size(), "incorrect single-child page count");
@@ -66,9 +68,9 @@ namespace {
             auto tabs = root.native();
             lv_obj_add_event_cb(tabs, count, LV_EVENT_DELETE, &deleted);
             auto tab = root.tabs()->children->front();
-            require(tab->is_virtual && !tab->ui, "Tab acquired a native object");
+            require(!tab->is_virtual && tab->ui, "Tab is not a native page container");
             std::map<std::string, lv_obj_t *> retained;
-            for(unsigned i = 0; i < root.pages.size(); ++i) retained[root.pages[i].key] = root.widget(i);
+            for(unsigned i = 0; i < root.pages.size(); ++i) retained[root.pages[i].key] = root.page(i);
             lv_obj_send_event(lv_tabview_get_tab_button(tabs, 1), LV_EVENT_CLICKED, nullptr);
             require(root.selected() == retained["b"], "native tab click did not select its page");
             for(int i = 0; i < 10; ++i) {
@@ -88,7 +90,7 @@ namespace {
                 root.pages = {{"c", "C"}, {"a", "A"}, {"b", "B"}};
                 root.redraw();
                 root.check();
-                require(root.widget(0) == retained["c"] && root.widget(1) == retained["a"] && root.widget(2) == retained["b"], "keyed reorder remounted native contents");
+                require(root.page(0) == retained["c"] && root.page(1) == retained["a"] && root.page(2) == retained["b"], "keyed reorder remounted native contents");
                 require(root.selected() == retained["b"], "keyed reorder lost selection");
                 root.pages = {{"b", "B"}, {"c", "C"}, {"a", "A"}};
                 root.redraw();
@@ -136,38 +138,49 @@ namespace {
             root.show = false;
             root.redraw();
         };
-        lv_obj_send_event(child, LV_EVENT_CLICKED, nullptr);
+        lv_obj_send_event(lv_obj_get_child(child, 0), LV_EVENT_CLICKED, nullptr);
         require(declarations == 0 && lv_obj_get_child_count(lv_screen_active()) == 0,
                 "callback move followed by removal leaked tabs");
     }
-    void virtualPages() {
+    void groupedPages() {
         int removed = 0;
         {
             Root root;
             root.pages = {{"multi", "Multi", VirtualPair}, {"last", "Last"}};
             root.redraw();
-            auto tabs = root.native(), first = root.widget(0), second = root.widget(1), last = root.widget(2);
-            require(lv_tabview_get_tab_count(tabs) == 3 && std::string(lv_label_get_text(first)) == "pair 1"
-                    && std::string(lv_label_get_text(second)) == "pair 2", "virtual children were grouped or discarded");
-            require(root.title(0) == "Multi" && root.title(1) == "Last" && root.title(2) == "Last", "multi-child labels differ from PUI");
-            lv_tabview_set_active(tabs, 1, LV_ANIM_OFF);
+            auto tabs = root.native(), multi = root.page(0), last = root.page(1);
+            auto first = root.widget(0), second = lv_obj_get_child(multi, 1);
+            require(lv_tabview_get_tab_count(tabs) == 2 && lv_obj_get_child_count(multi) == 2
+                    && std::string(lv_label_get_text(first)) == "pair 1" && std::string(lv_label_get_text(second)) == "pair 2",
+                    "Tab did not hold all of its children on one page");
+            require(root.title(0) == "Multi" && root.title(1) == "Last", "page labels do not follow their Tab");
+            lv_obj_update_layout(lv_screen_active());
+            auto content = lv_obj_get_parent(multi);
+            require(lv_obj_get_width(multi) == lv_obj_get_content_width(content)
+                    && lv_obj_get_height(multi) == lv_obj_get_content_height(content), "Tab page does not fill its tab");
+            require(lv_obj_get_style_pad_left(multi, LV_PART_MAIN) == 11, "Tab page lost its top-level VBox padding");
+            lv_tabview_set_active(tabs, 0, LV_ANIM_OFF);
             for(int i = 0; i < 10; ++i) {
                 root.pages = {{"last", "Last"}, {"multi", "Multi", VirtualPair}};
                 root.redraw();
-                require(root.widget(0) == last && root.widget(1) == first && root.widget(2) == second && root.selected() == second,
-                        "virtual move lost order, identity or selection");
-                require(root.title(0) == "Last" && root.title(1) == "Multi" && root.title(2) == "Multi", "moved children lost ancestor label");
+                require(root.page(0) == last && root.page(1) == multi && root.selected() == multi,
+                        "keyed move lost order, identity or selection");
+                require(root.title(0) == "Last" && root.title(1) == "Multi", "moved page lost its label");
+                root.redraw();
+                lv_obj_update_layout(lv_screen_active());
+                require(lv_obj_get_width(multi) == lv_obj_get_content_width(lv_obj_get_parent(multi)), "redraw shrank the Tab page");
                 root.pages = {{"multi", "Multi", VirtualPair}, {"last", "Last"}};
                 root.redraw();
-                require(root.widget(0) == first && root.widget(1) == second && root.widget(2) == last && root.selected() == second,
-                        "reverse virtual move lost order, identity or selection");
+                require(root.page(0) == multi && root.page(1) == last && root.selected() == multi,
+                        "reverse keyed move lost order, identity or selection");
             }
             lv_obj_add_event_cb(first, count, LV_EVENT_DELETE, &removed);
             lv_obj_add_event_cb(second, count, LV_EVENT_DELETE, &removed);
             root.pages = {{"empty", "Empty", Empty}, {"last", "Last"}};
             root.redraw();
-            require(removed == 2 && lv_tabview_get_tab_count(tabs) == 1 && root.widget(0) == last, "empty Tab created a page or virtual removal leaked");
-            require(root.title(0) == "Empty", "empty Tab label quirk differs from PUI");
+            require(removed == 2 && lv_tabview_get_tab_count(tabs) == 2 && lv_obj_get_child_count(root.page(0)) == 0
+                    && root.page(1) == last, "empty Tab page or removal leaked");
+            require(root.title(0) == "Empty" && root.title(1) == "Last", "empty Tab lost its label");
             root.pages = {{"group", "Group", Grouped}};
             root.redraw();
             require(lv_tabview_get_tab_count(tabs) == 1 && lv_obj_get_child_count(root.widget(0)) == 2, "explicit VBox did not group controls");
@@ -175,7 +188,7 @@ namespace {
             lv_obj_delete(tabs);
             require(!declaration->ui, "native deletion left stale Tabs observer");
         }
-        require(declarations == 0, "virtual Tab teardown leaked declarations");
+        require(declarations == 0, "Tab teardown leaked declarations");
     }
     class ChangingPages: public CPPUI::LVGL::View {
         CPPUI::State<int> & order;
@@ -199,24 +212,26 @@ namespace {
         Independent root;
         root.redraw();
         auto tabs = root.native();
-        lv_tabview_set_active(tabs, 1, LV_ANIM_OFF);
+        auto page = lv_obj_get_child(lv_obj_get_child(lv_tabview_get_content(tabs), 0), 0);
+        auto one = lv_obj_get_child(page, 0), two = lv_obj_get_child(page, 1);
+        require(lv_tabview_get_tab_count(tabs) == 1 && lv_obj_get_child_count(page) == 2, "independent view split its Tab");
         for(int i = 0; i < 10; ++i) {
             root.order = 2;
-            require(lv_tabview_get_tab_active(tabs) == 0, "independent keyed move lost selection");
+            require(lv_obj_get_child(page, 0) == two && lv_obj_get_child(page, 1) == one, "independent keyed move lost order or identity");
             root.order = 1;
-            require(lv_tabview_get_tab_active(tabs) == 1, "independent reverse move lost selection");
+            require(lv_obj_get_child(page, 0) == one && lv_obj_get_child(page, 1) == two, "independent reverse move lost order or identity");
         }
         root.order = 0;
-        require(lv_tabview_get_tab_count(tabs) == 0, "independent empty view kept pages");
+        require(lv_tabview_get_tab_count(tabs) == 1 && lv_obj_get_child_count(page) == 0, "independent empty view kept children");
         root.order = 1;
-        require(lv_tabview_get_tab_count(tabs) == 2, "independent view did not repopulate");
+        require(lv_obj_get_child_count(page) == 2, "independent view did not repopulate");
     }
 }
 int main() {
     lv_init();
     lv_display_create(800, 600);
     int result = 0;
-    try { ordinaryTabs(); virtualPages(); independentView(); callbackMovesPage(); }
+    try { ordinaryTabs(); groupedPages(); independentView(); callbackMovesPage(); }
     catch(const std::exception & error) { std::cerr << error.what() << '\n'; result = 1; }
     lv_deinit();
     return result;
