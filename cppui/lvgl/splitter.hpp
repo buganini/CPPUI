@@ -17,6 +17,12 @@ namespace CPPUI { namespace LVGL {
             lv_obj_t * host=nullptr, *dragging=nullptr;
             std::vector<Pane> panes;
             std::vector<lv_obj_t *> handles,watched;
+            // Visible panes (indices into panes) laid out with handles between
+            // them; hidden panes take no space, like PUI and Qt.
+            std::vector<std::size_t> shown;
+            std::vector<lv_obj_t *> lastShown;
+            std::vector<double> lastFractions; // by visible position
+            bool lastVertical=false;
             bool vertical=false,changed=true,arranging=false,syncing=false;
             int32_t available=-1,startPointer=0,startFirst=0,startSecond=0;
 
@@ -57,17 +63,21 @@ namespace CPPUI { namespace LVGL {
                 if(!input || lv_indev_get_type(input)!=LV_INDEV_TYPE_POINTER) return;
                 lv_point_t point;lv_indev_get_point(input,&point);
                 const int32_t coordinate=self->vertical ? point.y : point.x;
-                const auto index=std::size_t(found-self->handles.begin());
+                const auto slot=std::size_t(found-self->handles.begin());
+                if(slot+1>=self->shown.size()) return;
+                const auto index=self->shown[slot],next=self->shown[slot+1];
                 if(code==LV_EVENT_PRESSED) {
                     self->dragging=target;self->startPointer=coordinate;
-                    self->startFirst=self->panes[index].extent;self->startSecond=self->panes[index+1].extent;
+                    self->startFirst=self->panes[index].extent;self->startSecond=self->panes[next].extent;
                 } else if(self->dragging==target) {
                     const int32_t total=self->startFirst+self->startSecond;
                     const int32_t minimum=total>=2 ? 1 : 0;
                     const int32_t first=std::max(minimum,std::min(total-minimum,self->startFirst+coordinate-self->startPointer));
-                    self->panes[index].extent=first;self->panes[index+1].extent=total-first;
-                    if(self->available>0) for(auto & pane:self->panes)
-                        pane.fraction=double(pane.extent)/self->available;
+                    self->panes[index].extent=first;self->panes[next].extent=total-first;
+                    if(self->available>0) {
+                        for(auto i:self->shown) self->panes[i].fraction=double(self->panes[i].extent)/self->available;
+                        self->remember();
+                    }
                     self->arrange();
                 }
             }
@@ -77,26 +87,27 @@ namespace CPPUI { namespace LVGL {
                 const int32_t width=std::max<int32_t>(0,lv_obj_get_content_width(host));
                 const int32_t height=std::max<int32_t>(0,lv_obj_get_content_height(host));
                 const int32_t axis=vertical ? height : width;
-                const int32_t count=static_cast<int32_t>(panes.size());
+                const int32_t count=static_cast<int32_t>(shown.size());
                 // Leave space for panes even when the viewport is smaller than
-                // the normal 12-pixel drag handles.
-                const int32_t gap=count>1 ? std::min<int32_t>(12,axis/(2*count-1)) : 0;
+                // the normal 8-pixel drag handles (PUI's handle size).
+                const int32_t gap=count>1 ? std::min<int32_t>(8,axis/(2*count-1)) : 0;
                 const int32_t usable=axis-gap*std::max(0,count-1);
                 if(available!=usable) {
                     dragging=nullptr;
                     int32_t remaining=usable;
                     const int32_t minimum=usable>=count ? 1 : 0;
                     for(int32_t i=0;i<count;++i) {
-                        const int32_t share=int32_t(panes[i].fraction*usable);
-                        panes[i].extent=i==count-1 ? remaining
+                        auto & pane=panes[shown[i]];
+                        const int32_t share=int32_t(pane.fraction*usable);
+                        pane.extent=i==count-1 ? remaining
                             : std::max(minimum,std::min(remaining-minimum*(count-i-1),share));
-                        remaining-=panes[i].extent;
+                        remaining-=pane.extent;
                     }
                     available=usable;
                 }
                 int32_t position=0;
-                for(std::size_t i=0;i<panes.size() && host;++i) {
-                    const auto pane=panes[i];
+                for(std::size_t i=0;i<shown.size() && host;++i) {
+                    const auto pane=panes[shown[i]];
                     if(pane.object) {
                         const int32_t w=vertical ? width : pane.extent;
                         const int32_t h=vertical ? pane.extent : height;
@@ -106,13 +117,20 @@ namespace CPPUI { namespace LVGL {
                             std::max(0,h-pane.margin.top-pane.margin.bottom));
                     }
                     position+=pane.extent;
-                    if(i<handles.size() && handles[i]) {
+                    if(i+1<shown.size() && i<handles.size() && handles[i]) {
+                        lv_obj_remove_flag(handles[i],LV_OBJ_FLAG_HIDDEN);
                         lv_obj_set_pos(handles[i],vertical ? 0 : position,vertical ? position : 0);
                         lv_obj_set_size(handles[i],vertical ? width : gap,vertical ? gap : height);
                         position+=gap;
                     }
                 }
+                for(std::size_t i=shown.size() ? shown.size()-1 : 0;i<handles.size();++i)
+                    if(handles[i]) lv_obj_add_flag(handles[i],LV_OBJ_FLAG_HIDDEN);
                 arranging=false;
+            }
+            void remember() {
+                lastFractions.clear();
+                for(auto i:shown) lastFractions.push_back(panes[i].fraction);
             }
             void reconcile() {
                 if(!host) return;
@@ -140,9 +158,25 @@ namespace CPPUI { namespace LVGL {
                         if(panes[i].object) lv_obj_move_to_index(panes[i].object,int32_t(2*i));
                         if(i<handles.size()) lv_obj_move_to_index(handles[i],int32_t(2*i+1));
                     }
-                    for(auto & pane:panes) pane.fraction=1.0/panes.size();
-                    available=-1;changed=false;
+                    changed=false;
                 }
+                // Keep dragged fractions across redraws; reset them only when the
+                // visible panes or the orientation change (PUI).
+                shown.clear();
+                std::vector<lv_obj_t *> visible;
+                for(std::size_t i=0;i<panes.size();++i)
+                    if(panes[i].object && !lv_obj_has_flag(panes[i].object,LV_OBJ_FLAG_HIDDEN)) {
+                        shown.push_back(i);visible.push_back(panes[i].object);
+                    }
+                if(visible.size()!=lastShown.size() || vertical!=lastVertical) {
+                    for(auto i:shown) panes[i].fraction=1.0/shown.size();
+                    dragging=nullptr;available=-1;
+                } else if(visible!=lastShown) {
+                    // A redraw replaced panes in place: they keep their slot's share.
+                    for(std::size_t k=0;k<shown.size();++k) panes[shown[k]].fraction=lastFractions[k];
+                    available=-1;
+                }
+                lastShown=visible;lastVertical=vertical;remember();
                 arrange();
             }
         };

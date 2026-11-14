@@ -114,6 +114,7 @@ namespace CPPUI { namespace LVGL {
                 runtime = std::make_shared<Runtime>();
                 runtime->object = static_cast<lv_obj_t *>(ui);
                 lv_obj_add_event_cb(runtime->object, Runtime::deleted, LV_EVENT_DELETE, runtime.get());
+                dispatch::ignoreEscape(runtime->object);
             }
             runtime->current = this;
             if(isReadonly) runtime->editing=false;

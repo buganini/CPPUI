@@ -118,6 +118,12 @@ namespace {
             "click callback did not see the committed editor value");
         require(root.changes == 1 && lv_group_get_focused(lv_obj_get_group(root.native("notes"))) == root.native("notes"),
             "commit on click changed LVGL focus or duplicated the change callback");
+        for(const char * key: {"field", "notes"}) {
+            auto editor = root.native(key);
+            const std::string before = lv_textarea_get_text(editor);
+            uint32_t esc = LV_KEY_ESC; lv_obj_send_event(editor, LV_EVENT_KEY, &esc);
+            require(before == lv_textarea_get_text(editor), "Esc was inserted as a character (PUI drops it)");
+        }
     }
     // Delayed posts fire at their deadline rather than the next refresh period.
     void timerPrecision() {
@@ -210,6 +216,8 @@ int main() {
             require(text(editor) == "throws", "throwing setter lost the editable draft");
             root.throwSet = false; key(editor, LV_KEY_ENTER); settle();
             require(static_cast<std::string>(root.second) == "throws", "failed commit could not be retried");
+            key(editor, LV_KEY_ESC); settle();
+            require(text(editor) == "throws", "Esc was inserted into the text field");
             lv_group_focus_obj(editor); lv_textarea_set_text(editor, "before button");
             lv_group_focus_obj(root.button());
             lv_obj_send_event(root.button(), LV_EVENT_CLICKED, nullptr); settle();

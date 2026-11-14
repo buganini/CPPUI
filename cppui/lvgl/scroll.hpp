@@ -22,8 +22,8 @@ namespace CPPUI { namespace LVGL {
             // LVGL hit-testing skips non-clickable objects, so a drag that starts
             // on non-clickable content (e.g. a Label) must find the viewport itself.
             clickable = true;
-            if((vertical && *vertical && !horizontal) || (horizontal && *horizontal && !vertical))
-                throw std::invalid_argument("LVGL cannot force one scrollbar while the other is automatic");
+            // LVGL has one scrollbar mode per object: forcing either axis shows
+            // both scrollbars where scrolling is enabled (as PUI does).
         }
         int baseExpansion(bool x) const override { return expansionAxis(x) ? 4 : 1; }
         bool expansionAxis(bool x) const override { const auto & value=x ? horizontal : vertical;return !value || *value; }

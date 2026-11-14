@@ -67,8 +67,8 @@ namespace {
         auto host=native(root,"split"),a=native(root,"a"),b=native(root,"b"),c=native(root,"c"),editor=native(root,"editor");
         require(lv_obj_get_child_count(host)==5,"three panes need two handles");
         auto first=lv_obj_get_child(host,1),second=lv_obj_get_child(host,3);
-        require(lv_obj_get_width(first)==12 && lv_obj_get_height(first)==lv_obj_get_content_height(host),"horizontal handle geometry is wrong");
-        require(std::abs(lv_obj_get_width(a)-lv_obj_get_width(c))<=2 && lv_obj_get_x(b)==lv_obj_get_width(a)+12,
+        require(lv_obj_get_width(first)==8 && lv_obj_get_height(first)==lv_obj_get_content_height(host),"horizontal handle geometry is wrong");
+        require(std::abs(lv_obj_get_width(a)-lv_obj_get_width(c))<=2 && lv_obj_get_x(b)==lv_obj_get_width(a)+8,
             "initial panes were not equally spaced");
         const int aw=lv_obj_get_width(a),bw=lv_obj_get_width(b),cw=lv_obj_get_width(c);
         pointer.drag(first,35,0);
@@ -86,23 +86,29 @@ namespace {
         require(lv_obj_get_x(a)==5 && lv_obj_get_width(a)==aw+25 && lv_obj_get_height(a)==lv_obj_get_content_height(host)-10,
             "pane margins did not inset its allocation");
         root.margin=0;root.sync();require(lv_obj_get_x(a)==0 && lv_obj_get_width(a)==aw+35,"omitted margins did not reset");
-        root.hidePane=true;root.sync();require(lv_obj_is_hidden(b) && lv_obj_get_x(c)==aw+bw+24,"hidden pane changed split positions");
+        root.hidePane=true;root.sync();
+        // Like PUI and Qt, a hidden pane takes no space: the rest share the split.
+        require(lv_obj_is_hidden(b) && lv_obj_get_child_count(host)==5 && lv_obj_is_hidden(first) == false && lv_obj_is_hidden(second)
+            && lv_obj_get_x(c)==lv_obj_get_width(a)+8 && std::abs(lv_obj_get_width(a)-lv_obj_get_width(c))<=1,"hidden pane kept its space");
         root.hidePane=false;root.visible=false;root.sync();root.visible=true;root.sync();
-        require(lv_obj_is_visible(editor) && lv_obj_is_visible(b) && lv_obj_get_width(a)==aw+35,"hide/show reset allocation or visibility");
-        const int before=lv_obj_get_width(a),usable=lv_obj_get_content_width(host)-24;
+        require(lv_obj_is_visible(editor) && lv_obj_is_visible(b) && !lv_obj_is_hidden(second),"hide/show lost visibility");
+        // The visible pane count changed twice, so the shares were reset (PUI).
+        pointer.drag(first,35,0);require(lv_obj_get_width(a)==aw+35,"drag after showing a pane again");
+        const int before=lv_obj_get_width(a),usable=lv_obj_get_content_width(host)-16;
         lv_display_set_resolution(lv_display_get_default(),800,600);settle();
-        require(std::abs(lv_obj_get_width(a)-int(int64_t(before)*(lv_obj_get_content_width(host)-24)/usable))<=1,
+        require(std::abs(lv_obj_get_width(a)-int(int64_t(before)*(lv_obj_get_content_width(host)-16)/usable))<=1,
             "resize did not preserve pane proportions");
         pointer.drag(first,-2000,0);require(lv_obj_get_width(a)==1,"drag below minimum collapsed a pane");
         pointer.drag(first,2000,0);require(lv_obj_get_width(b)==1,"drag past maximum collapsed adjacent pane");
         root.keys={"c","a","d"};root.sync();
         require(native(root,"c")==c && native(root,"editor")==editor && lv_obj_get_child(host,0)==c
             && lv_obj_get_child(host,2)==a,"keyed pane move replaced controls or lost order");
-        require(std::abs(lv_obj_get_width(c)-lv_obj_get_width(a))<=1,"changed composition did not reset allocations");
+        // Same pane count: the shares stay with their positions (PUI).
+        require(lv_obj_get_width(a)==1 && lv_obj_get_width(c)>lv_obj_get_width(native(root,"d")),"same-count composition change lost positional shares");
         root.vertical=true;root.sync();first=lv_obj_get_child(host,1);
         const int ch=lv_obj_get_height(c),ah=lv_obj_get_height(a);
         pointer.drag(first,0,25);
-        require(lv_obj_get_height(c)==ch+25 && lv_obj_get_height(a)==ah-25 && lv_obj_get_height(first)==12,
+        require(lv_obj_get_height(c)==ch+25 && lv_obj_get_height(a)==ah-25 && lv_obj_get_height(first)==8,
             "vertical drag did not resize stacked panes");
         root.keys={"a"};root.sync();require(lv_obj_get_child_count(host)==1 && lv_obj_get_height(a)==lv_obj_get_content_height(host),
             "single pane did not fill Splitter");

@@ -13,7 +13,10 @@ namespace CPPUI {
                 ui = prev && prev->ui ? prev->ui : lv_obj_create(owner);
                 auto object = static_cast<lv_obj_t *>(ui);
                 const bool flex = lv_obj_get_style_layout(owner, LV_PART_MAIN) == LV_LAYOUT_FLEX;
-                const bool column = lv_obj_get_style_flex_flow(owner, LV_PART_MAIN) & LV_FLEX_COLUMN;
+                // Like PUI: only a row parent gives a vertical line. Elsewhere
+                // (Grid, Stack, Scroll) the divider is horizontal and, as in
+                // PUI Qt, invisible.
+                const bool column = !flex || (lv_obj_get_style_flex_flow(owner, LV_PART_MAIN) & LV_FLEX_COLUMN);
                 expandX=column ? 1 : 0;expandY=column ? 0 : 1;
                 lv_obj_remove_style_all(object);
                 lv_obj_set_size(object, column ? lv_pct(100) : 1, column ? 1 : lv_pct(100));

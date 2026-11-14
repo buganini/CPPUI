@@ -64,6 +64,14 @@ namespace CPPUI {
                 editor = FocusedEditor();
                 if(commit) commit(); // May redraw synchronously.
             }
+
+            // lv_textarea inserts control keys such as Esc as characters; take
+            // the key before its class handler does (PUI _Editor).
+            inline void ignoreEscape(lv_obj_t * textarea) {
+                lv_obj_add_event_cb(textarea, [](lv_event_t * event) {
+                    if(lv_event_get_key(event) == LV_KEY_ESC) lv_event_stop_processing(event);
+                }, static_cast<lv_event_code_t>(LV_EVENT_KEY | LV_EVENT_PREPROCESS), nullptr);
+            }
         }
 
         class View: public ::CPPUI::View {

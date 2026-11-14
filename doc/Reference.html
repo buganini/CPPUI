@@ -1130,9 +1130,9 @@ end with it.</p>
 <p>For basic LVGL scrolling, include <code>cppui/lvgl/scroll.hpp</code>. <code>Scroll(vertical = {}, horizontal = false)</code> contains ordinary native children and supports fixed viewport
 sizes through <code>.layout(...)</code>; a disabled axis fits unspecified child dimensions
 to the viewport. False disables an axis, true forces its scrollbar, and <code>{}</code>
-allows automatic visibility. LVGL has one scrollbar mode for both axes, so
-forcing one axis while leaving the other automatic throws instead of silently
-changing the policy. Independent mixed modes, <code>.scrollX()</code>/<code>.scrollY()</code> and signed
+allows automatic visibility. LVGL has one scrollbar mode for both axes, so,
+as in PUI, forcing one axis while leaving the other automatic shows both
+scrollbars where scrolling is enabled. Independent mixed modes, <code>.scrollX()</code>/<code>.scrollY()</code> and signed
 end anchoring remain unimplemented. This public component serves the gallery
 sidebar; the full Scroll recipe is still Qt-only.</p>
 <h2 id="fontcombobox">FontComboBox</h2>
@@ -1518,8 +1518,9 @@ changes direction, retaining the same control. Outside a horizontal box it is
 a horizontal line.</p>
 <p>For LVGL, include <code>cppui/lvgl/divider.hpp</code>. The same terminal, non-movable
 declaration draws a one-pixel gray separator across its physical flex parent: a
-horizontal line in a column, a vertical line in a row, and no line outside flex
-layouts. It has no interactive behavior; native parent deletion reclaims it.</p>
+horizontal line in a column and a vertical line in a row. Outside flex layouts
+(Grid, Stack, Scroll) it is an invisible horizontal separator, matching PUI's
+orientation and the Qt backend's frameless divider. It has no interactive behavior; native parent deletion reclaims it.</p>
 <h2 id="dialogs">Imperative Functions</h2>
 <p>Qt and wx expose these functions through <code>cppui/backend.hpp</code> or their
 <code>dialog.hpp</code> and <code>url.hpp</code> headers. Dialog calls return after the native dialog closes;
@@ -1919,9 +1920,10 @@ the physical container. Native MDI remains separate wx work.</p>
 <p>For LVGL, include <code>cppui/lvgl/splitter.hpp</code> and use the same
 <code>Splitter(vertical = false)</code> scope. It fills the available parent area
 and supports any number of widget/layout panes, flattened virtual views and
-nested splitters. Native pointer/touch handles resize the two adjacent panes.
-Unchanged redraw preserves handles, pane sizes and editor state; changing the
-pane order/count/type or orientation distributes the space equally again.
+nested splitters. 8-pixel pointer/touch handles resize the two adjacent visible panes;
+like PUI, a hidden child takes no space. Redraws keep each position's share of
+the space, including when panes are replaced or reordered; changing the number
+of visible panes or the orientation distributes the space equally again.
 Window resizing preserves the current pane proportions. A single pane fills
 the container; an empty splitter has no handles.</p>
 <p>Splitter allocates each child's width and height, with child margins inset

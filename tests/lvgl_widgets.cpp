@@ -2,6 +2,7 @@
 #include "cppui/lvgl/layout.hpp"
 #include "cppui/lvgl/label.hpp"
 #include "cppui/lvgl/divider.hpp"
+#include "cppui/lvgl/stack.hpp"
 #include "cppui/lvgl/text.hpp"
 #include <memory>
 #include <stdexcept>
@@ -40,6 +41,7 @@ namespace {
                 if(doubleHandler) plain.dblclick([this]() { ++doubled; });
                 CPPUI::Label("narrow").id("narrow").layout(CPPUI::layout::width(60));
                 CPPUI::Divider().id("horizontal");
+                for(auto stack: CPPUI::Stack()) CPPUI::Divider().id("stacked");
                 for(auto row: CPPUI::HBox().id("row")) {
                     CPPUI::Label("left");
                     CPPUI::SubView<Group>();
@@ -71,6 +73,9 @@ int main() {
             require(root.html == lv_label_get_text(html) && root.markdown == lv_label_get_text(markdown),
                 "HTML or Markdown fallback changed the literal source");
             require(lv_obj_get_height(divider) == 1 && lv_obj_get_width(divider) > 1, "column divider is not horizontal");
+            auto stacked = root.object("stacked");
+            require(lv_obj_get_style_height(stacked, LV_PART_MAIN) == 1 && lv_obj_get_style_width(stacked, LV_PART_MAIN) == lv_pct(100),
+                "divider outside a row is not horizontal (PUI)");
             auto vertical = root.object("virtual-divider");
             require(lv_obj_get_width(vertical) == 1 && lv_obj_get_height(vertical) > 1, "virtual row divider is not vertical");
             int external = 0, destroyed = 0;

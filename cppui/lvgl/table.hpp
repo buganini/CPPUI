@@ -149,7 +149,9 @@ namespace detail {
             if(code==LV_EVENT_DELETE) {delete holder;return;}
             if(!self->active || lv_event_get_target_obj(event)!=self->field) return;
             try {
-                if(code==LV_EVENT_KEY && lv_event_get_key(event)==LV_KEY_ESC) self->closeEditor(true);
+                // Esc first closes an open option list, like PUI.
+                if(code==LV_EVENT_KEY && lv_event_get_key(event)==LV_KEY_ESC
+                    && !(self->choiceEditor && lv_dropdown_is_open(self->field))) self->closeEditor(true);
                 else if(code==LV_EVENT_DEFOCUSED) self->commit(false);
                 else if(!self->choiceEditor && code==LV_EVENT_READY) self->commit(true);
                 else if(self->choiceEditor && code==LV_EVENT_VALUE_CHANGED) self->commit(true,true);

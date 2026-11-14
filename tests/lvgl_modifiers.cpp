@@ -51,10 +51,12 @@ int main(int argc, char ** argv) {
     lv_init(); lv_display_create(640, 480);
     int result = 0;
     try {
+        // Like PUI, forcing one scrollbar while the other is automatic is
+        // accepted; LVGL then shows both (one mode per object).
         bool rejected = false;
-        try { CPPUI::LVGL::Scroll unsupported(true, {}); }
+        try { CPPUI::LVGL::Scroll mixed(true, {}); }
         catch(const std::invalid_argument &) { rejected = true; }
-        require(rejected, "unsupported mixed scrollbar modes were silently accepted");
+        require(!rejected, "mixed scrollbar modes were rejected");
         {
             Root root(argc, argv); root.redraw(); lv_obj_update_layout(lv_screen_active());
             auto label = root.native("label");

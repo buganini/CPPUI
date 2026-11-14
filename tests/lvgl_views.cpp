@@ -1,3 +1,4 @@
+#include "cppui/lvgl/scroll.hpp"
 #include "cppui/lvgl/views.hpp"
 #include "cppui/lvgl/window.hpp"
 #include "cppui/lvgl/label.hpp"
@@ -55,6 +56,28 @@ namespace {
         lv_obj_t * native() { return static_cast<lv_obj_t *>(views()->ui); }
         Editor * editor(int index) { return static_cast<Editor *>(views()->children->at(index)->children->front()); }
     };
+}
+namespace {
+    // Like PUI, Views is a column whose size follows the selected page, so it
+    // also works where its parent does not stretch it (a Scroll's content).
+    class ContentRoot: public CPPUI::LVGL::View {
+    public:
+        void content() override {
+            for(auto window: CPPUI::Window())
+                for(auto scroll: CPPUI::Scroll(CPPUI::Optional<bool>(), false).layout(300, 300))
+                    for(auto views: CPPUI::Views()) CPPUI::Label("page").id("p");
+        }
+    };
+    void contentSized() {
+        if(!lv_display_get_default()) lv_display_create(800, 600); // earlier checks delete the display
+        ContentRoot root; root.redraw(); lv_obj_update_layout(lv_screen_active());
+        auto views = static_cast<lv_obj_t *>(root.children->front()->children->front()->children->front()->ui);
+        auto views0 = static_cast<CPPUI::LVGL::Views *>(root.children->front()->children->front()->children->front());
+        views0->select("p"); lv_obj_update_layout(lv_screen_active());
+        auto page = lv_obj_get_child(views, 0);
+        require(lv_obj_is_visible(page) && lv_obj_get_height(page) > 0 && lv_obj_get_height(views) < 100,
+            "Views did not follow its selected page's content size");
+    }
 }
 int main() {
     lv_init();
@@ -168,6 +191,9 @@ int main() {
         }
         require(editors == 0, "display destruction retained view declarations");
     } catch(const std::exception & error) { std::cerr << error.what() << '\n'; result = 1; }
+    if(!result) {
+        try { contentSized(); } catch(const std::exception & error) { std::cerr << error.what() << '\n'; result = 1; }
+    }
     lv_deinit();
     return result;
 }

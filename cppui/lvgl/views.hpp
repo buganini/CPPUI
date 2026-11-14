@@ -7,7 +7,10 @@
 #include <set>
 
 namespace CPPUI { namespace LVGL {
-    class Views: public Node {
+    // Like PUI: a gapless column whose size follows the selected page. Pages
+    // grow with Views when it fills its parent and keep their content size
+    // otherwise (100% pages inside a content-sized Views would collapse).
+    class Views: public Box {
         struct Selection {
             OptionalText key;
             Views * current = nullptr;
@@ -20,7 +23,7 @@ namespace CPPUI { namespace LVGL {
             if(key && key->empty()) throw std::invalid_argument("Views selection must be a non-empty string or empty OptionalText");
         }
         public:
-        Views() {
+        Views(): Box(false, false, 0) {
             expandX=expandY=3;
             if(!dynamic_cast<View *>(cppui_root)) throw std::logic_error("Views requires an LVGL Application or View");
         }
@@ -73,27 +76,15 @@ namespace CPPUI { namespace LVGL {
                 if(prev && prev->model) selection->key.reset();
                 selected = selection->key;
             }
-            ui = prev && prev->ui ? prev->ui : lv_obj_create(static_cast<lv_obj_t *>(parent->inner()));
-            auto object = static_cast<lv_obj_t *>(ui);
-            lv_obj_set_style_bg_opa(object, LV_OPA_TRANSP, 0);
-            lv_obj_set_style_border_width(object, 0, 0);
-            lv_obj_set_style_radius(object, 0, 0);
-            lv_obj_set_style_pad_all(object, 0, 0);
-            lv_obj_set_scrollable(object, false);
-            lv_obj_set_size(object, lv_pct(100), lv_pct(100));
-        }
-        void layoutChild(Node * child) override {
-            if(child->ui) {
-                auto page = static_cast<lv_obj_t *>(child->ui);
-                lv_obj_set_pos(page, 0, 0);
-                lv_obj_set_size(page, lv_pct(100), lv_pct(100));
-            }
+            Box::update(previous);
+            lv_obj_set_style_pad_all(static_cast<lv_obj_t *>(ui), 0, 0);
         }
         void postSync() override {
             for(auto child: *children) {
                 auto page = static_cast<lv_obj_t *>(child->ui);
                 if(page) lv_obj_set_hidden(page, !selected || child->_id != *selected);
             }
+            Box::postSync();
         }
         bool refSelection() const override { return true; }
         void refCommand(RefCommand, const OptionalText & key, bool) override { select(key); }

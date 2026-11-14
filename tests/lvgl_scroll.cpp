@@ -72,9 +72,26 @@ namespace {
         require(scrolled>0,"pointer drag did not scroll non-clickable content");
     }
 }
+namespace {
+    class ForcedRoot: public CPPUI::LVGL::View {
+    public:
+        void content() override {
+            for(auto window:CPPUI::Window())
+                for(auto scroll:CPPUI::Scroll(true,CPPUI::Optional<bool>()).layout(200,100))
+                    CPPUI::Label("forced");
+        }
+    };
+    // Forcing one axis while the other is automatic is accepted, as in PUI.
+    void forcedAxis() {
+        ForcedRoot root;root.redraw();settle();
+        auto scroll=static_cast<lv_obj_t *>(root.children->front()->children->front()->outer());
+        require(lv_obj_get_scrollbar_mode(scroll)==LV_SCROLLBAR_MODE_ON && lv_obj_get_scroll_dir(scroll)==LV_DIR_ALL,
+                "forced vertical with automatic horizontal did not show scrollbars");
+    }
+}
 int main() {
     lv_init();lv_display_create(640,480);int result=0;
-    try {resizing();dragging();require(lv_obj_get_child_count(lv_screen_active())==0,"scroll teardown leaked native content");}
+    try {resizing();dragging();forcedAxis();require(lv_obj_get_child_count(lv_screen_active())==0,"scroll teardown leaked native content");}
     catch(const std::exception & error) {std::cerr<<error.what()<<'\n';result=1;}
     lv_deinit();return result;
 }
