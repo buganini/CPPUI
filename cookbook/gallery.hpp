@@ -5,7 +5,7 @@
 
 namespace Cookbook {
     inline const std::string & title() {
-        static const std::string value = std::string("Cookbook (") + CPPUI::Backend::name + ")";
+        static const std::string value = std::string("CPPUI Cookbook (") + CPPUI::Backend::name + ")";
         return value;
     }
     class Gallery: public CPPUI::Application {
