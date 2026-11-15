@@ -1128,8 +1128,10 @@ current declaration fit the child's size hint, even though scrollbar visibility
 policies are initial-only. All observers belong to the native scroll widget and
 end with it.</p>
 <p>For basic LVGL scrolling, include <code>cppui/lvgl/scroll.hpp</code>. <code>Scroll(vertical = {}, horizontal = false)</code> contains ordinary native children and supports fixed viewport
-sizes through <code>.layout(...)</code>; a disabled axis fits unspecified child dimensions
-to the viewport. False disables an axis, true forces its scrollbar, and <code>{}</code>
+sizes through <code>.layout(...)</code>; on a disabled axis an unspecified child dimension is at least the
+viewport size (a minimum of 100%, as in PUI), so the content fills the
+viewport without collapsing a content-sized Scroll, and wider content
+widens the scroll area instead of wrapping. False disables an axis, true forces its scrollbar, and <code>{}</code>
 allows automatic visibility. LVGL has one scrollbar mode for both axes, so,
 as in PUI, forcing one axis while leaving the other automatic shows both
 scrollbars where scrolling is enabled. Independent mixed modes, <code>.scrollX()</code>/<code>.scrollY()</code> and signed

@@ -41,10 +41,21 @@ namespace CPPUI { namespace LVGL {
         void layoutChild(Node * child) override {
             if(!child->ui || child->is_outoforder) return;
             auto object = static_cast<lv_obj_t *>(child->outer());
-            // A disabled axis fits content to the viewport; enabled axes retain
-            // the child's content size. Explicit dimensions take precedence.
-            if(horizontal && !*horizontal && !child->layout_width) lv_obj_set_width(object, lv_pct(100));
-            if(vertical && !*vertical && !child->layout_height) lv_obj_set_height(object, lv_pct(100));
+            // A disabled axis fits content to the viewport: at least the
+            // viewport size, but the scroll area still follows the content
+            // (as PUI does). An exact 100% would make a content-sized Scroll
+            // and its child depend on each other and collapse to zero.
+            // Explicit dimensions take precedence; the next update restores
+            // the child's own minimum.
+            child->restoreBoxStyles();
+            if(horizontal && !*horizontal && !child->layout_width) {
+                child->saveBoxStyle(LV_STYLE_MIN_WIDTH);
+                lv_obj_set_style_min_width(object, lv_pct(100), 0);
+            }
+            if(vertical && !*vertical && !child->layout_height) {
+                child->saveBoxStyle(LV_STYLE_MIN_HEIGHT);
+                lv_obj_set_style_min_height(object, lv_pct(100), 0);
+            }
         }
     };
 }}

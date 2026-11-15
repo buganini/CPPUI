@@ -152,6 +152,7 @@ namespace CPPUI {
             std::unique_ptr<Commands> commands;
             friend class Tabs;
             friend class Box;
+            friend class Scroll;
             struct Observer {
                 lv_obj_t * object;
                 Node * owner;
@@ -356,6 +357,10 @@ namespace CPPUI {
             static bool fillsAxis(lv_obj_t * object,bool horizontal) {
                 const auto size=horizontal ? lv_obj_get_style_width(object,LV_PART_MAIN) : lv_obj_get_style_height(object,LV_PART_MAIN);
                 if(size!=LV_SIZE_CONTENT) return true;
+                // A content-sized child of a Scroll's disabled axis is at least
+                // as large as the viewport (min 100%), so its parent decides.
+                const auto minimum=horizontal ? lv_obj_get_style_min_width(object,LV_PART_MAIN) : lv_obj_get_style_min_height(object,LV_PART_MAIN);
+                if(LV_COORD_IS_PCT(minimum)) return true;
                 auto owner=lv_obj_get_parent(object);
                 if(!owner) return false;
                 const auto layout=lv_obj_get_style_layout(owner,LV_PART_MAIN);

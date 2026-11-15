@@ -1,6 +1,7 @@
 #include "cppui/lvgl/scroll.hpp"
 #include "cppui/lvgl/window.hpp"
 #include "cppui/lvgl/label.hpp"
+#include "cppui/lvgl/layout.hpp"
 #include <stdexcept>
 
 namespace {
@@ -89,9 +90,44 @@ namespace {
                 "forced vertical with automatic horizontal did not show scrollbars");
     }
 }
+namespace {
+    class MenuRoot: public CPPUI::LVGL::View {
+    public:
+        CPPUI::Optional<bool> horizontal=false;
+        CPPUI::Optional<int> width;
+        void content() override {
+            for(auto window:CPPUI::Window()) for(auto row:CPPUI::HBox()) {
+                // A content-sized menu next to a sibling that takes the width.
+                for(auto scroll:CPPUI::Scroll({},horizontal))
+                    for(auto menu:CPPUI::VBox().layout(width)) {
+                        CPPUI::Label("A menu entry");
+                        CPPUI::Label("Another menu entry");
+                    }
+                for(auto body:CPPUI::HBox()) CPPUI::Label("body").layout({},{},1);
+            }
+        }
+        lv_obj_t * scroll() {return static_cast<lv_obj_t *>(children->front()->children->front()->children->front()->outer());}
+        void sync() {redraw();settle();}
+    };
+    // A disabled axis keeps the content at least as large as the viewport,
+    // without making a content-sized Scroll collapse (PUI's min 100%).
+    void contentSized() {
+        MenuRoot root;root.sync();
+        auto scroll=root.scroll();auto menu=lv_obj_get_child(scroll,0);
+        auto label=lv_obj_get_child(menu,1);
+        require(lv_obj_get_width(scroll)>=lv_obj_get_width(label) && lv_obj_get_width(menu)>=lv_obj_get_width(label),
+                "a content-sized Scroll collapsed on its disabled axis");
+        require(lv_obj_get_style_min_width(menu,LV_PART_MAIN)==lv_pct(100),"disabled axis did not set a viewport minimum");
+        root.horizontal=true;root.sync();
+        require(lv_obj_get_style_min_width(menu,LV_PART_MAIN)==0,"enabling the axis kept the viewport minimum");
+        root.horizontal=false;root.width=50;root.sync();
+        require(lv_obj_get_style_min_width(menu,LV_PART_MAIN)!=lv_pct(100) && lv_obj_get_width(menu)==50,
+                "a declared width did not take precedence over the viewport minimum");
+    }
+}
 int main() {
     lv_init();lv_display_create(640,480);int result=0;
-    try {resizing();dragging();forcedAxis();require(lv_obj_get_child_count(lv_screen_active())==0,"scroll teardown leaked native content");}
+    try {resizing();dragging();forcedAxis();contentSized();require(lv_obj_get_child_count(lv_screen_active())==0,"scroll teardown leaked native content");}
     catch(const std::exception & error) {std::cerr<<error.what()<<'\n';result=1;}
     lv_deinit();return result;
 }
