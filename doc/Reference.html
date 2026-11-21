@@ -1513,7 +1513,9 @@ pinned PUI reference.</p>
 inside a VBox, vertical inside an HBox (including through virtual views), and
 frameless otherwise. Dividers are terminal and non-movable; removal releases the
 native frame using the normal deferred-deletion lifecycle. Its cross-axis
-expansion follows the current box orientation.</p>
+expansion follows the current box orientation. A line reports no minimum size,
+so its thickness uses a Fixed size policy; a crowded box or a Scroll (which
+gives its content only the minimum size) cannot shrink it to nothing.</p>
 <p>wx Divider uses a native <code>wxStaticLine</code> with native thickness instead of a
 15-by-15 minimum. It updates orientation and best size when an adaptive box
 changes direction, retaining the same control. Outside a horizontal box it is

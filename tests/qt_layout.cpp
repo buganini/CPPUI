@@ -1,5 +1,6 @@
 #include "cppui/qt/divider.hpp"
 #include "cppui/qt/label.hpp"
+#include "cppui/qt/scroll.hpp"
 #include "cppui/qt/window.hpp"
 #include <QApplication>
 #include <QEvent>
@@ -32,6 +33,48 @@ namespace {
             }
         }
     };
+    class ScrolledDividers: public CPPUI::Qt::QtView {
+        public:
+        bool horizontal = false;
+        std::vector<CPPUI::Node *> dividers;
+        ~ScrolledDividers() {
+            clearChildren();
+            QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        }
+        void content() override {
+            dividers.clear();
+            for(auto window: CPPUI::Window()) {
+                for(auto scroll: CPPUI::Scroll().layout({}, {}, 1)) {
+                    auto & box = horizontal ? static_cast<CPPUI::Node &>(CPPUI::HBox()) : CPPUI::VBox();
+                    for(auto rows: box.layout(CPPUI::layout::padding(0))) {
+                        for(int i = 0; i < 60; ++i) {
+                            CPPUI::Label("Row " + std::to_string(i));
+                            auto & divider = CPPUI::Divider();
+                            dividers.push_back(&divider);
+                        }
+                    }
+                }
+            }
+        }
+    };
+    // A line has no minimum size; a Scroll gives its content only the
+    // minimum, so dividers must stay fixed across their thickness (PUI 72fc666).
+    void scrolledDividers() {
+        ScrolledDividers root;
+        for(bool horizontal: {false, true, false}) {
+            root.horizontal = horizontal;
+            root.sync();
+            static_cast<QWidget *>(root.children->front()->outer())->show();
+            for(int i = 0; i < 5; ++i) QCoreApplication::processEvents();
+            for(auto node: root.dividers) {
+                auto divider = static_cast<QWidget *>(node->outer());
+                const auto hint = divider->sizeHint();
+                const int size = horizontal ? divider->width() : divider->height();
+                const int expected = horizontal ? hint.width() : hint.height();
+                require(expected > 0 && size == expected, "a scrolled divider lost its thickness");
+            }
+        }
+    }
 }
 int main(int argc, char ** argv) {
     QApplication app(argc, argv);
@@ -70,6 +113,7 @@ int main(int argc, char ** argv) {
             require(static_cast<QFrame *>(unboxed.children->front()->outer())->frameShape() == QFrame::NoFrame,
                     "divider outside a box should have no frame");
         }
+        scrolledDividers();
     } catch(const std::exception & error) {
         std::cerr << error.what() << '\n';
         return 1;

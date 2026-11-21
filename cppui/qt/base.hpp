@@ -194,10 +194,12 @@ namespace CPPUI {
                 return *policy==QSizePolicy::Expanding || *policy==QSizePolicy::MinimumExpanding || *policy==QSizePolicy::Ignored ? 4
                     : *policy==QSizePolicy::Preferred || *policy==QSizePolicy::Minimum ? 1 : 0;
             }
+            // Size policy in a box along an axis where this child does not expand.
+            virtual QSizePolicy::Policy staticPolicy(bool) const { return QSizePolicy::Preferred; }
             void applyExpansion(bool horizontal,bool main,bool cross) {
                 auto policy=ui->sizePolicy();
-                policy.setHorizontalPolicy(qtParams.HorizontalPolicy.valueOr((horizontal ? main : cross) ? QSizePolicy::Expanding : QSizePolicy::Preferred));
-                policy.setVerticalPolicy(qtParams.VerticalPolicy.valueOr((horizontal ? cross : main) ? QSizePolicy::Expanding : QSizePolicy::Preferred));
+                policy.setHorizontalPolicy(qtParams.HorizontalPolicy.valueOr((horizontal ? main : cross) ? QSizePolicy::Expanding : staticPolicy(true)));
+                policy.setVerticalPolicy(qtParams.VerticalPolicy.valueOr((horizontal ? cross : main) ? QSizePolicy::Expanding : staticPolicy(false)));
                 ui->setSizePolicy(policy);
             }
             // This observer is valid only within the explicit native lifetime.
