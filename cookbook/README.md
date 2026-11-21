@@ -50,9 +50,9 @@ shows a retained input in `HVBox(600)` and height-dependent `VHBox(500)` labels.
 Its `wideLayout`/`wideStyle` label changes padding, color and font size at the
 same 600-pixel threshold. The gallery shell stays horizontal at narrow widths,
 with the menu beside the Code/Result splitter, and opens at 1024×768 without maximizing.
-Window titles identify the active backend: `CPPUI Cookbook (Qt)`,
-`CPPUI Cookbook (wxWidgets)`, `CPPUI Cookbook (LVGL SDL2)` or
-`CPPUI Cookbook (LVGL X11)`. The sidebar heading reads `CPPUI Cookbook`.
+Window titles and sidebar headings identify the active backend:
+`CPPUI Cookbook (Qt)`, `CPPUI Cookbook (wxWidgets)`,
+`CPPUI Cookbook (LVGL SDL2)` or `CPPUI Cookbook (LVGL X11)`.
 State Binding now uses an external getter/setter and shows the latest 100
 getter/setter/change messages in a scrollable in-app log on all backends.
 Table marks editable cells with `editable: ` while storing their raw values.

@@ -1,3 +1,8 @@
+2026-11-21
+    * Sync PUI 72fc666: keep Qt Divider thickness in crowded and scrolled boxes with a Fixed policy across the line
+    * Sync PUI b19d052: cookbook window titles and sidebar headings read CPPUI Cookbook (backend)
+    * LVGL Scroll: size a disabled axis with a 100% minimum like PUI, so a content-sized Scroll no longer collapses
+
 2026-11-12
     * Sync PUI cf16866: add flow grid two-pass auto-placement for Grid children; explicitly placed children reserve cells before auto-flow
     * Sync PUI e254e03: add icon parameter to Button on Qt and wx; LVGL accepts but does not render it
